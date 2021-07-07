@@ -2,9 +2,9 @@ resources:
   repositories:
   - repository: wire-ios-shared-resources
     type: github
-    name: wireapp/wire-ios-shared-resources
+    name: billypchan/wire-ios-shared-resources
     ref: refs/heads/master # Branch to fetch the jobs template from
-    endpoint: wireapp
+    endpoint: billypchan
 
 trigger:
   branches:

@@ -44,4 +44,4 @@ FRAMEWORK_VERSION = A
 // Linking
 //
 OTHER_LDFLAGS = -ObjC
-FRAMEWORK_SEARCH_PATHS = $(inherited) $(PROJECT_DIR)/Carthage/Build/iOS $(PLATFORM_DIR)/Developer/Library/Frameworks
+FRAMEWORK_SEARCH_PATHS = $(inherited) $(PROJECT_DIR)/Carthage/Build $(PLATFORM_DIR)/Developer/Library/Frameworks
