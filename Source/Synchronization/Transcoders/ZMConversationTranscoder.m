@@ -738,10 +738,20 @@ static NSString *const ConversationTeamManagedKey = @"managed";
     if (conversation.remoteIdentifier == nil) {
         return nil;
     }
-    
-    NSString *path = [NSString pathWithComponents:@[ConversationsPath, conversation.remoteIdentifier.transportString]];
-    ZMTransportRequest *request = [[ZMTransportRequest alloc] initWithPath:path method:ZMMethodGET payload:nil];
-    return request;
+
+    if (conversation.domain != nil) {
+        NSString *path = [NSString pathWithComponents:@[ConversationsPath,
+                                                        conversation.domain,
+                                                        conversation.remoteIdentifier.transportString]];
+        ZMTransportRequest *request = [[ZMTransportRequest alloc] initWithPath:path method:ZMMethodGET payload:nil];
+        return request;
+    } else {
+        NSString *path = [NSString pathWithComponents:@[ConversationsPath,
+                                                        conversation.remoteIdentifier.transportString]];
+        ZMTransportRequest *request = [[ZMTransportRequest alloc] initWithPath:path method:ZMMethodGET payload:nil];
+        return request;
+    }
+
 }
 
 - (void)updateObject:(ZMConversation *)conversation withResponse:(ZMTransportResponse *)response downstreamSync:(id<ZMObjectSync>)downstreamSync;
