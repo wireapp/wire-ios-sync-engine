@@ -1,2 +1,2 @@
-github "wireapp/wire-ios-mocktransport" ~> 129.1.0
-github "wireapp/wire-ios-testing" ~> 23.0.1
+github "wireapp/wire-ios-mocktransport" "feature/xcframework"
+github "wireapp/wire-ios-testing" "feature/xcframework"
