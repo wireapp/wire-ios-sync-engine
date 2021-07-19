@@ -20,13 +20,6 @@ import Foundation
 extension ZMUserSession.Configuration {
 
     static var defaultConfig: ZMUserSession.Configuration {
-        Self.init(
-            appLockConfig: .init(
-                isAvailable: true,
-                isForced: false,
-                timeout: 19,
-                requireCustomPasscode: false
-            )
-        )
+        Self.init(appLockConfig: nil)
     }
 }

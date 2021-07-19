@@ -31,9 +31,11 @@ class SessionManagerConfigurationTests: XCTestCase {
             "authenticateAfterReboot": false,
             "messageRetentionInterval": 3600,
             "encryptionAtRestEnabledByDefault": false,
-            "useBiometricsOrCustomPasscode": true,
-            "forceAppLock": true,
-            "appLockTimeout": 60
+            "legacyAppLockConfig": {
+                "isForced": true,
+                "timeout": 60,
+                "requireCustomPasscode": true
+            }
         }
         """
 
@@ -52,8 +54,8 @@ class SessionManagerConfigurationTests: XCTestCase {
         XCTAssertEqual(result.authenticateAfterReboot, false)
         XCTAssertEqual(result.failedPasswordThresholdBeforeWipe, nil)
         XCTAssertEqual(result.encryptionAtRestEnabledByDefault, false)
-        XCTAssertEqual(result.useBiometricsOrCustomPasscode, true)
-        XCTAssertEqual(result.forceAppLock, true)
-        XCTAssertEqual(result.appLockTimeout, 60)
+        XCTAssertEqual(result.legacyAppLockConfig?.isForced, true)
+        XCTAssertEqual(result.legacyAppLockConfig?.timeout, 60)
+        XCTAssertEqual(result.legacyAppLockConfig?.requireCustomPasscode, true)
     }
 }
