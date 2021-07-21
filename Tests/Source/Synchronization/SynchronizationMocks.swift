@@ -271,7 +271,8 @@ public class MockSyncStatus : SyncStatus {
     fileprivate(set) var failedToSend: [ZMMessage] = []
 }
 
-@objcMembers public class MockEventConsumer: NSObject, ZMEventConsumer {
+@objcMembers
+public class MockEventConsumer: NSObject, ZMEventConsumer {
     
     public var eventsProcessed: [ZMUpdateEvent] = []
     public var processEventsCalled: Bool = false
@@ -324,7 +325,8 @@ public class MockSyncStatus : SyncStatus {
     
 }
 
-@objcMembers public class MockRequestStrategy: NSObject, RequestStrategy {
+@objcMembers
+public class MockRequestStrategy: NSObject, RequestStrategy {
     
     
     public var mockRequestQueue: [ZMTransportRequest] = []
