@@ -533,6 +533,9 @@ extension ZMUserSession: ZMSyncStateDelegate {
         guard let team = ZMUser.selfUser(in: syncManagedObjectContext).team else { return }
         Feature.createDefaultInstanceIfNeeded(name: .appLock, team: team, context: syncManagedObjectContext)
         team.enqueueBackendRefresh(for: .appLock)
+
+        Feature.createDefaultInstanceIfNeeded(name: .fileSharing, team: team, context: syncManagedObjectContext)
+        team.enqueueBackendRefresh(for: .fileSharing)
     }
     
     func processEvents() {
