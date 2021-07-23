@@ -359,8 +359,8 @@ extension LocalNotificationDispatcherTests {
 
         let message = try! conversation.appendText(content: "text") as! ZMClientMessage
         
-        let reaction1 = GenericMessage(content: WireProtos.Reaction.createReaction(emoji: "❤️", messageID: message.nonce!))
-        let reaction2 = GenericMessage(content: WireProtos.Reaction.createReaction(emoji: "", messageID: message.nonce!))
+        let reaction1 = GenericMessage(content: ProtosReactionFactory.createReaction(emoji: "❤️", messageID: message.nonce!) as! MessageCapable)
+        let reaction2 = GenericMessage(content: ProtosReactionFactory.createReaction(emoji: "", messageID: message.nonce!) as! MessageCapable)
 
         let event1 = createUpdateEvent(UUID.create(), conversationID: conversation.remoteIdentifier!, genericMessage: reaction1, senderID: sender.remoteIdentifier!)
         let event2 = createUpdateEvent(UUID.create(), conversationID: conversation.remoteIdentifier!, genericMessage: reaction2, senderID: sender.remoteIdentifier!)
