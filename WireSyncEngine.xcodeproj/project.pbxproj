@@ -230,8 +230,6 @@
 		169BA24F25EF76A400374343 /* NetworkStateRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16085B341F719E6D000B9F22 /* NetworkStateRecorder.swift */; };
 		169BA25225EF778E00374343 /* TestUserProfileUpdateObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 169BA25125EF778E00374343 /* TestUserProfileUpdateObserver.swift */; };
 		169BA25325EF778E00374343 /* TestUserProfileUpdateObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 169BA25125EF778E00374343 /* TestUserProfileUpdateObserver.swift */; };
-		169BA25525EF78F200374343 /* ZMUserSession+DefaultConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 169BA25425EF78F200374343 /* ZMUserSession+DefaultConfiguration.swift */; };
-		169BA25625EF78F200374343 /* ZMUserSession+DefaultConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 169BA25425EF78F200374343 /* ZMUserSession+DefaultConfiguration.swift */; };
 		169BA25725EF933000374343 /* animated.gif in Resources */ = {isa = PBXBuildFile; fileRef = 54764B9D1C931E9400BD25E3 /* animated.gif */; };
 		169BA25825EF933000374343 /* not_animated.gif in Resources */ = {isa = PBXBuildFile; fileRef = 54764B9E1C931E9400BD25E3 /* not_animated.gif */; };
 		169BA25925EF933000374343 /* medium.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 54764B971C9303D600BD25E3 /* medium.jpg */; };
@@ -843,7 +841,6 @@
 		169BA24325EF6FFA00374343 /* MockAnalytics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockAnalytics.swift; sourceTree = "<group>"; };
 		169BA24B25EF753100374343 /* MockReachability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockReachability.swift; sourceTree = "<group>"; };
 		169BA25125EF778E00374343 /* TestUserProfileUpdateObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestUserProfileUpdateObserver.swift; sourceTree = "<group>"; };
-		169BA25425EF78F200374343 /* ZMUserSession+DefaultConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ZMUserSession+DefaultConfiguration.swift"; sourceTree = "<group>"; };
 		169BC10E22BD17FF0003159B /* LegalHoldRequestStrategyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalHoldRequestStrategyTests.swift; sourceTree = "<group>"; };
 		169E303120D29C200012C219 /* PushRegistryMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushRegistryMock.swift; sourceTree = "<group>"; };
 		169E55F52518FF810092CD53 /* EventProcessingPerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventProcessingPerformanceTests.swift; sourceTree = "<group>"; };
@@ -2459,7 +2456,6 @@
 				EEA2773C211DE4C9004AF00F /* UserNotificationCenterMock.swift */,
 				5E67168F2174CA6300522E61 /* MockUser+LoginCredentials.swift */,
 				169BA1FE25ED0DAD00374343 /* ZMUserSession+Messages.swift */,
-				169BA25425EF78F200374343 /* ZMUserSession+DefaultConfiguration.swift */,
 			);
 			path = Utility;
 			sourceTree = "<group>";
@@ -2961,7 +2957,6 @@
 				169BA1F225ECEB3300374343 /* MockMediaManager.swift in Sources */,
 				169BA23925ED103900374343 /* IntegrationTest+Messages.swift in Sources */,
 				169BA24D25EF753100374343 /* MockReachability.swift in Sources */,
-				169BA25625EF78F200374343 /* ZMUserSession+DefaultConfiguration.swift in Sources */,
 				169BA24F25EF76A400374343 /* NetworkStateRecorder.swift in Sources */,
 				169BA21D25ED0FAC00374343 /* ConversationTests+OTR.swift in Sources */,
 				169BA20125ED0EFE00374343 /* ZMUserSessionLegalHoldTests.swift in Sources */,
@@ -3072,7 +3067,6 @@
 				EEF4010323A8E1EF007B1A97 /* Conversation_RoleTests.swift in Sources */,
 				F96C8E821D7ECECF004B6D87 /* ZMLocalNotificationTests_Message.swift in Sources */,
 				EEA2773D211DE4C9004AF00F /* UserNotificationCenterMock.swift in Sources */,
-				169BA25525EF78F200374343 /* ZMUserSession+DefaultConfiguration.swift in Sources */,
 				0601900B2678750D0043F8F8 /* DeepLinkURLActionProcessorTests.swift in Sources */,
 				1645ED1B244DE345007A82D6 /* TeamMembersDownloadRequestStrategy.swift in Sources */,
 				549552541D645683004F21F6 /* AddressBookTests.swift in Sources */,
