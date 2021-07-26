@@ -28,7 +28,7 @@ public extension ZMUserSession {
         public let appLockConfig: AppLockController.LegacyConfig?
 
         // MARK: - Life cycle
-        public init(appLockConfig: AppLockController.LegacyConfig?) {
+        public init(appLockConfig: AppLockController.LegacyConfig? = nil) {
             self.appLockConfig = appLockConfig
         }
 
