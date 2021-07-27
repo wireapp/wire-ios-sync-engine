@@ -3683,7 +3683,6 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				INFOPLIST_FILE = "$(SRCROOT)/Tests/Resources/UnitTests-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.wire.WireSyncEngine-Test-Host";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/Tests/Source/Test-Bridging-Header.h";
@@ -3699,7 +3698,6 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				INFOPLIST_FILE = "$(SRCROOT)/Tests/Resources/UnitTests-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.wire.WireSyncEngine-Test-Host";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/Tests/Source/Test-Bridging-Header.h";
