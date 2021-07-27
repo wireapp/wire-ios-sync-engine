@@ -182,8 +182,6 @@ final class DummyServiceUser: NSObject, ServiceUser {
     var isTeamMember: Bool = false
     
     var hasDigitalSignatureEnabled: Bool = false
-
-    var canShareFiles: Bool = true
     
     var teamRole: TeamRole = .member
     
