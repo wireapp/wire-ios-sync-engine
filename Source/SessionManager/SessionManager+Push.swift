@@ -47,7 +47,7 @@ extension PKPushPayload {
 extension SessionManager: PKPushRegistryDelegate {
     
     public func pushRegistry(_ registry: PKPushRegistry, didUpdate pushCredentials: PKPushCredentials, for type: PKPushType) {
-        guard type == .voIP else { return }
+        //guard type == .voIP else { return }
         
         Logging.push.safePublic("PushKit token was updated: \(pushCredentials)")
         
@@ -58,7 +58,7 @@ extension SessionManager: PKPushRegistryDelegate {
     }
     
     public func pushRegistry(_ registry: PKPushRegistry, didInvalidatePushTokenFor type: PKPushType) {
-        guard type == .voIP else { return }
+        //guard type == .voIP else { return }
         
         Logging.push.safePublic("PushKit token was invalidated")
         
@@ -74,7 +74,7 @@ extension SessionManager: PKPushRegistryDelegate {
     
     public func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
         // We only care about voIP pushes, other types are not related to push notifications (watch complications and files)
-        guard type == .voIP else { return completion() }
+        //guard type == .voIP else { return completion() }
         
         Logging.push.safePublic("Received push payload: \(payload)")
         // We were given some time to run, resume background task creation.
