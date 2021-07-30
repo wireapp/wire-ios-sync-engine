@@ -78,6 +78,9 @@ final class MockUnauthenticatedSessionFactory: UnauthenticatedSessionFactory {
 
 
 extension IntegrationTest {
+    var sessionManagerConfiguration: SessionManagerConfiguration {
+        return SessionManagerConfiguration.defaultConfiguration
+    }
     
     static let SelfUserEmail = "myself@user.example.com"
     static let SelfUserPassword = "fgf0934';$@#%"
