@@ -1,4 +1,4 @@
 github "wireapp/avs-ios-binaries" "6.7.244_xcframework"
-github "wireapp/wire-ios-request-strategy" ~> 236.0.4
+github "wireapp/wire-ios-request-strategy" ~> 237.0.0
 github "wireapp/ZipArchive" "v2.2.3_xcframework"
 github "wireapp/libPhoneNumber-iOS" "0.9.3_xcframework"
