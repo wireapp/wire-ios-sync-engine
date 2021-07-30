@@ -54,11 +54,6 @@
     [super tearDown];
 }
 
-
-- (SessionManagerConfiguration *)sessionManagerConfiguration {
-    return [SessionManagerConfiguration defaultConfiguration];
-}
-
 - (BOOL)useInMemoryStore
 {
     return YES;
