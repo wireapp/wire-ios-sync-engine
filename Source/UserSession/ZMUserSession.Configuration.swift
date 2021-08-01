@@ -25,10 +25,10 @@ public extension ZMUserSession {
     final class Configuration: NSObject {
 
         // MARK: - Properties
-        public let appLockConfig: AppLockController.Config
+        public let appLockConfig: AppLockController.LegacyConfig?
 
         // MARK: - Life cycle
-        public init(appLockConfig: AppLockController.Config) {
+        public init(appLockConfig: AppLockController.LegacyConfig? = nil) {
             self.appLockConfig = appLockConfig
         }
 
