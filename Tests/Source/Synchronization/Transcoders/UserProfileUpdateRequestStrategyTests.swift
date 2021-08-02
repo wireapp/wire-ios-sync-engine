@@ -154,8 +154,9 @@ extension UserProfileUpdateRequestStrategyTests {
         let request = self.sut.nextRequest()
         
         // THEN
-        XCTAssertEqual(request?.path, "/self/email")
+        XCTAssertEqual(request?.path, "/access/self/email")
         XCTAssertEqual(request?.method, .methodPUT)
+        XCTAssertEqual(request?.needsCookie, true)
         let emailInPayload = request?.payload?.asDictionary()?["email"] as? String
         XCTAssertEqual(emailInPayload, newEmail)
     }

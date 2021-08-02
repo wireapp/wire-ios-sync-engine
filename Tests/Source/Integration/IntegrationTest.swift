@@ -40,7 +40,7 @@ final class MockAuthenticatedSessionFactory: AuthenticatedSessionFactory {
         )
     }
 
-    override func session(for account: Account, coreDataStack: CoreDataStack, configuration: ZMUserSession.Configuration = .defaultConfig) -> ZMUserSession? {
+    override func session(for account: Account, coreDataStack: CoreDataStack, configuration: ZMUserSession.Configuration = .init()) -> ZMUserSession? {
         return ZMUserSession(
             userId: account.userIdentifier,
             transportSession: transportSession,
@@ -78,6 +78,9 @@ final class MockUnauthenticatedSessionFactory: UnauthenticatedSessionFactory {
 
 
 extension IntegrationTest {
+    var sessionManagerConfiguration: SessionManagerConfiguration {
+        return SessionManagerConfiguration.defaultConfiguration
+    }
     
     static let SelfUserEmail = "myself@user.example.com"
     static let SelfUserPassword = "fgf0934';$@#%"
