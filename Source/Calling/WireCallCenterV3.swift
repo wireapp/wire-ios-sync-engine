@@ -413,9 +413,6 @@ extension WireCallCenterV3 {
                                      startedWithVideo: video,
                                      isConferenceCall: isConferenceCall(conversationId: conversationId))
 
-        if !video {
-            setVideoState(conversationId: conversationId, videoState: VideoState.stopped)
-        }
         let answered = avsWrapper.answerCall(conversationId: conversationId, callType: callType, useCBR: useConstantBitRateAudio)
         if answered {
             let callState : CallState = .answered(degraded: isDegraded(conversationId: conversationId))
@@ -424,10 +421,6 @@ extension WireCallCenterV3 {
             
             if previousSnapshot != nil {
                 callSnapshots[conversationId] = previousSnapshot!.update(with: callState)
-            }
-
-            if conversation.conversationType == .group {
-                muted = true
             }
 
             if let context = uiMOC, let callerId = initiatorForCall(conversationId: conversationId) {
