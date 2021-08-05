@@ -56,6 +56,11 @@ import Foundation
         case "iPhone12,1":                              return "iPhone 11"
         case "iPhone12,3":                              return "iPhone 11 Pro"
         case "iPhone12,5":                              return "iPhone 11 Pro Max"
+        case "iPhone12,8":                              return "iPhone SE 2nd Gen"
+        case "iPhone13,1":                              return "iPhone 12 Mini"
+        case "iPhone13,2":                              return "iPhone 12"
+        case "iPhone13,3":                              return "iPhone 12 Pro"
+        case "iPhone13,4":                              return "iPhone 12 Pro Max"
         case "iPad2,1", "iPad2,2", "iPad2,3", "iPad2,4":return "iPad 2"
         case "iPad3,1", "iPad3,2", "iPad3,3":           return "iPad 3"
         case "iPad3,4", "iPad3,5", "iPad3,6":           return "iPad 4"
@@ -74,7 +79,10 @@ import Foundation
         case "iPad8,1", "iPad8,2", "iPad8,3", "iPad8,4":return "iPad Pro (11-inch)"
         case "iPad8,5", "iPad8,6", "iPad8,7", "iPad8,8":return "iPad Pro (12.9-inch)"
         case "iPad11,3", "iPad11,4":                    return "iPad Air 3"
-        case "AppleTV5,3":                              return "Apple TV"
+        case "iPad11,6", "iPad11,7":                    return "iPad 8th Gen"
+        case "iPad13,1", "iPad13,2":                    return "iPad air 4th Gen"
+        case "iPad13,4","iPad13,5","iPad13,6", "iPad13,7":     return "iPad Pro 11 inch 3rd Gen"
+        case "iPad13,8","iPad13,9","iPad13,10","iPad13,11":    return "iPad Pro 12.9 inch 5th Gen"
         case "i386", "x86_64":                          return "Simulator"
         default:                                        return identifier
         }
