@@ -184,7 +184,7 @@ public final class SessionManager : NSObject, SessionManagerType {
     }
 
     /// Maximum number of accounts which can be logged in simultanously
-    public static let maxNumberAccounts = 3
+    public static let maxNumberAccounts = 1
     
     public let appVersion: String
     var isAppVersionBlacklisted = false
@@ -268,6 +268,16 @@ public final class SessionManager : NSObject, SessionManagerType {
         fatal("init() not implemented")
     }
     
+    /// <#Description#>
+    /// - Parameters:
+    ///   - appVersion: <#appVersion description#>
+    ///   - mediaManager: <#mediaManager description#>
+    ///   - analytics: <#analytics description#>
+    ///   - delegate: <#delegate description#>
+    ///   - application: <#application description#>
+    ///   - environment: <#environment description#>
+    ///   - configuration: <#configuration description#>
+    ///   - detector: <#detector description#>
     public convenience init(
         appVersion: String,
         mediaManager: MediaManagerType,
@@ -753,7 +763,7 @@ public final class SessionManager : NSObject, SessionManagerType {
 
     // Creates the user session for @c account given, calls @c completion when done.
     private func startBackgroundSession(for account: Account, with coreDataStack: CoreDataStack) -> ZMUserSession {
-        let sessionConfig = ZMUserSession.Configuration(appLockConfig: configuration.appLockConfig)
+        let sessionConfig = ZMUserSession.Configuration(appLockConfig: configuration.legacyAppLockConfig)
 
         guard let newSession = authenticatedSessionFactory.session(for: account,
                                                                    coreDataStack: coreDataStack,

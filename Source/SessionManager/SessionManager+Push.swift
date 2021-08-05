@@ -140,8 +140,30 @@ extension SessionManager: PKPushRegistryDelegate {
         guard (application as? NotificationSettingsRegistrable)?.shouldRegisterUserNotificationSettings ?? true else { return }
         notificationCenter.setNotificationCategories(PushNotificationCategory.allCategories)
         notificationCenter.requestAuthorization(options: [.alert, .badge, .sound], completionHandler: { _, _ in })
+        notificationCenter.requestAuthorization(options: [.alert, .badge, .sound], completionHandler: { _, _ in })
+        { granted,error in
+            
+            if error != nil { return }
+            
+            if granted {
+                DispatchQueue.main.async {
+                    UIApplication.shared.registerForRemoteNotifications()
+                }
+            }
+        }
+        
         notificationCenter.delegate = self
     }
+    
+    // Push通知のToken取得
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken token: Data) {
+        let deviceToken = token.map { String(format: "%02x", $0) }.joined()
+        print("\n\n\n\n\n\n\n\n=======================================================================\n\n\n\n\n\n\n\n")
+        print("didRegisterForRemoteNotificationsWithDeviceToken:" + deviceToken)
+    }
+    // Push通知のToken取得失敗
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {}
+
     
     public func updatePushToken(for session: ZMUserSession) {
         session.managedObjectContext.performGroupedBlock { [weak session] in
