@@ -231,7 +231,7 @@ public class ZMUserSession: NSObject {
         self.topConversationsDirectory = TopConversationsDirectory(managedObjectContext: coreDataStack.viewContext)
         self.debugCommands = ZMUserSession.initDebugCommands()
         self.hotFix = ZMHotFix(syncMOC: coreDataStack.syncContext)
-        self.appLockController = AppLockController(userId: userId, config: configuration.appLockConfig, selfUser: ZMUser.selfUser(in: coreDataStack.viewContext))
+        self.appLockController = AppLockController(userId: userId, selfUser: .selfUser(in: coreDataStack.viewContext), legacyConfig: configuration.appLockConfig)
         super.init()
 
         appLockController.delegate = self
@@ -528,11 +528,11 @@ extension ZMUserSession: ZMSyncStateDelegate {
             self?.notifyThirdPartyServices()
         }
 
-        // TODO: [John] This is a tempory solution until we add support for slow syncing
-        // team features and config update events.
-        guard let team = ZMUser.selfUser(in: syncManagedObjectContext).team else { return }
-        Feature.createDefaultInstanceIfNeeded(name: .appLock, team: team, context: syncManagedObjectContext)
-        team.enqueueBackendRefresh(for: .appLock)
+        syncContext.performGroupedBlock {
+            let featureService = FeatureService(context: self.syncContext)
+            featureService.enqueueBackendRefresh(for: .appLock)
+        }
+
     }
     
     func processEvents() {

@@ -27,6 +27,7 @@ public class MockAVSWrapper : AVSWrapperType {
     public var startCallArguments: (uuid: UUID, callType: AVSCallType, conversationType: AVSConversationType, useCBR: Bool)?
     public var answerCallArguments: (uuid: UUID, callType: AVSCallType, useCBR: Bool)?
     public var setVideoStateArguments: (uuid: UUID, videoState: VideoState)?
+    public var requestVideoStreamsArguments: (uuid: UUID, videoStreams: AVSVideoStreams)?
     public var didCallEndCall = false
     public var didCallRejectCall = false
     public var didCallClose = false
@@ -35,9 +36,9 @@ public class MockAVSWrapper : AVSWrapperType {
     public var didUpdateCallConfig = false
     public var callError: CallError?
     public var hasOngoingCall = false
-    public var mockMembers : [AVSCallMember] = []
-    
-    var receivedCallEvents : [CallEvent] = []
+    public var mockMembers: [AVSCallMember] = []
+
+    var receivedCallEvents: [CallEvent] = []
     
     public required init(userId: UUID, clientId: String, observer: UnsafeMutableRawPointer?) {
         // do nothing
@@ -86,6 +87,11 @@ public class MockAVSWrapper : AVSWrapperType {
     public func update(callConfig: String?, httpStatusCode: Int) {
         didUpdateCallConfig = true
     }
+
+    public func requestVideoStreams(_ videoStreams: AVSVideoStreams, conversationId: UUID) {
+        requestVideoStreamsArguments = (conversationId, videoStreams)
+    }
+
 }
 
 final class WireCallCenterV3IntegrationMock : WireCallCenterV3 {

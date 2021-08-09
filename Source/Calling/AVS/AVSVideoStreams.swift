@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2020 Wire Swiss GmbH
+// Copyright (C) 2021 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,20 +18,12 @@
 
 import Foundation
 
-public extension ZMUserSession {
+public struct AVSVideoStreams: Codable, Equatable {
+    let conversationId: String
+    let clients: [AVSClient]
 
-    /// An object used to configure a user session.
-
-    final class Configuration: NSObject {
-
-        // MARK: - Properties
-        public let appLockConfig: AppLockController.LegacyConfig?
-
-        // MARK: - Life cycle
-        public init(appLockConfig: AppLockController.LegacyConfig? = nil) {
-            self.appLockConfig = appLockConfig
-        }
-
+    enum CodingKeys: String, CodingKey {
+        case conversationId = "convid"
+        case clients
     }
-
 }

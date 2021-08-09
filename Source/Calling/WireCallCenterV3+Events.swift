@@ -253,7 +253,7 @@ extension WireCallCenterV3 {
             //}
 
             do {
-                let change = try JSONDecoder().decode(AVSParticipantsChange.self, from: data)
+                let change = try self.decoder.decode(AVSParticipantsChange.self, from: data)
                 let members = change.members.map(AVSCallMember.init)
                 self.callParticipantsChanged(conversationId: change.convid, participants: members)
             } catch {
@@ -306,10 +306,10 @@ extension WireCallCenterV3 {
     }
 
     func handleClientsRequest(conversationId: UUID, completion: @escaping (_ clients: String) -> Void) {
-        handleEventInContext("request-clients") { context in
+        handleEventInContext("request-clients") { [encoder] context in
             self.transport?.requestClientsList(conversationId: conversationId) { clients in
 
-                guard let json = AVSClientList(clients: clients).json else {
+                guard let json = AVSClientList(clients: clients).jsonString(encoder) else {
                     zmLog.error("Could not encode client list to JSON")
                     return
                 }
@@ -345,7 +345,7 @@ extension WireCallCenterV3 {
             //}
             
             do {
-                let change = try JSONDecoder().decode(AVSActiveSpeakersChange.self, from: data)
+                let change = try self.decoder.decode(AVSActiveSpeakersChange.self, from: data)
                 if let call = self.callSnapshots[conversationId] {
                     self.callSnapshots[conversationId] = call.updateActiveSpeakers(change.activeSpeakers)
                     WireCallCenterActiveSpeakersNotification().post(in: $0.notificationContext)

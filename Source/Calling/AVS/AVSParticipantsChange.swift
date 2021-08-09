@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2020 Wire Swiss GmbH
+// Copyright (C) 2021 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,20 +18,17 @@
 
 import Foundation
 
-public extension ZMUserSession {
+public struct AVSParticipantsChange: Codable {
 
-    /// An object used to configure a user session.
+    let convid: UUID
+    let members: [Member]
 
-    final class Configuration: NSObject {
+    public struct Member: Codable {
 
-        // MARK: - Properties
-        public let appLockConfig: AppLockController.LegacyConfig?
-
-        // MARK: - Life cycle
-        public init(appLockConfig: AppLockController.LegacyConfig? = nil) {
-            self.appLockConfig = appLockConfig
-        }
-
+        let userid: UUID
+        let clientid: String
+        let aestab: AudioState
+        let vrecv: VideoState
+        let muted: MicrophoneState
     }
-
 }
