@@ -69,6 +69,16 @@ struct WireCallCenterMutedNotification : SelfPostingNotification {
     public let muted: Bool
 }
 
+// MARK: - Conference calling unavailable observer
+
+public protocol ConferenceCallingUnavailableObserver: class {
+    func callCenterDidNotStartConferenceCall()
+}
+
+struct WireCallCenterConferenceCallingUnavailableNotification: SelfPostingNotification {
+    static let notificationName: Notification.Name = Notification.Name("WireCallCenterConferenceCallingUnavailableNotification")
+}
+
 // MARK:- Active speakers observer
 
 public protocol ActiveSpeakersObserver : class {
@@ -385,6 +395,16 @@ extension WireCallCenterV3 {
             context: context.notificationContext) { [weak observer] _ in
                 observer?.callCenterDidChangeActiveSpeakers()
         }
+    }
+
+    /// Add an observer for conference calling unavailable events.
+    ///
+    /// - Returns: A token which needs to be retained as long as the observer should be active.
+
+    public class func addConferenceCallingUnavailableObserver(observer: ConferenceCallingUnavailableObserver, userSession: ZMUserSession) -> Any {
+        return NotificationInContext.addObserver(name: WireCallCenterConferenceCallingUnavailableNotification.notificationName,
+                                                 context: userSession.managedObjectContext.notificationContext,
+                                                 using: { [weak observer] _ in observer?.callCenterDidNotStartConferenceCall() })
     }
 
 }

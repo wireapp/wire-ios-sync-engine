@@ -89,6 +89,8 @@ public class ZMUserSession: NSObject {
     let eventProcessingTracker: EventProcessingTracker = EventProcessingTracker()
     let hotFix: ZMHotFix
 
+    public lazy var featureService = FeatureService(context: syncContext)
+
     public var appLockController: AppLockType
     
     public var hasCompletedInitialSync: Bool = false
@@ -528,11 +530,8 @@ extension ZMUserSession: ZMSyncStateDelegate {
             self?.notifyThirdPartyServices()
         }
 
-        syncContext.performGroupedBlock {
-            let featureService = FeatureService(context: self.syncContext)
-            featureService.enqueueBackendRefresh(for: .appLock)
-        }
-
+        featureService.enqueueBackendRefresh(for: .appLock)
+        featureService.enqueueBackendRefresh(for: .conferenceCalling)
     }
     
     func processEvents() {
