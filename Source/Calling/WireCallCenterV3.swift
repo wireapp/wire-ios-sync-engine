@@ -102,6 +102,9 @@ public class WireCallCenterV3: NSObject {
     /// once, but we may need to provide AVS with an updated list during the call.
     var clientsRequestCompletionsByConversationId = [UUID: (String) -> Void]()
 
+    let encoder = JSONEncoder()
+    let decoder = JSONDecoder()
+
     // MARK: - Initialization
     
     deinit {
@@ -565,6 +568,15 @@ extension WireCallCenterV3 {
         if let snapshot = callSnapshots[conversationId] {
             callSnapshots[conversationId] = snapshot.updateVideoGridPresentationMode(presentationMode)
         }
+    }
+
+    /// Requests AVS to load video streams for the given clients list
+    /// - Parameters:
+    ///   - conversationId: The identifier of the conversation where the video call is hosted.
+    ///   - clients: The list of clients for which AVS should load video streams.
+    public func requestVideoStreams(conversationId: UUID, clients: [AVSClient]) {
+        let videoStreams = AVSVideoStreams(conversationId: conversationId.transportString(), clients: clients)
+        avsWrapper.requestVideoStreams(videoStreams, conversationId: conversationId)
     }
 
     private func callType(for conversation: ZMConversation, startedWithVideo: Bool, isConferenceCall: Bool) -> AVSCallType {

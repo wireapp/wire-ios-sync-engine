@@ -16,9 +16,10 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-#include "warnings.xcconfig"
-#include "../../../Carthage/Checkouts/wire-ios-system/Resources/Configurations/zmc-config/ios.xcconfig"
-#include "../version.xcconfig"
+import Foundation
 
-// info.plist
-INFOPLIST_PREPROCESS = YES
+struct AVSClientList: Codable {
+
+    let clients: [AVSClient]
+
+}

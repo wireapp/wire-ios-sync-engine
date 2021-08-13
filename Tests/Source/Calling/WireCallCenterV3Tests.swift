@@ -1452,6 +1452,30 @@ extension WireCallCenterV3Tests {
     }
 }
 
+// MARK: - Request Video Streams
+extension WireCallCenterV3Tests {
+    func testThatRequestVideoStreams_SendsCorrectParameters() {
+        // given
+        let clientId1 = UUID().transportString()
+        let clientId2 = UUID().transportString()
+        let conversationId = groupConversationID!
+        let clients = [
+            AVSClient(userId: selfUserID, clientId: clientId1),
+            AVSClient(userId: otherUserID, clientId: clientId2)
+        ]
+
+        let expectedResult = AVSVideoStreams(conversationId: conversationId.transportString(), clients: clients)
+
+        // when
+        sut.requestVideoStreams(conversationId: conversationId, clients: clients)
+
+        // then
+        XCTAssertNotNil(mockAVSWrapper.requestVideoStreamsArguments)
+        XCTAssertEqual(mockAVSWrapper.requestVideoStreamsArguments?.uuid, conversationId)
+        XCTAssertEqual(mockAVSWrapper.requestVideoStreamsArguments?.videoStreams, expectedResult)
+    }
+}
+
 private extension AVSClient {
     static var mockClient: AVSClient {
         return AVSClient(userId: UUID(), clientId: UUID().transportString())

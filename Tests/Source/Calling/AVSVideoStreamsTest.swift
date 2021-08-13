@@ -15,18 +15,33 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
+
 import Foundation
+import XCTest
+@testable import WireSyncEngine
 
-extension ZMUserSession.Configuration {
+class AVSVideoStreamsTest: XCTestCase {
+    func testThatJSONStringValue_ConformsToAVSAPI() {
+        // given
+        let conversationId = UUID()
+        let userId = UUID()
+        let clientId = UUID()
 
-    static var defaultConfig: ZMUserSession.Configuration {
-        Self.init(
-            appLockConfig: .init(
-                isAvailable: true,
-                isForced: false,
-                timeout: 19,
-                requireCustomPasscode: false
-            )
-        )
+        let client = AVSClient(userId: userId, clientId: clientId.transportString())
+
+        let expectedJson = """
+        {\
+        "convid":"\(conversationId.transportString())",\
+        "clients":[\
+        \(client.jsonString()!)\
+        ]\
+        }
+        """
+
+        // when
+        let sut = AVSVideoStreams(conversationId: conversationId.transportString(), clients: [client])
+
+        // then
+        XCTAssertEqual(sut.jsonString(), expectedJson)
     }
 }

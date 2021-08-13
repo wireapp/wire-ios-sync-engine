@@ -16,13 +16,19 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-@testable import WireSyncEngine
+import Foundation
 
-extension UserChangeInfo {
-    @objc(addObserver:forUser:inUserSession:)
-    public static func add(observer: ZMUserObserver,
-                           user: UserType,
-                           userSession: ZMUserSession) -> NSObjectProtocol? {
-        return add(observer: observer, for: user, in: userSession.managedObjectContext)
-    }    
+public struct AVSParticipantsChange: Codable {
+
+    let convid: UUID
+    let members: [Member]
+
+    public struct Member: Codable {
+
+        let userid: UUID
+        let clientid: String
+        let aestab: AudioState
+        let vrecv: VideoState
+        let muted: MicrophoneState
+    }
 }

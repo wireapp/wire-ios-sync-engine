@@ -175,7 +175,6 @@ public protocol ForegroundNotificationResponder: class {
 /// +----------------------------------------+
 ///
 
-
 @objcMembers
 public final class SessionManager : NSObject, SessionManagerType {
     
@@ -753,7 +752,7 @@ public final class SessionManager : NSObject, SessionManagerType {
 
     // Creates the user session for @c account given, calls @c completion when done.
     private func startBackgroundSession(for account: Account, with coreDataStack: CoreDataStack) -> ZMUserSession {
-        let sessionConfig = ZMUserSession.Configuration(appLockConfig: configuration.appLockConfig)
+        let sessionConfig = ZMUserSession.Configuration(appLockConfig: configuration.legacyAppLockConfig)
 
         guard let newSession = authenticatedSessionFactory.session(for: account,
                                                                    coreDataStack: coreDataStack,

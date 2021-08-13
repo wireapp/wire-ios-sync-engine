@@ -16,9 +16,11 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-#include "warnings.xcconfig"
-#include "../../../Carthage/Checkouts/wire-ios-system/Resources/Configurations/zmc-config/ios.xcconfig"
-#include "../version.xcconfig"
+import Foundation
 
-// info.plist
-INFOPLIST_PREPROCESS = YES
+extension Encodable {
+    func jsonString(_ encoder: JSONEncoder = JSONEncoder()) -> String? {
+        guard let data = try? encoder.encode(self) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+}

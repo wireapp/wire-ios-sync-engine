@@ -33,7 +33,6 @@
 @class SearchDirectory;
 @class PushRegistryMock;
 @class UserNotificationCenterMock;
-@class SessionManagerConfiguration;
 @class MockJailbreakDetector;
 @class MockEnvironment;
 @class MockMediaManager;
@@ -55,7 +54,6 @@
 @property (nonatomic, readonly) BOOL useRealKeychain;
 @property (nonatomic, nullable) SearchDirectory *sharedSearchDirectory;
 @property (nonatomic, nullable) UserNotificationCenterMock *notificationCenter;
-@property (nonatomic, readonly, nonnull) SessionManagerConfiguration *sessionManagerConfiguration;
 @property (nonatomic, nullable) MockJailbreakDetector *jailbreakDetector;
 @property (nonatomic, nullable) MockLoginDelegate *mockLoginDelegete;
 
