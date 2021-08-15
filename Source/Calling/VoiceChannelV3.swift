@@ -204,7 +204,12 @@ extension VoiceChannelV3 : CallActions {
             completion?()
         }
     }
-    
+
+    public func request(videoStreams: [AVSClient]) {
+        guard let remoteIdentifier = conversation?.remoteIdentifier else { return }
+
+        callCenter?.requestVideoStreams(conversationId: remoteIdentifier, clients: videoStreams)
+    }
 }
 
 extension VoiceChannelV3 : CallActionsInternal {

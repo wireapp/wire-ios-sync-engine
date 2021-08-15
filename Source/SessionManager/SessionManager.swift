@@ -175,7 +175,6 @@ public protocol ForegroundNotificationResponder: class {
 /// +----------------------------------------+
 ///
 
-
 @objcMembers
 public final class SessionManager : NSObject, SessionManagerType {
     

@@ -145,7 +145,7 @@ public class UserProfileRequestStrategy : AbstractRequestStrategy, ZMSingleReque
             let payload : NSDictionary = [
                 "email" : self.userProfileUpdateStatus.emailToSet!
             ]
-            return ZMTransportRequest(path: "/self/email", method: .methodPUT, payload: payload)
+            return ZMTransportRequest(path: "/access/self/email", method: .methodPUT, payload: payload, authentication: .needsCookieAndAccessToken)
             
         case self.handleCheckSync:
             let handle = self.userProfileUpdateStatus.handleToCheck!

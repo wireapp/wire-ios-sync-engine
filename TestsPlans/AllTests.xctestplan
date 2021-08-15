@@ -51,7 +51,8 @@
         "AnalyticsTests",
         "AvailabilityTests",
         "EventProcessingPerformanceTests",
-        "SessionManagerTests\/testThatSessionManagerSetsUpAPNSEnvironmentOnLaunch()"
+        "SessionManagerTests\/testThatSessionManagerSetsUpAPNSEnvironmentOnLaunch()",
+        "ZMMissingUpdateEventsTranscoderTests"
       ],
       "target" : {
         "containerPath" : "container:WireSyncEngine.xcodeproj",

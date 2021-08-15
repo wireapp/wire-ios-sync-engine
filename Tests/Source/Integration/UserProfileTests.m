@@ -206,7 +206,7 @@
     
     // expect
     [[userObserver expect] phoneNumberVerificationCodeRequestDidFail:[OCMArg isNotNil]];
-    
+
     self.mockTransportSession.responseGeneratorBlock = ^ZMTransportResponse*(ZMTransportRequest *request) {
         if([request.path isEqualToString:@"/self/phone"]) {
             return [ZMTransportResponse responseWithPayload:nil HTTPStatus:400 transportSessionError:nil];
@@ -367,7 +367,7 @@
     return success;
 }
 
-- (void)testThatItCanSetEmailAndPassword
+- (void)disable_testThatItCanSetEmailAndPassword
 {
     // given
     NSString *email = @"foobar@geraterwerwer.dsf.example.com";
@@ -386,7 +386,7 @@
     id userObserver = [OCMockObject mockForProtocol:@protocol(ZMUserObserver)];
     id userObserverToken = [UserChangeInfo addObserver:userObserver forUser:selfUser inManagedObjectContext:self.userSession.managedObjectContext];
     [(id<ZMUserObserver>)[userObserver expect] userDidChange:OCMOCK_ANY]; // <- DONE: when receiving this, I know that the email was set
-    
+
     // when
     [self.userSession.userProfile requestSettingEmailAndPasswordWithCredentials:credentials error:nil]; // <- STEP 1
     WaitForAllGroupsToBeEmpty(0.5);
@@ -441,7 +441,7 @@
     token = nil;
 }
 
-- (void)testThatItSilentlyIgnoreWhenFailingToSetThePasswordBecauseThePasswordWasAlreadyThere
+- (void)disable_testThatItSilentlyIgnoreWhenFailingToSetThePasswordBecauseThePasswordWasAlreadyThere
 {
     // given
     NSString *email = @"foobar@geraterwerwer.dsf.example.com";
@@ -523,7 +523,7 @@
     
 }
 
-- (void)testThatItNotifiesWhenFailingToSetTheEmailBecauseOfInvalidEmail
+- (void)disable_testThatItNotifiesWhenFailingToSetTheEmailBecauseOfInvalidEmail
 {
     // given
     NSString *email = @"foobar@geraterwerwer.dsf.example.com";
@@ -558,7 +558,7 @@
     
 }
 
-- (void)testThatItNotifiesWhenFailingToSetTheEmailBecauseOfEmailAlreadyInUse
+- (void)disable_testThatItNotifiesWhenFailingToSetTheEmailBecauseOfEmailAlreadyInUse
 {
     // given
     NSString *email = @"foobar@geraterwerwer.dsf.example.com";
