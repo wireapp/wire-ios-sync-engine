@@ -19,32 +19,6 @@
 import Foundation
 import avs
 
-public struct AVSParticipantsChange: Codable {
-
-    let convid: UUID
-    let members: [Member]
-
-    public struct Member: Codable {
-
-        let userid: UUID
-        let clientid: String
-        let aestab: AudioState
-        let vrecv: VideoState
-        let muted: MicrophoneState
-    }
-}
-
-extension AVSCallMember {
-
-    init(member: AVSParticipantsChange.Member) {
-        client = AVSClient(userId: member.userid, clientId: member.clientid)
-        audioState = member.aestab
-        videoState = member.vrecv
-        microphoneState = member.muted
-        networkQuality = .normal
-    }
-}
-
 /**
  * An object that represents the member of an AVS call.
  */
@@ -115,51 +89,13 @@ public struct AVSCallMember: Hashable {
     }
 }
 
+extension AVSCallMember {
 
-/// Used to identify a participant in a call.
-
-public struct AVSClient: Hashable {
-
-    public let userId: UUID
-    public let clientId: String
-
-    public init(userId: UUID, clientId: String) {
-        self.userId = userId
-        self.clientId = clientId
+    init(member: AVSParticipantsChange.Member) {
+        client = AVSClient(userId: member.userid, clientId: member.clientid)
+        audioState = member.aestab
+        videoState = member.vrecv
+        microphoneState = member.muted
+        networkQuality = .normal
     }
-
-    init?(userClient: UserClient) {
-        guard
-            let userId = userClient.user?.remoteIdentifier,
-            let clientId = userClient.remoteIdentifier
-        else {
-            return nil
-        }
-
-        self.init(userId: userId, clientId: clientId)
-    }
-
-}
-
-extension AVSClient: Codable {
-
-    enum CodingKeys: String, CodingKey {
-        
-        case userId = "userid"
-        case clientId = "clientid"
-
-    }
-
-}
-
-
-struct AVSClientList: Codable {
-
-    let clients: [AVSClient]
-
-    var json: String? {
-        guard let data = try? JSONEncoder().encode(self) else { return nil }
-        return String(data: data, encoding: .utf8)
-    }
-
 }

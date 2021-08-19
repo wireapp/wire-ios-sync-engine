@@ -191,7 +191,7 @@ extension UserProfileUpdateRequestStrategyTests {
         let request = self.sut.nextRequest()
         
         // THEN
-        let expected = ZMTransportRequest(path: "/self/email", method: .methodPUT, payload: [
+        let expected = ZMTransportRequest(path: "/access/self/email", method: .methodPUT, payload: [
             "email":credentials.email!
             ] as NSDictionary)
         XCTAssertEqual(request, expected)
