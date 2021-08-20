@@ -90,6 +90,10 @@ public class ZMUserSession: NSObject {
     let hotFix: ZMHotFix
 
     public var appLockController: AppLockType
+    public var fileSharingFeature: Feature.FileSharing {
+        let featureService = FeatureService(context: coreDataStack.viewContext)
+        return featureService.fetchFileSharing()
+    }
     
     public var hasCompletedInitialSync: Bool = false
     
@@ -531,6 +535,7 @@ extension ZMUserSession: ZMSyncStateDelegate {
         syncContext.performGroupedBlock {
             let featureService = FeatureService(context: self.syncContext)
             featureService.enqueueBackendRefresh(for: .appLock)
+            featureService.enqueueBackendRefresh(for: .fileSharing)
         }
 
     }
