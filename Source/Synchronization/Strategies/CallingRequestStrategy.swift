@@ -21,7 +21,7 @@ import WireRequestStrategy
 import WireDataModel
 
 @objcMembers
-public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequestTranscoder, ZMContextChangeTracker, ZMContextChangeTrackerSource, ZMEventConsumer {
+public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequestTranscoder, ZMContextChangeTracker, ZMContextChangeTrackerSource, ZMEventConsumer, FederationAware {
 
     // MARK: - Private Properties
     
@@ -40,6 +40,17 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
     private var clientDiscoveryRequest: ClientDiscoveryRequest?
 
     private let ephemeralURLSession = URLSession(configuration: .ephemeral)
+
+    // MARK: - Public Properties
+
+    public var useFederationEndpoint: Bool {
+        set {
+            messageSync.isFederationEndpointAvailable = newValue
+        }
+        get {
+            messageSync.isFederationEndpointAvailable
+        }
+    }
 
     // MARK: - Init
     

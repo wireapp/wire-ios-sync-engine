@@ -247,7 +247,7 @@ public class ZMUserSession: NSObject {
             self.configureTransportSession()
             self.applicationStatusDirectory = self.createApplicationStatusDirectory()
             self.updateEventProcessor = eventProcessor ?? self.createUpdateEventProcessor()
-            self.strategyDirectory = strategyDirectory ?? self.createStrategyDirectory()
+            self.strategyDirectory = strategyDirectory ?? self.createStrategyDirectory(supportFederation: configuration.supportFederation)
             self.syncStrategy = syncStrategy ?? self.createSyncStrategy()
             self.operationLoop = operationLoop ?? self.createOperationLoop()
             self.urlActionProcessors = self.createURLActionProcessors()
@@ -294,14 +294,15 @@ public class ZMUserSession: NSObject {
 
     }
     
-    private func createStrategyDirectory() -> StrategyDirectoryProtocol {
+    private func createStrategyDirectory(supportFederation: Bool) -> StrategyDirectoryProtocol {
         return StrategyDirectory(contextProvider: coreDataStack,
                                  applicationStatusDirectory: applicationStatusDirectory!,
                                  cookieStorage: transportSession.cookieStorage,
                                  pushMessageHandler: localNotificationDispatcher!,
                                  flowManager: flowManager,
                                  updateEventProcessor: updateEventProcessor!,
-                                 localNotificationDispatcher: localNotificationDispatcher!)
+                                 localNotificationDispatcher: localNotificationDispatcher!,
+                                 supportFederation: supportFederation)
     }
     
     private func createUpdateEventProcessor() -> EventProcessor {

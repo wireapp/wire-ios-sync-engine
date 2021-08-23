@@ -26,7 +26,7 @@ extern NSString * const ConversationsPath;
 @class ZMAuthenticationStatus;
 @class SyncStatus;
 
-@interface ZMConversationTranscoder : ZMAbstractRequestStrategy <ZMObjectStrategy>
+@interface ZMConversationTranscoder : ZMAbstractRequestStrategy <ZMObjectStrategy, FederationAware>
 
 - (instancetype)initWithManagedObjectContext:(NSManagedObjectContext *)moc applicationStatus:(id<ZMApplicationStatus>)applicationStatus NS_UNAVAILABLE;
 
