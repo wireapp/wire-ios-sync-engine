@@ -76,6 +76,8 @@ static NSString *const ConversationTeamManagedKey = @"managed";
 
 @implementation ZMConversationTranscoder
 
+@synthesize useFederationEndpoint;
+
 - (instancetype)initWithManagedObjectContext:(NSManagedObjectContext *)moc applicationStatus:(id<ZMApplicationStatus>)applicationStatus;
 {
     Require(NO);
@@ -488,8 +490,6 @@ static NSString *const ConversationTeamManagedKey = @"managed";
     [conversation removeParticipantsAndUpdateConversationStateWithUsers:removedUsers initiatingUser:sender];
 }
 
-
-
 @end
 
 @implementation ZMConversationTranscoder (UpstreamTranscoder)
@@ -555,7 +555,7 @@ static NSString *const ConversationTeamManagedKey = @"managed";
         return user.domain != nil;
     }].count == insertedConversation.localParticipantsExcludingSelf.count;
 
-    if (hasQualifiedUsers) {
+    if (hasQualifiedUsers && self.useFederationEndpoint) {
         NSArray *qualifiedParticipantUUIDs = [[insertedConversation.localParticipantsExcludingSelf allObjects] mapWithBlock:^id(ZMUser *user) {
             return @{
                 @"id": user.remoteIdentifier.transportString,
