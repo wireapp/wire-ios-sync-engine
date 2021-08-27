@@ -80,7 +80,6 @@
 		1658C2371F503CF800889F22 /* FlowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1658C2361F503CF800889F22 /* FlowManager.swift */; };
 		1658C23A1F5404F000889F22 /* FlowManagerMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1658C2381F5404ED00889F22 /* FlowManagerMock.swift */; };
 		1658E91D26C53FDB003D0090 /* Starscream.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1658E91C26C53FDB003D0090 /* Starscream.xcframework */; };
-		1658E91E26C53FDB003D0090 /* Starscream.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1658E91C26C53FDB003D0090 /* Starscream.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		1659114F1DEF1F6E007FA847 /* LocalNotificationDispatcher+Calling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1659114E1DEF1F6E007FA847 /* LocalNotificationDispatcher+Calling.swift */; };
 		165911531DEF38EC007FA847 /* CallStateObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 165911521DEF38EC007FA847 /* CallStateObserver.swift */; };
 		165BB94C2004D6490077EFD5 /* SessionManager+UserActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 165BB94B2004D6490077EFD5 /* SessionManager+UserActivity.swift */; };
@@ -688,20 +687,6 @@
 			remoteInfo = "WireSyncEngine Test Host";
 		};
 /* End PBXContainerItemProxy section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-		1658E91F26C53FDC003D0090 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				1658E91E26C53FDB003D0090 /* Starscream.xcframework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		068E655924C8223400403926 /* LocalNotificationContentTypeTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalNotificationContentTypeTest.swift; sourceTree = "<group>"; };
@@ -2805,7 +2790,6 @@
 				5498158F1A43232400A7CE2E /* Frameworks */,
 				549815901A43232400A7CE2E /* Headers */,
 				549815911A43232400A7CE2E /* Resources */,
-				1658E91F26C53FDC003D0090 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
