@@ -63,6 +63,7 @@ class WireCallCenterV3Tests: MessagingTest {
     var groupConversationID : UUID!
     var clientID: String!
     var mockTransport : WireCallCenterTransportMock!
+    var conferenceCalling : Feature!
 
     override func setUp() {
         super.setUp()
@@ -93,6 +94,9 @@ class WireCallCenterV3Tests: MessagingTest {
         mockAVSWrapper = MockAVSWrapper(userId: selfUserID, clientId: clientID, observer: nil)
         mockTransport = WireCallCenterTransportMock()
         sut = WireCallCenterV3(userId: selfUserID, clientId: clientID, avsWrapper: mockAVSWrapper, uiMOC: uiMOC, flowManager: flowManager, transport: mockTransport)
+        /// set conferenceCalling feature flag
+        conferenceCalling = Feature.fetch(name: .conferenceCalling, context: uiMOC)
+        conferenceCalling?.status = .enabled
 
         try! uiMOC.save()
     }
@@ -109,6 +113,7 @@ class WireCallCenterV3Tests: MessagingTest {
         groupConversationID = nil
         mockTransport = nil
         mockAVSWrapper = nil
+        conferenceCalling = nil
 
         super.tearDown()
     }
@@ -627,6 +632,22 @@ class WireCallCenterV3Tests: MessagingTest {
             XCTAssertEqual(mockAVSWrapper.startCallArguments?.conversationType, AVSConversationType.conference)
             XCTAssertEqual(mockAVSWrapper.startCallArguments?.callType, AVSCallType.normal)
         }
+    }
+
+    func testThatItDoesNotStartAConferenceCall_IfConferenceCallingFeatureFlagIsDisabled(){
+        // given
+        conferenceCalling.status = .disabled
+
+        // expect
+        expectation(forNotification: WireCallCenterConferenceCallingUnavailableNotification.notificationName, object: nil)
+
+
+        // when
+        _ = sut.startCall(conversation: groupConversation, video: false)
+        XCTAssert(waitForCustomExpectations(withTimeout: 0.5))
+
+        // then
+        XCTAssertNil(mockAVSWrapper.startCallArguments)
     }
         
     func testThatItStartsACall_conference_video() {
