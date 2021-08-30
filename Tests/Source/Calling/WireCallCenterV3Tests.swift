@@ -641,7 +641,6 @@ class WireCallCenterV3Tests: MessagingTest {
         // expect
         expectation(forNotification: WireCallCenterConferenceCallingUnavailableNotification.notificationName, object: nil)
 
-
         // when
         _ = sut.startCall(conversation: groupConversation, video: false)
         XCTAssert(waitForCustomExpectations(withTimeout: 0.5))
