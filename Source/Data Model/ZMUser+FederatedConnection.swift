@@ -24,7 +24,7 @@ extension UserType {
     /// Create fake one-to-one connection with a federated user.
     ///
     /// NOTE this is a temporary method for creating a conversation with federated users, it should
-    /// be deleted before this is merged into develop.
+    /// be deleted before federation is launched.
     public func createFederatedOneToOne(in userSession: ZMUserSession) -> ZMConversation? {
         return materialize(in: userSession.viewContext)?.createFederatedOneToOne()
     }
@@ -36,7 +36,7 @@ extension ZMUser {
     /// Create fake one-to-one connection with a federated user.
     ///
     /// NOTE this is a temporary method for creating a conversation with federated users, it should
-    /// be deleted before this is merged into develop.
+    /// be deleted before federation is launched.
     func createFederatedOneToOne() -> ZMConversation? {
         let selfUser = ZMUser.selfUser(in: managedObjectContext!)
         let otherUser = self
