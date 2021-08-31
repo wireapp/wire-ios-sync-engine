@@ -70,7 +70,7 @@ extension TeamPayload {
     
     func updateTeam(_ team: Team, in managedObjectContext: NSManagedObjectContext) {
         team.name = name
-        team.creator = ZMUser.fetchAndMerge(with: creator, createIfNeeded: true, in: managedObjectContext)
+        team.creator = ZMUser.fetchOrCreate(with: creator, domain: nil, in: managedObjectContext)
         team.pictureAssetId = icon
         team.pictureAssetKey = iconKey
         
