@@ -678,6 +678,10 @@ extension WireCallCenterV3 {
             callState = .incoming(video: false, shouldRing: false, degraded: isDegraded(conversationId: conversationId))
         }
 
+        if case .incoming = callState, callSnapshots[conversationId]?.isGroup ?? false {
+            muted = true
+        }
+
         let callerId = initiatorForCall(conversationId: conversationId)
         let previousCallState = callSnapshots[conversationId]?.callState
 

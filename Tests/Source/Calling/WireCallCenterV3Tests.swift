@@ -472,7 +472,7 @@ class WireCallCenterV3Tests: MessagingTest {
             
             // then
             XCTAssertEqual(mockAVSWrapper.answerCallArguments?.callType, AVSCallType.normal)
-            XCTAssertEqual(mockAVSWrapper.setVideoStateArguments?.videoState, VideoState.stopped)
+            XCTAssertNil(mockAVSWrapper.setVideoStateArguments)
         }
     }
     
@@ -810,6 +810,19 @@ class WireCallCenterV3Tests: MessagingTest {
             sut.createSnapshot(callState: callState, members: [], callStarter: nil, video: false, for: groupConversation.remoteIdentifier!, isConferenceCall: false)
             XCTAssertEqual(sut.activeCalls.count, 1)
         }
+    }
+
+    func testThatItMutesMicrophone_WhenHandlingIncomingGroupCall() {
+        // given
+        let conversationID = UUID()
+        sut.callSnapshots = callSnapshot(conversationId: conversationID, clients: [])
+        sut.muted = false
+
+        // when
+        sut.handle(callState: .incoming(video: false, shouldRing: true, degraded: false), conversationId: conversationID)
+
+        // then
+        XCTAssertTrue(sut.muted)
     }
 }
 
