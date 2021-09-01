@@ -18,7 +18,7 @@
 
 import Foundation
 
-public class UserProfileRequestStrategy : AbstractRequestStrategy, ZMSingleRequestTranscoder {
+public class UserProfileUpdateRequestStrategy : AbstractRequestStrategy, ZMSingleRequestTranscoder {
     
     let userProfileUpdateStatus : UserProfileUpdateStatus
     

@@ -522,7 +522,7 @@ class Conversation_ParticipantsTests: DatabaseTest {
         
         // then
         syncMOC.performGroupedBlockAndWait {
-            let conversation = ZMConversation(remoteID: conversationId, createIfNeeded: false, in: self.syncMOC)!
+            let conversation = ZMConversation.fetch(with: conversationId, in: self.syncMOC)!
             XCTAssertEqual(conversation.clearedTimeStamp?.transportString(), memberLeaveTimestamp.transportString())
         }
         
@@ -577,7 +577,7 @@ class Conversation_ParticipantsTests: DatabaseTest {
         
         // then
         syncMOC.performGroupedBlockAndWait {
-            let conversation = ZMConversation(remoteID: conversationId, createIfNeeded: false, in: self.syncMOC)!
+            let conversation = ZMConversation.fetch(with: conversationId, in: self.syncMOC)!
             XCTAssertEqual(conversation.clearedTimeStamp?.transportString(), clearedTimestamp?.transportString())
         }
         

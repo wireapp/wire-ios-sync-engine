@@ -167,7 +167,7 @@ extension WireCallCenterV3 {
     func createSnapshot(callState : CallState, members: [AVSCallMember], callStarter: UUID?, video: Bool, for conversationId: UUID, isConferenceCall: Bool) {
         guard
             let moc = uiMOC,
-            let conversation = ZMConversation(remoteID: conversationId, createIfNeeded: false, in: moc)
+            let conversation = ZMConversation.fetch(with: conversationId, in: moc)
         else {
             return
         }
@@ -278,7 +278,7 @@ extension WireCallCenterV3 {
      */
 
     public func isDegraded(conversationId: UUID) -> Bool {
-        let conversation = ZMConversation(remoteID: conversationId, createIfNeeded: false, in: uiMOC!)
+        let conversation = ZMConversation.fetch(with: conversationId, in: uiMOC!)
         let isConversationDegraded = conversation?.securityLevel == .secureWithIgnored
         let isCallDegraded = callSnapshots[conversationId]?.isDegradedCall ?? false
         return isConversationDegraded || isCallDegraded
@@ -289,7 +289,7 @@ extension WireCallCenterV3 {
         let conversations = nonIdleCalls.compactMap { (key: UUID, value: CallState) -> ZMConversation? in
             switch value {
             case .establishedDataChannel, .established, .answered, .outgoing:
-                return ZMConversation(remoteID: key, createIfNeeded: false, in: userSession.managedObjectContext)
+                return ZMConversation.fetch(with: key, in: userSession.managedObjectContext)
             default:
                 return nil
             }
@@ -301,7 +301,7 @@ extension WireCallCenterV3 {
     /// Returns conversations with a non idle call state.
     public func nonIdleCallConversations(in userSession: ZMUserSession) -> [ZMConversation] {
         let conversations = nonIdleCalls.compactMap { (key: UUID, value: CallState) -> ZMConversation? in
-            return ZMConversation(remoteID: key, createIfNeeded: false, in: userSession.managedObjectContext)
+            return ZMConversation.fetch(with: key, in: userSession.managedObjectContext)
         }
 
         return conversations

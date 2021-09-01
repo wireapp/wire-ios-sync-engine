@@ -285,7 +285,7 @@ class TeamRolesDownloadRequestStrategyTests: MessagingTest {
         
         syncMOC.performGroupedBlockAndWait {
             // then
-            XCTAssertNotNil(Team.fetch(withRemoteIdentifier: teamId, in: self.syncMOC))
+            XCTAssertNotNil(Team.fetch(with: teamId, in: self.syncMOC))
         }
     }
     

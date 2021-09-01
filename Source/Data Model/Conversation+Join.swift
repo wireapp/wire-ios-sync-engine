@@ -80,7 +80,8 @@ extension ZMConversation {
 
                     viewContext.performGroupedBlock {
                         guard let conversationId = UUID(uuidString: conversationString),
-                              let conversation = ZMConversation(remoteID: conversationId, createIfNeeded: false, in: viewContext) else {
+                              let conversation = ZMConversation.fetch(with: conversationId, in: viewContext)
+                        else {
                             return completion(.failure(ConversationJoinError.unknown))
                         }
 

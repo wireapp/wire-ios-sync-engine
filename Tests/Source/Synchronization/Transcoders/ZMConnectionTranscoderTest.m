@@ -411,7 +411,7 @@
         initData[@"status"] = @"pending";
         
         [ZMConnection connectionFromTransportData:initData managedObjectContext:self.syncMOC];
-        ZMUser *user = [ZMUser userWithRemoteID:[initData[@"to"] UUID] createIfNeeded:NO inContext:self.syncMOC];
+        ZMUser *user = [ZMUser fetchWith:[initData[@"to"] UUID] in:self.syncMOC];
         XCTAssertNotNil(user);
         user.needsToBeUpdatedFromBackend = NO;
         
@@ -833,7 +833,7 @@
     [self.syncMOC performGroupedBlockAndWait:^{
         // then
         XCTAssertEqual(self.connection.status, ZMConnectionStatusAccepted);
-        ZMConversation *conversation = [ZMConversation conversationWithRemoteID:conversationID createIfNeeded:NO inContext:self.syncMOC];
+        ZMConversation *conversation = [ZMConversation fetchWith:conversationID in:self.syncMOC];
         XCTAssertNotNil(self.connection.conversation);
         XCTAssertEqual(self.connection.conversation, conversation);
         XCTAssertEqual(self.connection.to, self.user);

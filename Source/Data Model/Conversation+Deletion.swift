@@ -55,7 +55,7 @@ extension ZMConversation {
             if response.httpStatus == 200 {
                 
                 contextProvider.syncContext.performGroupedBlock {
-                    guard let conversation = ZMConversation(remoteID: conversationId, createIfNeeded: false, in: contextProvider.syncContext) else { return }
+                    guard let conversation = ZMConversation.fetch(with: conversationId, domain: nil, in: contextProvider.syncContext) else { return }
                     contextProvider.syncContext.delete(conversation)
                     contextProvider.syncContext.saveOrRollback()
                 }

@@ -25,7 +25,7 @@ import Foundation
     public func acceptConnectionRequest(with userInfo: NotificationUserInfo, completionHandler: @escaping () -> Void) {
         
         guard let senderID = userInfo.senderID,
-              let sender = ZMUser.fetch(withRemoteIdentifier: senderID, in: managedObjectContext),
+              let sender = ZMUser.fetch(with: senderID, in: managedObjectContext),
               let conversation = sender.connection?.conversation
         else { return }
         

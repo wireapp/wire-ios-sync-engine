@@ -115,7 +115,7 @@ class ConversationTests_Join: ConversationTestsBase {
             if case .success((let conversationID, let conversationName)) = result {
                 XCTAssertNotNil(conversationID)
                 XCTAssertNotNil(conversationName)
-                let conversation = ZMConversation.fetch(withRemoteIdentifier: conversationID, in: viewContext)
+                let conversation = ZMConversation.fetch(with: conversationID, in: viewContext)
                 XCTAssertTrue(conversation!.isSelfAnActiveMember)
             } else {
                 XCTFail()
@@ -140,7 +140,7 @@ class ConversationTests_Join: ConversationTestsBase {
             if case .success((let conversationID, let conversationName)) = result {
                 XCTAssertNotNil(conversationID)
                 XCTAssertNotNil(conversationName)
-                let conversation = ZMConversation.fetch(withRemoteIdentifier: conversationID, in: viewContext)
+                let conversation = ZMConversation.fetch(with: conversationID, in: viewContext)
                 XCTAssertNil(conversation)
             } else {
                 XCTFail()

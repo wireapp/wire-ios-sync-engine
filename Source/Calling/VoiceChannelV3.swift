@@ -93,7 +93,7 @@ public class VoiceChannelV3 : NSObject, VoiceChannel {
         else {
             return nil
         }
-        return ZMUser.fetch(withRemoteIdentifier: userId, in: context)
+        return ZMUser.fetch(with: userId, in: context)
     }
     
     public var videoState: VideoState {

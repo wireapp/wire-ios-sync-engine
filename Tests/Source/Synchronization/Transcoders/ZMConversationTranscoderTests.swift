@@ -450,7 +450,7 @@ extension ZMConversationTranscoderTests_Swift {
             self.sut.processEvents([event], liveEvents: true, prefetchResult: nil)
             
             // then
-            guard let conversation = ZMConversation.fetch(withRemoteIdentifier: conversationID, in: self.syncMOC) else {
+            guard let conversation = ZMConversation.fetch(with: conversationID, in: self.syncMOC) else {
                 return XCTFail("No conversation created")
             }
             XCTAssertTrue(conversation.needsToDownloadRoles)
@@ -480,7 +480,7 @@ extension ZMConversationTranscoderTests_Swift {
             self.sut.processEvents([event], liveEvents: true, prefetchResult: nil)
             
             // then
-            guard let conversation = ZMConversation.fetch(withRemoteIdentifier: conversationID, in: self.syncMOC) else {
+            guard let conversation = ZMConversation.fetch(with: conversationID, in: self.syncMOC) else {
                 return XCTFail("No conversation created")
             }
             XCTAssertTrue(conversation.needsToDownloadRoles)
@@ -510,7 +510,7 @@ extension ZMConversationTranscoderTests_Swift {
             self.sut.processEvents([event], liveEvents: true, prefetchResult: nil)
             
             // then
-            guard let conversation = ZMConversation.fetch(withRemoteIdentifier: conversationID, in: self.syncMOC) else {
+            guard let conversation = ZMConversation.fetch(with: conversationID, in: self.syncMOC) else {
                 return XCTFail("No conversation created")
             }
             XCTAssertFalse(conversation.needsToDownloadRoles)

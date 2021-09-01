@@ -26,10 +26,13 @@ public extension ZMUserSession {
 
         // MARK: - Properties
         public let appLockConfig: AppLockController.LegacyConfig?
+        public let supportFederation: Bool
 
         // MARK: - Life cycle
-        public init(appLockConfig: AppLockController.LegacyConfig? = nil) {
+        public init(appLockConfig: AppLockController.LegacyConfig? = nil,
+                    supportFederation: Bool = false) {
             self.appLockConfig = appLockConfig
+            self.supportFederation = supportFederation
         }
 
     }
