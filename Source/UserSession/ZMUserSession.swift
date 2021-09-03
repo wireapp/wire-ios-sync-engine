@@ -90,9 +90,15 @@ public class ZMUserSession: NSObject {
     let hotFix: ZMHotFix
 
     public var appLockController: AppLockType
+
     public var fileSharingFeature: Feature.FileSharing {
         let featureService = FeatureService(context: coreDataStack.viewContext)
         return featureService.fetchFileSharing()
+    }
+
+    public var selfDeletingMessagesFeature: Feature.SelfDeletingMessages {
+        let featureService = FeatureService(context: coreDataStack.viewContext)
+        return featureService.fetchSelfDeletingMesssages()
     }
     
     public var hasCompletedInitialSync: Bool = false
@@ -536,6 +542,7 @@ extension ZMUserSession: ZMSyncStateDelegate {
             let featureService = FeatureService(context: self.syncContext)
             featureService.enqueueBackendRefresh(for: .appLock)
             featureService.enqueueBackendRefresh(for: .fileSharing)
+            featureService.enqueueBackendRefresh(for: .selfDeletingMessages)
         }
 
     }
