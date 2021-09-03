@@ -1,6 +1,6 @@
 github "wireapp/HTMLString" "6.0.1_xcframework"
 github "wireapp/PINCache" "2.3-xcframework"
-github "wireapp/Starscream" "chore/do-not-support-ios-12-"
+github "wireapp/Starscream" "4.0.4_ios12"
 github "wireapp/ZipArchive" "v2.2.3_xcframework"
 github "wireapp/avs-ios-binaries" "7.2.259_xcframework"
 github "wireapp/libPhoneNumber-iOS" "0.9.3_xcframework"
