@@ -624,7 +624,7 @@ extension ZMConversationTranscoderTests_Swift {
     
     func testThatItHandlesMessageTimerUpdateEvent_Value() {
         syncMOC.performGroupedBlockAndWait {
-            XCTAssertNil(self.conversation.messageDestructionTimeout)
+            XCTAssertNil(self.conversation.activeMessageDestructionTimeoutValue)
             
             // Given
             let payload: [String: Any] = [
@@ -640,7 +640,9 @@ extension ZMConversationTranscoderTests_Swift {
             self.sut?.processEvents([event], liveEvents: true, prefetchResult: nil)
             
             // THEN
-            XCTAssertEqual(self.conversation?.messageDestructionTimeout!, MessageDestructionTimeout.synced(31536000))
+            XCTAssertEqual(self.conversation?.activeMessageDestructionTimeoutValue, .custom(31536000))
+            XCTAssertEqual(self.conversation?.activeMessageDestructionTimeoutType, .groupConversation)
+
             guard let message = self.conversation?.lastMessage as? ZMSystemMessage else { return XCTFail() }
             XCTAssertEqual(message.systemMessageType, .messageTimerUpdate)
         }
@@ -648,8 +650,9 @@ extension ZMConversationTranscoderTests_Swift {
     
     func testThatItHandlesMessageTimerUpdateEvent_NoValue() {
         syncMOC.performGroupedBlockAndWait {
-            self.conversation.messageDestructionTimeout = .synced(300)
-            XCTAssertEqual(self.conversation.messageDestructionTimeout!, MessageDestructionTimeout.synced(.fiveMinutes))
+            self.conversation.setMessageDestructionTimeoutValue(.fiveMinutes, for: .groupConversation)
+            XCTAssertEqual(self.conversation.activeMessageDestructionTimeoutValue!, .fiveMinutes)
+            XCTAssertEqual(self.conversation.activeMessageDestructionTimeoutType, .groupConversation)
             
             // Given
             let payload: [String: Any] = [
@@ -665,7 +668,7 @@ extension ZMConversationTranscoderTests_Swift {
             self.sut?.processEvents([event], liveEvents: true, prefetchResult: nil)
             
             // THEN
-            XCTAssertNil(self.conversation.messageDestructionTimeout)
+            XCTAssertNil(self.conversation.activeMessageDestructionTimeoutValue)
             guard let message = self.conversation.lastMessage as? ZMSystemMessage else { return XCTFail() }
             XCTAssertEqual(message.systemMessageType, .messageTimerUpdate)
         }
@@ -674,15 +677,15 @@ extension ZMConversationTranscoderTests_Swift {
     func testThatItGeneratesCorrectSystemMessageWhenSyncedTimeoutTurnedOff() {
         // GIVEN: local & synced timeouts exist
         syncMOC.performGroupedBlockAndWait {
-            self.conversation.messageDestructionTimeout = .local(.fiveMinutes)
+            self.conversation.setMessageDestructionTimeoutValue(.fiveMinutes, for: .selfUser)
         }
         
         syncMOC.performGroupedBlockAndWait {
-            self.conversation.messageDestructionTimeout = .synced(.oneHour)
+            self.conversation.setMessageDestructionTimeoutValue(.oneHour, for: .groupConversation)
         }
         
         syncMOC.performGroupedBlockAndWait {
-            XCTAssertNotNil(self.conversation.messageDestructionTimeout)
+            XCTAssertNotNil(self.conversation.activeMessageDestructionTimeoutValue)
             
             // "turn off" synced timeout
             let payload: [String: Any] = [
@@ -699,7 +702,8 @@ extension ZMConversationTranscoderTests_Swift {
             self.sut?.processEvents([event], liveEvents: true, prefetchResult: nil)
             
             // THEN: the local timeout still exists
-            XCTAssertEqual(self.conversation?.messageDestructionTimeout!, MessageDestructionTimeout.local(.fiveMinutes))
+            XCTAssertEqual(self.conversation?.activeMessageDestructionTimeoutValue, .fiveMinutes)
+            XCTAssertEqual(self.conversation?.activeMessageDestructionTimeoutType, .selfUser)
             guard let message = self.conversation?.lastMessage as? ZMSystemMessage else { return XCTFail() }
             XCTAssertEqual(message.systemMessageType, .messageTimerUpdate)
             
@@ -711,7 +715,7 @@ extension ZMConversationTranscoderTests_Swift {
     func testThatItDiscardsDoubleSystemMessageWhenSyncedTimeoutChanges_Value() {
         
         syncMOC.performGroupedBlockAndWait {
-            XCTAssertNil(self.conversation.messageDestructionTimeout)
+            XCTAssertNil(self.conversation.activeMessageDestructionTimeoutValue)
             
             // Given
             let messageTimerMillis = 31536000000
@@ -731,15 +735,19 @@ extension ZMConversationTranscoderTests_Swift {
             
             // WHEN
             self.sut?.processEvents([event], liveEvents: true, prefetchResult: nil) //First event
-            
-            XCTAssertEqual(self.conversation?.messageDestructionTimeout!, MessageDestructionTimeout.synced(messageTimer))
+
+            XCTAssertEqual(self.conversation?.activeMessageDestructionTimeoutValue, messageTimer)
+            XCTAssertEqual(self.conversation?.activeMessageDestructionTimeoutType, .groupConversation)
+
             guard let firstMessage = self.conversation?.lastMessage as? ZMSystemMessage else { return XCTFail() }
             XCTAssertEqual(firstMessage.systemMessageType, .messageTimerUpdate)
             
             self.sut?.processEvents([event], liveEvents: true, prefetchResult: nil) //Second duplicated event
             
             // THEN
-            XCTAssertEqual(self.conversation?.messageDestructionTimeout!, MessageDestructionTimeout.synced(messageTimer))
+            XCTAssertEqual(self.conversation?.activeMessageDestructionTimeoutValue!, messageTimer)
+            XCTAssertEqual(self.conversation?.activeMessageDestructionTimeoutType, .groupConversation)
+            
             guard let secondMessage = self.conversation?.lastMessage as? ZMSystemMessage else { return XCTFail() }
             XCTAssertEqual(firstMessage, secondMessage) //Check that no other messages are appended in the conversation
         }
@@ -748,7 +756,7 @@ extension ZMConversationTranscoderTests_Swift {
     func testThatItDiscardsDoubleSystemMessageWhenSyncedTimeoutChanges_NoValue() {
         
         syncMOC.performGroupedBlockAndWait {
-            XCTAssertNil(self.conversation.messageDestructionTimeout)
+            XCTAssertNil(self.conversation.activeMessageDestructionTimeoutValue)
             
             // Given
             let valuedMessageTimerMillis = 31536000000
@@ -780,11 +788,12 @@ extension ZMConversationTranscoderTests_Swift {
             
             //First event with valued timer
             self.sut?.processEvents([valuedEvent], liveEvents: true, prefetchResult: nil)
-            XCTAssertEqual(self.conversation?.messageDestructionTimeout!, MessageDestructionTimeout.synced(valuedMessageTimer))
+            XCTAssertEqual(self.conversation.activeMessageDestructionTimeoutValue, valuedMessageTimer)
+            XCTAssertEqual(self.conversation.activeMessageDestructionTimeoutType, .groupConversation)
             
             //Second event with timer = nil
             self.sut?.processEvents([event], liveEvents: true, prefetchResult: nil)
-            XCTAssertNil(self.conversation?.messageDestructionTimeout)
+            XCTAssertNil(self.conversation?.activeMessageDestructionTimeoutValue)
         
             guard let firstMessage = self.conversation?.lastMessage as? ZMSystemMessage else { return XCTFail() }
             XCTAssertEqual(firstMessage.systemMessageType, .messageTimerUpdate)
@@ -793,7 +802,7 @@ extension ZMConversationTranscoderTests_Swift {
             self.sut?.processEvents([event], liveEvents: true, prefetchResult: nil)
             
             // THEN
-            XCTAssertNil(self.conversation?.messageDestructionTimeout)
+            XCTAssertNil(self.conversation?.activeMessageDestructionTimeoutValue)
             guard let secondMessage = self.conversation?.lastMessage as? ZMSystemMessage else { return XCTFail() }
             XCTAssertEqual(firstMessage, secondMessage) //Check that no other messages are appended in the conversation
         }
