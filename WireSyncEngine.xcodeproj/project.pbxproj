@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0601900B2678750D0043F8F8 /* DeepLinkURLActionProcessorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 161ACB3E23F6E4C200ABFF33 /* DeepLinkURLActionProcessorTests.swift */; };
+		0640C26D26EA0B5C0057AF80 /* NSManagedObjectContext+Packaging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0640C26C26EA0B5C0057AF80 /* NSManagedObjectContext+Packaging.swift */; };
 		068E655A24C8223400403926 /* LocalNotificationContentTypeTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 068E655924C8223400403926 /* LocalNotificationContentTypeTest.swift */; };
 		06B99C7B242B51A300FEAFDE /* SignatureRequestStrategy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06B99C7A242B51A300FEAFDE /* SignatureRequestStrategy.swift */; };
 		06BBF7012473D51D00A26626 /* MessagingTest+Swift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06BBF7002473D51D00A26626 /* MessagingTest+Swift.swift */; };
@@ -685,6 +686,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0640C26C26EA0B5C0057AF80 /* NSManagedObjectContext+Packaging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSManagedObjectContext+Packaging.swift"; sourceTree = "<group>"; };
 		068E655924C8223400403926 /* LocalNotificationContentTypeTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalNotificationContentTypeTest.swift; sourceTree = "<group>"; };
 		06B99C7A242B51A300FEAFDE /* SignatureRequestStrategy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignatureRequestStrategy.swift; sourceTree = "<group>"; };
 		06BBF6EC246EB56B00A26626 /* ConversationTests+List.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ConversationTests+List.swift"; sourceTree = "<group>"; };
@@ -1661,6 +1663,7 @@
 				16F5F16B1E4092C00062F0AE /* NSManagedObjectContext+CTCallCenter.swift */,
 				163FB9962057E25600E74F83 /* NSManagedObjectContext+LastNotificationID.swift */,
 				EE1DEBC523D5F1D00087EE1F /* NSManagedObjectContext+TypingUsers.swift */,
+				0640C26C26EA0B5C0057AF80 /* NSManagedObjectContext+Packaging.swift */,
 				16085B321F71811A000B9F22 /* UserChangeInfo+UserSession.swift */,
 				8754B8491F73C25400EC02AD /* ConversationListChangeInfo+UserSession.swift */,
 				8754B84B1F73C38900EC02AD /* MessageChangeInfo+UserSession.swift */,
@@ -3384,6 +3387,7 @@
 				1639A8272260CE5000868AB9 /* ZMLocalNotification+AvailabilityAlert.swift in Sources */,
 				16ED865F23E3145C00CB1766 /* ZMUserSession+Clients.swift in Sources */,
 				878ACB4820AEFB980016E68A /* ZMUser+Consent.swift in Sources */,
+				0640C26D26EA0B5C0057AF80 /* NSManagedObjectContext+Packaging.swift in Sources */,
 				F1C51FE71FB49660009C2269 /* RegistrationStatus.swift in Sources */,
 				5E8EE1FA20FDC7D700DB1F9B /* Pasteboard.swift in Sources */,
 				16CD6A272681BA9000B9A73A /* ZMUser+FederatedConnection.swift in Sources */,
