@@ -188,7 +188,10 @@
                                   [ZMTransportRequest imageGetRequestFromPath:[NSString stringWithFormat:@"/assets/v3/%@", previewProfileAssetIdentifier]],
                                   [ZMTransportRequest imageGetRequestFromPath:[NSString stringWithFormat:@"/assets/v3/%@", completeProfileAssetIdentifier]],
                                   [ZMTransportRequest requestWithPath:@"properties/WIRE_RECEIPT_MODE" method:ZMMethodGET payload:nil],
-                                  [ZMTransportRequest requestWithPath:@"/conversations/96961d01-df3e-42f0-a9a8-ba8fb6b00035/roles" method:ZMMethodGET payload:nil]
+                                  [ZMTransportRequest requestWithPath:@"/conversations/96961d01-df3e-42f0-a9a8-ba8fb6b00035/roles" method:ZMMethodGET payload:nil],
+                                  [ZMTransportRequest requestWithPath:@"/feature-configs/fileSharing" method:ZMMethodGET payload:nil],
+                                  [ZMTransportRequest requestWithPath:@"/feature-configs/conferenceCalling" method:ZMMethodGET payload:nil],
+                                  [ZMTransportRequest requestWithPath:@"/feature-configs/appLock" method:ZMMethodGET payload:nil]
                                   ]];
     
     // then

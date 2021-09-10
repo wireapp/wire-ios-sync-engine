@@ -63,9 +63,7 @@
     {
       "skippedTests" : [
         "AvailabilityTests",
-        "PushChannelTests\/testThatItFetchesLastNotificationsFromBackendIgnoringTransientNotificationsID()",
-        "SessionManagerTests",
-        "SlowSyncTests\/testThatItGeneratesOnlyTheExpectedRequestsForSelfUserProfilePicture"
+        "SessionManagerTests"
       ],
       "target" : {
         "containerPath" : "container:WireSyncEngine.xcodeproj",
