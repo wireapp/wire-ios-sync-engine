@@ -117,6 +117,18 @@ class PushChannelTests: IntegrationTest {
         
         // THEN
         let expectedLastRequest = "/notifications?size=\(ZMMissingUpdateEventsTranscoderListPageSize)&since=\(messageAddLastNotificationID?.transportString() ?? "")&client=\(userSession?.selfUserClient?.remoteIdentifier ?? "")"
-        XCTAssertEqual(mockTransportSession.receivedRequests().last?.path , expectedLastRequest)
+
+        /// Requests to fetch feature configs have been added to QuickSync, that should be excluded
+        let requestsWithoutFeatureConfigs = removeFeatureConfigRequest(from: mockTransportSession.receivedRequests())
+        XCTAssertEqual(requestsWithoutFeatureConfigs.last?.path , expectedLastRequest)
     }
+
+    private func removeFeatureConfigRequest(from: [ZMTransportRequest]) -> [ZMTransportRequest] {
+
+            return mockTransportSession.receivedRequests().filter { (request) -> Bool in
+                let paths = Feature.Name.allCases.map { "/feature-configs/\($0)" }
+                return !paths.contains(request.path)
+            }
+
+        }
 }
