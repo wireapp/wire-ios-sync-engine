@@ -650,7 +650,8 @@ class WireCallCenterV3Tests: MessagingTest {
         XCTAssertNil(mockAVSWrapper.startCallArguments)
     }
 
-    func testThatItStartsAConferenceCall_IfConferenceCallingFeatureIsDisabledByInternalFlag(){
+
+    func testThatItStartsAConferenceCall_IfPackagingFeatureIsDisabledByInternalFlag(){
         // given
         sut.usePackagingFeatureConfig = false
         conferenceCalling.status = .disabled
