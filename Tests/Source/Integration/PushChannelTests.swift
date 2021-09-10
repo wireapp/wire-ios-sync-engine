@@ -116,9 +116,10 @@ class PushChannelTests: IntegrationTest {
         _ = waitForAllGroupsToBeEmpty(withTimeout: 0.5)
         
         // THEN
-        let expectedLastRequest = "/notifications?size=\(ZMMissingUpdateEventsTranscoderListPageSize)&since=\(messageAddLastNotificationID?.transportString() ?? "")&client=\(userSession?.selfUserClient?.remoteIdentifier ?? "")"
+        let expectedRequest = "/notifications?size=\(ZMMissingUpdateEventsTranscoderListPageSize)&since=\(messageAddLastNotificationID?.transportString() ?? "")&client=\(userSession?.selfUserClient?.remoteIdentifier ?? "")"
 
-        XCTAssertTrue(mockTransportSession.receivedRequests().contains(where: { $0.path == expectedLastRequest } ))
+        let targetRequests = mockTransportSession.receivedRequests().filter { $0.path == expectedRequest }
+        XCTAssertEqual(targetRequests.count, 1)
     }
 
 }
