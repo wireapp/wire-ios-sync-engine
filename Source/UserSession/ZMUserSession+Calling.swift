@@ -55,4 +55,15 @@ public protocol CallNotificationStyleProvider: class {
             return managedObjectContext.zm_useConstantBitRateAudio
         }
     }
+
+    @objc var usePackagingFeatureConfig : Bool {
+        set {
+            managedObjectContext.zm_usePackagingFeatureConfig = newValue
+            callCenter?.usePackagingFeatureConfig = newValue
+        }
+
+        get {
+            return managedObjectContext.zm_usePackagingFeatureConfig
+        }
+    }
 }

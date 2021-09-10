@@ -69,6 +69,8 @@ public class WireCallCenterV3: NSObject {
      */
 
     var useConstantBitRateAudio: Bool = false
+
+    var usePackagingFeatureConfig: Bool = false
     
     var muted: Bool {
         get {
@@ -483,6 +485,9 @@ extension WireCallCenterV3 {
     }
 
     private var canStartConferenceCalls: Bool {
+        guard usePackagingFeatureConfig else {
+            return true
+        }
         guard let context = uiMOC else { return false }
         let conferenceCalling = FeatureService(context: context).fetchConferenceCalling()
         return conferenceCalling.status == .enabled

@@ -97,6 +97,7 @@ class WireCallCenterV3Tests: MessagingTest {
         /// set conferenceCalling feature flag
         conferenceCalling = Feature.fetch(name: .conferenceCalling, context: uiMOC)
         conferenceCalling?.status = .enabled
+        sut.usePackagingFeatureConfig = true
 
         try! uiMOC.save()
     }
@@ -634,7 +635,7 @@ class WireCallCenterV3Tests: MessagingTest {
         }
     }
 
-    func testThatItDoesNotStartAConferenceCall_IfConferenceCallingFeatureFlagIsDisabled(){
+    func testThatItDoesNotStartAConferenceCall_IfConferenceCallingFeatureStatusIsDisabled(){
         // given
         conferenceCalling.status = .disabled
 
@@ -647,6 +648,21 @@ class WireCallCenterV3Tests: MessagingTest {
 
         // then
         XCTAssertNil(mockAVSWrapper.startCallArguments)
+    }
+
+
+    func testThatItStartsAConferenceCall_IfPackagingFeatureIsDisabledByInternalFlag(){
+        // given
+        sut.usePackagingFeatureConfig = false
+        conferenceCalling.status = .disabled
+
+        // when
+        _ = sut.startCall(conversation: groupConversation, video: false)
+        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+
+        // then
+        XCTAssertEqual(mockAVSWrapper.startCallArguments?.conversationType, AVSConversationType.conference)
+        XCTAssertEqual(mockAVSWrapper.startCallArguments?.callType, AVSCallType.normal)
     }
         
     func testThatItStartsACall_conference_video() {
