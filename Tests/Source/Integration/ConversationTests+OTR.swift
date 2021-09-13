@@ -59,7 +59,7 @@ class ConversationTestsOTR_Swift: ConversationTestsBase {
         var messagesReceived = 0
         for request in mockTransportSession.receivedRequests() {
             guard request.path.hasPrefix(expectedPath), let data = request.binaryData else { continue }
-            guard let otrMessage = try? NewOtrMessage(serializedData: data) else { return XCTFail("otrMessage was nil") }
+            guard let otrMessage = try? Proteus_NewOtrMessage(serializedData: data) else { return XCTFail("otrMessage was nil") }
             
             let userEntries = otrMessage.recipients
             let clientEntry = userEntries.first?.clients.first
@@ -112,7 +112,7 @@ class ConversationTestsOTR_Swift: ConversationTestsBase {
         
         for request in mockTransportSession.receivedRequests() {
             guard request.path.hasPrefix(expectedPath), let data = request.binaryData else { continue }
-            guard let otrMessage = try? NewOtrMessage(serializedData: data) else { return XCTFail() }
+            guard let otrMessage = try? Proteus_NewOtrMessage(serializedData: data) else { return XCTFail() }
             
             let userEntries = otrMessage.recipients
             let clientEntry = userEntries.first?.clients.first

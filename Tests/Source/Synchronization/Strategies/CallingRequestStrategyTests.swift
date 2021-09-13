@@ -46,17 +46,6 @@ class CallingRequestStrategyTests : MessagingTest {
         super.tearDown()
     }
 
-    // MARK: - Misc
-    
-    func testThatItReturnsItselfAndTheGenericMessageStrategyAsContextChangeTracker(){
-        // when
-        let trackers = sut.contextChangeTrackers
-        
-        // then
-        XCTAssertTrue(trackers.first is CallingRequestStrategy)
-        XCTAssertTrue(trackers.last is GenericMessageRequestStrategy)
-    }
-
     // MARK: - Call Config
     
     func testThatItGenerateCallConfigRequestAndCallsTheCompletionHandler() {
@@ -258,7 +247,7 @@ class CallingRequestStrategyTests : MessagingTest {
 
         guard
             let data = request.binaryData,
-            let otrMessage = try? NewOtrMessage(serializedData: data)
+            let otrMessage = try? Proteus_NewOtrMessage(serializedData: data)
         else {
             return XCTFail("Expected OTR message")
         }
@@ -327,7 +316,7 @@ class CallingRequestStrategyTests : MessagingTest {
 
         guard
             let data = request.binaryData,
-            let otrMessage = try? NewOtrMessage(serializedData: data)
+            let otrMessage = try? Proteus_NewOtrMessage(serializedData: data)
         else {
             return XCTFail("Expected OTR message")
         }

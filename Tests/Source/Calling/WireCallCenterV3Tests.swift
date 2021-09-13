@@ -63,6 +63,7 @@ class WireCallCenterV3Tests: MessagingTest {
     var groupConversationID : UUID!
     var clientID: String!
     var mockTransport : WireCallCenterTransportMock!
+    var conferenceCalling : Feature!
 
     override func setUp() {
         super.setUp()
@@ -93,6 +94,10 @@ class WireCallCenterV3Tests: MessagingTest {
         mockAVSWrapper = MockAVSWrapper(userId: selfUserID, clientId: clientID, observer: nil)
         mockTransport = WireCallCenterTransportMock()
         sut = WireCallCenterV3(userId: selfUserID, clientId: clientID, avsWrapper: mockAVSWrapper, uiMOC: uiMOC, flowManager: flowManager, transport: mockTransport)
+        /// set conferenceCalling feature flag
+        conferenceCalling = Feature.fetch(name: .conferenceCalling, context: uiMOC)
+        conferenceCalling?.status = .enabled
+        sut.usePackagingFeatureConfig = true
 
         try! uiMOC.save()
     }
@@ -109,6 +114,7 @@ class WireCallCenterV3Tests: MessagingTest {
         groupConversationID = nil
         mockTransport = nil
         mockAVSWrapper = nil
+        conferenceCalling = nil
 
         super.tearDown()
     }
@@ -472,7 +478,7 @@ class WireCallCenterV3Tests: MessagingTest {
             
             // then
             XCTAssertEqual(mockAVSWrapper.answerCallArguments?.callType, AVSCallType.normal)
-            XCTAssertEqual(mockAVSWrapper.setVideoStateArguments?.videoState, VideoState.stopped)
+            XCTAssertNil(mockAVSWrapper.setVideoStateArguments)
         }
     }
     
@@ -627,6 +633,36 @@ class WireCallCenterV3Tests: MessagingTest {
             XCTAssertEqual(mockAVSWrapper.startCallArguments?.conversationType, AVSConversationType.conference)
             XCTAssertEqual(mockAVSWrapper.startCallArguments?.callType, AVSCallType.normal)
         }
+    }
+
+    func testThatItDoesNotStartAConferenceCall_IfConferenceCallingFeatureStatusIsDisabled(){
+        // given
+        conferenceCalling.status = .disabled
+
+        // expect
+        expectation(forNotification: WireCallCenterConferenceCallingUnavailableNotification.notificationName, object: nil)
+
+        // when
+        _ = sut.startCall(conversation: groupConversation, video: false)
+        XCTAssert(waitForCustomExpectations(withTimeout: 0.5))
+
+        // then
+        XCTAssertNil(mockAVSWrapper.startCallArguments)
+    }
+
+
+    func testThatItStartsAConferenceCall_IfPackagingFeatureIsDisabledByInternalFlag(){
+        // given
+        sut.usePackagingFeatureConfig = false
+        conferenceCalling.status = .disabled
+
+        // when
+        _ = sut.startCall(conversation: groupConversation, video: false)
+        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+
+        // then
+        XCTAssertEqual(mockAVSWrapper.startCallArguments?.conversationType, AVSConversationType.conference)
+        XCTAssertEqual(mockAVSWrapper.startCallArguments?.callType, AVSCallType.normal)
     }
         
     func testThatItStartsACall_conference_video() {
@@ -810,6 +846,19 @@ class WireCallCenterV3Tests: MessagingTest {
             sut.createSnapshot(callState: callState, members: [], callStarter: nil, video: false, for: groupConversation.remoteIdentifier!, isConferenceCall: false)
             XCTAssertEqual(sut.activeCalls.count, 1)
         }
+    }
+
+    func testThatItMutesMicrophone_WhenHandlingIncomingGroupCall() {
+        // given
+        let conversationID = UUID()
+        sut.callSnapshots = callSnapshot(conversationId: conversationID, clients: [])
+        sut.muted = false
+
+        // when
+        sut.handle(callState: .incoming(video: false, shouldRing: true, degraded: false), conversationId: conversationID)
+
+        // then
+        XCTAssertTrue(sut.muted)
     }
 }
 

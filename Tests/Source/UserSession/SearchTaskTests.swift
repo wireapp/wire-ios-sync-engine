@@ -396,7 +396,7 @@ class SearchTaskTests : DatabaseTest {
         let selfUser = ZMUser.selfUser(in: uiMOC)
         
         userA.name = "Member A"
-        userA.setHandle("abc")
+        userA.handle = "abc"
         
         selfUser.membership?.permissions = .partner
         selfUser.membership?.createdBy = userA
@@ -477,7 +477,7 @@ class SearchTaskTests : DatabaseTest {
         let memberA = Member.insertNewObject(in: uiMOC) // non-active partner
         
         userA.name = "Member A"
-        userA.setHandle("abc")
+        userA.handle = "abc"
         
         memberA.team = team
         memberA.user = userA
@@ -507,7 +507,7 @@ class SearchTaskTests : DatabaseTest {
         let memberA = Member.insertNewObject(in: uiMOC) // non-active partner
         
         userA.name = "Member A"
-        userA.setHandle("abc")
+        userA.handle = "abc"
         
         memberA.team = team
         memberA.user = userA

@@ -130,6 +130,7 @@ extension ZMConversation {
         
         let isRemovingSelfUser = participant.isSelfUser
         let request = ConversationParticipantRequestFactory.requestForRemovingParticipant(user, conversation: self)
+        let domain = self.domain
         
         request.add(ZMCompletionHandler(on: managedObjectContext!) { [weak contextProvider, weak eventProcessor] response in
             guard let syncMOC = contextProvider?.syncContext, let eventProcessor = eventProcessor else {
@@ -139,7 +140,7 @@ extension ZMConversation {
             if response.httpStatus == 200 {
                 if let payload = response.payload, let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: nil) {
                     syncMOC.performGroupedBlock {
-                        let conversation = ZMConversation(remoteID: conversationId, createIfNeeded: false, in: syncMOC)
+                        let conversation = ZMConversation.fetch(with: conversationId, domain: domain, in: syncMOC)
                         
                         // Update cleared timestamp if self user left and deleted history
                         if let clearedTimestamp = conversation?.clearedTimeStamp, clearedTimestamp == conversation?.lastServerTimeStamp, isRemovingSelfUser {

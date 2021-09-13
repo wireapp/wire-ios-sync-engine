@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2020 Wire Swiss GmbH
+// Copyright (C) 2021 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,24 +15,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
-
 import Foundation
 
-public extension ZMUserSession {
+public extension NSManagedObjectContext {
 
-    /// An object used to configure a user session.
+    private static let PackagingFeatureConfigKey = "PackagingFeatureConfigKey"
 
-    final class Configuration: NSObject {
+    @objc
+    var zm_usePackagingFeatureConfig : Bool {
 
-        // MARK: - Properties
-        public let appLockConfig: AppLockController.LegacyConfig?
-        public let supportFederation: Bool
+        get {
+            precondition(zm_isUserInterfaceContext, "zm_usePackagingFeatureConfig can only be accessed on the ui context")
+            return userInfo[NSManagedObjectContext.PackagingFeatureConfigKey] as? Bool ?? false
+        }
 
-        // MARK: - Life cycle
-        public init(appLockConfig: AppLockController.LegacyConfig? = nil,
-                    supportFederation: Bool = false) {
-            self.appLockConfig = appLockConfig
-            self.supportFederation = supportFederation
+        set {
+            precondition(zm_isUserInterfaceContext, "zm_usePackagingFeatureConfig can only be accessed on the ui context")
+            userInfo[NSManagedObjectContext.PackagingFeatureConfigKey] = newValue
         }
 
     }

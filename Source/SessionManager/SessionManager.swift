@@ -732,6 +732,7 @@ public final class SessionManager : NSObject, SessionManagerType {
         require(backgroundUserSessions[account.userIdentifier] == nil, "User session is already loaded")
         backgroundUserSessions[account.userIdentifier] = userSession
         userSession.useConstantBitRateAudio = useConstantBitRateAudio
+        userSession.usePackagingFeatureConfig = usePackagingFeatureConfig
         updatePushToken(for: userSession)
         registerObservers(account: account, session: userSession)
     }
@@ -752,7 +753,10 @@ public final class SessionManager : NSObject, SessionManagerType {
 
     // Creates the user session for @c account given, calls @c completion when done.
     private func startBackgroundSession(for account: Account, with coreDataStack: CoreDataStack) -> ZMUserSession {
-        let sessionConfig = ZMUserSession.Configuration(appLockConfig: configuration.legacyAppLockConfig)
+        let sessionConfig = ZMUserSession.Configuration(
+            appLockConfig: configuration.legacyAppLockConfig,
+            supportFederation: configuration.supportFederation
+        )
 
         guard let newSession = authenticatedSessionFactory.session(for: account,
                                                                    coreDataStack: coreDataStack,
@@ -842,6 +846,12 @@ public final class SessionManager : NSObject, SessionManagerType {
     public var useConstantBitRateAudio : Bool = false {
         didSet {
             activeUserSession?.useConstantBitRateAudio = useConstantBitRateAudio
+        }
+    }
+
+    public var usePackagingFeatureConfig : Bool = false {
+        didSet {
+            activeUserSession?.usePackagingFeatureConfig = usePackagingFeatureConfig
         }
     }
 

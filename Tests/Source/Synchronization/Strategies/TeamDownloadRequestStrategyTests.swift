@@ -260,8 +260,8 @@ class TeamDownloadRequestStrategyTests: MessagingTest {
 
         syncMOC.performGroupedBlockAndWait {
             // then
-            XCTAssertNil(Team.fetch(withRemoteIdentifier: teamId, in: self.syncMOC))
-            XCTAssertNotNil(ZMConversation.fetch(withRemoteIdentifier: conversationId, in: self.syncMOC))
+            XCTAssertNil(Team.fetch(with: teamId, in: self.syncMOC))
+            XCTAssertNotNil(ZMConversation.fetch(with: conversationId, in: self.syncMOC))
         }
     }
 
@@ -298,9 +298,9 @@ class TeamDownloadRequestStrategyTests: MessagingTest {
 
         syncMOC.performGroupedBlockAndWait {
             // then
-            XCTAssertNil(Team.fetch(withRemoteIdentifier: teamId, in: self.syncMOC))
+            XCTAssertNil(Team.fetch(with: teamId, in: self.syncMOC))
 
-            guard let conversation = ZMConversation.fetch(withRemoteIdentifier: conversationId, in: self.syncMOC) else { return XCTFail("No conversation") }
+            guard let conversation = ZMConversation.fetch(with: conversationId, in: self.syncMOC) else { return XCTFail("No conversation") }
             XCTAssertEqual(conversation.teamRemoteIdentifier, teamId)
             XCTAssert(ZMUser.selfUser(in: self.syncMOC).isGuest(in: conversation))
         }
@@ -379,10 +379,10 @@ class TeamDownloadRequestStrategyTests: MessagingTest {
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
         // then
-        let team = Team.fetch(withRemoteIdentifier: teamID, in: syncMOC)
+        let team = Team.fetch(with: teamID, in: syncMOC)
         XCTAssertNotNil(team)
         XCTAssertEqual(team?.name, "Wire GmbH")
-        let creator = ZMUser.fetch(withRemoteIdentifier: teamCreatorID, in: syncMOC)
+        let creator = ZMUser.fetch(with: teamCreatorID, in: syncMOC)
         XCTAssertNotNil(creator)
         XCTAssertEqual(team!.creator, creator)
     }

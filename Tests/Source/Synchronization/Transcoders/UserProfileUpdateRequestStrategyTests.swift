@@ -21,7 +21,7 @@ import XCTest
 
 class UserProfileUpdateRequestStrategyTests : MessagingTest {
     
-    var sut : UserProfileRequestStrategy!
+    var sut : UserProfileUpdateRequestStrategy!
     var userProfileUpdateStatus : TestUserProfileUpdateStatus!
     var mockApplicationStatus : MockApplicationStatus!
     
@@ -31,7 +31,7 @@ class UserProfileUpdateRequestStrategyTests : MessagingTest {
         self.mockApplicationStatus = MockApplicationStatus()
         self.mockApplicationStatus.mockSynchronizationState = .online
         self.userProfileUpdateStatus = TestUserProfileUpdateStatus(managedObjectContext: self.uiMOC, analytics: MockAnalytics())
-        self.sut = UserProfileRequestStrategy(managedObjectContext: self.uiMOC,
+        self.sut = UserProfileUpdateRequestStrategy(managedObjectContext: self.uiMOC,
                                               applicationStatus: self.mockApplicationStatus,
                                               userProfileUpdateStatus: self.userProfileUpdateStatus)
     }

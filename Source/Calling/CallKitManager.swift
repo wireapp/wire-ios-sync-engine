@@ -543,7 +543,7 @@ extension ZMConversation {
 extension CXCallAction {
     
     func conversation(in context : NSManagedObjectContext) -> ZMConversation? {
-        return ZMConversation(remoteID: callUUID, createIfNeeded: false, in: context)
+        return ZMConversation.fetch(with: callUUID, in: context)
     }
     
 }

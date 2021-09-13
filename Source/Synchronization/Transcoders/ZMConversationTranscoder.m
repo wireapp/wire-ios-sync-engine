@@ -76,6 +76,8 @@ static NSString *const ConversationTeamManagedKey = @"managed";
 
 @implementation ZMConversationTranscoder
 
+@synthesize useFederationEndpoint;
+
 - (instancetype)initWithManagedObjectContext:(NSManagedObjectContext *)moc applicationStatus:(id<ZMApplicationStatus>)applicationStatus;
 {
     Require(NO);
@@ -241,7 +243,8 @@ static NSString *const ConversationTeamManagedKey = @"managed";
 
     if ((type == ZMConversationTypeConnection) && (others.count == 0)) {
         // But be sure to update the conversation if it already exists:
-        ZMConversation *conversation = [ZMConversation conversationWithRemoteID:convRemoteID createIfNeeded:NO inContext:self.managedObjectContext];
+
+        ZMConversation *conversation = [ZMConversation fetchWith:convRemoteID domain:nil in:self.managedObjectContext];
         if ((conversation.conversationType != ZMConversationTypeOneOnOne) &&
             (conversation.conversationType != ZMConversationTypeConnection))
         {
@@ -257,14 +260,13 @@ static NSString *const ConversationTeamManagedKey = @"managed";
     
     NSUUID *otherUserRemoteID = [[others[0] asDictionary] uuidForKey:@"id"];
     VerifyReturnNil(otherUserRemoteID != nil); // No remote ID for other user?
-    
-    ZMUser *user = [ZMUser userWithRemoteID:otherUserRemoteID createIfNeeded:YES inContext:self.managedObjectContext];
+
+    ZMUser *user = [ZMUser fetchOrCreateWith:otherUserRemoteID domain:nil in:self.managedObjectContext];
     ZMConversation *conversation = user.connection.conversation;
     
-    BOOL conversationCreated = NO;
     if (conversation == nil) {
         // if the conversation already exist, it will pick it up here and hook it up to the connection
-        conversation = [ZMConversation conversationWithRemoteID:convRemoteID createIfNeeded:YES inContext:self.managedObjectContext created:&conversationCreated];
+        conversation = [ZMConversation fetchOrCreateWith:convRemoteID domain:nil in:self.managedObjectContext];
         RequireString(conversation.conversationType != ZMConversationTypeGroup,
                       "Conversation for connection is a group conversation: %s",
                       convRemoteID.transportString.UTF8String);
@@ -272,7 +274,6 @@ static NSString *const ConversationTeamManagedKey = @"managed";
     } else {
         // check if a conversation already exists with that ID
         [conversation mergeWithExistingConversationWithRemoteID:convRemoteID];
-        conversationCreated = YES;
     }
     
     conversation.remoteIdentifier = convRemoteID;
@@ -309,22 +310,28 @@ static NSString *const ConversationTeamManagedKey = @"managed";
 - (ZMConversation *)conversationFromEventPayload:(ZMUpdateEvent *)event conversationMap:(ZMConversationMapping *)prefetchedMapping
 {
     NSUUID * const conversationID = [event.payload optionalUuidForKey:@"conversation"];
+    NSString * const domain = [[event.payload optionalDictionaryForKey:@"qualified_conversation"] optionalStringForKey:@"domain"];
     
     if (nil == conversationID) {
         return nil;
     }
-    
-    if (nil != prefetchedMapping[conversationID]) {
-        return prefetchedMapping[conversationID];
+
+    ZMConversation *conversation = prefetchedMapping[conversationID];
+    if (conversation != nil && [domain isEqual:conversation.domain]) {
+        return conversation;
     }
-    
-    ZMConversation *conversation = [ZMConversation conversationWithRemoteID:conversationID createIfNeeded:NO inContext:self.managedObjectContext];
-    if (conversation == nil) {
-        conversation = [ZMConversation conversationWithRemoteID:conversationID createIfNeeded:YES inContext:self.managedObjectContext];
-        
+
+    BOOL created = NO;
+    conversation = [ZMConversation fetchOrCreateWith:conversationID
+                                              domain:domain
+                                                  in:self.managedObjectContext
+                                             created:&created];
+
+    if (created) {
         // if we did not have this conversation before, refetch it
         conversation.needsToBeUpdatedFromBackend = YES;
     }
+
     return conversation;
 }
 
@@ -342,8 +349,8 @@ static NSString *const ConversationTeamManagedKey = @"managed";
         ZMLogError(@"Missing conversation payload in ZMupdateEventConversatinDelete");
         return;
     }
-    
-    ZMConversation *conversation = [ZMConversation conversationWithRemoteID:conversationId createIfNeeded:NO inContext:self.managedObjectContext];
+
+    ZMConversation *conversation = [ZMConversation fetchWith:conversationId domain:nil in:self.managedObjectContext];
     
     if (conversation != nil) {
         [self.managedObjectContext deleteObject:conversation];
@@ -471,7 +478,7 @@ static NSString *const ConversationTeamManagedKey = @"managed";
 - (void)processMemberLeaveEvent:(ZMUpdateEvent *)event forConversation:(ZMConversation *)conversation
 {
     NSUUID *senderUUID = event.senderUUID;
-    ZMUser *sender = [ZMUser userWithRemoteID:senderUUID createIfNeeded:YES inContext:self.managedObjectContext];
+    ZMUser *sender = [ZMUser fetchOrCreateWith:senderUUID domain:nil in:self.managedObjectContext];
     NSSet *removedUsers = [event usersFromUserIDsInManagedObjectContext:self.managedObjectContext createIfNeeded:YES];
     
     ZMLogDebug(@"processMemberLeaveEvent (%@) leaving users.count = %lu", conversation.remoteIdentifier.transportString, (unsigned long)removedUsers.count);
@@ -482,8 +489,6 @@ static NSString *const ConversationTeamManagedKey = @"managed";
     
     [conversation removeParticipantsAndUpdateConversationStateWithUsers:removedUsers initiatingUser:sender];
 }
-
-
 
 @end
 
@@ -544,12 +549,29 @@ static NSString *const ConversationTeamManagedKey = @"managed";
     
     ZMTransportRequest *request = nil;
     ZMConversation *insertedConversation = (ZMConversation *) managedObject;
-    
-    NSArray *participantUUIDs = [[insertedConversation.localParticipantsExcludingSelf allObjects] mapWithBlock:^id(ZMUser *user) {
-        return [user.remoteIdentifier transportString];
-    }];
+    NSMutableDictionary *payload = [NSMutableDictionary new];
 
-    NSMutableDictionary *payload = [@{ @"users" : participantUUIDs } mutableCopy];
+    BOOL hasQualifiedUsers = [insertedConversation.localParticipantsExcludingSelf.allObjects filterWithBlock:^BOOL(ZMUser *user) {
+        return user.domain != nil;
+    }].count == insertedConversation.localParticipantsExcludingSelf.count;
+
+    if (hasQualifiedUsers && self.useFederationEndpoint) {
+        NSArray *qualifiedParticipantUUIDs = [[insertedConversation.localParticipantsExcludingSelf allObjects] mapWithBlock:^id(ZMUser *user) {
+            return @{
+                @"id": user.remoteIdentifier.transportString,
+                @"domain": user.domain
+            };
+        }];
+
+        payload[@"qualified_users"] = qualifiedParticipantUUIDs;
+        payload[@"users"] = @[];
+    } else {
+        NSArray *participantUUIDs = [[insertedConversation.localParticipantsExcludingSelf allObjects] mapWithBlock:^id(ZMUser *user) {
+            return [user.remoteIdentifier transportString];
+        }];
+
+        payload[@"users"] = participantUUIDs;
+    }
 
     payload[@"conversation_role"] = ZMConversation.defaultMemberRoleName;
 
@@ -592,7 +614,7 @@ static NSString *const ConversationTeamManagedKey = @"managed";
     
     // check if there is another with the same conversation ID
     if (remoteID != nil) {
-        ZMConversation *existingConversation = [ZMConversation conversationWithRemoteID:remoteID createIfNeeded:NO inContext:self.managedObjectContext];
+        ZMConversation *existingConversation = [ZMConversation fetchWith:remoteID domain:nil in:self.managedObjectContext];
         
         if (existingConversation != nil) {
             [self.managedObjectContext deleteObject:existingConversation];
@@ -716,10 +738,20 @@ static NSString *const ConversationTeamManagedKey = @"managed";
     if (conversation.remoteIdentifier == nil) {
         return nil;
     }
-    
-    NSString *path = [NSString pathWithComponents:@[ConversationsPath, conversation.remoteIdentifier.transportString]];
-    ZMTransportRequest *request = [[ZMTransportRequest alloc] initWithPath:path method:ZMMethodGET payload:nil];
-    return request;
+
+    if (conversation.domain != nil) {
+        NSString *path = [NSString pathWithComponents:@[ConversationsPath,
+                                                        conversation.domain,
+                                                        conversation.remoteIdentifier.transportString]];
+        ZMTransportRequest *request = [[ZMTransportRequest alloc] initWithPath:path method:ZMMethodGET payload:nil];
+        return request;
+    } else {
+        NSString *path = [NSString pathWithComponents:@[ConversationsPath,
+                                                        conversation.remoteIdentifier.transportString]];
+        ZMTransportRequest *request = [[ZMTransportRequest alloc] initWithPath:path method:ZMMethodGET payload:nil];
+        return request;
+    }
+
 }
 
 - (void)updateObject:(ZMConversation *)conversation withResponse:(ZMTransportResponse *)response downstreamSync:(id<ZMObjectSync>)downstreamSync;

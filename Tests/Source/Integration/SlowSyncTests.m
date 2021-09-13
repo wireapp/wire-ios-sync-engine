@@ -121,8 +121,9 @@
     XCTAssertNotNil(conversations);
     XCTAssertEqual(conversations.count, 3u);
     
-    
-    ZMConversation *actualSelfConversation = [ZMConversation conversationWithRemoteID:[NSUUID uuidWithTransportString:selfConversationIdentifier] createIfNeeded:NO inContext:self.userSession.managedObjectContext];
+
+
+    ZMConversation *actualSelfConversation = [ZMConversation fetchWith:[NSUUID uuidWithTransportString:selfConversationIdentifier] in:self.userSession.managedObjectContext];
     [actualSelfConversation assertMatchesConversation:self.selfConversation failureRecorder:NewFailureRecorder()];
     
     ZMConversation *actualSelfToUser1Conversation = [self findConversationWithIdentifier:selfToUser1ConversationIdentifier inMoc:self.userSession.managedObjectContext];
@@ -164,8 +165,6 @@
              [ZMTransportRequest requestGetFromPath:@"/connections?size=90"],
              [ZMTransportRequest requestGetFromPath:@"/conversations/ids?size=100"],
              [ZMTransportRequest requestGetFromPath:[NSString stringWithFormat:@"/conversations?ids=%@,%@,%@,%@", selfConversationIdentifier, selfToUser1ConversationIdentifier, selfToUser2ConversationIdentifier, groupConversationIdentifier]],
-             [ZMTransportRequest requestGetFromPath:[NSString stringWithFormat:@"/users?ids=%@,%@", user1Identifier, user2Identifier]],
-             [ZMTransportRequest requestGetFromPath:[NSString stringWithFormat:@"/users?ids=%@", user3Identifier]],
              [ZMTransportRequest requestGetFromPath:@"/teams"],
              [ZMTransportRequest requestGetFromPath:@"/properties/labels"]
              ];
@@ -189,16 +188,26 @@
                                   [ZMTransportRequest imageGetRequestFromPath:[NSString stringWithFormat:@"/assets/v3/%@", previewProfileAssetIdentifier]],
                                   [ZMTransportRequest imageGetRequestFromPath:[NSString stringWithFormat:@"/assets/v3/%@", completeProfileAssetIdentifier]],
                                   [ZMTransportRequest requestWithPath:@"properties/WIRE_RECEIPT_MODE" method:ZMMethodGET payload:nil],
-                                  [ZMTransportRequest requestWithPath:@"/conversations/96961d01-df3e-42f0-a9a8-ba8fb6b00035/roles" method:ZMMethodGET payload:nil]
+                                  [ZMTransportRequest requestWithPath:@"/conversations/96961d01-df3e-42f0-a9a8-ba8fb6b00035/roles" method:ZMMethodGET payload:nil],
+                                  [ZMTransportRequest requestWithPath:@"/feature-configs/fileSharing" method:ZMMethodGET payload:nil],
+                                  [ZMTransportRequest requestWithPath:@"/feature-configs/conferenceCalling" method:ZMMethodGET payload:nil],
+                                  [ZMTransportRequest requestWithPath:@"/feature-configs/appLock" method:ZMMethodGET payload:nil]
                                   ]];
     
     // then
     NSMutableArray *mutableRequests = [self.mockTransportSession.receivedRequests mutableCopy];
+    __block NSUInteger usersFetchCallCount = 0;
     __block NSUInteger clientRegistrationCallCount = 0;
     __block NSUInteger notificationStreamCallCount = 0;
     [self.mockTransportSession.receivedRequests enumerateObjectsUsingBlock:^(ZMTransportRequest *request, NSUInteger idx, BOOL *stop) {
         NOT_USED(stop);
         NOT_USED(idx);
+
+        if ([request.path hasPrefix:@"/users?ids="] && request.method == ZMMethodGET) {
+            [mutableRequests removeObject:request];
+            usersFetchCallCount++;
+        }
+
         if ([request.path containsString:@"clients"] && request.method == ZMMethodPOST) {
             [mutableRequests removeObject:request];
             clientRegistrationCallCount++;
@@ -208,12 +217,13 @@
             [mutableRequests removeObject:request];
             clientRegistrationCallCount++;
         }
-        
+
         if ([request.path hasPrefix:@"/notifications?size=500"]) {
             [mutableRequests removeObject:request];
             notificationStreamCallCount++;
         }
     }];
+    XCTAssertEqual(usersFetchCallCount, 2u);
     XCTAssertEqual(clientRegistrationCallCount, 2u);
     XCTAssertEqual(notificationStreamCallCount, 1u);
     
@@ -276,7 +286,7 @@
 }
 
 - (ZMUser *)findUserWithUUID:(NSString *)UUIDString inMoc:(NSManagedObjectContext *)moc {
-    ZMUser *user = [ZMUser userWithRemoteID:[UUIDString UUID] createIfNeeded:NO inContext:moc];
+    ZMUser *user = [ZMUser fetchWith:[UUIDString UUID] in:moc];
     XCTAssertNotNil(user);
     return user;
 }
@@ -306,7 +316,8 @@
 
 - (ZMConversation *)findConversationWithIdentifier:(NSString *)identifier inMoc:(NSManagedObjectContext *)moc
 {
-    ZMConversation *conversation = [ZMConversation conversationWithRemoteID:[NSUUID uuidWithTransportString:identifier] createIfNeeded:NO inContext:moc];
+
+    ZMConversation *conversation = [ZMConversation fetchWith:[NSUUID uuidWithTransportString:identifier] in:moc];
     XCTAssertNotNil(conversation);
     return conversation;
 }

@@ -171,7 +171,7 @@ class PermissionsDownloadRequestStrategyTests: MessagingTest {
 
         syncMOC.performGroupedBlockAndWait {
             // then
-            XCTAssertNil(Member.fetch(withRemoteIdentifier: userid, in: self.syncMOC))
+            XCTAssertNil(Member.fetch(with: userid, in: self.syncMOC))
         }
     }
     

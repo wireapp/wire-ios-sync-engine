@@ -286,7 +286,7 @@ class CallParticipantsSnapshotTests: MessagingTest {
             self.client1.user = self.selfUser
             self.client1.remoteIdentifier = self.aliceDesktop.clientId
 
-            self.user2 = ZMUser(remoteID: self.bobIphone.userId, createIfNeeded: true, in: self.uiMOC)
+            self.user2 = ZMUser.fetchOrCreate(with: self.bobIphone.userId, domain: nil, in: self.uiMOC)
 
             self.client2 = UserClient.insertNewObject(in: self.uiMOC)
             self.client2.user = self.user2

@@ -1173,7 +1173,7 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
         _ = createSelfClient(session.managedObjectContext)
 
         session.syncManagedObjectContext.performGroupedBlock {
-            let _ = ZMConversation(remoteID: self.currentUserIdentifier, createIfNeeded: true, in: session.syncManagedObjectContext)
+            let _ = ZMConversation.fetchOrCreate(with: self.currentUserIdentifier, domain: nil, in: session.syncManagedObjectContext)
             session.syncManagedObjectContext.saveOrRollback()
         }
 
@@ -1218,7 +1218,8 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
         session.isPerformingSync = false
         application?.applicationState = .background
 
-        let selfConversation = ZMConversation(remoteID: currentUserIdentifier, createIfNeeded: false, in: session.managedObjectContext)
+
+        let selfConversation = ZMConversation.fetch(with: currentUserIdentifier, domain: nil, in: session.managedObjectContext)
 
         let userInfo = NotificationUserInfo()
         userInfo.conversationID = selfConversation?.remoteIdentifier
@@ -1252,7 +1253,7 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
         session.isPerformingSync = false
         application?.applicationState = .inactive
 
-        let selfConversation = ZMConversation(remoteID: currentUserIdentifier, createIfNeeded: false, in: session.managedObjectContext)
+        let selfConversation = ZMConversation.fetch(with: currentUserIdentifier, domain: nil, in: session.managedObjectContext)
 
         let userInfo = NotificationUserInfo()
         userInfo.conversationID = selfConversation?.remoteIdentifier
@@ -1289,7 +1290,7 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
         let responder = MockForegroundNotificationResponder()
         self.sessionManager?.foregroundNotificationResponder = responder
 
-        let selfConversation = ZMConversation(remoteID: currentUserIdentifier, createIfNeeded: false, in: session.managedObjectContext)
+        let selfConversation = ZMConversation.fetch(with: currentUserIdentifier, domain: nil, in: session.managedObjectContext)
 
         let userInfo = NotificationUserInfo()
         userInfo.conversationID = selfConversation?.remoteIdentifier

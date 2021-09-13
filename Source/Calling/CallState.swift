@@ -68,7 +68,7 @@ public struct CallParticipant: Hashable {
     }
 
     init?(member: AVSCallMember, activeSpeakerState: ActiveSpeakerState = .inactive, context: NSManagedObjectContext) {
-        guard let user = ZMUser(remoteID: member.client.userId, createIfNeeded: false, in: context) else { return nil }
+        guard let user = ZMUser.fetch(with: member.client.userId, in: context) else { return nil }
         self.init(user: user, userId: user.remoteIdentifier, clientId: member.client.clientId, state: member.callParticipantState, activeSpeakerState: activeSpeakerState)
     }
 

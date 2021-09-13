@@ -996,7 +996,7 @@ extension UserProfileUpdateStatusTests {
         self.sut.suggestHandles()
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
         XCTAssertTrue(self.sut.currentlyGeneratingHandleSuggestion)
-        selfUser.setHandle("annaluna")
+        selfUser.handle = "annaluna"
         
         // THEN
         XCTAssertFalse(self.sut.currentlyGeneratingHandleSuggestion)
@@ -1043,7 +1043,7 @@ extension UserProfileUpdateStatusTests {
         
         // WHEN
         let selfUser = ZMUser.selfUser(in: self.sut.managedObjectContext)
-        selfUser.setHandle("cozypanda23")
+        selfUser.handle = "cozypanda23"
         self.sut.didNotFindAvailableHandleSuggestion()
         
         // THEN
@@ -1079,7 +1079,7 @@ extension UserProfileUpdateStatusTests {
         
         // WHEN
         let selfUser = ZMUser.selfUser(in: self.sut.managedObjectContext)
-        selfUser.setHandle("cozypanda23")
+        selfUser.handle = "cozypanda23"
         self.sut.didFailToFindHandleSuggestion()
         
         // THEN

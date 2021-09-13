@@ -79,7 +79,7 @@ public struct SearchRequest {
 
     var handleAndDomain: (String, String)? {
         let components = query.split(separator: "@")
-            .map({ String($0).trimmingCharacters(in: .whitespaces) })
+            .map({ String($0).trimmingCharacters(in: .whitespaces).lowercased() })
             .filter({ !$0.isEmpty })
 
         guard

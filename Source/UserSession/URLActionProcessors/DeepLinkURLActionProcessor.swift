@@ -51,7 +51,7 @@ class DeepLinkURLActionProcessor: URLActionProcessor {
                 case .success((let conversationId, let conversationName)):
                     /// First of all, we should try to fetch the conversation with ID from the response.
                     /// If the conversation doesn't exist, we should initiate a request to join the conversation
-                    if let conversation = ZMConversation(remoteID: conversationId, createIfNeeded: false, in: viewContext),
+                    if let conversation = ZMConversation.fetch(with: conversationId, in: viewContext),
                        conversation.isSelfAnActiveMember {
                         delegate.showConversation(conversation, at: nil)
                         delegate.completedURLAction(urlAction)
@@ -85,7 +85,7 @@ class DeepLinkURLActionProcessor: URLActionProcessor {
             
         case .openConversation(let id):
             let viewContext = contextProvider.viewContext
-            guard let conversation = ZMConversation(remoteID: id, createIfNeeded: false, in: viewContext) else {
+            guard let conversation = ZMConversation.fetch(with: id, domain: nil, in: viewContext) else {
                 delegate?.failedToPerformAction(urlAction, error: DeepLinkRequestError.invalidConversationLink)
                 return
             }
@@ -95,7 +95,7 @@ class DeepLinkURLActionProcessor: URLActionProcessor {
 
         case .openUserProfile(let id):
             let viewContext = contextProvider.viewContext
-            if let user = ZMUser(remoteID: id, createIfNeeded: false, in: viewContext) {
+            if let user = ZMUser.fetch(with: id, domain: nil, in: viewContext) {
                 delegate?.showUserProfile(user: user)
             } else {
                 delegate?.showConnectionRequest(userId: id)

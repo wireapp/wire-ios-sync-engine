@@ -233,7 +233,7 @@ extension UserImageAssetUpdateStrategyTests {
     
     func testThatItWhitelistsUserOnPreviewSyncForPreviewImageNotification() {
         // GIVEN
-        let user = ZMUser(remoteID: UUID.create(), createIfNeeded: true, in: self.syncMOC)!
+        let user = ZMUser.fetchOrCreate(with: UUID.create(), domain: nil, in: self.syncMOC)
         user.previewProfileAssetIdentifier = "fooo"
         let sync = self.sut.downstreamRequestSyncs[.preview]!
         XCTAssertFalse(sync.hasOutstandingItems)
@@ -251,7 +251,7 @@ extension UserImageAssetUpdateStrategyTests {
     
     func testThatItWhitelistsUserOnPreviewSyncForCompleteImageNotification() {
         // GIVEN
-        let user = ZMUser(remoteID: .create(), createIfNeeded: true, in: self.syncMOC)!
+        let user = ZMUser.fetchOrCreate(with: UUID.create(), domain: nil, in: self.syncMOC)
         user.completeProfileAssetIdentifier = "fooo"
         let sync = self.sut.downstreamRequestSyncs[.complete]!
         XCTAssertFalse(sync.hasOutstandingItems)
@@ -269,7 +269,7 @@ extension UserImageAssetUpdateStrategyTests {
     
     func testThatItCreatesRequestForCorrectAssetIdentifierForPreviewImage() {
         // GIVEN
-        let user = ZMUser(remoteID: .create(), createIfNeeded: true, in: self.syncMOC)!
+        let user = ZMUser.fetchOrCreate(with: UUID.create(), domain: nil, in: self.syncMOC)
         let assetId = "foo-bar"
         user.previewProfileAssetIdentifier = assetId
         syncMOC.saveOrRollback()
@@ -289,7 +289,7 @@ extension UserImageAssetUpdateStrategyTests {
     
     func testThatItCreatesRequestForCorrectAssetIdentifierForCompleteImage() {
         // GIVEN
-        let user = ZMUser(remoteID: .create(), createIfNeeded: true, in: self.syncMOC)!
+        let user = ZMUser.fetchOrCreate(with: UUID.create(), domain: nil, in: self.syncMOC)
         let assetId = "foo-bar"
         user.completeProfileAssetIdentifier = assetId
         syncMOC.saveOrRollback()
@@ -309,7 +309,7 @@ extension UserImageAssetUpdateStrategyTests {
     
     func testThatItUpdatesCorrectUserImageDataForPreviewImage() {
         // GIVEN
-        let user = ZMUser(remoteID: .create(), createIfNeeded: true, in: self.syncMOC)!
+        let user = ZMUser.fetchOrCreate(with: UUID.create(), domain: nil, in: self.syncMOC)
         let imageData = "image".data(using: .utf8)!
         let sync = self.sut.downstreamRequestSyncs[.preview]!
         user.previewProfileAssetIdentifier = "foo"
@@ -324,7 +324,7 @@ extension UserImageAssetUpdateStrategyTests {
     
     func testThatItUpdatesCorrectUserImageDataForCompleteImage() {
         // GIVEN
-        let user = ZMUser(remoteID: .create(), createIfNeeded: true, in: self.syncMOC)!
+        let user = ZMUser.fetchOrCreate(with: UUID.create(), domain: nil, in: self.syncMOC)
         let imageData = "image".data(using: .utf8)!
         let sync = self.sut.downstreamRequestSyncs[.complete]!
         user.completeProfileAssetIdentifier = "foo"
@@ -339,7 +339,7 @@ extension UserImageAssetUpdateStrategyTests {
     
     func testThatItDeletesPreviewProfileAssetIdentifierWhenReceivingAPermanentErrorForPreviewImage() {
         // Given
-        let user = ZMUser(remoteID: .create(), createIfNeeded: true, in: syncMOC)!
+        let user = ZMUser.fetchOrCreate(with: UUID.create(), domain: nil, in: self.syncMOC)
         let assetId = UUID.create().transportString()
         user.previewProfileAssetIdentifier = assetId
         syncMOC.saveOrRollback()
@@ -366,7 +366,7 @@ extension UserImageAssetUpdateStrategyTests {
     
     func testThatItDeletesCompleteProfileAssetIdentifierWhenReceivingAPermanentErrorForCompleteImage() {
         // Given
-        let user = ZMUser(remoteID: .create(), createIfNeeded: true, in: syncMOC)!
+        let user = ZMUser.fetchOrCreate(with: UUID.create(), domain: nil, in: self.syncMOC)
         let assetId = UUID.create().transportString()
         user.completeProfileAssetIdentifier = assetId
         syncMOC.saveOrRollback()
