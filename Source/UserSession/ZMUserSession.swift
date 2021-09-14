@@ -545,6 +545,7 @@ extension ZMUserSession: ZMSyncStateDelegate {
             let featureService = FeatureService(context: self.syncContext)
             featureService.enqueueBackendRefresh(for: .appLock)
             featureService.enqueueBackendRefresh(for: .fileSharing)
+            featureService.enqueueBackendRefresh(for: .conferenceCalling)
             featureService.enqueueBackendRefresh(for: .selfDeletingMessages)
         }
 
