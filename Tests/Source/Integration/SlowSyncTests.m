@@ -25,7 +25,6 @@
 
 #import "MessagingTest.h"
 #import "ZMLoginTranscoder+Internal.h"
-#import "ZMConversationTranscoder.h"
 #import "ZMConversation+Testing.h"
 #import "Tests-Swift.h"
 
