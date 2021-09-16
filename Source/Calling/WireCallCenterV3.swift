@@ -69,6 +69,8 @@ public class WireCallCenterV3: NSObject {
      */
 
     var useConstantBitRateAudio: Bool = false
+
+    var usePackagingFeatureConfig: Bool = false
     
     var muted: Bool {
         get {
@@ -439,22 +441,24 @@ extension WireCallCenterV3 {
     
     public func startCall(conversation: ZMConversation, video: Bool) -> Bool {
         guard let conversationId = conversation.remoteIdentifier else { return false }
-        
+
         endAllCalls(exluding: conversationId)
         clearSnapshot(conversationId: conversationId) // make sure we don't have an old state for this conversation
         
-        let conversationType: AVSConversationType
-
-        switch conversation.conversationType {
-        case .group:
-            conversationType = .conference
-        default:
-            conversationType = .oneToOne
-        }
+        let conversationType = conversation.conversationType == .group ? AVSConversationType.conference : .oneToOne
 
         let callType = self.callType(for: conversation,
                                      startedWithVideo: video,
                                      isConferenceCall: conversationType == .conference)
+
+
+        if conversationType == .conference && !canStartConferenceCalls {
+            if let context = uiMOC {
+                WireCallCenterConferenceCallingUnavailableNotification().post(in: context.notificationContext)
+            }
+
+            return false
+        }
 
         let started = avsWrapper.startCall(conversationId: conversationId,
                                            callType: callType,
@@ -478,6 +482,15 @@ extension WireCallCenterV3 {
         }
 
         return true
+    }
+
+    private var canStartConferenceCalls: Bool {
+        guard usePackagingFeatureConfig else {
+            return true
+        }
+        guard let context = uiMOC else { return false }
+        let conferenceCalling = FeatureService(context: context).fetchConferenceCalling()
+        return conferenceCalling.status == .enabled
     }
 
     /**

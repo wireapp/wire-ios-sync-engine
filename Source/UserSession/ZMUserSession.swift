@@ -89,6 +89,8 @@ public class ZMUserSession: NSObject {
     let eventProcessingTracker: EventProcessingTracker = EventProcessingTracker()
     let hotFix: ZMHotFix
 
+    public lazy var featureService = FeatureService(context: syncContext)
+
     public var appLockController: AppLockType
     public var fileSharingFeature: Feature.FileSharing {
         let featureService = FeatureService(context: coreDataStack.viewContext)
@@ -533,12 +535,9 @@ extension ZMUserSession: ZMSyncStateDelegate {
             self?.notifyThirdPartyServices()
         }
 
-        syncContext.performGroupedBlock {
-            let featureService = FeatureService(context: self.syncContext)
-            featureService.enqueueBackendRefresh(for: .appLock)
-            featureService.enqueueBackendRefresh(for: .fileSharing)
-        }
-
+        featureService.enqueueBackendRefresh(for: .appLock)
+        featureService.enqueueBackendRefresh(for: .conferenceCalling)
+        featureService.enqueueBackendRefresh(for: .fileSharing)
     }
     
     func processEvents() {
