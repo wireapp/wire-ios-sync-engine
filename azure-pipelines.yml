@@ -3,7 +3,7 @@ resources:
   - repository: wire-ios-shared-resources
     type: github
     name: wireapp/wire-ios-shared-resources
-    ref: refs/heads/master # Branch to fetch the jobs template from
+    ref: refs/heads/chore/xcode13 # Branch to fetch the jobs template from
     endpoint: wireapp
 
 trigger:
