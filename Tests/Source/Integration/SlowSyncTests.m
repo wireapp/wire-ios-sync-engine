@@ -192,6 +192,7 @@
                                   [ZMTransportRequest requestWithPath:@"/feature-configs/fileSharing" method:ZMMethodGET payload:nil],
                                   [ZMTransportRequest requestWithPath:@"/feature-configs/conferenceCalling" method:ZMMethodGET payload:nil],
                                   [ZMTransportRequest requestWithPath:@"/feature-configs/appLock" method:ZMMethodGET payload:nil]
+                                  [ZMTransportRequest requestWithPath:@"/feature-configs/selfDeletingMessages" method:ZMMethodGET payload:nil]
                                   ]];
     
     // then
