@@ -539,7 +539,6 @@
         XCTAssertEqual(request.method, ZMMethodPUT);
         XCTAssertEqualObjects(conversation.lastServerTimeStamp, conversation.silencedChangedTimestamp);
         XCTAssertEqualObjects(request.payload.asDictionary[@"otr_muted_ref"], conversation.silencedChangedTimestamp.transportString);
-        XCTAssertEqualObjects(request.payload.asDictionary[@"otr_muted"], @(conversation.isFullyMuted));
         XCTAssertEqualObjects(request.payload.asDictionary[@"otr_muted_status"], @(conversation.isFullyMuted ? 3 : 0));
     }
     
@@ -578,7 +577,6 @@
         XCTAssertEqual(request.method, ZMMethodPUT);
         XCTAssertEqualObjects(conversation.lastServerTimeStamp, conversation.silencedChangedTimestamp);
         XCTAssertEqualObjects(request.payload.asDictionary[@"otr_muted_ref"], conversation.silencedChangedTimestamp.transportString);
-        XCTAssertEqualObjects(request.payload.asDictionary[@"otr_muted"], @(conversation.isFullyMuted));
         XCTAssertEqualObjects(request.payload.asDictionary[@"otr_muted_status"], @(conversation.isFullyMuted ? 3 : 0));
     }
 
@@ -621,7 +619,6 @@
     NSString *expectedPath = [NSString stringWithFormat:@"/conversations/%@/self", self.groupConversation.identifier];
     XCTAssertEqualObjects(request.path, expectedPath);
     XCTAssertEqual(request.method, ZMMethodPUT);
-    XCTAssertEqualObjects(request.payload.asDictionary[@"otr_muted"], @0);
     XCTAssertEqualObjects(request.payload.asDictionary[@"otr_muted_ref"], conversation.lastServerTimeStamp.transportString);
     XCTAssertEqualObjects(request.payload.asDictionary[@"otr_muted_status"], @0);
 }
@@ -650,7 +647,6 @@
     NSString *expectedPath = [NSString stringWithFormat:@"/conversations/%@/self", self.groupConversation.identifier];
     XCTAssertEqualObjects(request.path, expectedPath);
     XCTAssertEqual(request.method, ZMMethodPUT);
-    XCTAssertEqualObjects(request.payload.asDictionary[@"otr_muted"], @0);
     XCTAssertEqualObjects(request.payload.asDictionary[@"otr_muted_ref"], conversation.lastServerTimeStamp.transportString);
     XCTAssertEqualObjects(request.payload.asDictionary[@"otr_muted_status"], @0);
 }
