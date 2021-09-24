@@ -32,7 +32,7 @@ class ConversationTests_Participants: ConversationTestsBase {
         observer?.clearNotifications()
         
         // when
-        conversation.addParticipants([connectedUser], userSession: userSession!, completion: { (_) in })
+        conversation.addParticipants([connectedUser], completion: { (_) in })
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
         // then - Participants changes and messages changes (System message for the added user)
@@ -47,7 +47,7 @@ class ConversationTests_Participants: ConversationTestsBase {
         observer?.notifications.removeAllObjects()
         
         // when
-        conversation.removeParticipant(connectedUser, userSession: userSession!, completion: { (_) in })
+        conversation.removeParticipant(connectedUser, completion: { (_) in })
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
         // then - Participants changes and messages changes (System message for the removed user)
@@ -70,7 +70,7 @@ class ConversationTests_Participants: ConversationTestsBase {
         XCTAssertFalse(conversation.localParticipants.contains(connectedUser))
         
         // when
-        conversation.addParticipants([connectedUser], userSession: userSession!, completion: { (_) in })
+        conversation.addParticipants([connectedUser], completion: { (_) in })
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
         // then
@@ -94,7 +94,7 @@ class ConversationTests_Participants: ConversationTestsBase {
         XCTAssertTrue(conversation.localParticipants.contains(connectedUser))
         
         // when
-        conversation.removeParticipant(connectedUser, userSession: userSession!, completion: { (_) in })
+        conversation.removeParticipant(connectedUser, completion: { (_) in })
         XCTAssertTrue( waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
         // then
