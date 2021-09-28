@@ -213,7 +213,7 @@ extension VoiceChannelV3 : CallActions {
 }
 
 extension VoiceChannelV3 : CallActionsInternal {
-    
+
     public func join(video: Bool) -> Bool {
         guard let conversation = conversation else { return false }
         
@@ -228,14 +228,18 @@ extension VoiceChannelV3 : CallActionsInternal {
         
         return joined
     }
-    
+
     public func leave() {
+        leave(rejectIfIncoming: true)
+    }
+
+    public func leave(rejectIfIncoming: Bool) {
         guard let conv = conversation,
               let remoteID = conv.remoteIdentifier
         else { return }
         
         switch state {
-        case .incoming:
+        case .incoming where rejectIfIncoming:
             callCenter?.rejectCall(conversationId: remoteID)
         default:
             callCenter?.closeCall(conversationId: remoteID)

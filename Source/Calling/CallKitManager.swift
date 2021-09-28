@@ -310,7 +310,7 @@ extension CallKitManager {
             if let error = error {
                 self?.log("Cannot report incoming call: \(error)")
                 self?.calls.removeValue(forKey: callUUID)
-                conversation.voiceChannel?.leave()
+                conversation.voiceChannel?.leave(rejectIfIncoming: false)
             } else {
                 self?.mediaManager?.setupAudioDevice()
             }

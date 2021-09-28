@@ -85,6 +85,7 @@ public protocol CallActions : NSObjectProtocol {
 public protocol CallActionsInternal : NSObjectProtocol {
     
     func join(video: Bool) -> Bool
+    func leave(rejectIfIncoming: Bool)
     func leave()
     
 }
