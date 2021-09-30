@@ -25,7 +25,6 @@
 
 #import "MessagingTest.h"
 #import "ZMLoginTranscoder+Internal.h"
-#import "ZMConversationTranscoder.h"
 #import "ZMConversation+Testing.h"
 #import "Tests-Swift.h"
 
@@ -134,100 +133,6 @@
     
     ZMConversation *actualGroupConversation = [self findConversationWithIdentifier:groupConversationIdentifier inMoc:self.userSession.managedObjectContext];
     [actualGroupConversation assertMatchesConversation:self.groupConversation failureRecorder:NewFailureRecorder()];
-}
-
-- (NSArray *)commonRequestsOnLogin
-{
-    __block NSString *selfConversationIdentifier;
-    __block NSString *selfToUser1ConversationIdentifier;
-    __block NSString *selfToUser2ConversationIdentifier;
-    __block NSString *groupConversationIdentifier;
-    __block NSString *user1Identifier;
-    __block NSString *user2Identifier;
-    __block NSString *user3Identifier;
-    
-    [self.mockTransportSession.managedObjectContext performGroupedBlockAndWait:^{
-        selfConversationIdentifier =  self.selfConversation.identifier;
-        selfToUser1ConversationIdentifier = self.selfToUser1Conversation.identifier;
-        selfToUser2ConversationIdentifier = self.selfToUser2Conversation.identifier;
-        groupConversationIdentifier = self.groupConversation.identifier;
-        user1Identifier = self.user1.identifier;
-        user2Identifier = self.user2.identifier;
-        user3Identifier = self.user3.identifier;
-    }];
-    
-    return @[
-             [[ZMTransportRequest alloc] initWithPath:ZMLoginURL method:ZMMethodPOST payload:@{@"email":[IntegrationTest.SelfUserEmail copy], @"password":[IntegrationTest.SelfUserPassword copy], @"label": CookieLabel.current.value} authentication:ZMTransportRequestAuthCreatesCookieAndAccessToken],
-             [ZMTransportRequest requestGetFromPath:@"/self"],
-             [ZMTransportRequest requestGetFromPath:@"/self"], // second request during slow sync
-             [ZMTransportRequest requestGetFromPath:@"/clients"],
-             [ZMTransportRequest requestGetFromPath:[NSString stringWithFormat:@"/notifications/last?client=%@",  [ZMUser selfUserInContext:self.userSession.managedObjectContext].selfClient.remoteIdentifier]],
-             [ZMTransportRequest requestGetFromPath:@"/connections?size=90"],
-             [ZMTransportRequest requestGetFromPath:@"/conversations/ids?size=100"],
-             [ZMTransportRequest requestGetFromPath:[NSString stringWithFormat:@"/conversations?ids=%@,%@,%@,%@", selfConversationIdentifier, selfToUser1ConversationIdentifier, selfToUser2ConversationIdentifier, groupConversationIdentifier]],
-             [ZMTransportRequest requestGetFromPath:@"/teams"],
-             [ZMTransportRequest requestGetFromPath:@"/properties/labels"]
-             ];
-
-}
-
-- (void)testThatItGeneratesOnlyTheExpectedRequestsForSelfUserProfilePicture
-{
-    // when
-    XCTAssertTrue([self login]);
-
-    __block NSString *previewProfileAssetIdentifier = nil;
-    __block NSString *completeProfileAssetIdentifier = nil;
-    [self.mockTransportSession.managedObjectContext performGroupedBlockAndWait:^{
-        previewProfileAssetIdentifier = self.selfUser.previewProfileAssetIdentifier;
-        completeProfileAssetIdentifier = self.selfUser.completeProfileAssetIdentifier;
-    }];
-    
-    // given
-    NSArray *expectedRequests = [[self commonRequestsOnLogin] arrayByAddingObjectsFromArray: @[
-                                  [ZMTransportRequest imageGetRequestFromPath:[NSString stringWithFormat:@"/assets/v3/%@", previewProfileAssetIdentifier]],
-                                  [ZMTransportRequest imageGetRequestFromPath:[NSString stringWithFormat:@"/assets/v3/%@", completeProfileAssetIdentifier]],
-                                  [ZMTransportRequest requestWithPath:@"properties/WIRE_RECEIPT_MODE" method:ZMMethodGET payload:nil],
-                                  [ZMTransportRequest requestWithPath:@"/conversations/96961d01-df3e-42f0-a9a8-ba8fb6b00035/roles" method:ZMMethodGET payload:nil],
-                                  [ZMTransportRequest requestWithPath:@"/feature-configs/fileSharing" method:ZMMethodGET payload:nil],
-                                  [ZMTransportRequest requestWithPath:@"/feature-configs/conferenceCalling" method:ZMMethodGET payload:nil],
-                                  [ZMTransportRequest requestWithPath:@"/feature-configs/appLock" method:ZMMethodGET payload:nil]
-                                  ]];
-    
-    // then
-    NSMutableArray *mutableRequests = [self.mockTransportSession.receivedRequests mutableCopy];
-    __block NSUInteger usersFetchCallCount = 0;
-    __block NSUInteger clientRegistrationCallCount = 0;
-    __block NSUInteger notificationStreamCallCount = 0;
-    [self.mockTransportSession.receivedRequests enumerateObjectsUsingBlock:^(ZMTransportRequest *request, NSUInteger idx, BOOL *stop) {
-        NOT_USED(stop);
-        NOT_USED(idx);
-
-        if ([request.path hasPrefix:@"/users?ids="] && request.method == ZMMethodGET) {
-            [mutableRequests removeObject:request];
-            usersFetchCallCount++;
-        }
-
-        if ([request.path containsString:@"clients"] && request.method == ZMMethodPOST) {
-            [mutableRequests removeObject:request];
-            clientRegistrationCallCount++;
-        }
-
-        if ([request.path containsString:@"clients"] && request.method == ZMMethodPUT) {
-            [mutableRequests removeObject:request];
-            clientRegistrationCallCount++;
-        }
-
-        if ([request.path hasPrefix:@"/notifications?size=500"]) {
-            [mutableRequests removeObject:request];
-            notificationStreamCallCount++;
-        }
-    }];
-    XCTAssertEqual(usersFetchCallCount, 2u);
-    XCTAssertEqual(clientRegistrationCallCount, 2u);
-    XCTAssertEqual(notificationStreamCallCount, 1u);
-    
-    AssertArraysContainsSameObjects(expectedRequests, mutableRequests);
 }
 
 - (void)testThatItDoesAQuickSyncOnStartupIfAfterARestartWithoutAnyPushNotification

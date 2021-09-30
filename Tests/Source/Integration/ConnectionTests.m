@@ -1129,6 +1129,7 @@
         XCTAssertEqual(pending.count, pendingCount + 1u);
     }
     (void)listToken;
+    WaitForAllGroupsToBeEmpty(0.5);
 }
 
 - (void)testThatItSendsOutANotificationWhenAConnectionStatusChangeFromPendingToAcceptedIsRejectedByTheBackend
