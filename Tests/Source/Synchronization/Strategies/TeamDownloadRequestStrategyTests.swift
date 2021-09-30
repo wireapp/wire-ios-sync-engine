@@ -63,6 +63,8 @@ class TeamDownloadRequestStrategyTests: MessagingTest {
             "name": "Wire GmbH",
             "icon": "",
             "icon_key": "",
+            "splash_image": "",
+            "splash_image_key": "",
             "binding" : (isBound ? true: false)
         ]
     }

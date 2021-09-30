@@ -34,6 +34,8 @@ struct TeamPayload: Decodable {
     let binding: Bool
     let icon: String
     let iconKey: String?
+    let splashImage: String
+    let splashImageKey: String?
     
     private enum CodingKeys: String, CodingKey {
         case identifier = "id"
@@ -42,6 +44,8 @@ struct TeamPayload: Decodable {
         case binding
         case icon
         case iconKey = "icon_key"
+        case splashImage = "splash_image"
+        case splashImageKey = "splash_image_key"
     }
         
 }
