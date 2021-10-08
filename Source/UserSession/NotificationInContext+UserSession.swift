@@ -114,6 +114,7 @@ extension ZMConversation {
     func typingDidChange(conversation: ZMConversation, typingUsers: [UserType])
 }
 
+// TODO jacob should be deleted
 // MARK: Add conversation
 @objc extension ZMConversation {
 
@@ -126,6 +127,7 @@ extension ZMConversation {
 
 }
 
+// TODO jacob should be deleted
 // MARK: - Connection limit reached
 @objc public protocol ZMConnectionFailureObserver: NSObjectProtocol {
     
@@ -133,6 +135,7 @@ extension ZMConversation {
 }
 
 
+// TODO jacob should be deleted
 @objcMembers public class ZMConnectionNotification : NSObject {
 
     public static let limitReached = Notification.Name(rawValue: "ZMConnectionLimitReachedNotification")

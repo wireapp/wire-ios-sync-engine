@@ -29,7 +29,7 @@ import Foundation
               let conversation = sender.connection?.conversation
         else { return }
         
-        sender.accept()
+        sender.accept(completion: {_ in })
         managedObjectContext.saveOrRollback()
         showConversation(conversation)
         completionHandler()
