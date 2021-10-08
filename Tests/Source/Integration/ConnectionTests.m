@@ -23,48 +23,8 @@
 
 #import "Tests-Swift.h"
 
-////
-// TestObserver
-///
-
-@interface MockConnectionLimitObserver : NSObject <ZMConnectionFailureObserver>
-
-@property (nonatomic) id connectionLimitObserverToken;
-@property (nonatomic) id missingConnectionLegalHoldConsentToken;
-@property (nonatomic) BOOL reachedConnectionLimit;
-@property (nonatomic) BOOL missingLegalHoldConsent;
-
-@end
-
-
-@implementation MockConnectionLimitObserver
-
-- (void)connectionLimitReached {
-    self.reachedConnectionLimit = YES;
-}
-
-- (void)missingConnectionLegalHoldConsent {
-    self.missingLegalHoldConsent = YES;
-}
-
-- (instancetype)initWithManagedObjectContext:(NSManagedObjectContext *)moc {
-    self = [super init];
-    if  (self) {
-        self.reachedConnectionLimit = NO;
-        self.connectionLimitObserverToken = [ZMConnectionNotification addConnectionLimitObserver:self context:moc];
-
-        self.missingLegalHoldConsent = NO;
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(missingConnectionLegalHoldConsent) name:ZMConnectionNotification.missingLegalHoldConsent object:nil];
-    }
-    return self;
-}
-
-
-@end
-
 @interface ConnectionTests : IntegrationTest
 
-@property (nonatomic) NSUInteger previousZMConnectionTranscoderPageSize;
 @property (nonatomic) ConversationChangeObserver *conversationChangeObserver;
 
 @end
