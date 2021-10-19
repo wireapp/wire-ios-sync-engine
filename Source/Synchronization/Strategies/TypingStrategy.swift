@@ -229,8 +229,8 @@ public class TypingStrategy : AbstractRequestStrategy, TearDownCapable, ZMEventC
               let conversationID = event.conversationUUID
         else { return }
 
-        let user = ZMUser.fetchOrCreate(with: userID, domain: nil, in: managedObjectContext)
-        let conversation = conversationsByID?[conversationID] ?? ZMConversation.fetchOrCreate(with: conversationID, domain: nil, in: managedObjectContext)
+        let user = ZMUser.fetchOrCreate(with: userID, domain: event.senderDomain, in: managedObjectContext)
+        let conversation = conversationsByID?[conversationID] ?? ZMConversation.fetchOrCreate(with: conversationID, domain: event.conversationDomain, in: managedObjectContext)
         
         if event.type == .conversationTyping {
             guard let payloadData = event.payload["data"] as? [String: String],
