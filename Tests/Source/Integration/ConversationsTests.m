@@ -310,9 +310,8 @@
     ZMUser *user1 = [self userForMockUser:self.user1];
     XCTAssertFalse(user1.isBlocked);
 
-    [self.userSession performChanges:^{
-        [user1 block];
-    }];
+    [user1 blockWithCompletion:^(NSError *error) { NOT_USED(error); }];
+    WaitForAllGroupsToBeEmpty(0.5);
     
     XCTAssertTrue(user1.isBlocked);
     XCTAssertEqual(conversation.localParticipants.count, 2u);
@@ -406,9 +405,7 @@
     ConversationListChangeObserver *pendingObserver = [[ConversationListChangeObserver alloc] initWithConversationList:pending];
     
     // when
-    [self.userSession performChanges:^{
-        [realUser accept];
-    }];
+    [realUser acceptWithCompletion:^(NSError *error) { NOT_USED(error); }];
     WaitForAllGroupsToBeEmpty(0.5f);
 
     //then
@@ -674,10 +671,7 @@
     ConversationListChangeObserver *observer = [[ConversationListChangeObserver alloc] initWithConversationList:active];
     
     // when blocking user 1
-    
-    [self.userSession performChanges:^{
-        [user1 block];
-    }];
+    [user1 blockWithCompletion:^(NSError *error) { NOT_USED(error); }];
     WaitForAllGroupsToBeEmpty(0.5);
     
     // then the conversation should not be in the active list anymore

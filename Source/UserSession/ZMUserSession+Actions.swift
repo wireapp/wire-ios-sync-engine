@@ -29,10 +29,10 @@ import Foundation
               let conversation = sender.connection?.conversation
         else { return }
         
-        sender.accept()
-        managedObjectContext.saveOrRollback()
-        showConversation(conversation)
-        completionHandler()
+        sender.accept(completion: { [weak self] _ in
+            self?.showConversation(conversation)
+            completionHandler()
+        })
     }
     
     public func acceptCall(with userInfo: NotificationUserInfo, completionHandler: @escaping () -> Void) {
