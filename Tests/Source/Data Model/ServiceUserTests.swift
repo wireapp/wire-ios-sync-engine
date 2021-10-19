@@ -21,21 +21,28 @@ import XCTest
 @testable import WireSyncEngine
 
 final class DummyServiceUser: NSObject, ServiceUser {
-    func cancelConnectionRequest() {
-        
+
+    func cancelConnectionRequest(completion: @escaping (Error?) -> Void) {
+
     }
 
-    func block () {
-        
+    func connect(completion: @escaping (Error?) -> Void) {
+
     }
 
-    func accept() {
-        
+    func block(completion: @escaping (Error?) -> Void) {
+
     }
 
-    func ignore() {
-        
+    func accept(completion: @escaping (Error?) -> Void) {
+
     }
+
+    func ignore(completion: @escaping (Error?) -> Void) {
+
+    }
+
+    var remoteIdentifier: UUID?
 
     var isIgnored: Bool = false
 
@@ -228,11 +235,7 @@ final class DummyServiceUser: NSObject, ServiceUser {
     func refreshTeamData() {
         
     }
-    
-    func connect(message: String) {
-        
-    }
-    
+
     func isGuest(in conversation: ConversationLike) -> Bool {
         return false
     }

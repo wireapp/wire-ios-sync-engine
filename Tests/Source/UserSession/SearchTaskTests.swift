@@ -278,7 +278,7 @@ class SearchTaskTests : DatabaseTest {
         // given
         let resultArrived = expectation(description: "received result")
         let user1 = createConnectedUser(withName: "Somebody Blocked")
-        user1.block()
+        user1.connection?.status = .blocked
         let user2 = createConnectedUser(withName: "Somebody Pending")
         user2.connection?.status = .pending
         let user3 = createConnectedUser(withName: "Somebody")

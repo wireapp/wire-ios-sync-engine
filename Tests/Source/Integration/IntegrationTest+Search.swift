@@ -47,7 +47,7 @@ extension IntegrationTest {
         XCTAssertNotNil(searchUser)
         XCTAssertEqual(searchUser?.name, name)
         
-        searchUser?.connect(message: "Hola")
+        searchUser?.connect(completion: {_ in })
     }
     
     @objc
@@ -100,9 +100,7 @@ extension IntegrationTest {
     
     @objc
     public func connect(withUser user: UserType) {
-        userSession?.perform {
-            user.connect(message: "Hola")
-        }
+        user.connect(completion: {_ in })
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
     }
     
