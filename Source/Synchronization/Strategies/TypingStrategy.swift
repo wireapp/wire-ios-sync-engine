@@ -243,7 +243,7 @@ public class TypingStrategy : AbstractRequestStrategy, TearDownCapable, ZMEventC
                 typing.setIsTyping(false, for: user, in: conversation)
             }
         } else if event.type == .conversationMemberLeave {
-            let users = event.usersFromUserIDs(in: managedObjectContext, createIfNeeded: false).compactMap { $0 as? ZMUser }
+            let users = event.users(in: managedObjectContext, createIfNeeded: false)
             users.forEach { user in
                 typing.setIsTyping(false, for: user, in: conversation)
             }
