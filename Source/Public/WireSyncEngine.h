@@ -39,10 +39,8 @@
 #import <WireSyncEngine/ZMLoginTranscoder.h>
 #import <WireSyncEngine/ZMLoginCodeRequestTranscoder.h>
 #import <WireSyncEngine/ZMLastUpdateEventIDTranscoder.h>
-#import <WireSyncEngine/ZMConnectionTranscoder.h>
 #import <WireSyncEngine/ZMSelfStrategy.h>
 #import <WireSyncEngine/ZMHotFix.h>
 #import <WireSyncEngine/ZMSyncStrategy.h>
 #import <WireSyncEngine/ZMUpdateEventsBuffer.h>
-#import <WireSyncEngine/ZMConversationTranscoder.h>
 #import <WireSyncEngine/ZMMissingUpdateEventsTranscoder.h>

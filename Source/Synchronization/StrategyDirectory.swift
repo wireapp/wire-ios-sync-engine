@@ -177,14 +177,14 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
             SearchUserImageStrategy(
                 applicationStatus: applicationStatusDirectory,
                 managedObjectContext: syncMOC),
-            ZMConnectionTranscoder(
-                managedObjectContext: syncMOC,
+            ConnectionRequestStrategy(
+                withManagedObjectContext: syncMOC,
                 applicationStatus: applicationStatusDirectory,
-                syncStatus: applicationStatusDirectory.syncStatus),
-            ZMConversationTranscoder(
-                managedObjectContext: syncMOC,
+                syncProgress: applicationStatusDirectory.syncStatus),
+            ConversationRequestStrategy(
+                withManagedObjectContext: syncMOC,
                 applicationStatus: applicationStatusDirectory,
-                syncStatus: applicationStatusDirectory.syncStatus),
+                syncProgress: applicationStatusDirectory.syncStatus),
             UserProfileRequestStrategy(
                 managedObjectContext: syncMOC,
                 applicationStatus: applicationStatusDirectory,

@@ -71,6 +71,7 @@ import Foundation
         let searchUserObserverCenter = contextProvider.viewContext.searchUserObserverCenter
         result.directory.forEach(searchUserObserverCenter.addSearchUser)
         result.services.compactMap { $0 as? ZMSearchUser }.forEach(searchUserObserverCenter.addSearchUser)
+        try? result.federation.get().forEach(searchUserObserverCenter.addSearchUser)
     }
     
 }
