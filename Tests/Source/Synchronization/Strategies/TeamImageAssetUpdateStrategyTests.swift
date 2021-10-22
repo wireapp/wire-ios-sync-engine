@@ -65,7 +65,7 @@ final class TeamImageAssetUpdateStrategyTests : MessagingTest {
         let team = createTeamWithImage()
 
         // WHEN
-        team.requestImage()
+        team.requestLogoImage()
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // THEN
@@ -80,7 +80,7 @@ final class TeamImageAssetUpdateStrategyTests : MessagingTest {
         let team = createTeamWithImage()
         let imageData = "image".data(using: .utf8)!
         
-        team.requestImage()
+        team.requestLogoImage()
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         guard let request = sut.nextRequest() else { return XCTFail("nil request generated") }
         
@@ -89,13 +89,13 @@ final class TeamImageAssetUpdateStrategyTests : MessagingTest {
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // THEN
-        XCTAssertEqual(team.imageData, imageData)
+        XCTAssertEqual(team.logoImageData, imageData)
     }
 
     func testThatItDeletesTeamAssetIdentifier_OnPermanentError() {
         // GIVEN
         let team = createTeamWithImage()
-        team.requestImage()
+        team.requestLogoImage()
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         guard let request = sut.nextRequest() else { return XCTFail("nil request generated") }
 

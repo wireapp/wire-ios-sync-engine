@@ -923,8 +923,11 @@ extension SessionManager {
             if let userProfileImage = selfUser.imageSmallProfileData {
                 account.imageData = userProfileImage
             }
-            if let teamImageData = selfUser.team?.imageData  {
+            if let teamImageData = selfUser.team?.logoImageData  {
                 account.teamImageData = teamImageData
+            }
+            if let splashImageData = selfUser.team?.splashImageData  {
+                account.splashImageData = splashImageData
             }
 
 

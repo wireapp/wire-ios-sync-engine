@@ -779,7 +779,7 @@ class SessionManagerTests_Teams: IntegrationTest {
         self.mockTransportSession.performRemoteChanges { session in
             team.pictureAssetId = asset.identifier
         }
-        user(for: selfUser)?.team?.requestImage()
+        user(for: selfUser)?.team?.requestLogoImage()
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then

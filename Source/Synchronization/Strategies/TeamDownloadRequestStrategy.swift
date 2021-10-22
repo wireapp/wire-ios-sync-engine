@@ -77,6 +77,7 @@ extension TeamPayload {
         team.creator = ZMUser.fetchOrCreate(with: creator, domain: nil, in: managedObjectContext)
         team.pictureAssetId = icon
         team.pictureAssetKey = iconKey
+        team.splashImageId = splashImage
         
         if !binding {
             managedObjectContext.delete(team)
