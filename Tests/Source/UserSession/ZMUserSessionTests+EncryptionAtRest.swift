@@ -187,7 +187,7 @@ class ZMUserSessionTests_EncryptionAtRest: ZMUserSessionTestsBase {
 
         // when
         let activity = factory.startBackgroundActivity(withName: "Activity 1")!
-        sut.applicationDidEnterBackground(nil)
+        application.simulateApplicationDidEnterBackground()
         factory.endBackgroundActivity(activity)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
