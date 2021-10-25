@@ -45,11 +45,24 @@ class MockUserSessionDelegate: NSObject, UserSessionDelegate {
 
 class ZMUserSessionTests_EncryptionAtRest: ZMUserSessionTestsBase {
 
+    private var activityManager: MockBackgroundActivityManager!
+    private var factory: BackgroundActivityFactory!
+
     private var account: Account {
         Account(userName: "", userIdentifier: ZMUser.selfUser(in: syncMOC).remoteIdentifier)
     }
 
+    override func setUp() {
+        super.setUp()
+
+        activityManager = MockBackgroundActivityManager()
+        factory = BackgroundActivityFactory.shared
+        factory.activityManager = activityManager
+    }
+
     override func tearDown() {
+        factory = nil
+        activityManager = nil
         try! EncryptionKeys.deleteKeys(for: account)
 
         super.tearDown()
@@ -164,6 +177,59 @@ class ZMUserSessionTests_EncryptionAtRest: ZMUserSessionTestsBase {
         
         // then
         XCTAssertTrue(sut.isDatabaseLocked)
+    }
+
+    func testThatDatabaseIsLocked_AfterBackgroundTaskCompletesInTheBackground() throws {
+        // given
+        simulateLoggedInUser()
+        syncMOC.saveOrRollback()
+        setEncryptionAtRest(enabled: true)
+
+        // when
+        let activity = factory.startBackgroundActivity(withName: "Activity 1")!
+        application.simulateApplicationDidEnterBackground()
+        factory.endBackgroundActivity(activity)
+        XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+
+        // then
+        XCTAssertTrue(sut.isDatabaseLocked)
+    }
+
+    func testThatDatabaseIsNotLocked_IfThereIsAnActiveBackgroundTask() throws {
+        // given
+        simulateLoggedInUser()
+        syncMOC.saveOrRollback()
+        setEncryptionAtRest(enabled: true)
+
+        // when
+        let activity = factory.startBackgroundActivity(withName: "Activity 1")!
+        application.simulateApplicationDidEnterBackground()
+        XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+
+        // then
+        XCTAssertFalse(sut.isDatabaseLocked)
+        factory.endBackgroundActivity(activity)
+    }
+
+    // @SF.Locking, @SF.Storage @TSFI.UserInterface
+    func testThatDatabaseIsLocked_WhenTheCustomTimeoutHasExpiredInTheBackground() throws {
+        // given
+        factory.backgroundTaskTimeout = 2
+
+        simulateLoggedInUser()
+        syncMOC.saveOrRollback()
+        setEncryptionAtRest(enabled: true)
+
+        // when
+        let _ = factory.startBackgroundActivity(withName: "Activity 1")!
+        application.simulateApplicationDidEnterBackground()
+        XCTAssertNotNil(sut.managedObjectContext.encryptionKeys)
+
+        let _ = XCTWaiter.wait(for: [XCTestExpectation(description: "The expiration handler is called.")], timeout: 4.0)
+
+        // then
+        XCTAssertTrue(sut.isDatabaseLocked)
+        XCTAssertNil(sut.managedObjectContext.encryptionKeys)
     }
 
     // MARK: - Database lock handler/observer
