@@ -44,6 +44,12 @@ class CompanyLoginURLActionProcessor: URLActionProcessor {
                 return
             }
             authenticationStatus.notifyCompanyLoginCodeDidBecomeAvailable(code)
+        case .startLogin:
+            guard delegate?.isAllowedToCreateNewAccount == true else {
+                presentationDelegate?.failedToPerformAction(urlAction, error: SessionManager.AccountError.accountLimitReached)
+                return
+            }
+            authenticationStatus.authenticationDidBecomeAvailable()
         default:
             break
         }

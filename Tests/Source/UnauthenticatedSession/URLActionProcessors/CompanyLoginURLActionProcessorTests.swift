@@ -75,6 +75,34 @@ class CompanyLoginURLActionProcessorTests: ZMTBaseTest, WireSyncEngine.CompanyLo
         XCTAssertEqual(presentationDelegate.failedToPerformActionCalls.first?.0, action)
         XCTAssertEqual(presentationDelegate.failedToPerformActionCalls.first?.1 as? SessionManager.AccountError, .accountLimitReached)
     }
+
+    func testThatAuthenticationStatusChanges_OnStartLoginAction() {
+        // given
+        isAllowedToCreateNewAccount = true
+        let action: URLAction = .startLogin
+        let presentationDelegate = MockPresentationDelegate()
+
+        // when
+        sut.process(urlAction: action, delegate: presentationDelegate)
+
+        // then
+        XCTAssertEqual(delegate.authenticationDidBecomeAvailableEvents, 1)
+    }
+
+    func testThatStartLoginActionFails_WhenAccountLimitIsReached() {
+        // given
+        isAllowedToCreateNewAccount = false
+        let action: URLAction = .startLogin
+        let presentationDelegate = MockPresentationDelegate()
+
+        // when
+        sut.process(urlAction: action, delegate: presentationDelegate)
+
+        // then
+        XCTAssertEqual(presentationDelegate.failedToPerformActionCalls.count, 1)
+        XCTAssertEqual(presentationDelegate.failedToPerformActionCalls.first?.0, action)
+        XCTAssertEqual(presentationDelegate.failedToPerformActionCalls.first?.1 as? SessionManager.AccountError, .accountLimitReached)
+    }
     
     func testThatSSOCodeIsPropagatedToAuthenticationStatus_OnStartCompanyLoginAction() {
         // given
