@@ -35,7 +35,6 @@
 #import "MockModelObjectContextFactory.h"
 
 #import "ZMSelfStrategy.h"
-#import "ZMConnectionTranscoder.h"
 #import "ZMMissingUpdateEventsTranscoder.h"
 #import "ZMLastUpdateEventIDTranscoder.h"
 #import "ZMLoginTranscoder.h"

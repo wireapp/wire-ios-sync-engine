@@ -21,51 +21,10 @@
 @import WireSyncEngine;
 @import WireDataModel;
 
-#import "ZMConnectionTranscoder+Internal.h"
 #import "Tests-Swift.h"
-
-////
-// TestObserver
-///
-
-@interface MockConnectionLimitObserver : NSObject <ZMConnectionFailureObserver>
-
-@property (nonatomic) id connectionLimitObserverToken;
-@property (nonatomic) id missingConnectionLegalHoldConsentToken;
-@property (nonatomic) BOOL reachedConnectionLimit;
-@property (nonatomic) BOOL missingLegalHoldConsent;
-
-@end
-
-
-@implementation MockConnectionLimitObserver
-
-- (void)connectionLimitReached {
-    self.reachedConnectionLimit = YES;
-}
-
-- (void)missingConnectionLegalHoldConsent {
-    self.missingLegalHoldConsent = YES;
-}
-
-- (instancetype)initWithManagedObjectContext:(NSManagedObjectContext *)moc {
-    self = [super init];
-    if  (self) {
-        self.reachedConnectionLimit = NO;
-        self.connectionLimitObserverToken = [ZMConnectionNotification addConnectionLimitObserver:self context:moc];
-
-        self.missingLegalHoldConsent = NO;
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(missingConnectionLegalHoldConsent) name:ZMConnectionNotification.missingLegalHoldConsent object:nil];
-    }
-    return self;
-}
-
-
-@end
 
 @interface ConnectionTests : IntegrationTest
 
-@property (nonatomic) NSUInteger previousZMConnectionTranscoderPageSize;
 @property (nonatomic) ConversationChangeObserver *conversationChangeObserver;
 
 @end
@@ -116,7 +75,7 @@
     ZMTransportRequest *foundRequest = [self.mockTransportSession.receivedRequests firstObjectMatchingWithBlock:^BOOL(ZMTransportRequest *request) {
         return [request.path hasPrefix:@"/connections"] &&
             (request.method == ZMMethodPOST)
-        && [[[request.payload asDictionary] stringForKey:@"user"] isEqualToString:userID.transportString];
+        && [[[request.payload asDictionary] uuidForKey:@"user"] isEqual:userID];
     }];
     XCTAssertNotNil(foundRequest);
 }
@@ -176,16 +135,14 @@
     XCTAssertNotNil(userToConnectTo);
     
     // when
-    [self.userSession performChanges:^{
-        [userToConnectTo connectWithMessage:@"Add me!"];
-    }];
+    [userToConnectTo connectWithCompletion:^(NSError * error) { NOT_USED(error); }];
     WaitForAllGroupsToBeEmpty(0.5);
     
     // then
     ZMTransportRequest *foundRequest = [self.mockTransportSession.receivedRequests firstObjectMatchingWithBlock:^BOOL(ZMTransportRequest *request) {
         return [request.path hasPrefix:@"/connections"] &&
         (request.method == ZMMethodPOST)
-        && [[[request.payload asDictionary] stringForKey:@"user"] isEqualToString:userID.transportString];
+        && [[[request.payload asDictionary] uuidForKey:@"user"] isEqual:userID];
     }];
     XCTAssertNotNil(foundRequest);
 }
@@ -259,9 +216,7 @@
     ConversationListChangeObserver *observer = [[ConversationListChangeObserver alloc] initWithConversationList:pending];
     
     // when ignoring:
-    [self.userSession performChanges:^{
-        [user ignore];
-    }];
+    [user ignoreWithCompletion:^(NSError * error) { NOT_USED(error); }];
     WaitForAllGroupsToBeEmpty(0.5);
     
     
@@ -286,9 +241,7 @@
     ConversationListChangeObserver *observer = [[ConversationListChangeObserver alloc] initWithConversationList:conversations];
     
     // when cancelling:
-    [self.userSession performChanges:^{
-        [user cancelConnectionRequest];
-    }];
+    [user cancelConnectionRequestWithCompletion:^(NSError * error) { NOT_USED(error); }];
     WaitForAllGroupsToBeEmpty(0.5);
     
     
@@ -328,11 +281,8 @@
     ConversationListChangeObserver *activeObserver = [[ConversationListChangeObserver alloc] initWithConversationList:active];
     
     // when accepting:
-    
-    [self.userSession performChanges:^{
-        [realUser1 accept];
-        [realUser2 accept];
-    }];
+    [realUser1 acceptWithCompletion:^(NSError * error) { NOT_USED(error); }];
+    [realUser2 acceptWithCompletion:^(NSError * error) { NOT_USED(error); }];
     WaitForAllGroupsToBeEmpty(0.5);
     
     // then
@@ -443,17 +393,15 @@
     
     // when accepting the connection requests
     {
-        [self.userSession performChanges:^{
-            [realUser1 accept];
-            [realUser2 accept];
-        }];
+        [realUser1 acceptWithCompletion:^(NSError * error) { NOT_USED(error); }];
+        [realUser2 acceptWithCompletion:^(NSError * error) { NOT_USED(error); }];
         WaitForAllGroupsToBeEmpty(0.5);
         [self.mockTransportSession waitForAllRequestsToCompleteWithTimeout:0.5];
     }
     
     // we should receive notifcations about the list change and the conversation updates and the connection status should change
     {
-        NSIndexSet *expectedSet1 = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, 2)];
+        NSIndexSet *expectedSet1 = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, 1)];
 
         NSArray *listNotes = conversationListObserver.notifications;
         XCTAssertGreaterThan(listNotes.count, 1u); // 1 insertion update and x list re-order updates
@@ -900,9 +848,7 @@
     ConversationListChangeObserver *observer = [[ConversationListChangeObserver alloc] initWithConversationList:conversations];
     
     // when cancelling:
-    [self.userSession performChanges:^{
-        [user cancelConnectionRequest];
-    }];
+    [user cancelConnectionRequestWithCompletion:^(NSError * error) { NOT_USED(error); }];
     WaitForAllGroupsToBeEmpty(0.5);
 
     XCTAssertFalse([conversations containsObject:conversation]);
@@ -910,61 +856,12 @@
     [observer clearNotifications];
 
     //when sending again
-    [self.userSession performChanges:^{
-        [user connectWithMessage:@"connect!"];
-    }];
+    [user connectWithCompletion:^(NSError * error) { NOT_USED(error); }];
     WaitForAllGroupsToBeEmpty(0.5);
     
     // then
     XCTAssertTrue([conversations containsObject:conversation]);
-    XCTAssertEqual(observer.notifications.count, 2u);
-}
-
-#pragma mark - Pagination
-
-- (void)setupTestThatItPaginatesConnectionsRequests
-{
-    self.previousZMConnectionTranscoderPageSize = ZMConnectionTranscoderPageSize;
-    ZMConnectionTranscoderPageSize = 2;
-}
-
-- (void)testThatItPaginatesConnectionsRequests
-{
-    // given
-    [self setupTestThatItPaginatesConnectionsRequests];
-    
-    XCTAssertEqual(ZMConnectionTranscoderPageSize, 2u);
-    
-    __block NSUInteger numberOfConnections;
-    [self.mockTransportSession performRemoteChanges:^ (id<MockTransportSessionObjectCreation>  _Nonnull __strong session) {
-        for(int i = 0; i < 11; ++i) {
-            MockUser *user = [session insertUserWithName:@"foo foo"];
-            user.identifier = [NSUUID createUUID].transportString;
-            [session createConnectionRequestFromUser:self.selfUser toUser:user message:@"test"];
-        }
-        
-        NSFetchRequest *request = [MockConnection sortedFetchRequest];
-        NSArray *connections = [self.mockTransportSession.managedObjectContext executeFetchRequestOrAssert:request];
-        numberOfConnections = connections.count;
-    }];
-    
-    // when
-    XCTAssertTrue([self login]);
-    
-    // then
-    NSUInteger expectedRequests = (NSUInteger) (numberOfConnections / (float)ZMConnectionTranscoderPageSize + 0.5f);
-    NSUInteger foundRequests = 0;
-    for(ZMTransportRequest *request in self.mockTransportSession.receivedRequests) {
-        if([request.path hasPrefix:@"/connections?size=2"]) {
-            ++foundRequests;
-        }
-    }
-    
-    XCTAssertEqual(expectedRequests, foundRequests);
-    XCTAssertEqual([ZMConnection connectionsInMangedObjectContext:self.userSession.managedObjectContext].count, numberOfConnections);
-    
-    // then
-    ZMConnectionTranscoderPageSize = self.previousZMConnectionTranscoderPageSize;
+    XCTAssertEqual(observer.notifications.count, 1u);
 }
 
 #pragma mark - ConnectionLimit
@@ -975,8 +872,11 @@
         if (![request.path hasPrefix:@"/connections"] || (request.method == ZMMethodGET)) {
             return nil;
         }
-        NSDictionary *payload = @{@"label": @"connection-limit"};
-        return [[ZMTransportResponse alloc] initWithPayload:payload HTTPStatus:403 transportSessionError:nil headers:nil];
+        NSInteger statusCode = 403;
+        NSDictionary *payload = @{@"label": @"connection-limit",
+                                  @"code": @(statusCode),
+                                  @"message": @"" };
+        return [[ZMTransportResponse alloc] initWithPayload:payload HTTPStatus:statusCode transportSessionError:nil headers:nil];
     };
 
 }
@@ -999,27 +899,6 @@
     
     // then
     XCTAssertEqual(conversations.count, beforeInsertingCount);
-}
-
-- (void)testThatItNotifiesObserversAboutConnectionLimitWhenInsertingAnObject
-{
-    // given
-    NSString *searchUserName = @"Karl McUser";
-    NSUUID *userID = [NSUUID createUUID];
-    [self createUserWithName:searchUserName uuid:userID];
-    
-    self.mockTransportSession.responseGeneratorBlock = self.responseBlockForConnectionLimit;
-    
-    XCTAssertTrue([self login]);
-    MockConnectionLimitObserver *observer = [[MockConnectionLimitObserver alloc] initWithManagedObjectContext:self.userSession.managedObjectContext];
-    XCTAssertFalse(observer.reachedConnectionLimit);
-    
-    // when
-    [self searchAndConnectToUserWithName:searchUserName searchQuery:@"McUser"];
-    [self.mockTransportSession waitForAllRequestsToCompleteWithTimeout:0.5];
-    
-    // then
-    XCTAssertTrue(observer.reachedConnectionLimit);
 }
 
 #pragma mark - MissingLegalHoldConsent
@@ -1056,106 +935,4 @@
     XCTAssertEqual(conversations.count, beforeInsertingCount);
 }
 
-- (void)testThatItNotifiesObserversAboutMissingLegalHoldConsentWhenInsertingAnObject
-{
-    // given
-    NSString *searchUserName = @"Karl McUser";
-    NSUUID *userID = [NSUUID createUUID];
-    [self createUserWithName:searchUserName uuid:userID];
-
-    self.mockTransportSession.responseGeneratorBlock = self.responseBlockForMissingLegalHoldConsent;
-
-    XCTAssertTrue([self login]);
-    MockConnectionLimitObserver *observer = [[MockConnectionLimitObserver alloc] initWithManagedObjectContext:self.userSession.managedObjectContext];
-    XCTAssertFalse(observer.missingLegalHoldConsent);
-
-    // when
-    [self searchAndConnectToUserWithName:searchUserName searchQuery:@"McUser"];
-    [self.mockTransportSession waitForAllRequestsToCompleteWithTimeout:0.5];
-
-    // then
-    XCTAssertTrue(observer.missingLegalHoldConsent);
-}
-
-- (void)testThatItResetsTheConversationWhenAConnectionStatusChangeFromPendingToAcceptedIsRejectedByTheBackend
-{
-    XCTAssertTrue([self login]);
-    ZMConversationList *pending = [ZMConversationList pendingConnectionConversationsInUserSession:self.userSession];
-    NSUInteger pendingCount = pending.count;
-
-    // given
-    // create pending conversation from remote user
-    MockUser *mockUser = [self createPendingConnectionFromUserWithName:@"Hans" uuid:NSUUID.createUUID];
-    XCTAssertEqual(pending.count, pendingCount + 1u);
-    
-    id listObserver = [OCMockObject niceMockForProtocol:@protocol(ZMConversationListObserver)];
-    id listToken = [ConversationListChangeInfo addObserver:listObserver forList:pending managedObjectContext:pending.managedObjectContext];
-//    id listToken = [ConversationListChangeInfo addObserver:listObserver forList:pending];
-    
-    ZMUser *realUser1 = [self userForMockUser:mockUser];
-    
-    self.mockTransportSession.responseGeneratorBlock = self.responseBlockForConnectionLimit;
-    
-    // when accepting connection
-    // the request gets refused and the connection status and conversation type are reset
-    {
-        // expect
-        XCTestExpectation *expectation1 = [self expectationWithDescription:@"connection set to accepted"];
-        [(id<ZMConversationListObserver>)[listObserver expect] conversationListDidChange:[OCMArg checkWithBlock:^BOOL(ConversationListChangeInfo *note) {
-            if (note.conversationList == pending && note.deletedIndexes.count == 1){
-                [expectation1 fulfill];
-                return YES;
-            }
-            return NO;
-        }]];
-        
-        XCTestExpectation *expectation2 = [self expectationWithDescription:@"connection set to pending after updating from backend"];
-        [(id<ZMConversationListObserver>)[listObserver expect] conversationListDidChange:[OCMArg checkWithBlock:^BOOL(ConversationListChangeInfo *note) {
-            if (note.conversationList == pending && note.insertedIndexes.count == 1){
-                [expectation2 fulfill];
-                return YES;
-            }
-            return NO;
-        }]];
-
-        // when
-        [self.userSession performChanges:^{
-            [realUser1 accept];
-        }];
-        
-        XCTAssertTrue([self waitForCustomExpectationsWithTimeout:0.5]);
-
-        // then
-        XCTAssertEqual(pending.count, pendingCount + 1u);
-    }
-    (void)listToken;
-    WaitForAllGroupsToBeEmpty(0.5);
-}
-
-- (void)testThatItSendsOutANotificationWhenAConnectionStatusChangeFromPendingToAcceptedIsRejectedByTheBackend
-{
-    // given
-    
-    // create pending conversation from remote user
-    MockUser *mockUser = [self createPendingConnectionFromUserWithName:@"Hans" uuid:NSUUID.createUUID];
-    
-    XCTAssertTrue([self login]);
-    MockConnectionLimitObserver *observer = [[MockConnectionLimitObserver alloc] initWithManagedObjectContext:self.userSession.managedObjectContext];
-    
-    ZMUser *realUser1 = [self userForMockUser:mockUser];
-    self.mockTransportSession.responseGeneratorBlock = self.responseBlockForConnectionLimit;
-    
-    // when accepting connection
-    [self.userSession performChanges:^{
-        [realUser1 accept];
-    }];
-    [self.mockTransportSession waitForAllRequestsToCompleteWithTimeout:0.5];
-    
-    // then
-    XCTAssertTrue(observer.reachedConnectionLimit);
-}
-
-
 @end
-
-
