@@ -221,8 +221,10 @@ public class ZMUserSession: NSObject {
         coreDataStack.syncContext.performGroupedBlockAndWait {
             coreDataStack.syncContext.analytics = analytics
             coreDataStack.syncContext.zm_userInterface = coreDataStack.viewContext
+            coreDataStack.syncContext.zm_isFederationEnabled = configuration.supportFederation
         }
         coreDataStack.viewContext.zm_sync = coreDataStack.syncContext
+        coreDataStack.viewContext.zm_isFederationEnabled = configuration.supportFederation
         
         self.application = application
         self.appVersion = appVersion
