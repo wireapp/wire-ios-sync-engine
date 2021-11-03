@@ -541,7 +541,6 @@
 		EEEED9A823F6BC00008C94CA /* SelfUserProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEEED9A723F6BC00008C94CA /* SelfUserProvider.swift */; };
 		EEEED9AA23F6BD75008C94CA /* ZMUserSession+SelfUserProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEEED9A923F6BD75008C94CA /* ZMUserSession+SelfUserProvider.swift */; };
 		EEF4010123A8DFC6007B1A97 /* Conversation+Role.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEF4010023A8DFC6007B1A97 /* Conversation+Role.swift */; };
-		EEF4010323A8E1EF007B1A97 /* Conversation_RoleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEF4010223A8E1EF007B1A97 /* Conversation_RoleTests.swift */; };
 		EF2CB12722D5E58B00350B0A /* TeamImageAssetUpdateStrategy.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF2CB12622D5E58B00350B0A /* TeamImageAssetUpdateStrategy.swift */; };
 		EF2CB12A22D5E5BF00350B0A /* TeamImageAssetUpdateStrategyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF2CB12822D5E5BB00350B0A /* TeamImageAssetUpdateStrategyTests.swift */; };
 		EFC8281C1FB343B600E27E21 /* RegistationCredentialVerificationStrategy.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFC8281B1FB343B600E27E21 /* RegistationCredentialVerificationStrategy.swift */; };
@@ -1239,7 +1238,6 @@
 		EEEED9A723F6BC00008C94CA /* SelfUserProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelfUserProvider.swift; sourceTree = "<group>"; };
 		EEEED9A923F6BD75008C94CA /* ZMUserSession+SelfUserProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ZMUserSession+SelfUserProvider.swift"; sourceTree = "<group>"; };
 		EEF4010023A8DFC6007B1A97 /* Conversation+Role.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Conversation+Role.swift"; sourceTree = "<group>"; };
-		EEF4010223A8E1EF007B1A97 /* Conversation_RoleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Conversation_RoleTests.swift; path = "Tests/Source/Data Model/Conversation_RoleTests.swift"; sourceTree = SOURCE_ROOT; };
 		EF2CB12622D5E58B00350B0A /* TeamImageAssetUpdateStrategy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamImageAssetUpdateStrategy.swift; sourceTree = "<group>"; };
 		EF2CB12822D5E5BB00350B0A /* TeamImageAssetUpdateStrategyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamImageAssetUpdateStrategyTests.swift; sourceTree = "<group>"; };
 		EF797FE71FB5E8DB00F7FF21 /* RegistrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationTests.swift; sourceTree = "<group>"; };
@@ -1871,7 +1869,6 @@
 			children = (
 				161ACB3D23F6E49400ABFF33 /* URLActionProcessors */,
 				549127E819E7FDAB005871F5 /* Search */,
-				EEF4010223A8E1EF007B1A97 /* Conversation_RoleTests.swift */,
 				5447E4651AECDC5000411FCD /* ZMUserSessionTestsBase.h */,
 				5447E4661AECDE6500411FCD /* ZMUserSessionTestsBase.m */,
 				A97E4F55267CF681006FC545 /* ZMUserSessionTestsBase+ZMUserSessionConfiguration.swift */,
@@ -3042,7 +3039,6 @@
 				879634421F7BEC5100FC79BA /* DispatchQueueSerialAsyncTests.swift in Sources */,
 				54AB428E1DF5C5B400381F2C /* TopConversationsDirectoryTests.swift in Sources */,
 				068E655A24C8223400403926 /* LocalNotificationContentTypeTest.swift in Sources */,
-				EEF4010323A8E1EF007B1A97 /* Conversation_RoleTests.swift in Sources */,
 				F96C8E821D7ECECF004B6D87 /* ZMLocalNotificationTests_Message.swift in Sources */,
 				EEA2773D211DE4C9004AF00F /* UserNotificationCenterMock.swift in Sources */,
 				0601900B2678750D0043F8F8 /* DeepLinkURLActionProcessorTests.swift in Sources */,
