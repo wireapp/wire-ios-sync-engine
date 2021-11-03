@@ -208,10 +208,6 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
                 withManagedObjectContext: syncMOC,
                 applicationStatus: applicationStatusDirectory,
                 syncStatus: applicationStatusDirectory.syncStatus),
-            UserImageAssetUpdateStrategy(
-                managedObjectContext: syncMOC,
-                applicationStatusDirectory: applicationStatusDirectory,
-                userProfileImageUpdateStatus: applicationStatusDirectory.userProfileImageUpdateStatus),
             TeamDownloadRequestStrategy(
                 withManagedObjectContext: syncMOC,
                 applicationStatus: applicationStatusDirectory,
@@ -271,7 +267,11 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
                 managedObjectContext: syncMOC,
                 applicationStatus: applicationStatusDirectory,
                 clientRegistrationDelegate: applicationStatusDirectory.clientRegistrationDelegate),
-            localNotificationDispatcher
+            UserImageAssetUpdateStrategy(
+                managedObjectContext: syncMOC,
+                applicationStatusDirectory: applicationStatusDirectory,
+                userProfileImageUpdateStatus: applicationStatusDirectory.userProfileImageUpdateStatus),
+            localNotificationDispatcher,
         ]
                 
         return strategies
