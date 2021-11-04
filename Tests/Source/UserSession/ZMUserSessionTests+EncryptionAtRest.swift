@@ -211,7 +211,7 @@ class ZMUserSessionTests_EncryptionAtRest: ZMUserSessionTestsBase {
         factory.endBackgroundActivity(activity)
     }
 
-    // @SF.Locking, @SF.Storage @TSFI.UserInterface
+    // @SF.Locking @SF.Storage @TSFI.UserInterface
     func testThatDatabaseIsLocked_WhenTheCustomTimeoutHasExpiredInTheBackground() throws {
         // given
         factory.backgroundTaskTimeout = 2
