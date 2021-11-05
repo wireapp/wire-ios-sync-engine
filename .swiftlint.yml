@@ -27,7 +27,8 @@ disabled_rules:
     - xctfail_message
     - compiler_protocol_init
     - reduce_boolean
-
+    - shorthand_operator
+    
 included:
     - Source
     - Tests
@@ -37,5 +38,5 @@ included:
 # the few violations. Repeat this until we find suitable limits.
 
 line_length:
-    warning: 250
-    error: 250
+    warning: 500
+    error: 500
