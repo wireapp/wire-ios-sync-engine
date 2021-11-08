@@ -17,3 +17,4 @@ github "wireapp/wire-ios-system" "35.0.0"
 github "wireapp/wire-ios-testing" "26.0.2"
 github "wireapp/wire-ios-transport" "chore/xcode13"
 github "wireapp/wire-ios-utilities" "43.1.2"
+
