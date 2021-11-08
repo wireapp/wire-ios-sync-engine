@@ -267,11 +267,11 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
                 managedObjectContext: syncMOC,
                 applicationStatus: applicationStatusDirectory,
                 clientRegistrationDelegate: applicationStatusDirectory.clientRegistrationDelegate),
-            localNotificationDispatcher,
             UserImageAssetUpdateStrategy(
                 managedObjectContext: syncMOC,
                 applicationStatusDirectory: applicationStatusDirectory,
-                userProfileImageUpdateStatus: applicationStatusDirectory.userProfileImageUpdateStatus)
+                userProfileImageUpdateStatus: applicationStatusDirectory.userProfileImageUpdateStatus),
+            localNotificationDispatcher,
         ]
                 
         return strategies
