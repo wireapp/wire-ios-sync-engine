@@ -35,9 +35,9 @@ class DeepLinkURLActionProcessor: URLActionProcessor {
     func process(urlAction: URLAction, delegate: PresentationDelegate?) {
         switch urlAction {
         case let .joinConversation(key: key, code: code):
-            ZMConversation.fetchIDAndName(context: contextProvider.syncContext.notificationContext,
-                                          key: key,
-                                          code: code) { [weak self] result in
+            ZMConversation.fetch(key: key,
+                                 code: code,
+                                 context: contextProvider.syncContext.notificationContext) { [weak self] result in
                 guard
                     let self = self,
                     let delegate = delegate
@@ -62,9 +62,9 @@ class DeepLinkURLActionProcessor: URLActionProcessor {
                                 return
                             }
                             
-                            ZMConversation.join(context: self.contextProvider.syncContext.notificationContext,
-                                                key: key,
-                                                code: code) { (result) in
+                            ZMConversation.join(key: key,
+                                                code: code,
+                                                context: self.contextProvider.syncContext.notificationContext) { (result) in
                                 switch result {
                                 case .success(let conversationString):
                                     viewContext.performGroupedBlock {
