@@ -20,7 +20,7 @@ Additional documentation is available in the [Wire iOS wiki](https://github.com/
 
 # How to build
 
-*iOS SyncEngine* is build with Xcode 12.4 using Swift 5.
+*iOS SyncEngine* is build with Xcode 13.1 using Swift 5.
 
 It is using [Carthage](https://github.com/Carthage/Carthage) to manage dependencies. To pull the dependencies binaries run `carthage bootstrap --platform ios --use-xcframeworks`.
 
