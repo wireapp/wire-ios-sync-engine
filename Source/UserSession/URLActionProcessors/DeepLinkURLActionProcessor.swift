@@ -35,19 +35,19 @@ class DeepLinkURLActionProcessor: URLActionProcessor {
     func process(urlAction: URLAction, delegate: PresentationDelegate?) {
         switch urlAction {
         case let .joinConversation(key: key, code: code):
-            ZMConversation.fetchIdAndName(key: key,
-                                          code: code,
-                                          transportSession: transportSession,
-                                          eventProcessor: eventProcessor,
-                                          contextProvider: contextProvider) { [weak self] (response) in
-                guard let strongSelf = self,
-                      let delegate = delegate else {
+            ZMConversation.fetchIDAndName(context: contextProvider.syncContext.notificationContext,
+                                          key: key,
+                                          code: code) { [weak self] result in
+                guard
+                    let self = self,
+                    let delegate = delegate
+                else {
                     return
                 }
-
-                let viewContext = strongSelf.contextProvider.viewContext
-
-                switch response {
+                
+                let viewContext = self.contextProvider.viewContext
+                
+                switch result {
                 case .success((let conversationId, let conversationName)):
                     /// First of all, we should try to fetch the conversation with ID from the response.
                     /// If the conversation doesn't exist, we should initiate a request to join the conversation
@@ -61,18 +61,30 @@ class DeepLinkURLActionProcessor: URLActionProcessor {
                                 delegate.completedURLAction(urlAction)
                                 return
                             }
-                            ZMConversation.join(key: key,
-                                                code: code,
-                                                transportSession: strongSelf.transportSession,
-                                                eventProcessor: strongSelf.eventProcessor,
-                                                contextProvider: strongSelf.contextProvider) { (response) in
-                                switch response {
-                                case .success(let conversation):
-                                    delegate.showConversation(conversation, at: nil)
+                            
+                            ZMConversation.join(context: self.contextProvider.syncContext.notificationContext,
+                                                key: key,
+                                                code: code) { (result) in
+                                switch result {
+                                case .success(let conversationString):
+                                    viewContext.performGroupedBlock {
+                                        guard
+                                            let conversationID = UUID(uuidString: conversationString),
+                                            let conversation = ZMConversation.fetch(with: conversationID, in: viewContext)
+                                        else {
+                                            delegate.failedToPerformAction(urlAction, error: ConversationJoinError.unknown)
+                                            delegate.completedURLAction(urlAction)
+                                            return
+                                        }
+                                        
+                                        delegate.showConversation(conversation, at: nil)
+                                        delegate.completedURLAction(urlAction)
+                                    }
+                                    
                                 case .failure(let error):
                                     delegate.failedToPerformAction(urlAction, error: error)
+                                    delegate.completedURLAction(urlAction)
                                 }
-                                delegate.completedURLAction(urlAction)
                             }
                         }
                     }

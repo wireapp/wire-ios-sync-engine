@@ -102,34 +102,5 @@ class DeepLinkURLActionProcessorTests: DatabaseTest {
         XCTAssertEqual(presentationDelegate.showConnectionRequestCalls.count, 1)
         XCTAssertEqual(presentationDelegate.showConnectionRequestCalls.first, userId)
     }
-
-    func testThatItCompletesTheJoinConversationAction_WhenCodeIsValid() {
-        // given
-        let action: URLAction = .joinConversation(key: "test-key", code: "test-code")
-
-        // when
-        sut.process(urlAction: action, delegate: presentationDelegate)
-        XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-
-        // then
-        XCTAssertEqual(mockUpdateEventProcessor.processedEvents.count, 1)
-        XCTAssertEqual(mockUpdateEventProcessor.processedEvents.first!.type, .conversationMemberJoin)
-        XCTAssertEqual(presentationDelegate.completedURLActionCalls.count, 1)
-        XCTAssertEqual(presentationDelegate.completedURLActionCalls.first, action)
-    }
-
-    func testThatItReportsTheJoinConversationActionAsFailed_WhenCodeIsInvalid() {
-        // given
-        let action: URLAction = .joinConversation(key: "test-key", code: "wrong-code")
-
-        // when
-        sut.process(urlAction: action, delegate: presentationDelegate)
-        XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-
-        // then
-        XCTAssertEqual(presentationDelegate.failedToPerformActionCalls.count, 1)
-        XCTAssertEqual(presentationDelegate.failedToPerformActionCalls.first?.0, action)
-        XCTAssertEqual(presentationDelegate.failedToPerformActionCalls.first?.1 as? ConversationFetchError, ConversationFetchError.invalidCode)
-    }
     
 }
