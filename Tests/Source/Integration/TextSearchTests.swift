@@ -114,7 +114,7 @@ class TextSearchTests: ConversationTestsBase {
 
         // When
         mockTransportSession.performRemoteChanges { session in
-            let genericMessage = GenericMessage(content: Text(content: text), expiresAfter: 300)
+            let genericMessage = GenericMessage(content: Text(content: text), expiresAfterTimeInterval: 300)
             
             do {
                 self.selfToUser1Conversation.encryptAndInsertData(from: firstClient, to: selfClient, data: try genericMessage.serializedData())
