@@ -66,17 +66,8 @@ class DeepLinkURLActionProcessor: URLActionProcessor {
                                                 code: code,
                                                 context: self.contextProvider.syncContext.notificationContext) { (result) in
                                 switch result {
-                                case .success(let conversationString):
+                                case .success(let conversation):
                                     viewContext.performGroupedBlock {
-                                        guard
-                                            let conversationID = UUID(uuidString: conversationString),
-                                            let conversation = ZMConversation.fetch(with: conversationID, in: viewContext)
-                                        else {
-                                            delegate.failedToPerformAction(urlAction, error: ConversationJoinError.unknown)
-                                            delegate.completedURLAction(urlAction)
-                                            return
-                                        }
-                                        
                                         delegate.showConversation(conversation, at: nil)
                                         delegate.completedURLAction(urlAction)
                                     }
