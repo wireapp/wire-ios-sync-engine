@@ -73,8 +73,6 @@
 		164C29A51ECF47D80026562A /* SearchDirectoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 164C29A41ECF47D80026562A /* SearchDirectoryTests.swift */; };
 		164C29A71ED2D7B00026562A /* SearchResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 164C29A61ED2D7B00026562A /* SearchResult.swift */; };
 		164EAF9C1F4455FA00B628C4 /* ZMUserSession+Actions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 164EAF9B1F4455FA00B628C4 /* ZMUserSession+Actions.swift */; };
-		16519D38231D3B1700C9D76D /* Conversation+Deletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16519D37231D3B1700C9D76D /* Conversation+Deletion.swift */; };
-		16519D6D231EAAF300C9D76D /* Conversation+DeletionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16519D6C231EAAF300C9D76D /* Conversation+DeletionTests.swift */; };
 		1658C2371F503CF800889F22 /* FlowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1658C2361F503CF800889F22 /* FlowManager.swift */; };
 		1658C23A1F5404F000889F22 /* FlowManagerMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1658C2381F5404ED00889F22 /* FlowManagerMock.swift */; };
 		1658E91D26C53FDB003D0090 /* Starscream.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1658E91C26C53FDB003D0090 /* Starscream.xcframework */; };
@@ -762,9 +760,7 @@
 		164C29A41ECF47D80026562A /* SearchDirectoryTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchDirectoryTests.swift; sourceTree = "<group>"; };
 		164C29A61ED2D7B00026562A /* SearchResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchResult.swift; sourceTree = "<group>"; };
 		164EAF9B1F4455FA00B628C4 /* ZMUserSession+Actions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ZMUserSession+Actions.swift"; sourceTree = "<group>"; };
-		16519D37231D3B1700C9D76D /* Conversation+Deletion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Conversation+Deletion.swift"; sourceTree = "<group>"; };
 		16519D5B231EA13A00C9D76D /* ConversationTests+Deletion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ConversationTests+Deletion.swift"; sourceTree = "<group>"; };
-		16519D6C231EAAF300C9D76D /* Conversation+DeletionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Conversation+DeletionTests.swift"; sourceTree = "<group>"; };
 		16519D7C2320087100C9D76D /* SlowSyncTests+ExistingData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SlowSyncTests+ExistingData.swift"; sourceTree = "<group>"; };
 		1658C2361F503CF800889F22 /* FlowManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FlowManager.swift; sourceTree = "<group>"; };
 		1658C2381F5404ED00889F22 /* FlowManagerMock.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FlowManagerMock.swift; sourceTree = "<group>"; };
@@ -1649,7 +1645,6 @@
 				D5D10DA3203AE43200145497 /* Conversation+AccessMode.swift */,
 				16030DC821B01B7500F8032E /* Conversation+ReadReceiptMode.swift */,
 				06EF5181266E2C8F0073920F /* Conversation+Join.swift */,
-				16519D37231D3B1700C9D76D /* Conversation+Deletion.swift */,
 				EEF4010023A8DFC6007B1A97 /* Conversation+Role.swift */,
 				EE1DEBC223D5F1920087EE1F /* Conversation+TypingUsers.swift */,
 				878ACB4720AEFB980016E68A /* ZMUser+Consent.swift */,
@@ -1859,7 +1854,6 @@
 				EE1DEBB623D5B62C0087EE1F /* TypingUsersTests.swift */,
 				16AD86B71F7292EB00E4C797 /* TypingChange.swift */,
 				16D3FD011E3A5C0D0052A535 /* ZMConversationVoiceChannelRouterTests.swift */,
-				16519D6C231EAAF300C9D76D /* Conversation+DeletionTests.swift */,
 				872A2EE71FFFBC3900900B22 /* ServiceUserTests.swift */,
 				878ACB5820AF12C10016E68A /* ZMUserConsentTests.swift */,
 			);
@@ -3054,7 +3048,6 @@
 				1679D1CD1EF97387007B0DF5 /* ZMUserSessionTestsBase+Calling.swift in Sources */,
 				F96C8E8A1D7F6F8C004B6D87 /* ZMLocalNotificationTests_SystemMessage.swift in Sources */,
 				167F383D23E04A93006B6AA9 /* UnauthenticatedSessionTests+SSO.swift in Sources */,
-				16519D6D231EAAF300C9D76D /* Conversation+DeletionTests.swift in Sources */,
 				169BA24425EF6FFA00374343 /* MockAnalytics.swift in Sources */,
 				F925468E1C63B61000CE2D7C /* MessagingTest+EventFactory.m in Sources */,
 				16849B2023EDB32B00C025A8 /* MockSessionManager.swift in Sources */,
@@ -3360,7 +3353,6 @@
 				F9AB00221F0CDAF00037B437 /* FileRelocator.swift in Sources */,
 				F1EB0E78200501C70040D73E /* NotificationsTracker.swift in Sources */,
 				166A8BF31E015F3B00F5EEEA /* WireCallCenterV3Factory.swift in Sources */,
-				16519D38231D3B1700C9D76D /* Conversation+Deletion.swift in Sources */,
 				F1C1F3F01FCF18C5007273E3 /* NSError+Localized.swift in Sources */,
 				5467F1C41E0AE2EF008C1745 /* KeyValueStore.swift in Sources */,
 				5467F1C61E0AE421008C1745 /* KeyValueStore+AccessToken.swift in Sources */,
