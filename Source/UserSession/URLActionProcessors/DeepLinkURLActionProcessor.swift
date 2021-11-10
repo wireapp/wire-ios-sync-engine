@@ -45,6 +45,7 @@ class DeepLinkURLActionProcessor: URLActionProcessor {
                     return
                 }
                 
+                let syncContext = self.contextProvider.syncContext
                 let viewContext = self.contextProvider.viewContext
                 
                 switch result {
@@ -64,7 +65,8 @@ class DeepLinkURLActionProcessor: URLActionProcessor {
                             
                             ZMConversation.join(key: key,
                                                 code: code,
-                                                context: self.contextProvider.syncContext.notificationContext) { (result) in
+                                                syncContext: syncContext,
+                                                viewContext: viewContext) { (result) in
                                 switch result {
                                 case .success(let conversation):
                                     viewContext.performGroupedBlock {
