@@ -179,7 +179,6 @@
 		169BA21C25ED0FA700374343 /* ConversationTests+LegalHold.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16A86B8322A7E57100A674F8 /* ConversationTests+LegalHold.swift */; };
 		169BA21D25ED0FAC00374343 /* ConversationTests+OTR.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63495E4623FFF098002A7C59 /* ConversationTests+OTR.swift */; };
 		169BA21E25ED0FB000374343 /* ConversationTests+OTR.m in Sources */ = {isa = PBXBuildFile; fileRef = 09914E501BD6613600C10BF8 /* ConversationTests+OTR.m */; };
-		169BA21F25ED0FB400374343 /* ConversationTests+Deletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16519D5B231EA13A00C9D76D /* ConversationTests+Deletion.swift */; };
 		169BA22025ED0FB900374343 /* ConversationTests+ClearingHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06BBF6F5246EF65600A26626 /* ConversationTests+ClearingHistory.swift */; };
 		169BA22125ED0FBD00374343 /* ConversationTests+LastRead.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06BBF6F2246EF28800A26626 /* ConversationTests+LastRead.swift */; };
 		169BA22225ED0FC100374343 /* ConversationTests+Reactions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06BBF6F7246EF67400A26626 /* ConversationTests+Reactions.swift */; };
@@ -760,7 +759,6 @@
 		164C29A41ECF47D80026562A /* SearchDirectoryTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchDirectoryTests.swift; sourceTree = "<group>"; };
 		164C29A61ED2D7B00026562A /* SearchResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchResult.swift; sourceTree = "<group>"; };
 		164EAF9B1F4455FA00B628C4 /* ZMUserSession+Actions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ZMUserSession+Actions.swift"; sourceTree = "<group>"; };
-		16519D5B231EA13A00C9D76D /* ConversationTests+Deletion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ConversationTests+Deletion.swift"; sourceTree = "<group>"; };
 		16519D7C2320087100C9D76D /* SlowSyncTests+ExistingData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SlowSyncTests+ExistingData.swift"; sourceTree = "<group>"; };
 		1658C2361F503CF800889F22 /* FlowManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FlowManager.swift; sourceTree = "<group>"; };
 		1658C2381F5404ED00889F22 /* FlowManagerMock.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FlowManagerMock.swift; sourceTree = "<group>"; };
@@ -2183,7 +2181,6 @@
 				06BBF6F7246EF67400A26626 /* ConversationTests+Reactions.swift */,
 				06BBF6F2246EF28800A26626 /* ConversationTests+LastRead.swift */,
 				06BBF6F5246EF65600A26626 /* ConversationTests+ClearingHistory.swift */,
-				16519D5B231EA13A00C9D76D /* ConversationTests+Deletion.swift */,
 				06EF5186266E445F0073920F /* ConversationTests+Join.swift */,
 				09914E501BD6613600C10BF8 /* ConversationTests+OTR.m */,
 				63495E4623FFF098002A7C59 /* ConversationTests+OTR.swift */,
@@ -2910,7 +2907,6 @@
 				169BA20F25ED0F6900374343 /* APNSTestsBase.m in Sources */,
 				169BA22E25ED0FF400374343 /* TextSearchTests.swift in Sources */,
 				169BA26125EFA23200374343 /* ZMConversation+Testing.m in Sources */,
-				169BA21F25ED0FB400374343 /* ConversationTests+Deletion.swift in Sources */,
 				169BA1FC25ED0CBD00374343 /* MockSessionManager.swift in Sources */,
 				169BA20525ED0F2D00374343 /* LinkPreviewTests.swift in Sources */,
 				169BA24225EF6F6700374343 /* ZMConversation+Testing.swift in Sources */,
