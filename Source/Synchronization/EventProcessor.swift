@@ -23,7 +23,7 @@ extension NSNotification.Name {
 }
 
 @objc
-public protocol UpdateEventProcessor: class {
+public protocol UpdateEventProcessor: AnyObject {
             
     @objc(storeUpdateEvents:ignoreBuffer:)
     func storeUpdateEvents(_ updateEvents: [ZMUpdateEvent], ignoreBuffer: Bool)

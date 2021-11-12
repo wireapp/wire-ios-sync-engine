@@ -51,7 +51,7 @@ struct CallHandle: Hashable {
     }
 }
 
-protocol CallKitManagerDelegate: class {
+protocol CallKitManagerDelegate: AnyObject {
     
     /// Look a conversation where a call has or will take place
     

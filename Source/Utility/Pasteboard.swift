@@ -22,7 +22,7 @@ import Foundation
  * An object that provides
  */
 
-public protocol Pasteboard: class {
+public protocol Pasteboard: AnyObject {
 
     /// The text copied by the user, if any.
     var text: String? { get }

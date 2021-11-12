@@ -25,11 +25,11 @@ internal enum UserProfileImageUpdateError: Error {
     case uploadFailed(Error)
 }
 
-internal protocol UserProfileImageUpdateStateDelegate: class {
+internal protocol UserProfileImageUpdateStateDelegate: AnyObject {
     func failed(withError: UserProfileImageUpdateError)
 }
 
-internal protocol UserProfileImageUploadStatusProtocol: class {
+internal protocol UserProfileImageUploadStatusProtocol: AnyObject {
     func hasAssetToDelete() -> Bool
     func consumeAssetToDelete() -> String?
     func consumeImage(for size: ProfileImageSize) -> Data?
@@ -38,12 +38,12 @@ internal protocol UserProfileImageUploadStatusProtocol: class {
     func uploadingFailed(imageSize: ProfileImageSize, error: Error)
 }
 
-@objc public protocol UserProfileImageUpdateProtocol: class {
+@objc public protocol UserProfileImageUpdateProtocol: AnyObject {
     @objc(updateImageWithImageData:)
     func updateImage(imageData: Data)
 }
 
-internal protocol UserProfileImageUploadStateChangeDelegate: class {
+internal protocol UserProfileImageUploadStateChangeDelegate: AnyObject {
     func didTransition(from oldState: UserProfileImageUpdateStatus.ProfileUpdateState, to currentState: UserProfileImageUpdateStatus.ProfileUpdateState)
     func didTransition(from oldState: UserProfileImageUpdateStatus.ImageState, to currentState: UserProfileImageUpdateStatus.ImageState, for size: ProfileImageSize)
 }

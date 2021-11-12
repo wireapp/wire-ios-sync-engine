@@ -25,7 +25,7 @@ public typealias BackgroundTaskHandler = (_ taskResult: BackgroundTaskResult) ->
 private let zmLog = ZMSLog(tag: "OperationStatus")
 
 @objc(ZMOperationStatusDelegate)
-public protocol OperationStatusDelegate : class {
+public protocol OperationStatusDelegate : AnyObject {
     
     @objc(operationStatusDidChangeState:)
     func operationStatus(didChangeState state: SyncEngineOperationState)
