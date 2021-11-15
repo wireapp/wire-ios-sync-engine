@@ -55,7 +55,7 @@ extension URLQueryItem {
     }
 }
 
-@objc public protocol URLSessionProtocol: class {
+@objc public protocol URLSessionProtocol: AnyObject {
     @objc(dataTaskWithRequest:completionHandler:)
     func dataTask(with request: URLRequest, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask
 }
@@ -79,7 +79,7 @@ public enum ValidationError: Equatable {
     }
 }
 
-public protocol CompanyLoginRequesterDelegate: class {
+public protocol CompanyLoginRequesterDelegate: AnyObject {
 
     /**
      * The login requester asks the user to verify their identity on the given website.

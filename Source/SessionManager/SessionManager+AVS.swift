@@ -21,7 +21,7 @@ import Foundation
 fileprivate let AVSLogMessageNotification = Notification.Name("AVSLogMessageNotification")
 
 @objc
-public protocol AVSLogger: class {
+public protocol AVSLogger: AnyObject {
     
     @objc(logMessage:)
     func log(message : String)

@@ -29,7 +29,7 @@ public protocol UserSessionEncryptionAtRestInterface {
     func registerDatabaseLockedHandler(_ handler: @escaping (_ isDatabaseLocked: Bool) -> Void) -> Any
 }
 
-protocol UserSessionEncryptionAtRestDelegate: class {
+protocol UserSessionEncryptionAtRestDelegate: AnyObject {
     
     func setEncryptionAtRest(enabled: Bool, account: Account, encryptionKeys: EncryptionKeys)
     

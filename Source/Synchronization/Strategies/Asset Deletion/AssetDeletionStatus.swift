@@ -20,7 +20,7 @@ import Foundation
 
 private let log = ZMSLog(tag: "AssetDeletion")
 
-@objc public protocol AssetDeletionIdentifierProviderType: class {
+@objc public protocol AssetDeletionIdentifierProviderType: AnyObject {
     func nextIdentifierToDelete() -> String?
     func didDelete(identifier: String)
     func didFailToDelete(identifier: String)

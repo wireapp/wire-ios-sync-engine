@@ -40,7 +40,7 @@ public extension Bundle {
     case callKit
 }
 
-public protocol SessionActivationObserver: class {
+public protocol SessionActivationObserver: AnyObject {
     func sessionManagerDidChangeActiveUserSession(userSession: ZMUserSession)
     func sessionManagerDidReportLockChange(forSession session: UserSessionAppLockInterface)
 }
@@ -60,7 +60,7 @@ public protocol SessionManagerDelegate: SessionActivationObserver {
 /// The public interface for the session manager.
 
 @objc
-public protocol SessionManagerType: class {
+public protocol SessionManagerType: AnyObject {
     
     var accountManager : AccountManager { get }
     
@@ -104,12 +104,12 @@ public protocol SessionManagerType: class {
 }
 
 @objc
-public protocol SessionManagerSwitchingDelegate: class {
+public protocol SessionManagerSwitchingDelegate: AnyObject {
     func confirmSwitchingAccount(completion: @escaping (Bool) -> Void)
 }
 
 @objc
-public protocol ForegroundNotificationResponder: class {
+public protocol ForegroundNotificationResponder: AnyObject {
     func shouldPresentNotification(with userInfo: NotificationUserInfo) -> Bool
 }
 
@@ -1209,7 +1209,7 @@ extension SessionManager {
 
 // MARK: - Session manager observer
 
-@objc public protocol SessionManagerCreatedSessionObserver: class {
+@objc public protocol SessionManagerCreatedSessionObserver: AnyObject {
     /// Invoked when the SessionManager creates a user session either by
     /// activating one or creating one in the background. No assumption should
     /// be made that the session is active.
@@ -1219,7 +1219,7 @@ extension SessionManager {
     func sessionManagerCreated(unauthenticatedSession: UnauthenticatedSession)
 }
 
-@objc public protocol SessionManagerDestroyedSessionObserver: class {
+@objc public protocol SessionManagerDestroyedSessionObserver: AnyObject {
     /// Invoked when the SessionManager tears down the user session associated
     /// with the accountId.
     func sessionManagerDestroyedUserSession(for accountId : UUID)

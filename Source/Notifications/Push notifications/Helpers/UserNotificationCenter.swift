@@ -25,7 +25,7 @@ import UserNotifications
  * mocking for unit tests.
  */
 
-public protocol UserNotificationCenter: class {
+public protocol UserNotificationCenter: AnyObject {
     
     /// The object that processes incoming notifications and actions.
     var delegate: UNUserNotificationCenterDelegate? { get set }

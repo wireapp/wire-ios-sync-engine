@@ -66,7 +66,7 @@ public enum SessionLock {
 
 }
 
-protocol UserSessionAppLockDelegate: class {
+protocol UserSessionAppLockDelegate: AnyObject {
 
     func userSessionDidUnlock(_ session: ZMUserSession)
 
