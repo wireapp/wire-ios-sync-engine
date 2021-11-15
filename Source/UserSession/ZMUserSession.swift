@@ -543,13 +543,13 @@ extension ZMUserSession: ZMSyncStateDelegate {
             self?.notifyThirdPartyServices()
         }
 
-        syncContext.performGroupedBlock {
-            let featureService = FeatureService(context: self.syncContext)
+//        syncContext.performGroupedBlock {
+//            let featureService = FeatureService(context: self.syncContext)
             featureService.enqueueBackendRefresh(for: .appLock)
             featureService.enqueueBackendRefresh(for: .fileSharing)
             featureService.enqueueBackendRefresh(for: .conferenceCalling)
             featureService.enqueueBackendRefresh(for: .selfDeletingMessages)
-        }
+//        }
 
     }
     
