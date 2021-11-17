@@ -532,7 +532,7 @@ extension ZMUserSession: ZMSyncStateDelegate {
     
     public func didFinishQuickSync() {
         processEvents()
-
+                
         managedObjectContext.performGroupedBlock { [weak self] in
             self?.notifyThirdPartyServices()
         }
