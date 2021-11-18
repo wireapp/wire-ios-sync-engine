@@ -538,18 +538,15 @@ extension ZMUserSession: ZMSyncStateDelegate {
     
     public func didFinishQuickSync() {
         processEvents()
-                
+
         managedObjectContext.performGroupedBlock { [weak self] in
             self?.notifyThirdPartyServices()
         }
 
-        syncContext.performGroupedBlock {
-            let featureService = FeatureService(context: self.syncContext)
-            featureService.enqueueBackendRefresh(for: .appLock)
-            featureService.enqueueBackendRefresh(for: .fileSharing)
-            featureService.enqueueBackendRefresh(for: .conferenceCalling)
-            featureService.enqueueBackendRefresh(for: .selfDeletingMessages)
-        }
+        featureService.enqueueBackendRefresh(for: .appLock)
+        featureService.enqueueBackendRefresh(for: .fileSharing)
+        featureService.enqueueBackendRefresh(for: .conferenceCalling)
+        featureService.enqueueBackendRefresh(for: .selfDeletingMessages)
 
     }
     
