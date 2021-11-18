@@ -92,15 +92,9 @@ public class ZMUserSession: NSObject {
     public lazy var featureService = FeatureService(context: syncContext)
 
     public var appLockController: AppLockType
-
     public var fileSharingFeature: Feature.FileSharing {
         let featureService = FeatureService(context: coreDataStack.viewContext)
         return featureService.fetchFileSharing()
-    }
-
-    public var selfDeletingMessagesFeature: Feature.SelfDeletingMessages {
-        let featureService = FeatureService(context: coreDataStack.viewContext)
-        return featureService.fetchSelfDeletingMesssages()
     }
     
     public var hasCompletedInitialSync: Bool = false
@@ -538,16 +532,14 @@ extension ZMUserSession: ZMSyncStateDelegate {
     
     public func didFinishQuickSync() {
         processEvents()
-
+                
         managedObjectContext.performGroupedBlock { [weak self] in
             self?.notifyThirdPartyServices()
         }
 
         featureService.enqueueBackendRefresh(for: .appLock)
-        featureService.enqueueBackendRefresh(for: .fileSharing)
         featureService.enqueueBackendRefresh(for: .conferenceCalling)
-        featureService.enqueueBackendRefresh(for: .selfDeletingMessages)
-
+        featureService.enqueueBackendRefresh(for: .fileSharing)
     }
     
     func processEvents() {

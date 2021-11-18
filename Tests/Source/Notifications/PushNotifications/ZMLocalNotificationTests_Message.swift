@@ -51,7 +51,7 @@ class ZMLocalNotificationTests_Message : ZMLocalNotificationTests {
             quotedMessage?.serverTimestamp = conversation.lastReadServerTimeStamp!.addingTimeInterval(10)
         }
         
-        let event = createUpdateEvent(UUID.create(), conversationID: conversation.remoteIdentifier!, genericMessage: GenericMessage(content: Text(content: text ?? "Hello Hello!", mentions: mentions, linkPreviews: [], replyingTo: quotedMessage), nonce: UUID.create(), expiresAfterTimeInterval: expiresAfter), senderID: sender.remoteIdentifier)
+        let event = createUpdateEvent(UUID.create(), conversationID: conversation.remoteIdentifier!, genericMessage: GenericMessage(content: Text(content: text ?? "Hello Hello!", mentions: mentions, linkPreviews: [], replyingTo: quotedMessage), nonce: UUID.create(), expiresAfter: expiresAfter), senderID: sender.remoteIdentifier)
         
         return ZMLocalNotification(event: event, conversation: conversation, managedObjectContext: uiMOC)
     }
@@ -458,7 +458,7 @@ extension ZMLocalNotificationTests_Message {
     func imageNote(_ conversation: ZMConversation, sender: ZMUser, text: String? = nil, isEphemeral : Bool = false) -> ZMLocalNotification? {
         let expiresAfter: TimeInterval = isEphemeral ? 10 : 0
         let imageData = verySmallJPEGData()
-        let assetMessage = GenericMessage(content: WireProtos.Asset(imageSize: .zero, mimeType: "image/jpeg", size: UInt64(imageData.count)), nonce: UUID.create(), expiresAfterTimeInterval: expiresAfter)
+        let assetMessage = GenericMessage(content: WireProtos.Asset(imageSize: .zero, mimeType: "image/jpeg", size: UInt64(imageData.count)), nonce: UUID.create(), expiresAfter: expiresAfter)
         
         let payload : [String : Any] = [
             "id": UUID.create().transportString(),
@@ -540,7 +540,7 @@ extension ZMLocalNotificationTests_Message {
             asset = WireProtos.Asset(ZMFileMetadata(fileURL: fileType.testURL))
         }
         let expiresAfter: TimeInterval = isEphemeral ? 10 : 0
-        let assetMessage = GenericMessage(content: asset, nonce: UUID.create(), expiresAfterTimeInterval: expiresAfter)
+        let assetMessage = GenericMessage(content: asset, nonce: UUID.create(), expiresAfter: expiresAfter)
         let payload : [String : Any] = [
             "id": UUID.create().transportString(),
             "conversation": conversation.remoteIdentifier!.transportString(),
@@ -612,7 +612,7 @@ extension ZMLocalNotificationTests_Message {
     
     func knockNote(_ conversation: ZMConversation, sender: ZMUser, isEphemeral : Bool = false) -> ZMLocalNotification? {
         let expiresAfter: TimeInterval = isEphemeral ? 10 : 0
-        let knockMessage = GenericMessage(content: Knock.with { $0.hotKnock = false }, nonce: UUID.create(), expiresAfterTimeInterval: expiresAfter)
+        let knockMessage = GenericMessage(content: Knock.with { $0.hotKnock = false }, nonce: UUID.create(), expiresAfter: expiresAfter)
         
         let payload : [String : Any] = [
             "id": UUID.create().transportString(),

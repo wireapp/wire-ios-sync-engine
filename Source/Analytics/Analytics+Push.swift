@@ -35,14 +35,11 @@ public extension ZMConversation {
     
     @objc
     var ephemeralTrackingAttributes: [String: Any] {
-        if let timeout = activeMessageDestructionTimeoutValue {
-            return [
-                "is_ephemeral": true,
-                "ephemeral_time": Int(timeout.rawValue)
-            ]
-        } else {
-            return ["is_ephemeral": false]
-        }
+        let ephemeral = messageDestructionTimeout != nil
+        var attributes: [String: Any] = ["is_ephemeral": ephemeral]
+        guard ephemeral else { return attributes }
+        attributes["ephemeral_time"] = "\(Int(messageDestructionTimeoutValue))"
+        return attributes
     }
     
     /// Whether the conversation includes at least 1 service user.
