@@ -29,7 +29,7 @@ class BuildTypeTests: ZMTBaseTest {
                                                                     "com.wearezeta.zclient-alpha": .alpha,
                                                                     "com.wearezeta.zclient.ios-development": .development,
                                                                     "com.wearezeta.zclient.ios-internal": .internal]
-        
+
         bundleIdsToTypes.forEach { bundleId, expectedType in
             // WHEN
             let type = WireSyncEngine.BuildType(bundleID: bundleId)
@@ -37,7 +37,7 @@ class BuildTypeTests: ZMTBaseTest {
             XCTAssertEqual(type, expectedType)
         }
     }
-    
+
     func testThatItParsesUnknownBundleID() {
         // GIVEN
         let someBundleId = "com.mycompany.myapp"
@@ -46,7 +46,7 @@ class BuildTypeTests: ZMTBaseTest {
         // THEN
         XCTAssertEqual(buildType, WireSyncEngine.BuildType.custom(bundleID: someBundleId))
     }
-    
+
     func testThatItReturnsTheCertName() {
         // GIVEN
         let type = WireSyncEngine.BuildType.alpha
@@ -55,7 +55,7 @@ class BuildTypeTests: ZMTBaseTest {
         // THEN
         XCTAssertEqual(certName, "com.wire.ent")
     }
-    
+
     func testThatItReturnsBundleIdForCertNameIfCustom() {
         // GIVEN
         let type = WireSyncEngine.BuildType.custom(bundleID: "com.mycompany.myapp")

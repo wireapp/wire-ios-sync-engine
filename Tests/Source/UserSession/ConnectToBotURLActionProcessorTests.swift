@@ -20,16 +20,16 @@ import Foundation
 @testable import WireSyncEngine
 
 class ConnectToBotURLActionProcessorTests: IntegrationTest {
-    
+
     let serviceName = "Service ABC"
     let serviceIdentifier = UUID()
     let serviceProvider = UUID()
-    
+
     override func setUp() {
         super.setUp()
-        
+
         createSelfUserAndConversation()
-        
+
         mockTransportSession.performRemoteChanges { (session) in
             session.insertService(withName: self.serviceName,
                                   identifier: self.serviceIdentifier.transportString(),
@@ -37,45 +37,45 @@ class ConnectToBotURLActionProcessorTests: IntegrationTest {
         }
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
     }
-    
+
     func testThatCompletedURLActionIsCalled_WhenSuccessfullyConnectingToAService() {
         // given
         XCTAssertTrue(login())
-        
+
         let presentationDelegate = MockPresentationDelegate()
         let action = URLAction.connectBot(serviceUser: ServiceUserData(provider: serviceProvider, service: serviceIdentifier))
         let sut = WireSyncEngine.ConnectToBotURLActionProcessor(contextprovider: userSession!,
                                                                 transportSession: mockTransportSession,
                                                                 eventProcessor: userSession!.updateEventProcessor!)
-        
+
         // when
         sut.process(urlAction: action, delegate: presentationDelegate)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         XCTAssertEqual(presentationDelegate.completedURLActionCalls.count, 1)
         XCTAssertEqual(presentationDelegate.completedURLActionCalls.first, action)
     }
-    
+
     func testThatFailedToPerformActionIsCalled_WhenFailingToConnectToService() {
         // given
         XCTAssertTrue(login())
-        
+
         let unknownService = ServiceUserData(provider: UUID(), service: UUID())
         let presentationDelegate = MockPresentationDelegate()
         let action = URLAction.connectBot(serviceUser: unknownService)
         let sut = WireSyncEngine.ConnectToBotURLActionProcessor(contextprovider: userSession!,
                                                                 transportSession: mockTransportSession,
                                                                 eventProcessor: userSession!.updateEventProcessor!)
-        
+
         // when
         sut.process(urlAction: action, delegate: presentationDelegate)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         XCTAssertEqual(presentationDelegate.failedToPerformActionCalls.count, 1)
         XCTAssertEqual(presentationDelegate.failedToPerformActionCalls.first?.0, action)
         XCTAssertEqual(presentationDelegate.failedToPerformActionCalls.first?.1 as? AddBotError, AddBotError.general)
     }
-    
+
 }
