@@ -19,32 +19,32 @@
 import Foundation
 
 class LinkPreviewTests: ConversationTestsBase {
-    
+
     var mockLinkPreviewDetector: MockLinkPreviewDetector!
-    
+
     override func setUp() {
         super.setUp()
-        
+
         mockLinkPreviewDetector = MockLinkPreviewDetector()
-        
+
         LinkPreviewDetectorHelper.setTest_debug_linkPreviewDetector(mockLinkPreviewDetector)
     }
-    
+
     override func tearDown() {
         mockLinkPreviewDetector = nil
-        
+
         LinkPreviewDetectorHelper.setTest_debug_linkPreviewDetector(nil)
-        
+
         super.tearDown()
     }
-    
+
     func assertMessageContainsLinkPreview(_ message: ZMClientMessage, linkPreviewURL: MockLinkPreviewDetector.LinkPreviewURL, file: StaticString = #file, line: UInt = #line) {
         if let linkPreview = message.underlyingMessage?.linkPreviews.first {
             let expectedLinkPreview = LinkPreview(mockLinkPreviewDetector.linkMetaData(linkPreviewURL))
             switch linkPreviewURL {
             case .articleWithPicture, .tweetWithPicture:
                 XCTAssertTrue(linkPreview.image.hasUploaded, "Link preview with image didn't contain uploaded asset", file: file, line: line)
-                
+
                 // We don't compare the whole proto buffer since the mock one won't have the uploaded image
                 XCTAssertEqual(linkPreview.urlOffset, expectedLinkPreview.urlOffset)
                 XCTAssertEqual(linkPreview.title, expectedLinkPreview.title)
@@ -63,104 +63,103 @@ class LinkPreviewTests: ConversationTestsBase {
             XCTFail("Message didn't contain a link preview", file: file, line: line)
         }
     }
-    
+
     func testThatItInsertsCorrectLinkPreviewMessage_ArticleWithoutImage() {
         // given
         XCTAssertTrue(login())
         let conversation = self.conversation(for: selfToUser1Conversation)
-        
+
         // when
         userSession?.perform {
             try! conversation?.appendText(content: MockLinkPreviewDetector.LinkPreviewURL.article.rawValue)
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         let message = conversation?.lastMessage as! ZMClientMessage
         assertMessageContainsLinkPreview(message, linkPreviewURL: .article)
     }
-    
+
     func testThatItInsertCorrectLinkPreviewMessage_ArticleWithoutImage_ForEphemeral() {
         // given
         XCTAssertTrue(login())
         let conversation = self.conversation(for: selfToUser1Conversation)
         conversation?.messageDestructionTimeout = .local(10)
-        
+
         // when
         userSession?.perform {
             try! conversation?.appendText(content: MockLinkPreviewDetector.LinkPreviewURL.article.rawValue)
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         let message = conversation?.lastMessage as! ZMClientMessage
         assertMessageContainsLinkPreview(message, linkPreviewURL: .article)
     }
-    
+
     func testThatItInsertsCorrectLinkPreviewMessage_ArticleWithImage() {
         // given
         XCTAssertTrue(login())
         let conversation = self.conversation(for: selfToUser1Conversation)
-        
+
         // when
         userSession?.perform {
             try! conversation?.appendText(content: MockLinkPreviewDetector.LinkPreviewURL.articleWithPicture.rawValue)
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         let message = conversation?.lastMessage as! ZMClientMessage
         assertMessageContainsLinkPreview(message, linkPreviewURL: .articleWithPicture)
     }
-    
-    
+
     func testThatItInsertsCorrectLinkPreviewMessage_TwitterStatus() {
         // given
         XCTAssertTrue(login())
         let conversation = self.conversation(for: selfToUser1Conversation)
-        
+
         // when
         userSession?.perform {
             try! conversation?.appendText(content: MockLinkPreviewDetector.LinkPreviewURL.tweet.rawValue)
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         let message = conversation?.lastMessage as! ZMClientMessage
         assertMessageContainsLinkPreview(message, linkPreviewURL: .tweet)
     }
-    
+
     func testThatItInsertsCorrectLinkPreviewMessage_TwitterStatusWithImage() {
         // given
         XCTAssertTrue(login())
         let conversation = self.conversation(for: selfToUser1Conversation)
-        
+
         // when
         userSession?.perform {
             try! conversation?.appendText(content: MockLinkPreviewDetector.LinkPreviewURL.tweetWithPicture.rawValue)
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         let message = conversation?.lastMessage as! ZMClientMessage
         assertMessageContainsLinkPreview(message, linkPreviewURL: .tweetWithPicture)
     }
-    
+
     func testThatItUpdatesMessageWhenReceivingLinkPreviewUpdate() {
         // given
         XCTAssertTrue(login())
-        
+
         let mockConversation = selfToUser1Conversation!
         let conversation = self.conversation(for: mockConversation)
-        
+
         establishSession(with: user1)
         let selfClient = selfUser.clients.anyObject() as! MockUserClient
         let senderClient = user1.clients.anyObject() as! MockUserClient
-        
+
         let nonce = UUID.create()
         let messageText = MockLinkPreviewDetector.LinkPreviewURL.article.rawValue
         let messageWithoutLinkPreview = GenericMessage(content: Text(content: messageText), nonce: nonce)
-        
+
         // when - receiving initial message without the link preview
         mockTransportSession.performRemoteChanges { _ in
             do {
@@ -170,11 +169,10 @@ class LinkPreviewTests: ConversationTestsBase {
             }
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
-        
+
         let linkMetaData = mockLinkPreviewDetector.linkMetaData(.article)
         let messageWithLinkPreview = GenericMessage(content: Text(content: messageText, linkPreviews: [linkMetaData]), nonce: nonce)
-        
+
         // when - receiving update message with the link preview
         mockTransportSession.performRemoteChanges { _ in
             do {
@@ -184,7 +182,7 @@ class LinkPreviewTests: ConversationTestsBase {
             }
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         let message = conversation?.lastMessage as! ZMClientMessage
         assertMessageContainsLinkPreview(message, linkPreviewURL: .article)
