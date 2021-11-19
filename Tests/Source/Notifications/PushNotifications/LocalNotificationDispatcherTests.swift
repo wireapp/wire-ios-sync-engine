@@ -24,34 +24,34 @@ import UserNotifications
 class LocalNotificationDispatcherTests: DatabaseTest {
 
     typealias ZMLocalNotification = WireSyncEngine.ZMLocalNotification
-    
+
     var sut: LocalNotificationDispatcher!
     var conversation1: ZMConversation!
     var conversation2: ZMConversation!
-    
+
     var notificationCenter: UserNotificationCenterMock!
-    
+
     var scheduledRequests: [UNNotificationRequest] {
         return self.notificationCenter.scheduledRequests
     }
 
     var user1: ZMUser!
     var user2: ZMUser!
-    
+
     var selfUser: ZMUser {
         return ZMUser.selfUser(in: self.syncMOC)
     }
-    
+
     override func setUp() {
         super.setUp()
         self.notificationCenter = UserNotificationCenterMock()
         self.sut = LocalNotificationDispatcher(in: self.syncMOC)
         self.sut.notificationCenter = self.notificationCenter
-        
+
         [self.sut.eventNotifications,
          self.sut.failedMessageNotifications,
          self.sut.callingNotifications].forEach { $0.notificationCenter = notificationCenter }
-        
+
         syncMOC.performGroupedBlockAndWait {
             self.user1 = ZMUser.insertNewObject(in: self.syncMOC)
             self.user2 = ZMUser.insertNewObject(in: self.syncMOC)
@@ -69,13 +69,13 @@ class LocalNotificationDispatcherTests: DatabaseTest {
                 $0.addParticipantAndUpdateConversationState(user: self.user1, role: nil)
             }
             self.conversation2.addParticipantAndUpdateConversationState(user: self.user2, role: nil)
-            
+
             self.selfUser.remoteIdentifier = UUID.create()
         }
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
     }
-    
+
     override func tearDown() {
         self.notificationCenter = nil
         self.user1 = nil
@@ -87,32 +87,31 @@ class LocalNotificationDispatcherTests: DatabaseTest {
     }
 }
 
-
 extension LocalNotificationDispatcherTests {
 
     func testThatItCreatesNotificationFromMessagesIfNotActive() {
         // GIVEN
         let text = UUID.create().transportString()
         let event = createUpdateEvent(UUID.create(), conversationID: self.conversation1.remoteIdentifier!, genericMessage: GenericMessage(content: Text(content: text)), senderID: self.user1.remoteIdentifier)
-        
+
         // WHEN
         self.sut.processEventsWhileInBackground([event])
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // THEN
         XCTAssertEqual(self.sut.eventNotifications.notifications.count, 1)
         XCTAssertEqual(self.scheduledRequests.count, 1)
-        
+
         guard
             let note = self.sut.eventNotifications.notifications.first,
             let request = self.scheduledRequests.first
             else { return XCTFail() }
-        
+
         XCTAssertTrue(note.body.contains(text))
         XCTAssertEqual(note.body, request.content.body)
         XCTAssertEqual(note.id.uuidString, request.identifier)
     }
-    
+
     func testThatItCreatesNotificationFromSystemMessagesIfNotActive() {
         // GIVEN
         conversation1.messageDestructionTimeout = .synced(.fiveMinutes)
@@ -126,7 +125,7 @@ extension LocalNotificationDispatcherTests {
         ]
         let event = ZMUpdateEvent(fromEventStreamPayload: payload as ZMTransportData, uuid: UUID.create())!
         event.source = .pushNotification
- 
+
         // WHEN
         self.sut.processEventsWhileInBackground([event])
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
@@ -134,12 +133,12 @@ extension LocalNotificationDispatcherTests {
         // THEN
         XCTAssertEqual(self.sut.eventNotifications.notifications.count, 1)
         XCTAssertEqual(self.scheduledRequests.count, 1)
-        
+
         guard
             let note = self.sut.eventNotifications.notifications.first,
             let request = self.scheduledRequests.first
             else { return XCTFail() }
-        
+
         XCTAssertTrue(note.body.contains("User 1 set the message timer to"))
         XCTAssertEqual(note.body, request.content.body)
         XCTAssertEqual(note.id.uuidString, request.identifier)
@@ -242,7 +241,7 @@ extension LocalNotificationDispatcherTests {
         // GIVEN
         self.syncMOC.setPersistentStoreMetadata(NSNumber(value: true), key: LocalNotificationDispatcher.ZMShouldHideNotificationContentKey)
         self.syncMOC.saveOrRollback()
-        
+
         let event = createUpdateEvent(UUID.create(), conversationID: self.conversation1.remoteIdentifier!, genericMessage: GenericMessage(content: Text(content: "foo")), senderID: self.user1.remoteIdentifier)
 
         // WHEN
@@ -258,19 +257,19 @@ extension LocalNotificationDispatcherTests {
     func testThatItDoesNotCreateNotificationForTwoMessageEventsWithTheSameNonce() {
         // GIVEN
         let event = createUpdateEvent(UUID.create(), conversationID: self.conversation1.remoteIdentifier!, genericMessage: GenericMessage(content: Text(content: "foobar")), senderID: self.user1.remoteIdentifier)
-        
+
         // WHEN
         self.sut.processEventsWhileInBackground([event])
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // THEN
         XCTAssertEqual(self.sut.eventNotifications.notifications.count, 1)
         XCTAssertEqual(self.scheduledRequests.count, 1)
-        
+
         // WHEN
         self.sut.processEventsWhileInBackground([event])
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // THEN
         XCTAssertEqual(self.sut.eventNotifications.notifications.count, 1)
         XCTAssertEqual(self.scheduledRequests.count, 1)
@@ -301,7 +300,7 @@ extension LocalNotificationDispatcherTests {
 
     func testThatItCreatesNotificationForSelfGroupParticipation() {
         // GIVEN
-        let payload : [String : Any] = [
+        let payload: [String: Any] = [
             "from": self.user1.remoteIdentifier.transportString(),
             "conversation": self.conversation1.remoteIdentifier!.transportString(),
             "time": NSDate().transportString(),
@@ -314,14 +313,14 @@ extension LocalNotificationDispatcherTests {
         ]
         let event = ZMUpdateEvent(fromEventStreamPayload: payload as ZMTransportData, uuid: UUID())!
         event.source = .pushNotification
-        
+
         // notification content
         let text = "\(self.user1.name!) added you"
-        
+
         // WHEN
         self.sut.processEventsWhileInBackground([event])
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // THEN
         XCTAssertEqual(self.scheduledRequests.count, 1)
         XCTAssertTrue(self.scheduledRequests.first!.content.body.contains(text))
@@ -329,7 +328,7 @@ extension LocalNotificationDispatcherTests {
 
     func testThatItDoesNotCreateNotificationForOtherGroupParticipation() { //
         // GIVEN
-        let payload : [String : Any] = [
+        let payload: [String: Any] = [
             "from": self.user1.remoteIdentifier.transportString(),
             "conversation": self.conversation1.remoteIdentifier!.transportString(),
             "time": NSDate().transportString(),
@@ -342,11 +341,11 @@ extension LocalNotificationDispatcherTests {
         ]
         let event = ZMUpdateEvent(fromEventStreamPayload: payload as ZMTransportData, uuid: UUID())!
         event.source = .pushNotification
-        
+
         // WHEN
         self.sut.processEventsWhileInBackground([event])
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // THEN
         XCTAssertEqual(self.scheduledRequests.count, 0)
     }
@@ -358,7 +357,7 @@ extension LocalNotificationDispatcherTests {
         sender.remoteIdentifier = UUID.create()
 
         let message = try! conversation.appendText(content: "text") as! ZMClientMessage
-        
+
         let reaction1 = GenericMessage(content: ProtosReactionFactory.createReaction(emoji: "❤️", messageID: message.nonce!) as! MessageCapable)
         let reaction2 = GenericMessage(content: ProtosReactionFactory.createReaction(emoji: "", messageID: message.nonce!) as! MessageCapable)
 
@@ -368,81 +367,81 @@ extension LocalNotificationDispatcherTests {
         sut.didReceive(events: [event1], conversationMap: [:])
         XCTAssertEqual(self.scheduledRequests.count, 1)
         let id = self.scheduledRequests.first!.identifier
-        
+
         // WHEN
         sut.didReceive(events: [event2], conversationMap: [:])
 
         // THEN
         XCTAssertTrue(self.notificationCenter.removedNotifications.contains(id))
     }
-    
+
     func testThatNotifyAvailabilityBehaviourChangedIfNeededSchedulesNotification_WhenNeedsToNotifyAvailabilityBehaviourChangeIsSet() {
         // given
         selfUser.availability = .away
         selfUser.needsToNotifyAvailabilityBehaviourChange = [.notification]
-        
+
         // when
         sut.notifyAvailabilityBehaviourChangedIfNeeded()
-        
+
         // then
         XCTAssertEqual(self.notificationCenter.scheduledRequests.count, 1)
         XCTAssertEqual(selfUser.needsToNotifyAvailabilityBehaviourChange, [])
     }
-    
+
     func testThatNotifyAvailabilityBehaviourChangedIfNeededDoesNotScheduleNotification_WhenneedsToNotifyAvailabilityBehaviourChangeIsNotSet() {
         // given
         selfUser.needsToNotifyAvailabilityBehaviourChange = []
-        
+
         // when
         sut.notifyAvailabilityBehaviourChangedIfNeeded()
-        
+
         // then
         XCTAssertEqual(self.notificationCenter.scheduledRequests.count, 0)
     }
-    
+
     // MARK: Updating unread count
-    
+
     func testThatEstimatedUnreadCountIsIncreased_WhenProcessingTextMessage() {
         // GIVEN
         let text = UUID.create().transportString()
         let event = createUpdateEvent(UUID.create(), conversationID: self.conversation1.remoteIdentifier!, genericMessage: GenericMessage(content: Text(content: text)), senderID: self.user1.remoteIdentifier)
-        
+
         // WHEN
         self.sut.processEventsWhileInBackground([event])
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // THEN
         XCTAssertEqual(self.conversation1.estimatedUnreadCount, 1)
         XCTAssertEqual(self.conversation1.estimatedUnreadSelfMentionCount, 0)
         XCTAssertEqual(self.conversation1.estimatedUnreadSelfReplyCount, 0)
     }
-    
+
     func testThatEstimatedUnreadMentionCountIsIncreased_WhenProcessingTextMessageWhichMentionsSelfUser() {
         // GIVEN
         let text = UUID.create().transportString()
         let selfUserMention = Mention(range: NSRange(), user: selfUser)
         let event = createUpdateEvent(UUID.create(), conversationID: self.conversation1.remoteIdentifier!, genericMessage: GenericMessage(content: Text(content: text, mentions: [selfUserMention])), senderID: self.user1.remoteIdentifier)
-        
+
         // WHEN
         self.sut.processEventsWhileInBackground([event])
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // THEN
         XCTAssertEqual(self.conversation1.estimatedUnreadCount, 1)
         XCTAssertEqual(self.conversation1.estimatedUnreadSelfMentionCount, 1)
         XCTAssertEqual(self.conversation1.estimatedUnreadSelfReplyCount, 0)
     }
-    
+
     func testThatEstimatedUnreadMentionCountIsIncreased_WhenProcessingTextMessageWhichRepliesToSelfUser() {
         // GIVEN
         let message = try! conversation1.appendText(content: "Hello") as! ZMOTRMessage
         let text = UUID.create().transportString()
         let event = createUpdateEvent(UUID.create(), conversationID: self.conversation1.remoteIdentifier!, genericMessage: GenericMessage(content: Text(content: text, replyingTo: message)), senderID: self.user1.remoteIdentifier)
-        
+
         // WHEN
         self.sut.processEventsWhileInBackground([event])
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // THEN
         XCTAssertEqual(self.conversation1.estimatedUnreadCount, 1)
         XCTAssertEqual(self.conversation1.estimatedUnreadSelfMentionCount, 0)
@@ -450,16 +449,14 @@ extension LocalNotificationDispatcherTests {
     }
 }
 
-
-
 // MARK: - Helpers
 extension LocalNotificationDispatcherTests {
-    
+
     func payloadForEncryptedOTRMessage(text: String, nonce: UUID) -> [String: Any] {
         let message = GenericMessage(content: Text(content: text), nonce: nonce)
         return self.payloadForOTRAsset(with: message)
     }
-    
+
     func payloadForOTRAsset(with message: GenericMessage) -> [String: Any] {
         return [
             "data": [
@@ -481,9 +478,9 @@ extension LocalNotificationDispatcherTests {
             "time": Date().transportString()
         ]
     }
-    
+
     func createUpdateEvent(_ nonce: UUID, conversationID: UUID, genericMessage: GenericMessage, senderID: UUID = UUID.create()) -> ZMUpdateEvent {
-        let payload : [String : Any] = [
+        let payload: [String: Any] = [
             "id": UUID.create().transportString(),
             "conversation": conversationID.transportString(),
             "from": senderID.transportString(),
@@ -491,7 +488,7 @@ extension LocalNotificationDispatcherTests {
             "data": ["text": try? genericMessage.serializedData().base64String()],
             "type": "conversation.otr-message-add"
         ]
-        
+
         return ZMUpdateEvent(uuid: nonce,
                              payload: payload,
                              transient: false,
@@ -501,6 +498,6 @@ extension LocalNotificationDispatcherTests {
 }
 
 // Helper function inserted by Swift 4.2 migrator.
-fileprivate func convertToUNNotificationSoundName(_ input: String) -> UNNotificationSoundName {
+private func convertToUNNotificationSoundName(_ input: String) -> UNNotificationSoundName {
 	return UNNotificationSoundName(rawValue: input)
 }

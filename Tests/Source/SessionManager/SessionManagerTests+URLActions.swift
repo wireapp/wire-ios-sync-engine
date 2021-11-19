@@ -21,44 +21,44 @@ import WireTesting
 @testable import WireSyncEngine
 
 class SessionManagerTests_URLActions: IntegrationTest {
-    
+
     var presentationDelegate: MockPresentationDelegate!
 
     override func setUp() {
         super.setUp()
-    
+
         presentationDelegate = MockPresentationDelegate()
         sessionManager?.presentationDelegate = presentationDelegate
         createSelfUserAndConversation()
         createExtraUsersAndConversations()
     }
-    
+
     override func tearDown() {
         presentationDelegate = nil
         super.tearDown()
     }
-    
+
     override var useInMemoryStore: Bool {
         return false
     }
-    
+
     // MARK: Tests
-    
+
     func testThatItIgnoresNonWireURL() throws {
         // when
         let canOpenURL = try sessionManager?.openURL(URL(string: "https://google.com")!)
-        
+
         // then
         XCTAssertEqual(canOpenURL, false)
-        XCTAssertEqual(presentationDelegate.shouldPerformActionCalls.count,0)
+        XCTAssertEqual(presentationDelegate.shouldPerformActionCalls.count, 0)
     }
-    
+
     func testThatItAsksDelegateIfURLActionShouldBePerformed() throws {
         // given
         presentationDelegate?.isPerformingActions = false
         let url = URL(string: "wire://connect?service=2e1863a6-4a12-11e8-842f-0ed5f89f718b&provider=3879b1ec-4a12-11e8-842f-0ed5f89f718b")!
         XCTAssertTrue(login())
-        
+
         // when
         let canOpenURL = try sessionManager?.openURL(url)
 
@@ -70,35 +70,35 @@ class SessionManagerTests_URLActions: IntegrationTest {
         XCTAssertEqual(presentationDelegate.shouldPerformActionCalls.first, .connectBot(serviceUser: expectedUserData))
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
     }
-    
+
     func testThatItThrowsAnErrorWhileProcessingAuthenticatedURLAction_WhenLoggedOut() throws {
         // given
         presentationDelegate?.isPerformingActions = false
         let url = URL(string: "wire://connect?service=2e1863a6-4a12-11e8-842f-0ed5f89f718b&provider=3879b1ec-4a12-11e8-842f-0ed5f89f718b")!
-        
+
         // when then
         XCTAssertThrowsError(try sessionManager?.openURL(url)) { (error) in
             XCTAssertEqual(error as? DeepLinkRequestError, .notLoggedIn)
         }
     }
-    
+
     func testThatItDelaysURLActionProcessing_UntilUserSessionBecomesAvailable() throws {
         // given: user session is not availablle but we are still authenticated
         XCTAssertTrue(login())
         sessionManager?.logoutCurrentSession(deleteCookie: false)
         presentationDelegate?.isPerformingActions = false
-        
+
         // when
         let url = URL(string: "wire://connect?service=2e1863a6-4a12-11e8-842f-0ed5f89f718b&provider=3879b1ec-4a12-11e8-842f-0ed5f89f718b")!
         let canOpenURL = try sessionManager?.openURL(url)
         XCTAssertEqual(canOpenURL, true)
-        
+
         // then: action should get postponed
         XCTAssertEqual(presentationDelegate.shouldPerformActionCalls.count, 0)
-        
+
         // when
         XCTAssertTrue(login())
-        
+
         // then: action should get resumed
         let expectedUserData = ServiceUserData(provider: UUID(uuidString: "3879b1ec-4a12-11e8-842f-0ed5f89f718b")!,
                                                service: UUID(uuidString: "2e1863a6-4a12-11e8-842f-0ed5f89f718b")!)

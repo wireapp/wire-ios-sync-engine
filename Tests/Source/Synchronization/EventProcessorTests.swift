@@ -20,7 +20,7 @@ import XCTest
 @testable import WireSyncEngine
 
 class EventProcessorTests: MessagingTest {
-    
+
     var sut: EventProcessor!
     var syncStatus: SyncStatus!
     var syncStateDelegate: ZMSyncStateDelegate!
@@ -29,15 +29,15 @@ class EventProcessorTests: MessagingTest {
 
     override func setUp() {
         super.setUp()
-        
+
         createSelfClient()
         syncMOC.zm_lastNotificationID = UUID() // simulate a completed slow sync
-        
+
         mockEventsConsumers = [MockEventConsumer(), MockEventConsumer()]
         eventProcessingTracker = EventProcessingTracker()
-        
+
         syncStateDelegate = MockSyncStateDelegate()
-        
+
         syncStatus = SyncStatus(managedObjectContext: coreDataStack.syncContext,
                                 syncStateDelegate: syncStateDelegate)
 
@@ -52,18 +52,18 @@ class EventProcessorTests: MessagingTest {
         syncStateDelegate = nil
         syncStatus = nil
         sut = nil
-        
+
         super.tearDown()
     }
-    
+
     // MARK: - Helpers
-    
+
     func completeQuickSync() {
         syncStatus.currentSyncPhase = .done
         syncStatus.pushChannelDidOpen()
         syncStatus.finishCurrentSyncPhase(phase: .fetchingMissedEvents)
     }
-    
+
     func createSampleEvents(conversationID: UUID  = UUID(), messageNonce: UUID = UUID()) -> [ZMUpdateEvent] {
         let payload1: [String: Any] = ["type": "conversation.member-join",
                                        "conversation": conversationID]
@@ -71,24 +71,24 @@ class EventProcessorTests: MessagingTest {
                                         "data": ["content": "www.wire.com",
                                                  "nonce": messageNonce],
                                         "conversation": conversationID]
-        
+
         let event1 = ZMUpdateEvent(fromEventStreamPayload: payload1 as ZMTransportData, uuid: nil)!
         let event2 = ZMUpdateEvent(fromEventStreamPayload: payload2 as ZMTransportData, uuid: nil)!
-        
+
         return [event1, event2]
     }
-    
+
     // MARK: - Tests
-    
+
     func testThatEventsAreForwardedToAllEventConsumers_WhenProcessed() {
         // given
         let events = createSampleEvents()
         completeQuickSync()
-        
+
         // when
         sut.storeAndProcessUpdateEvents(events, ignoreBuffer: false)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         mockEventsConsumers.forEach({ mockEventConsumer in
             XCTAssertTrue(mockEventConsumer.processEventsWhileInBackgroundCalled)
@@ -96,33 +96,33 @@ class EventProcessorTests: MessagingTest {
             XCTAssertEqual(events, mockEventConsumer.eventsProcessed)
         })
     }
-    
+
     func testThatEventsAreBuffered_WhenSyncIsInProgress() {
         // given
         let events = createSampleEvents()
-        
+
         // when
         sut.storeAndProcessUpdateEvents(events, ignoreBuffer: false)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         mockEventsConsumers.forEach({ mockEventConsumer in
             XCTAssertFalse(mockEventConsumer.processEventsWhileInBackgroundCalled)
             XCTAssertFalse(mockEventConsumer.processEventsCalled)
         })
     }
-    
+
     func testThatItProcessBufferedEvents_WhenSyncCompletes() {
         // given
         let events = createSampleEvents()
         sut.storeAndProcessUpdateEvents(events, ignoreBuffer: false)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // when
         completeQuickSync()
         _ = sut.processEventsIfReady()
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         mockEventsConsumers.forEach({ mockEventConsumer in
             XCTAssertTrue(mockEventConsumer.processEventsWhileInBackgroundCalled)
@@ -130,35 +130,35 @@ class EventProcessorTests: MessagingTest {
             XCTAssertEqual(events, mockEventConsumer.eventsProcessed)
         })
     }
-    
+
     func testThatEventsAreProcessedWhileInBackground_WhenSyncIsInProgress_And_IgnoreBufferIsTrue() {
         // given
         let events = createSampleEvents()
-        
+
         // when
         sut.storeAndProcessUpdateEvents(events, ignoreBuffer: true)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         mockEventsConsumers.forEach({ mockEventConsumer in
             XCTAssertTrue(mockEventConsumer.processEventsWhileInBackgroundCalled)
             XCTAssertFalse(mockEventConsumer.processEventsCalled)
         })
     }
-    
+
     func testThatItCreatesAFetchBatchRequestWithTheNoncesAndRemoteIdentifiers_RequestedByEventsConsumers() {
         // given
         let converationID = UUID()
         let messageNonce = UUID()
         let events = createSampleEvents(conversationID: converationID, messageNonce: messageNonce)
-        
+
         // when
         let batchFetchRequest = sut.prefetchRequest(updateEvents: events)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         XCTAssertEqual(batchFetchRequest.remoteIdentifiersToFetch, NSSet(arrayLiteral: converationID))
         XCTAssertEqual(batchFetchRequest.noncesToFetch, NSSet(arrayLiteral: messageNonce))
     }
-        
+
 }

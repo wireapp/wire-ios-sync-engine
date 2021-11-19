@@ -32,7 +32,7 @@ final class ConversationRoleDownstreamRequestStrategyTests: MessagingTest {
         mockApplicationStatus.mockSynchronizationState = .slowSyncing
         sut = ConversationRoleDownstreamRequestStrategy(withManagedObjectContext: syncMOC, applicationStatus: mockApplicationStatus)
     }
-    
+
     override func tearDown() {
         sut = nil
         mockSyncStatus = nil
@@ -40,7 +40,7 @@ final class ConversationRoleDownstreamRequestStrategyTests: MessagingTest {
         mockSyncStateDelegate = nil
         super.tearDown()
     }
-    
+
     private func createConversationToDownload() -> ZMConversation {
         let convoToDownload: ZMConversation = ZMConversation.insertNewObject(in: self.syncMOC)
         convoToDownload.conversationType = .group
@@ -50,20 +50,20 @@ final class ConversationRoleDownstreamRequestStrategyTests: MessagingTest {
         return convoToDownload
     }
 
-    func testThatPredicateIsCorrect(){
+    func testThatPredicateIsCorrect() {
         // given
         let convoToDownload = self.createConversationToDownload()
 
         let convoNoNeed = self.createConversationToDownload()
         convoNoNeed.needsToDownloadRoles = false
-        
+
         let convoNoIdentifier = self.createConversationToDownload()
         convoNoIdentifier.remoteIdentifier = nil
-        
+
         // then
-        XCTAssert(sut.downstreamSync.predicateForObjectsToDownload.evaluate(with:convoToDownload))
-        XCTAssertFalse(sut.downstreamSync.predicateForObjectsToDownload.evaluate(with:convoNoNeed))
-        XCTAssertFalse(sut.downstreamSync.predicateForObjectsToDownload.evaluate(with:convoNoIdentifier))
+        XCTAssert(sut.downstreamSync.predicateForObjectsToDownload.evaluate(with: convoToDownload))
+        XCTAssertFalse(sut.downstreamSync.predicateForObjectsToDownload.evaluate(with: convoNoNeed))
+        XCTAssertFalse(sut.downstreamSync.predicateForObjectsToDownload.evaluate(with: convoNoIdentifier))
     }
 
     func testThatItCreatesARequestForConversation() {
@@ -71,10 +71,10 @@ final class ConversationRoleDownstreamRequestStrategyTests: MessagingTest {
             // given
             let convo1 = self.createConversationToDownload()
             self.mockApplicationStatus.mockSynchronizationState = .online
-            
+
             // when
             self.boostrapChangeTrackers(with: convo1)
-            
+
             // then
             guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
             XCTAssertEqual(request.method, .methodGET)
@@ -87,16 +87,15 @@ final class ConversationRoleDownstreamRequestStrategyTests: MessagingTest {
             // given
             let convo1 = self.createConversationToDownload()
             self.mockApplicationStatus.mockSynchronizationState = .online
-            
+
             // when
-            let objs:[ZMConversation] = self.sut.contextChangeTrackers.compactMap({$0.fetchRequestForTrackedObjects()}).flatMap({self.syncMOC.executeFetchRequestOrAssert($0) as! [ZMConversation] })
-                
+            let objs: [ZMConversation] = self.sut.contextChangeTrackers.compactMap({$0.fetchRequestForTrackedObjects()}).flatMap({self.syncMOC.executeFetchRequestOrAssert($0) as! [ZMConversation] })
 
             // then            
             XCTAssertEqual(objs, [convo1])
         }
     }
-    
+
     func testItDoesNotGenerateARequestIfTheConversationShouldNotDownloadRoles() {
         syncMOC.performGroupedBlockAndWait {
             // given
@@ -104,15 +103,15 @@ final class ConversationRoleDownstreamRequestStrategyTests: MessagingTest {
             self.mockApplicationStatus.mockSynchronizationState = .online
             convo1.needsToDownloadRoles = false
             self.boostrapChangeTrackers(with: convo1)
-            
+
             // when
             let request = self.sut.nextRequest()
-            
+
             // then
             XCTAssertNil(request)
         }
     }
-    
+
     func testThatItParsesRolesFromResponse() {
         var convo1: ZMConversation?
         syncMOC.performGroupedBlockAndWait {
@@ -127,9 +126,9 @@ final class ConversationRoleDownstreamRequestStrategyTests: MessagingTest {
                                                        httpStatus: 200,
                                                        transportSessionError: nil))
         }
-        
+
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.2))
-        
+
         syncMOC.performGroupedBlockAndWait {
             // then
             XCTAssertEqual(convo1!.nonTeamRoles.count, 2)
@@ -139,32 +138,32 @@ final class ConversationRoleDownstreamRequestStrategyTests: MessagingTest {
             }
             XCTAssertEqual(Set(admin.actions.map { $0.name }), Set(["leave_conversation", "delete_conversation"]))
             XCTAssertEqual(Set(member.actions.map { $0.name }), Set(["leave_conversation"]))
-            
+
         }
     }
-    
+
     private let sampleRolesPayload: [String: Any] = [
-        "conversation_roles" : [
+        "conversation_roles": [
             [
-                "actions" : [
+                "actions": [
                     "leave_conversation",
                     "delete_conversation"
                 ],
-                "conversation_role" : "wire_admin"
+                "conversation_role": "wire_admin"
             ],
             [
-                "actions" : [
+                "actions": [
                     "leave_conversation"
                 ],
-                "conversation_role" : "wire_member"
+                "conversation_role": "wire_member"
             ]
         ]
     ]
-    
+
     private func boostrapChangeTrackers(with objects: ZMManagedObject...) {
         sut.contextChangeTrackers.forEach {
             $0.objectsDidChange(Set(objects))
         }
-        
+
     }
 }
