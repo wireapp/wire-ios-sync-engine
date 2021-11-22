@@ -37,29 +37,29 @@ class CompanyLoginURLActionProcessorTests: ZMTBaseTest, WireSyncEngine.CompanyLo
                                                       userInfoParser: userInfoParser)
         sut = WireSyncEngine.CompanyLoginURLActionProcessor(delegate: self, authenticationStatus: authenticationStatus)
     }
-    
+
     override func tearDown() {
         sut = nil
         delegate = nil
         authenticationStatus = nil
-        
+
         super.tearDown()
     }
-    
+
     func testThatAuthenticationStatusIsInformed_OnCompanyLoginSuccessAction() {
         // given
         let accountId = UUID()
         let cookieData = "cookie".data(using: .utf8)!
         let userInfo = UserInfo(identifier: accountId, cookieData: cookieData)
         let action: URLAction = .companyLoginSuccess(userInfo: userInfo)
-        
+
         // when
         sut.process(urlAction: action, delegate: nil)
-        
+
         // then
         XCTAssertEqual(authenticationStatus.authenticatedUserIdentifier, accountId)
     }
-    
+
     func testThatStartCompanyLoginActionFails_WhenAccountLimitIsReached() {
         // given
         isAllowedToCreateNewAccount = false
@@ -103,15 +103,15 @@ class CompanyLoginURLActionProcessorTests: ZMTBaseTest, WireSyncEngine.CompanyLo
         XCTAssertEqual(presentationDelegate.failedToPerformActionCalls.first?.0, action)
         XCTAssertEqual(presentationDelegate.failedToPerformActionCalls.first?.1 as? SessionManager.AccountError, .accountLimitReached)
     }
-    
+
     func testThatSSOCodeIsPropagatedToAuthenticationStatus_OnStartCompanyLoginAction() {
         // given
         let ssoCode = UUID()
         let action: URLAction = .startCompanyLogin(code: ssoCode)
-        
+
         // when
         sut.process(urlAction: action, delegate: nil)
-        
+
         // then
         XCTAssertEqual(delegate.receivedSSOCode, ssoCode)
     }
