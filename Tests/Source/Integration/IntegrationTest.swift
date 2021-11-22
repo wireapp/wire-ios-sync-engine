@@ -607,7 +607,14 @@ extension IntegrationTest {
 }
 
 extension IntegrationTest: SessionManagerDelegate {
-    
+
+    public var isAuthenticated: Bool {
+        return true
+    }
+    public var isUnauthenticated: Bool {
+        return false
+    }
+
     public func sessionManagerDidFailToLogin(error: Error?) {
         // no op
     }
