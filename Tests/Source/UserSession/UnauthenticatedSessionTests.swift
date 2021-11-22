@@ -50,15 +50,15 @@ final class MockAuthenticationStatusDelegate: NSObject, ZMAuthenticationStatusDe
     func authenticationDidFail(_ error: Error!) {
         authenticationDidFailEvents.append(error)
     }
-    
+
     func authenticationReadyImportingBackup(_ existingAccount: Bool) {
         authenticationDidSucceedEvents += 1
     }
-    
+
     func authenticationDidSucceed() {
         authenticationDidSucceedEvents += 1
     }
-    
+
     func loginCodeRequestDidFail(_ error: Error!) {
         authenticationDidFailEvents.append(error)
     }
@@ -102,7 +102,7 @@ final class MockUnauthenticatedSessionDelegate: NSObject, UnauthenticatedSession
         didUpdateCredentials = true
         return willAcceptUpdatedCredentials
     }
-    
+
     func sessionIsAllowedToCreateNewAccount(_ session: UnauthenticatedSession) -> Bool {
         return isAllowedToCreatingNewAccounts
     }
@@ -115,7 +115,7 @@ public final class UnauthenticatedSessionTests: ZMTBaseTest {
     var mockDelegate: MockUnauthenticatedSessionDelegate!
     var reachability: MockReachability!
     var mockAuthenticationStatusDelegate: MockAuthenticationStatusDelegate!
-    
+
     public override func setUp() {
         super.setUp()
         transportSession = TestUnauthenticatedTransportSession()
@@ -128,7 +128,7 @@ public final class UnauthenticatedSessionTests: ZMTBaseTest {
                                      authenticationStatusDelegate: mockAuthenticationStatusDelegate)
         sut.groupQueue.add(dispatchGroup)
     }
-    
+
     public override func tearDown() {
         sut.tearDown()
         sut = nil
@@ -137,7 +137,7 @@ public final class UnauthenticatedSessionTests: ZMTBaseTest {
         reachability = nil
         super.tearDown()
     }
-    
+
     func testThatTriesToUpdateCredentials() {
         // given
         let emailCredentials = ZMEmailCredentials(email: "hello@email.com", password: "123456")
@@ -145,23 +145,23 @@ public final class UnauthenticatedSessionTests: ZMTBaseTest {
         
         // when
         sut.login(with: emailCredentials)
-        
+
         // then
         XCTAssertTrue(mockDelegate.didUpdateCredentials)
     }
-    
+
     func testThatDuringLoginItThrowsErrorWhenNoCredentials() {
         // given
         reachability.mayBeReachable = false
         // when
         sut.login(with: ZMCredentials())
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         XCTAssertEqual(mockAuthenticationStatusDelegate.authenticationDidFailEvents.count, 1)
         XCTAssertEqual(mockAuthenticationStatusDelegate.authenticationDidFailEvents[0].localizedDescription, NSError(code: .needsCredentials, userInfo: nil).localizedDescription)
     }
-    
+
     func testThatDuringLoginWithEmailItThrowsErrorWhenOffline() {
         // given
         reachability.mayBeReachable = false
@@ -200,7 +200,7 @@ public final class UnauthenticatedSessionTests: ZMTBaseTest {
         XCTAssertTrue(exists)
         XCTAssertEqual(mockDelegate.existingAccountsCalled, 1)
     }
-    
+
     func testThatItParsesCookieDataAndDoesCallTheDelegateIfTheCookieIsValidAndThereIsAUserIdKeyUser() throws {
         // given
         let userId = UUID.create()
