@@ -20,12 +20,12 @@ import Foundation
 @testable import WireSyncEngine
 
 class CompanyLoginURLActionProcessorTests: ZMTBaseTest, WireSyncEngine.CompanyLoginURLActionProcessorDelegate {
-    
+
     var isAllowedToCreateNewAccount: Bool = true
     var sut: WireSyncEngine.CompanyLoginURLActionProcessor!
     var authenticationStatus: ZMAuthenticationStatus!
     var delegate: MockAuthenticationStatusDelegate!
-    
+
     override func setUp() {
         super.setUp()
 
