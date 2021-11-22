@@ -444,12 +444,12 @@ public final class SessionManager : NSObject, SessionManagerType {
     }
 
     private func selectInitialAccount(_ account: Account, launchOptions: LaunchOptions) {
-        if let url = launchOptions[UIApplication.LaunchOptionsKey.url] as? URL {
-            if (try? URLAction(url: url))?.causesLogout == true {
-                // Do not log in if the launch URL action causes a logout
-                return
-            }
-        }
+//        if let url = launchOptions[UIApplication.LaunchOptionsKey.url] as? URL {
+//            if (try? URLAction(url: url))?.causesLogout == true {
+//                // Do not log in if the launch URL action causes a logout
+//                return
+//            }
+//        }
         
         guard !shouldPerformPostRebootLogout() else {
             performPostRebootLogout()
@@ -1129,6 +1129,9 @@ extension SessionManager {
     }
     
     @objc fileprivate func applicationDidBecomeActive(_ note: Notification) {
+        if let _ = activeUserSession {
+            processCompanyLoginPendingURLAction()
+        }
         notificationsTracker?.dispatchEvent()
     }
 
