@@ -42,7 +42,12 @@ extension SessionManager {
         guard let action = try URLAction(url: url) else { return false }
 
         guard action.requiresAuthentication else {
-            pendingURLAction = action
+            if canProcessUrlAction() {
+                process(urlAction: action, on: activeUnauthenticatedSession)
+            } else {
+                pendingURLAction = action
+            }
+
             return true
         }
 
@@ -66,23 +71,26 @@ extension SessionManager {
         })
     }
     
-    func processPendingURLAction() {
-        if let action = pendingURLAction, let userSession = activeUserSession {
-            guard action.requiresAuthentication else {
-                return
-            }
+    public func processPendingURLAction() {
+        if let action = pendingURLAction, action.requiresAuthentication,
+           let userSession = activeUserSession {
             process(urlAction: action, on: userSession)
+            pendingURLAction = nil
         }
-        
-        pendingURLAction = nil
     }
 
-    public func processCompanyLoginPendingURLAction() {
+    public func processLoginPendingURLAction() {
         if let action = pendingURLAction, !action.requiresAuthentication {
             process(urlAction: action, on: activeUnauthenticatedSession)
+            pendingURLAction = nil
         }
+    }
 
-        pendingURLAction = nil
+    func canProcessUrlAction() -> Bool {
+        guard let delegate = delegate else {
+            return false
+        }
+        return delegate.isAuthenticated || delegate.isUnauthenticated
     }
     
 }

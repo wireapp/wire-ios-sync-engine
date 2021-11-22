@@ -55,6 +55,9 @@ public protocol SessionManagerDelegate: SessionActivationObserver {
     func sessionManagerDidFailToLoadDatabase()
     func sessionManagerDidBlacklistCurrentVersion()
     func sessionManagerDidBlacklistJailbrokenDevice()
+
+    var isAuthenticated: Bool { get }
+    var isUnauthenticated: Bool { get }
 }
 
 /// The public interface for the session manager.
@@ -1129,9 +1132,6 @@ extension SessionManager {
     }
     
     @objc fileprivate func applicationDidBecomeActive(_ note: Notification) {
-        if let _ = activeUserSession {
-            processCompanyLoginPendingURLAction()
-        }
         notificationsTracker?.dispatchEvent()
     }
 

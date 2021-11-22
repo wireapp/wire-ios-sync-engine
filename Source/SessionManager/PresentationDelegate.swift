@@ -61,6 +61,4 @@ public protocol PresentationDelegate: AnyObject {
     
     /// Called when an URLAction was successfully performed.
     func completedURLAction(_ action: URLAction)
-
-    func addNewAccount()
 }

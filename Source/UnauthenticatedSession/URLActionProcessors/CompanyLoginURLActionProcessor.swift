@@ -49,7 +49,7 @@ class CompanyLoginURLActionProcessor: URLActionProcessor {
                 presentationDelegate?.failedToPerformAction(urlAction, error: SessionManager.AccountError.accountLimitReached)
                 return
             }
-            presentationDelegate?.addNewAccount()
+            authenticationStatus.authenticationDidBecomeAvailable()
         default:
             break
         }
