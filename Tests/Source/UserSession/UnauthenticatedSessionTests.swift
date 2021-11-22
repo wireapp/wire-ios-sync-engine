@@ -142,7 +142,7 @@ public final class UnauthenticatedSessionTests: ZMTBaseTest {
         // given
         let emailCredentials = ZMEmailCredentials(email: "hello@email.com", password: "123456")
         mockDelegate.willAcceptUpdatedCredentials = true
-        
+
         // when
         sut.login(with: emailCredentials)
 
