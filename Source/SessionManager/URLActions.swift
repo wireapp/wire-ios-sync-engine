@@ -46,8 +46,7 @@ public enum URLAction: Equatable {
 
     public var causesLogout: Bool {
         switch self {
-        case .startCompanyLogin:
-            return true
+        case .startCompanyLogin: return true
         default: return false
         }
     }
