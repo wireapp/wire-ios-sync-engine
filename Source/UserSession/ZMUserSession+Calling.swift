@@ -19,7 +19,7 @@
 import Foundation
 
 @objc
-public protocol CallNotificationStyleProvider: class {
+public protocol CallNotificationStyleProvider: AnyObject {
     
     var callNotificationStyle: CallNotificationStyle { get }
     

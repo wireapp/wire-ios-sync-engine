@@ -76,7 +76,6 @@ final class MockAuthenticationStatusDelegate: NSObject, ZMAuthenticationStatusDe
     }
 }
 
-
 final class MockUnauthenticatedSessionDelegate: NSObject, UnauthenticatedSessionDelegate {
 
     var existingAccounts = [Account]()
@@ -87,7 +86,7 @@ final class MockUnauthenticatedSessionDelegate: NSObject, UnauthenticatedSession
     }
 
     var createdAccounts = [Account]()
-    var didUpdateCredentials : Bool = false
+    var didUpdateCredentials: Bool = false
     var willAcceptUpdatedCredentials = false
     var isAllowedToCreatingNewAccounts = true
 
@@ -109,7 +108,6 @@ final class MockUnauthenticatedSessionDelegate: NSObject, UnauthenticatedSession
     }
 
 }
-
 
 public final class UnauthenticatedSessionTests: ZMTBaseTest {
     var transportSession: TestUnauthenticatedTransportSession!
@@ -161,7 +159,7 @@ public final class UnauthenticatedSessionTests: ZMTBaseTest {
         
         // then
         XCTAssertEqual(mockAuthenticationStatusDelegate.authenticationDidFailEvents.count, 1)
-        XCTAssertEqual(mockAuthenticationStatusDelegate.authenticationDidFailEvents[0].localizedDescription, NSError(code: .needsCredentials, userInfo:nil).localizedDescription)
+        XCTAssertEqual(mockAuthenticationStatusDelegate.authenticationDidFailEvents[0].localizedDescription, NSError(code: .needsCredentials, userInfo: nil).localizedDescription)
     }
     
     func testThatDuringLoginWithEmailItThrowsErrorWhenOffline() {
@@ -173,7 +171,7 @@ public final class UnauthenticatedSessionTests: ZMTBaseTest {
         // then
         XCTAssertEqual(mockAuthenticationStatusDelegate.authenticationDidFailEvents.count, 1)
         XCTAssertEqual(mockAuthenticationStatusDelegate.authenticationDidFailEvents[0].localizedDescription,
-                       NSError(code: .networkError, userInfo:nil).localizedDescription)
+                       NSError(code: .networkError, userInfo: nil).localizedDescription)
     }
 
     func testThatDuringLoginWithPhoneNumberItThrowsErrorWhenOffline() {
@@ -184,7 +182,7 @@ public final class UnauthenticatedSessionTests: ZMTBaseTest {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         // then
         XCTAssertEqual(mockAuthenticationStatusDelegate.authenticationDidFailEvents.count, 1)
-        XCTAssertEqual(mockAuthenticationStatusDelegate.authenticationDidFailEvents[0].localizedDescription, NSError(code: .networkError, userInfo:nil).localizedDescription)
+        XCTAssertEqual(mockAuthenticationStatusDelegate.authenticationDidFailEvents[0].localizedDescription, NSError(code: .networkError, userInfo: nil).localizedDescription)
     }
 
     func testThatItAsksDelegateIfAccountAlreadyExists() throws {
@@ -194,7 +192,6 @@ public final class UnauthenticatedSessionTests: ZMTBaseTest {
         let response = try createResponse(cookie: cookie, userId: userId, userIdKey: "id")
         mockDelegate.existingAccounts = [Account(userName: "", userIdentifier: userId)]
 
-        
         guard let userInfo = response.extractUserInfo() else { return XCTFail("no userinfo") }
         // when
         let exists = sut.accountExistsLocally(from: userInfo)
@@ -235,7 +232,7 @@ public final class UnauthenticatedSessionTests: ZMTBaseTest {
         let cookie = "zuid=wjCWn1Y1pBgYrFCwuU7WK2eHpAVY8Ocu-rUAWIpSzOcvDVmYVc9Xd6Ovyy-PktFkamLushbfKgBlIWJh6ZtbAA==.1721442805.u.7eaaa023.08326f5e-3c0f-4247-a235-2b4d93f921a4; Expires=Sun, 21-Jul-2024 09:06:45 GMT; Domain=wire.com; HttpOnly; Secure"
 
         // then
-        performIgnoringZMLogError() {
+        performIgnoringZMLogError {
             XCTAssertNil(try? self.parseAccount(cookie: cookie, userIdKey: "identifier"))
         }
     }
@@ -245,7 +242,7 @@ public final class UnauthenticatedSessionTests: ZMTBaseTest {
         let cookie = "Expires=Sun, 21-Jul-2024 09:06:45 GMT; Domain=wire.com; HttpOnly; Secure"
 
         // then
-        performIgnoringZMLogError() {
+        performIgnoringZMLogError {
             XCTAssertNil(try? self.parseAccount(cookie: cookie, userIdKey: "user"))
         }
     }
@@ -280,7 +277,6 @@ public final class UnauthenticatedSessionTests: ZMTBaseTest {
     }
 
 }
-
 
 fileprivate extension ZMTransportResponse {
 

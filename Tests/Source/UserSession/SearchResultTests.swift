@@ -20,114 +20,114 @@ import Foundation
 
 @testable import WireSyncEngine
 
-class SearchResultTests : DatabaseTest {
-    
+class SearchResultTests: DatabaseTest {
+
     func testThatItFiltersConnectedUsers() {
         // given
         let connectedUser = ZMUser.insertNewObject(in: uiMOC)
         connectedUser.remoteIdentifier = UUID.create()
-        
+
         let connection = ZMConnection.insertNewObject(in: uiMOC)
         connection.to = connectedUser
         connection.status = .accepted
-        
+
         uiMOC.saveOrRollback()
-        
+
         let handle = "fabio"
         let payload = ["documents": [
-            ["id" : connectedUser.remoteIdentifier!,
+            ["id": connectedUser.remoteIdentifier!,
              "name": "Maria",
              "accent_id": 4],
-            ["id" : UUID.create().uuidString,
+            ["id": UUID.create().uuidString,
              "name": "Fabio",
              "accent_id": 4,
-             "handle" : handle]
+             "handle": handle]
             ]]
-        
+
         // when
         let result = SearchResult(payload: payload, query: "", searchOptions: [.directory], contextProvider: coreDataStack!)
-        
+
         // then
         XCTAssertEqual(result?.directory.count, 1)
         XCTAssertEqual(result?.directory.first!.handle, handle)
     }
-    
+
     func testThatItFiltersTeamMembersFromDirectoryResults() {
         // given
         let team = Team.insertNewObject(in: uiMOC)
         let user = ZMUser.insertNewObject(in: uiMOC)
         let member = Member.insertNewObject(in: uiMOC)
-        
+
         user.name = "Member A"
         user.remoteIdentifier = UUID.create()
-        
+
         member.team = team
         member.user = user
-        
+
         uiMOC.saveOrRollback()
-        
+
         let handle = "fabio"
         let payload = ["documents": [
-            ["id" : user.remoteIdentifier!,
+            ["id": user.remoteIdentifier!,
              "name": "Member A",
              "accent_id": 4],
-            ["id" : UUID.create().uuidString,
+            ["id": UUID.create().uuidString,
              "name": "Fabio",
              "accent_id": 4,
-             "handle" : handle]
+             "handle": handle]
             ]]
-        
+
         // when
         let result = SearchResult(payload: payload, query: "", searchOptions: [.directory], contextProvider: coreDataStack!)
-        
+
         // then
         XCTAssertEqual(result?.directory.count, 1)
         XCTAssertEqual(result?.directory.first!.handle, handle)
     }
-    
+
     func testThatItReturnsAllResultsWhenTheQueryIsNotAHandle() {
         // given
         let name = "User"
         let payload = ["documents": [
-            ["id" : UUID.create().uuidString,
+            ["id": UUID.create().uuidString,
              "name": name,
              "accent_id": 4],
-            ["id" : UUID.create().uuidString,
+            ["id": UUID.create().uuidString,
              "name": "Fabio",
              "accent_id": 4,
-             "handle" : "aa\(name.lowercased())"]
+             "handle": "aa\(name.lowercased())"]
             ]]
-        
+
         // when
         let result = SearchResult(payload: payload, query: name, searchOptions: [.directory], contextProvider: coreDataStack!)
-        
+
         // then
         XCTAssertEqual(result?.directory.count, 2)
     }
-    
+
     func testThatItReturnsOnlyMatchingHandleResultsWhenTheQueryIsAHandle() {
         // given
-        let name = "User";
+        let name = "User"
         let expectedHandle = "aa\(name.lowercased())"
-        
+
         let payload = ["documents": [
-            ["id" : UUID.create().uuidString,
+            ["id": UUID.create().uuidString,
              "name": name,
              "accent_id": 4],
-            ["id" : UUID.create().uuidString,
+            ["id": UUID.create().uuidString,
              "name": "Fabio",
              "accent_id": 4,
-             "handle" : "aa\(name.lowercased())"]
+             "handle": "aa\(name.lowercased())"]
             ]]
-        
+
         // when
         let result = SearchResult(payload: payload, query: "@\(name)", searchOptions: [.directory], contextProvider: coreDataStack!)!
-        
+
         // then
         XCTAssertEqual(result.directory.count, 1)
         XCTAssertEqual(result.directory.first!.handle, expectedHandle)
     }
-    
+
     func testThatItReturnsRemoteTeamMembers_WhenSearchOptionsIncludeTeamMembers() {
         // given
         let team = Team.insertNewObject(in: uiMOC)
@@ -139,24 +139,24 @@ class SearchResultTests : DatabaseTest {
         member.user = selfUser
         let remoteTeamMemberID = UUID()
         uiMOC.saveOrRollback()
-        
+
         let payload = ["documents": [
             ["id": remoteTeamMemberID.transportString(),
              "team": team.remoteIdentifier!.transportString(),
              "name": "Member A",
              "accent_id": 4]]]
-        
+
         // when
         let result = SearchResult(payload: payload,
                                   query: "",
                                   searchOptions: [.directory, .teamMembers],
                                   contextProvider: coreDataStack!)
-        
+
         // then
         XCTAssertEqual(result?.teamMembers.count, 1)
         XCTAssertEqual(result?.teamMembers.first!.remoteIdentifier, remoteTeamMemberID)
     }
-    
+
     func testThatItDoesNotReturnRemoteTeamMembers_WhenSearchOptionsIncludeExcludeNonActiveTeamMembers () {
         // given
         let team = Team.insertNewObject(in: uiMOC)
@@ -168,23 +168,23 @@ class SearchResultTests : DatabaseTest {
         member.user = selfUser
         let remoteTeamMemberID = UUID()
         uiMOC.saveOrRollback()
-        
+
         let payload = ["documents": [
             ["id": remoteTeamMemberID.transportString(),
              "team": team.remoteIdentifier!.transportString(),
              "name": "Member A",
              "accent_id": 4]]]
-        
+
         // when
         let result = SearchResult(payload: payload,
                                   query: "",
                                   searchOptions: [.directory, .teamMembers, .excludeNonActiveTeamMembers],
                                   contextProvider: coreDataStack!)
-        
+
         // then
         XCTAssertEqual(result?.teamMembers.count, 0)
     }
-    
+
     func testThatThatTeamMemberSearchResultsCanBeExtendedWithMembershipPayload() {
         // given
         let team = Team.insertNewObject(in: uiMOC)
@@ -196,32 +196,32 @@ class SearchResultTests : DatabaseTest {
         member.user = selfUser
         let remoteTeamMemberID = UUID()
         uiMOC.saveOrRollback()
-        
+
         let payload = ["documents": [
             ["id": remoteTeamMemberID.transportString(),
              "team": team.remoteIdentifier!.transportString(),
              "name": "Member A",
              "accent_id": 4]]]
-        
+
         var result = SearchResult(payload: payload,
                                   query: "",
                                   searchOptions: [.directory, .teamMembers],
                                   contextProvider: coreDataStack!)
-        
+
         let membership = createMembershipPayload(userID: remoteTeamMemberID, createdBy: selfUser.remoteIdentifier, permissions: .partner)
         let membershipListPayload = WireSyncEngine.MembershipListPayload.init(hasMore: false, members: [membership])
-        
+
         // when
         result?.extendWithMembershipPayload(payload: membershipListPayload)
-        
+
         // then
         XCTAssertEqual(result?.teamMembers.count, 1)
         XCTAssertEqual(result?.teamMembers.first!.teamRole, .partner)
         XCTAssertEqual(result?.teamMembers.first!.teamCreatedBy, selfUser.remoteIdentifier)
     }
-    
+
     // MARK: - Team member results filtering
-    
+
     func testThatWhenFilteringTeamMemberSearchResults_PartnerCanNotBeFound() {
         // given
         let team = Team.insertNewObject(in: uiMOC)
@@ -234,30 +234,30 @@ class SearchResultTests : DatabaseTest {
         member.user = selfUser
         let remoteTeamMemberID = UUID()
         uiMOC.saveOrRollback()
-        
+
         let payload = ["documents": [
             ["id": remoteTeamMemberID.transportString(),
              "team": team.remoteIdentifier!.transportString(),
              "name": "Member A",
              "accent_id": 4]]]
-        
+
         var result = SearchResult(payload: payload,
                                   query: "",
                                   searchOptions: [.directory, .teamMembers],
                                   contextProvider: coreDataStack!)
-        
+
         let membership = createMembershipPayload(userID: remoteTeamMemberID, createdBy: nil, permissions: .partner)
         let membershipListPayload = WireSyncEngine.MembershipListPayload.init(hasMore: false, members: [membership])
-        
+
         result?.extendWithMembershipPayload(payload: membershipListPayload)
-        
+
         // when
         result?.filterBy(searchOptions: .excludeNonActivePartners, query: "", contextProvider: coreDataStack!)
-        
+
         // then
         XCTAssertEqual(result?.teamMembers.count, 0)
     }
-    
+
     func testThatWhenFilteringTeamMemberSearchResults_PartnerCanBeFoundByItsCreator() {
         // given
         let team = Team.insertNewObject(in: uiMOC)
@@ -269,30 +269,30 @@ class SearchResultTests : DatabaseTest {
         member.user = selfUser
         let remoteTeamMemberID = UUID()
         uiMOC.saveOrRollback()
-        
+
         let payload = ["documents": [
             ["id": remoteTeamMemberID.transportString(),
              "team": team.remoteIdentifier!.transportString(),
              "name": "Member A",
              "accent_id": 4]]]
-        
+
         var result = SearchResult(payload: payload,
                                   query: "",
                                   searchOptions: [.directory, .teamMembers],
                                   contextProvider: coreDataStack!)
-        
+
         let membership = createMembershipPayload(userID: remoteTeamMemberID, createdBy: selfUser.remoteIdentifier, permissions: .partner)
         let membershipListPayload = WireSyncEngine.MembershipListPayload.init(hasMore: false, members: [membership])
-        
+
         result?.extendWithMembershipPayload(payload: membershipListPayload)
-        
+
         // when
         result?.filterBy(searchOptions: .excludeNonActivePartners, query: "", contextProvider: coreDataStack!)
-        
+
         // then
         XCTAssertEqual(result?.teamMembers.count, 1)
     }
-    
+
     func testThatWhenFilteringTeamMemberSearchResults_PartnerCanBeFoundByExactHandleSearch() {
         // given
         let team = Team.insertNewObject(in: uiMOC)
@@ -304,33 +304,33 @@ class SearchResultTests : DatabaseTest {
         member.user = selfUser
         let remoteTeamMemberID = UUID()
         uiMOC.saveOrRollback()
-        
+
         let payload = ["documents": [
             ["id": remoteTeamMemberID.transportString(),
              "team": team.remoteIdentifier!.transportString(),
              "handle": "aaa",
              "name": "Member A",
              "accent_id": 4]]]
-        
+
         var result = SearchResult(payload: payload,
                                   query: "",
                                   searchOptions: [.directory, .teamMembers],
                                   contextProvider: coreDataStack!)
-        
+
         let membership = createMembershipPayload(userID: remoteTeamMemberID, createdBy: nil, permissions: .partner)
         let membershipListPayload = WireSyncEngine.MembershipListPayload.init(hasMore: false, members: [membership])
-        
+
         result?.extendWithMembershipPayload(payload: membershipListPayload)
-        
+
         // when
         result?.filterBy(searchOptions: .excludeNonActivePartners, query: "@aaa", contextProvider: coreDataStack!)
-        
+
         // then
         XCTAssertEqual(result?.teamMembers.count, 1)
     }
-    
+
     // MARK: - Helpers
-    
+
     func createMembershipPayload(userID: UUID,
                                  createdBy: UUID?,
                                  permissions: Permissions) -> WireSyncEngine.MembershipPayload {
@@ -339,9 +339,9 @@ class SearchResultTests : DatabaseTest {
         let membershipPayload = WireSyncEngine.MembershipPayload.init(userID: userID,
                                                                       createdBy: createdBy,
                                                                       createdAt: nil,
-                                                                      permissions:  membershipPermissons)
-        
+                                                                      permissions: membershipPermissons)
+
         return membershipPayload
     }
-    
+
 }

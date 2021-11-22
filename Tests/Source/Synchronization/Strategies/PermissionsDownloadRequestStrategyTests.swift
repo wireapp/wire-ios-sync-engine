@@ -16,10 +16,8 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import WireTesting
 @testable import WireSyncEngine
-
 
 class PermissionsDownloadRequestStrategyTests: MessagingTest {
 
@@ -143,7 +141,6 @@ class PermissionsDownloadRequestStrategyTests: MessagingTest {
         }
     }
 
-
     func testThatItDeletesALocalMemberWhenReceivingA404() {
         let userid = UUID.create()
 
@@ -174,15 +171,15 @@ class PermissionsDownloadRequestStrategyTests: MessagingTest {
             XCTAssertNil(Member.fetch(with: userid, in: self.syncMOC))
         }
     }
-    
+
     // MARK: - Payload decoding
-    
+
     func testMembershipPayloadDecoding_AllFields() {
         // given
         let userID = UUID()
         let creatorID = UUID()
         let createdAt = "2020-04-01T09:05:48.200Z"
-        
+
         let payload: [String: Any] = [
             "user": userID.transportString(),
             "created_by": creatorID.transportString(),
@@ -192,10 +189,10 @@ class PermissionsDownloadRequestStrategyTests: MessagingTest {
                 "self": 1587
             ]
         ]
-        
+
         // when
         let membershipPayload = WireSyncEngine.MembershipPayload(payload.rawJSON)
-        
+
         // then
         XCTAssertNotNil(membershipPayload)
         XCTAssertEqual(membershipPayload?.userID, userID)
@@ -204,38 +201,38 @@ class PermissionsDownloadRequestStrategyTests: MessagingTest {
         XCTAssertEqual(membershipPayload?.permissions?.copyPermissions, 1587)
         XCTAssertEqual(membershipPayload?.permissions?.selfPermissions, 1587)
     }
-    
+
     func testMembershipPayloadDecoding_OnlyNonOptionalFields() {
         // given
         let userID = UUID()
-        
+
         let payload: [String: Any] = [
-            "user": userID.transportString(),
+            "user": userID.transportString()
         ]
-        
+
         // when
         let membershipPayload = WireSyncEngine.MembershipPayload(payload.rawJSON)
-        
+
         // then
         XCTAssertNotNil(membershipPayload)
         XCTAssertEqual(membershipPayload?.userID, userID)
     }
-    
+
     // MARK: - Helper
-    
+
     private func boostrapChangeTrackers(with objects: ZMManagedObject...) {
         sut.contextChangeTrackers.forEach {
             $0.objectsDidChange(Set(objects))
         }
-        
+
     }
-    
+
 }
 
 extension Dictionary {
-    
+
     var rawJSON: Data {
         return try! JSONSerialization.data(withJSONObject: self, options: .prettyPrinted)
     }
-    
+
 }

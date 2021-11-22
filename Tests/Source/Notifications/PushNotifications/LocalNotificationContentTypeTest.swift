@@ -16,7 +16,6 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import XCTest
 @testable import WireSyncEngine
 
@@ -63,7 +62,7 @@ class LocalNotificationContentTypeTest: ZMLocalNotificationTests {
         // then
         XCTAssertEqual(contentType, .ephemeral(isMention: false, isReply: false))
     }
-    
+
     func testThatItCreatesACorrectLocalNotificationContentTypeForTheTextMessage() {
            // given
            let message = GenericMessage(content: Text(content: "Text Message"))
@@ -82,10 +81,10 @@ class LocalNotificationContentTypeTest: ZMLocalNotificationTests {
         let audioMetadata = ZMAudioMetadata(fileURL: url!, duration: 100)
         let message = GenericMessage(content: WireProtos.Asset(audioMetadata))
         let event = createUpdateEvent(UUID.create(), conversationID: UUID.create(), genericMessage: message)
-        
+
         // when
         let contentType = Sut(event: event, conversation: groupConversation, in: syncMOC)
-        
+
         // then
         XCTAssertEqual(contentType, .audio)
     }
@@ -115,7 +114,7 @@ class LocalNotificationContentTypeTest: ZMLocalNotificationTests {
         // then
         XCTAssertEqual(contentType!, .fileUpload)
     }
-    
+
     func testThatItCreatesASystemMessageNotificationContentTypeForTheMemberJoinEvent() {
         // given
         let event = createMemberJoinUpdateEvent(UUID.create(), conversationID: UUID.create(), users: [selfUser])
@@ -127,7 +126,6 @@ class LocalNotificationContentTypeTest: ZMLocalNotificationTests {
         XCTAssertEqual(contentType, .participantsAdded)
     }
 
-    
     func testThatItCreatesASystemMessageNotificationContentTypeForTheMemberLeaveEvent() {
         // given
         let event = createMemberLeaveUpdateEvent(UUID.create(), conversationID: UUID.create(), users: [selfUser])
@@ -138,7 +136,7 @@ class LocalNotificationContentTypeTest: ZMLocalNotificationTests {
         // then
         XCTAssertEqual(contentType, .participantsRemoved(reason: .none))
     }
-    
+
     func testThatItCreatesASystemMessageNotificationContentTypeForTheMessageTimerUpdateEvent() {
         // given
         let event = createMessageTimerUpdateEvent(UUID.create(), conversationID: UUID.create())
@@ -149,7 +147,6 @@ class LocalNotificationContentTypeTest: ZMLocalNotificationTests {
         // then
         XCTAssertEqual(contentType, .messageTimerUpdate("1 year"))
     }
-
 
     private func createFileMetadata(filename: String? = nil) -> ZMFileMetadata {
         let fileURL: URL
@@ -176,5 +173,5 @@ class LocalNotificationContentTypeTest: ZMLocalNotificationTests {
         try! data.write(to: url, options: [])
         return data
     }
-    
+
 }

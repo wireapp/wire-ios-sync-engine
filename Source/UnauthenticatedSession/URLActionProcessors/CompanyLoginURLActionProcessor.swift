@@ -18,7 +18,7 @@
 
 import Foundation
 
-protocol CompanyLoginURLActionProcessorDelegate: class {
+protocol CompanyLoginURLActionProcessorDelegate: AnyObject {
     
     var isAllowedToCreateNewAccount: Bool { get }
     

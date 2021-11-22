@@ -18,7 +18,7 @@
 
 import Foundation
 
-public protocol PresentationDelegate: class {
+public protocol PresentationDelegate: AnyObject {
     /// Called when a conversation at one particular message should be shown
     /// - parameter conversation: Conversation which will be performed.
     /// - parameter message: Message which the conversation will be opened at.

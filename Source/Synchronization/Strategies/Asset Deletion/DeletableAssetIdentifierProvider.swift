@@ -16,7 +16,7 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-@objc public protocol DeletableAssetIdentifierProvider: class {
+@objc public protocol DeletableAssetIdentifierProvider: AnyObject {
     var assetIdentifiersToBeDeleted: Set<String> { get set }
 }
 
