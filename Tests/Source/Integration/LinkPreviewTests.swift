@@ -84,8 +84,8 @@ class LinkPreviewTests: ConversationTestsBase {
         // given
         XCTAssertTrue(login())
         let conversation = self.conversation(for: selfToUser1Conversation)
-        conversation?.messageDestructionTimeout = .local(10)
-
+        conversation?.setMessageDestructionTimeoutValue(.tenSeconds, for: .selfUser)
+        
         // when
         userSession?.perform {
             try! conversation?.appendText(content: MockLinkPreviewDetector.LinkPreviewURL.article.rawValue)
