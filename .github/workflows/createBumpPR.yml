@@ -1,4 +1,4 @@
-name: Create bump PR v0.1.3
+name: Create bump PR v0.1.5
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   create-bump-pr:
-    runs-on: macos-10.15
+    runs-on: macos-11
 
     steps:
       - name: Event Information
@@ -41,7 +41,12 @@ jobs:
             # Create bump PR
             
             git add .
-            git commit -m"bump components"
+            git commit -m"chore: bump components"
             git push --set-upstream origin $BRANCH
             echo "ℹ️ open bump PR"
-            gh pr create --title "chore: bump components" --body "Bump framework(s) version for:\n${{ github.event.client_payload.repository }}"
+
+      - name: create pull request
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+            gh pr create --title "chore: bump components SQPIT-776" --body "Bump framework(s) version for: ${{ github.event.client_payload.repository }}"
