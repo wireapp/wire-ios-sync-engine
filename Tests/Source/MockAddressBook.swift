@@ -20,7 +20,7 @@ import Foundation
 @testable import WireSyncEngine
 
 /// Fake to supply predefined AB hashes
-class MockAddressBook : WireSyncEngine.AddressBook, WireSyncEngine.AddressBookAccessor {
+class MockAddressBook: WireSyncEngine.AddressBook, WireSyncEngine.AddressBookAccessor {
 
     /// Find contact by Id
     func contact(identifier: String) -> WireSyncEngine.ContactRecord? {
@@ -32,15 +32,15 @@ class MockAddressBook : WireSyncEngine.AddressBook, WireSyncEngine.AddressBookAc
 
     /// Reported number of contacts (it might be higher than `fakeContacts`
     /// because some contacts are filtered for not having valid email/phone)
-    var numberOfAdditionalContacts : UInt = 0
+    var numberOfAdditionalContacts: UInt = 0
 
-    var numberOfContacts : UInt {
+    var numberOfContacts: UInt {
         return UInt(self.contacts.count) + numberOfAdditionalContacts
     }
 
     /// Enumerates the contacts, invoking the block for each contact.
     /// If the block returns false, it will stop enumerating them.
-    func enumerateRawContacts(block: @escaping (WireSyncEngine.ContactRecord)->(Bool)) {
+    func enumerateRawContacts(block: @escaping (WireSyncEngine.ContactRecord) -> (Bool)) {
         for contact in self.contacts {
             if !block(contact) {
                 return
@@ -79,15 +79,15 @@ class MockAddressBook : WireSyncEngine.AddressBook, WireSyncEngine.AddressBookAc
     var createInfiniteContacts = false
 }
 
-struct MockAddressBookContact : WireSyncEngine.ContactRecord {
+struct MockAddressBookContact: WireSyncEngine.ContactRecord {
 
     static var incrementalLocalIdentifier = ZMAtomicInteger(integer: 0)
 
     var firstName = ""
     var lastName = ""
     var middleName = ""
-    var rawEmails : [String]
-    var rawPhoneNumbers : [String]
+    var rawEmails: [String]
+    var rawPhoneNumbers: [String]
     var nickname = ""
     var organization = ""
     var localIdentifier = ""
@@ -102,7 +102,7 @@ struct MockAddressBookContact : WireSyncEngine.ContactRecord {
             }()
     }
 
-    var expectedHashes : [String] {
+    var expectedHashes: [String] {
         return self.rawEmails.map { $0.base64EncodedSHADigest } + self.rawPhoneNumbers.map { $0.base64EncodedSHADigest }
     }
 }
