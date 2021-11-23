@@ -27,7 +27,7 @@
 #import "ZMMissingUpdateEventsTranscoder+Internal.h"
 #import "ZMSimpleListRequestPaginator.h"
 #import <WireSyncEngine/WireSyncEngine-Swift.h>
-#import "WireSyncEngine_iOS_Tests-Swift.h"
+#import "Tests-Swift.h"
 
 
 static NSString * const LastUpdateEventIDStoreKey = @"LastUpdateEventID";

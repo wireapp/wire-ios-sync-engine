@@ -93,7 +93,7 @@ public class VoiceChannelV3 : NSObject, VoiceChannel {
         else {
             return nil
         }
-        return ZMUser.fetch(withRemoteIdentifier: userId, in: context)
+        return ZMUser.fetch(with: userId, in: context)
     }
     
     public var videoState: VideoState {
@@ -181,7 +181,7 @@ extension VoiceChannelV3 : CallActions {
         userSession.syncManagedObjectContext.performGroupedBlock {
             let conversationId = conversation.objectID
             if let syncConversation = (try? userSession.syncManagedObjectContext.existingObject(with: conversationId)) as? ZMConversation {
-                userSession.syncStrategy?.callingRequestStrategy.dropPendingCallMessages(for: syncConversation)
+                userSession.syncStrategy?.callingRequestStrategy?.dropPendingCallMessages(for: syncConversation)
             }
         }
         leave(userSession: userSession, completion: nil)
@@ -204,7 +204,12 @@ extension VoiceChannelV3 : CallActions {
             completion?()
         }
     }
-    
+
+    public func request(videoStreams: [AVSClient]) {
+        guard let remoteIdentifier = conversation?.remoteIdentifier else { return }
+
+        callCenter?.requestVideoStreams(conversationId: remoteIdentifier, clients: videoStreams)
+    }
 }
 
 extension VoiceChannelV3 : CallActionsInternal {

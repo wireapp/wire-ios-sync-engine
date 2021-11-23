@@ -19,7 +19,7 @@
 import Foundation
 import WireUtilities
 
-public protocol UnauthenticatedSessionDelegate: class {
+public protocol UnauthenticatedSessionDelegate: AnyObject {
     /// Update credentials for the corresponding user session. Returns true if the credentials were accepted.
     func session(session: UnauthenticatedSession, updatedCredentials credentials: ZMCredentials)  -> Bool
     func session(session: UnauthenticatedSession, updatedProfileImage imageData: Data)
@@ -28,7 +28,7 @@ public protocol UnauthenticatedSessionDelegate: class {
     func sessionIsAllowedToCreateNewAccount(_ session: UnauthenticatedSession) -> Bool
 }
 
-@objc public protocol UserInfoParser: class {
+@objc public protocol UserInfoParser: AnyObject {
     @objc(accountExistsLocallyFromUserInfo:)
     func accountExistsLocally(from userInfo: UserInfo) -> Bool
     @objc(upgradeToAuthenticatedSessionWithUserInfo:)

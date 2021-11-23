@@ -79,7 +79,7 @@ fileprivate class EventNotificationBuilder: NotificationBuilder {
         self.moc = managedObjectContext
         
         if let senderID = event.senderUUID {
-            self.sender = ZMUser(remoteID: senderID, createIfNeeded: false, in: self.moc)
+            self.sender = ZMUser.fetch(with: senderID, domain: event.senderDomain, in: moc)
         }
     }
     

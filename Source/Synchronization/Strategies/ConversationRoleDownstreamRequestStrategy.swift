@@ -43,8 +43,7 @@ fileprivate extension ZMConversation {
 
 }
 
-@objc
-public final class ConversationRoleDownstreamRequestStrategy: AbstractRequestStrategy, ZMContextChangeTrackerSource, ZMRequestGeneratorSource {
+public final class ConversationRoleDownstreamRequestStrategy: AbstractRequestStrategy, ZMContextChangeTrackerSource, ZMRequestGeneratorSource, ZMDownstreamTranscoder {
     fileprivate let jsonDecoder = JSONDecoder()
     private (set) var downstreamSync: ZMDownstreamObjectSync!
 
@@ -77,10 +76,7 @@ public final class ConversationRoleDownstreamRequestStrategy: AbstractRequestStr
     public var requestGenerators: [ZMRequestGenerator] {
         return [downstreamSync]
     }
-}
 
-
-extension ConversationRoleDownstreamRequestStrategy: ZMDownstreamTranscoder {
     static let requestPath = "/conversations"
 
     public static func getRolesRequest(in conversationIdentifier: UUID) -> ZMTransportRequest {

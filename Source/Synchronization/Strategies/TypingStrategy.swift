@@ -107,7 +107,7 @@ class TypingEventQueue {
     }
 }
 
-public class TypingStrategy : AbstractRequestStrategy {
+public class TypingStrategy : AbstractRequestStrategy, TearDownCapable, ZMEventConsumer {
     
     fileprivate var typing : Typing!
     fileprivate let typingEventQueue = TypingEventQueue()
@@ -200,18 +200,17 @@ public class TypingStrategy : AbstractRequestStrategy {
         
         return request
     }
-}
 
-extension TypingStrategy: TearDownCapable {
+    //MARK:- TearDownCapable
+
     public func tearDown() {
         typing.tearDown()
         typing = nil
         tornDown = true
         observers = []
     }
-}
 
-extension TypingStrategy : ZMEventConsumer {
+    //MARK:-  ZMEventConsumer
     
     public func processEvents(_ events: [ZMUpdateEvent], liveEvents: Bool, prefetchResult: ZMFetchRequestBatchResult?) {
         guard liveEvents else { return }
@@ -227,10 +226,11 @@ extension TypingStrategy : ZMEventConsumer {
             else { return }
         
         guard let userID = event.senderUUID,
-              let conversationID = event.conversationUUID,
-              let user = ZMUser(remoteID: userID, createIfNeeded: true, in: managedObjectContext),
-              let conversation = conversationsByID?[conversationID] ?? ZMConversation(remoteID: conversationID, createIfNeeded: true, in: managedObjectContext)
+              let conversationID = event.conversationUUID
         else { return }
+
+        let user = ZMUser.fetchOrCreate(with: userID, domain: event.senderDomain, in: managedObjectContext)
+        let conversation = conversationsByID?[conversationID] ?? ZMConversation.fetchOrCreate(with: conversationID, domain: event.conversationDomain, in: managedObjectContext)
         
         if event.type == .conversationTyping {
             guard let payloadData = event.payload["data"] as? [String: String],
@@ -243,7 +243,7 @@ extension TypingStrategy : ZMEventConsumer {
                 typing.setIsTyping(false, for: user, in: conversation)
             }
         } else if event.type == .conversationMemberLeave {
-            let users = event.usersFromUserIDs(in: managedObjectContext, createIfNeeded: false).compactMap { $0 as? ZMUser }
+            let users = event.users(in: managedObjectContext, createIfNeeded: false)
             users.forEach { user in
                 typing.setIsTyping(false, for: user, in: conversation)
             }

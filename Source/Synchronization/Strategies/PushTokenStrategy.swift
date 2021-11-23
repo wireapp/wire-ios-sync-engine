@@ -23,7 +23,7 @@ let VoIPIdentifierSuffix = "-voip"
 let TokenKey = "token"
 let PushTokenPath = "/push/tokens"
 
-@objc public class PushTokenStrategy : AbstractRequestStrategy {
+public class PushTokenStrategy : AbstractRequestStrategy, ZMUpstreamTranscoder, ZMContextChangeTrackerSource, ZMEventConsumer {
 
     enum Keys {
         static let UserClientPushTokenKey = "pushToken"
@@ -62,9 +62,7 @@ let PushTokenPath = "/push/tokens"
         return pushKitTokenSync.nextRequest()
     }
 
-}
-
-extension PushTokenStrategy : ZMUpstreamTranscoder {
+//MARK:- ZMUpstreamTranscoder
 
     public func request(forUpdating managedObject: ZMManagedObject, forKeys keys: Set<String>) -> ZMUpstreamRequest? {
         guard let client = managedObject as? UserClient else { return nil }
@@ -164,32 +162,13 @@ extension PushTokenStrategy : ZMUpstreamTranscoder {
         return false
     }
 
-}
-
-extension PushTokenStrategy: ZMContextChangeTrackerSource {
+    //MARK:- ZMContextChangeTrackerSource
     
     public var contextChangeTrackers: [ZMContextChangeTracker] {
         return [self.pushKitTokenSync]
     }
     
-}
-
-fileprivate struct PushTokenPayload: Codable {
-
-    init(pushToken: PushToken, clientIdentifier: String) {
-        token = pushToken.deviceTokenString
-        app = pushToken.appIdentifier
-        transport = pushToken.transportType
-        client = clientIdentifier
-    }
-
-    let token: String
-    let app: String
-    let transport: String
-    let client: String
-}
-
-extension PushTokenStrategy : ZMEventConsumer {
+    //MARK:- ZMEventConsumer
 
     public func processEvents(_ events: [ZMUpdateEvent], liveEvents: Bool, prefetchResult: ZMFetchRequestBatchResult?) {
         guard liveEvents else { return }
@@ -215,3 +194,17 @@ extension PushTokenStrategy : ZMEventConsumer {
     }
 }
 
+fileprivate struct PushTokenPayload: Codable {
+
+    init(pushToken: PushToken, clientIdentifier: String) {
+        token = pushToken.deviceTokenString
+        app = pushToken.appIdentifier
+        transport = pushToken.transportType
+        client = clientIdentifier
+    }
+
+    let token: String
+    let app: String
+    let transport: String
+    let client: String
+}

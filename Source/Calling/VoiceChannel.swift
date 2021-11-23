@@ -33,7 +33,7 @@ public enum CaptureDevice : Int {
     }
 }
 
-public protocol VoiceChannel : class, CallProperties, CallActions, CallActionsInternal, CallObservers {
+public protocol VoiceChannel : AnyObject, CallProperties, CallActions, CallActionsInternal, CallObservers {
     
     init(conversation: ZMConversation)
     
@@ -70,7 +70,6 @@ public protocol CallProperties : NSObjectProtocol {
     func setVideoCaptureDevice(_ device: CaptureDevice) throws
 }
 
-@objc
 public protocol CallActions : NSObjectProtocol {
     
     func mute(_ muted: Bool, userSession: ZMUserSession)
@@ -78,6 +77,8 @@ public protocol CallActions : NSObjectProtocol {
     func leave(userSession: ZMUserSession, completion: (() -> ())?)
     func continueByDecreasingConversationSecurity(userSession: ZMUserSession)
     func leaveAndDecreaseConversationSecurity(userSession: ZMUserSession)
+    func request(videoStreams: [AVSClient])
+
 }
 
 @objc

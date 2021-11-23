@@ -21,7 +21,7 @@
 @import WireMockTransport;
 @import WireDataModel;
 
-#import "WireSyncEngine_iOS_Tests-Swift.h"
+#import "Tests-Swift.h"
 
 
 @class BackgroundTests;

@@ -18,7 +18,7 @@
 
 import Foundation
 
-public protocol PresentationDelegate: class {
+public protocol PresentationDelegate: AnyObject {
     /// Called when a conversation at one particular message should be shown
     /// - parameter conversation: Conversation which will be performed.
     /// - parameter message: Message which the conversation will be opened at.
@@ -48,6 +48,16 @@ public protocol PresentationDelegate: class {
     /// - parameter decisionHandler: Block which should be executed when the decision has been to perform the action or not.
     /// - parameter shouldPerformAction: **true**: perform the action, **false**: abort the action
     func shouldPerformAction(_ action: URLAction, decisionHandler: @escaping (_ shouldPerformAction: Bool) -> Void)
+
+    /// Called before attempt is made to process a URLAction, this is a opportunity for asking the user
+    /// to confirm the action. The answer is provided via the decisionHandler.
+    ///
+    /// - parameter message: The string to be used for the warning message.
+    /// - parameter action: Action which will be performed.
+    /// - parameter decisionHandler: Block which should be executed when the decision has been to perform the action or not.
+    /// - parameter shouldPerformAction: **true**: perform the action, **false**: abort the action
+
+    func shouldPerformActionWithMessage(_ message: String, action: URLAction, decisionHandler: @escaping (_ shouldPerformAction: Bool) -> Void)
     
     /// Called when an URLAction was successfully performed.
     func completedURLAction(_ action: URLAction)

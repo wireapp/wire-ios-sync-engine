@@ -19,7 +19,7 @@
 import Foundation
 
 @objc
-public protocol CallNotificationStyleProvider: class {
+public protocol CallNotificationStyleProvider: AnyObject {
     
     var callNotificationStyle: CallNotificationStyle { get }
     
@@ -53,6 +53,17 @@ public protocol CallNotificationStyleProvider: class {
         
         get {
             return managedObjectContext.zm_useConstantBitRateAudio
+        }
+    }
+
+    @objc var usePackagingFeatureConfig : Bool {
+        set {
+            managedObjectContext.zm_usePackagingFeatureConfig = newValue
+            callCenter?.usePackagingFeatureConfig = newValue
+        }
+
+        get {
+            return managedObjectContext.zm_usePackagingFeatureConfig
         }
     }
 }

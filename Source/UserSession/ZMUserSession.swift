@@ -52,7 +52,7 @@ typealias UserSessionDelegate = UserSessionEncryptionAtRestDelegate
     & UserSessionAppLockDelegate
 
 @objcMembers
-public class ZMUserSession: NSObject, ZMManagedObjectContextProvider {
+public class ZMUserSession: NSObject {
     
     private let appVersion: String
     private var tokens: [Any] = []
@@ -66,7 +66,7 @@ public class ZMUserSession: NSObject, ZMManagedObjectContextProvider {
     }
     var hasNotifiedThirdPartyServices: Bool = false
     
-    var storeProvider: LocalStoreProviderProtocol!
+    var coreDataStack: CoreDataStack!
     let application: ZMApplication
     let flowManager: FlowManagerType
     var mediaManager: MediaManagerType
@@ -89,26 +89,32 @@ public class ZMUserSession: NSObject, ZMManagedObjectContextProvider {
     let eventProcessingTracker: EventProcessingTracker = EventProcessingTracker()
     let hotFix: ZMHotFix
 
+    public lazy var featureService = FeatureService(context: syncContext)
+
     public var appLockController: AppLockType
+    public var fileSharingFeature: Feature.FileSharing {
+        let featureService = FeatureService(context: coreDataStack.viewContext)
+        return featureService.fetchFileSharing()
+    }
     
     public var hasCompletedInitialSync: Bool = false
     
     public var topConversationsDirectory: TopConversationsDirectory
     
     public var managedObjectContext: NSManagedObjectContext { // TODO jacob we don't want this to be public
-        return storeProvider.contextDirectory.uiContext
+        return coreDataStack.viewContext
     }
     
     public var syncManagedObjectContext: NSManagedObjectContext { // TODO jacob we don't want this to be public
-        return storeProvider.contextDirectory.syncContext
+        return coreDataStack.syncContext
     }
     
     public var searchManagedObjectContext: NSManagedObjectContext { // TODO jacob we don't want this to be public
-        return storeProvider.contextDirectory.searchContext
+        return coreDataStack.searchContext
     }
     
     public var sharedContainerURL: URL { // TODO jacob we don't want this to be public
-        return storeProvider.applicationContainer
+        return coreDataStack.applicationContainer
     }
     
     public var selfUserClient: UserClient? { // TODO jacob we don't want this to be public
@@ -182,12 +188,12 @@ public class ZMUserSession: NSObject, ZMManagedObjectContextProvider {
         // Wait for all sync operations to finish
         syncManagedObjectContext.performGroupedBlockAndWait { }
         
-        let uiMOC = storeProvider.contextDirectory.uiContext
-        storeProvider = nil
+        let uiMOC = coreDataStack.viewContext
+        coreDataStack = nil
         
-        let shouldWaitOnUIMoc = !(OperationQueue.current == OperationQueue.main && uiMOC?.concurrencyType == .mainQueueConcurrencyType)
+        let shouldWaitOnUIMoc = !(OperationQueue.current == OperationQueue.main && uiMOC.concurrencyType == .mainQueueConcurrencyType)
         if shouldWaitOnUIMoc {
-            uiMOC?.performAndWait {
+            uiMOC.performAndWait {
                 // warning: this will hang if the uiMoc queue is same as self.requestQueue (typically uiMoc queue is the main queue)
             }
         }
@@ -209,29 +215,31 @@ public class ZMUserSession: NSObject, ZMManagedObjectContextProvider {
                 operationLoop: ZMOperationLoop? = nil,
                 application: ZMApplication,
                 appVersion: String,
-                storeProvider: LocalStoreProviderProtocol,
+                coreDataStack: CoreDataStack,
                 configuration: Configuration) {
         
-        storeProvider.contextDirectory.syncContext.performGroupedBlockAndWait {
-            storeProvider.contextDirectory.syncContext.analytics = analytics
-            storeProvider.contextDirectory.syncContext.zm_userInterface = storeProvider.contextDirectory.uiContext
+        coreDataStack.syncContext.performGroupedBlockAndWait {
+            coreDataStack.syncContext.analytics = analytics
+            coreDataStack.syncContext.zm_userInterface = coreDataStack.viewContext
+            coreDataStack.syncContext.zm_isFederationEnabled = configuration.supportFederation
         }
-        storeProvider.contextDirectory.uiContext.zm_sync = storeProvider.contextDirectory.syncContext
+        coreDataStack.viewContext.zm_sync = coreDataStack.syncContext
+        coreDataStack.viewContext.zm_isFederationEnabled = configuration.supportFederation
         
         self.application = application
         self.appVersion = appVersion
         self.flowManager = flowManager
         self.mediaManager = mediaManager
         self.analytics = analytics
-        self.storeProvider = storeProvider
+        self.coreDataStack = coreDataStack
         self.transportSession = transportSession
-        self.notificationDispatcher = NotificationDispatcher(managedObjectContext: storeProvider.contextDirectory.uiContext)
-        self.storedDidSaveNotifications = ContextDidSaveNotificationPersistence(accountContainer: storeProvider.accountContainer)
-        self.userExpirationObserver = UserExpirationObserver(managedObjectContext: storeProvider.contextDirectory.uiContext)
-        self.topConversationsDirectory = TopConversationsDirectory(managedObjectContext: storeProvider.contextDirectory.uiContext)
+        self.notificationDispatcher = NotificationDispatcher(managedObjectContext: coreDataStack.viewContext)
+        self.storedDidSaveNotifications = ContextDidSaveNotificationPersistence(accountContainer: coreDataStack.accountContainer)
+        self.userExpirationObserver = UserExpirationObserver(managedObjectContext: coreDataStack.viewContext)
+        self.topConversationsDirectory = TopConversationsDirectory(managedObjectContext: coreDataStack.viewContext)
         self.debugCommands = ZMUserSession.initDebugCommands()
-        self.hotFix = ZMHotFix(syncMOC: storeProvider.contextDirectory.syncContext)
-        self.appLockController = AppLockController(userId: userId, config: configuration.appLockConfig, selfUser: ZMUser.selfUser(in: storeProvider.contextDirectory.uiContext))
+        self.hotFix = ZMHotFix(syncMOC: coreDataStack.syncContext)
+        self.appLockController = AppLockController(userId: userId, selfUser: .selfUser(in: coreDataStack.viewContext), legacyConfig: configuration.appLockConfig)
         super.init()
 
         appLockController.delegate = self
@@ -239,11 +247,11 @@ public class ZMUserSession: NSObject, ZMManagedObjectContextProvider {
         configureCaches()
         
         syncManagedObjectContext.performGroupedBlockAndWait {
-            self.localNotificationDispatcher = LocalNotificationDispatcher(in: storeProvider.contextDirectory.syncContext)
+            self.localNotificationDispatcher = LocalNotificationDispatcher(in: coreDataStack.syncContext)
             self.configureTransportSession()
             self.applicationStatusDirectory = self.createApplicationStatusDirectory()
             self.updateEventProcessor = eventProcessor ?? self.createUpdateEventProcessor()
-            self.strategyDirectory = strategyDirectory ?? self.createStrategyDirectory()
+            self.strategyDirectory = strategyDirectory ?? self.createStrategyDirectory(supportFederation: configuration.supportFederation)
             self.syncStrategy = syncStrategy ?? self.createSyncStrategy()
             self.operationLoop = operationLoop ?? self.createOperationLoop()
             self.urlActionProcessors = self.createURLActionProcessors()
@@ -273,8 +281,8 @@ public class ZMUserSession: NSObject, ZMManagedObjectContextProvider {
     }
     
     private func configureCaches() {
-        let cacheLocation = FileManager.default.cachesURLForAccount(with: storeProvider.userIdentifier, in: storeProvider.applicationContainer)
-        ZMUserSession.moveCachesIfNeededForAccount(with: storeProvider.userIdentifier, in: storeProvider.applicationContainer)
+        let cacheLocation = FileManager.default.cachesURLForAccount(with: coreDataStack.account.userIdentifier, in: coreDataStack.applicationContainer)
+        ZMUserSession.moveCachesIfNeededForAccount(with: coreDataStack.account.userIdentifier, in: coreDataStack.applicationContainer)
         
         let userImageCache = UserImageLocalCache(location: cacheLocation)
         let fileAssetCache = FileAssetCache(location: cacheLocation)
@@ -290,18 +298,19 @@ public class ZMUserSession: NSObject, ZMManagedObjectContextProvider {
 
     }
     
-    private func createStrategyDirectory() -> StrategyDirectoryProtocol {
-        return StrategyDirectory(contextDirectory: storeProvider.contextDirectory,
+    private func createStrategyDirectory(supportFederation: Bool) -> StrategyDirectoryProtocol {
+        return StrategyDirectory(contextProvider: coreDataStack,
                                  applicationStatusDirectory: applicationStatusDirectory!,
                                  cookieStorage: transportSession.cookieStorage,
                                  pushMessageHandler: localNotificationDispatcher!,
                                  flowManager: flowManager,
                                  updateEventProcessor: updateEventProcessor!,
-                                 localNotificationDispatcher: localNotificationDispatcher!)
+                                 localNotificationDispatcher: localNotificationDispatcher!,
+                                 supportFederation: supportFederation)
     }
     
     private func createUpdateEventProcessor() -> EventProcessor {
-        return EventProcessor(storeProvider: self.storeProvider,
+        return EventProcessor(storeProvider: self.coreDataStack,
                               syncStatus: applicationStatusDirectory!.syncStatus,
                               eventProcessingTracker: eventProcessingTracker)
     }
@@ -322,15 +331,17 @@ public class ZMUserSession: NSObject, ZMManagedObjectContextProvider {
     
     private func createURLActionProcessors() -> [URLActionProcessor] {
         return [
-            DeepLinkURLActionProcessor(contextProvider: self),
-            ConnectToBotURLActionProcessor(contextprovider: self,
+            DeepLinkURLActionProcessor(contextProvider: coreDataStack,
+                                       transportSession: transportSession,
+                                       eventProcessor: updateEventProcessor!),
+            ConnectToBotURLActionProcessor(contextprovider: coreDataStack,
                                            transportSession: transportSession,
                                            eventProcessor: updateEventProcessor!)
         ]
     }
     
     private func createSyncStrategy() -> ZMSyncStrategy {
-        return ZMSyncStrategy(storeProvider: storeProvider,
+        return ZMSyncStrategy(contextProvider: coreDataStack,
                               notificationsDispatcher: notificationDispatcher,
                               applicationStatusDirectory: applicationStatusDirectory!,
                               application: application,
@@ -526,11 +537,9 @@ extension ZMUserSession: ZMSyncStateDelegate {
             self?.notifyThirdPartyServices()
         }
 
-        // TODO: [John] This is a tempory solution until we add support for slow syncing
-        // team features and config update events.
-        guard let team = ZMUser.selfUser(in: syncManagedObjectContext).team else { return }
-        Feature.createDefaultInstanceIfNeeded(name: .appLock, team: team, context: syncManagedObjectContext)
-        team.enqueueBackendRefresh(for: .appLock)
+        featureService.enqueueBackendRefresh(for: .appLock)
+        featureService.enqueueBackendRefresh(for: .conferenceCalling)
+        featureService.enqueueBackendRefresh(for: .fileSharing)
     }
     
     func processEvents() {
@@ -557,6 +566,7 @@ extension ZMUserSession: ZMSyncStateDelegate {
         // The push token can only be registered after client registration
         transportSession.pushChannel.clientID = userClient.remoteIdentifier
         registerCurrentPushToken()
+        UserClient.triggerSelfClientCapabilityUpdate(syncContext)
         
         managedObjectContext.performGroupedBlock { [weak self] in
             guard let accountId = self?.managedObjectContext.selfUserId else {
@@ -609,4 +619,28 @@ private extension NSManagedObjectContext {
     var selfUserId: UUID? {
         ZMUser.selfUser(in: self).remoteIdentifier
     }
+}
+
+extension ZMUserSession: ContextProvider {
+
+    public var account: Account {
+        return coreDataStack.account
+    }
+
+    public var viewContext: NSManagedObjectContext {
+        return coreDataStack.viewContext
+    }
+
+    public var syncContext: NSManagedObjectContext {
+        return coreDataStack.syncContext
+    }
+
+    public var searchContext: NSManagedObjectContext {
+        return coreDataStack.searchContext
+    }
+
+    public var eventContext: NSManagedObjectContext {
+        return coreDataStack.eventContext
+    }
+
 }

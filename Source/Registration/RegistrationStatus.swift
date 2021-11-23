@@ -19,7 +19,7 @@
 import Foundation
 
 /// Used to signal changes to the registration state.
-public protocol RegistrationStatusDelegate: class {
+public protocol RegistrationStatusDelegate: AnyObject {
     /// The team was successfully created.
     func teamRegistered()
 
@@ -49,7 +49,7 @@ public protocol RegistrationStatusDelegate: class {
  * A protocol for objects that handle registration of users and teams.
  */
 
-protocol RegistrationStatusProtocol: class {
+protocol RegistrationStatusProtocol: AnyObject {
     /// The current registration phase.
     var phase: RegistrationPhase { get }
 

@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2016 Wire Swiss GmbH
+// Copyright (C) 2021 Wire Swiss GmbH
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -46,6 +46,7 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
     fileprivate(set) var insertSync: ZMUpstreamInsertedObjectSync! = nil
     fileprivate(set) var fetchAllClientsSync: ZMSingleRequestSync! = nil
     fileprivate var didRetryRegisteringSignalingKeys : Bool = false
+    fileprivate var didRetryUpdatingCapabilities : Bool = false
     fileprivate let userKeysStore: UserClientKeysStore
     
     public var requestsFactory: UserClientRequestFactory
@@ -72,7 +73,14 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
         let deletePredicate = NSPredicate(format: "\(ZMUserClientMarkedToDeleteKey) == YES")
         let modifiedPredicate = self.modifiedPredicate()
 
-        self.modifiedSync = ZMUpstreamModifiedObjectSync(transcoder: self, entityName: UserClient.entityName(), update: modifiedPredicate, filter: nil, keysToSync: [ZMUserClientNumberOfKeysRemainingKey, ZMUserClientNeedsToUpdateSignalingKeysKey], managedObjectContext: context)
+        self.modifiedSync = ZMUpstreamModifiedObjectSync(transcoder: self,
+                                                         entityName: UserClient.entityName(),
+                                                         update: modifiedPredicate,
+                                                         filter: nil,
+                                                         keysToSync: [ZMUserClientNumberOfKeysRemainingKey,
+                                                                      ZMUserClientNeedsToUpdateSignalingKeysKey,
+                                                                      ZMUserClientNeedsToUpdateCapabilitiesKey],
+                                                         managedObjectContext: context)
         self.deleteSync = ZMUpstreamModifiedObjectSync(transcoder: self, entityName: UserClient.entityName(), update: deletePredicate, filter: nil, keysToSync: [ZMUserClientMarkedToDeleteKey], managedObjectContext: context)
         self.insertSync = ZMUpstreamInsertedObjectSync(transcoder: self, entityName: UserClient.entityName(), filter: insertSyncFilter, managedObjectContext: context)
         
@@ -86,10 +94,13 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
         
         let needToUploadKeysPredicate = NSPredicate(format: "\(ZMUserClientNumberOfKeysRemainingKey) < \(minNumberOfRemainingKeys)")
         let needsToUploadSignalingKeysPredicate = NSPredicate(format: "\(ZMUserClientNeedsToUpdateSignalingKeysKey) == YES")
+        let needsToUpdateCapabilitiesPredicate = NSPredicate(format: "\(ZMUserClientNeedsToUpdateCapabilitiesKey) == YES")
         
         let modifiedPredicate = NSCompoundPredicate(andPredicateWithSubpredicates:[
             baseModifiedPredicate,
-            NSCompoundPredicate(orPredicateWithSubpredicates:[needToUploadKeysPredicate, needsToUploadSignalingKeysPredicate]),
+            NSCompoundPredicate(orPredicateWithSubpredicates:[needToUploadKeysPredicate,
+                                                              needsToUploadSignalingKeysPredicate,
+                                                              needsToUpdateCapabilitiesPredicate]),
             ])
         return modifiedPredicate
     }
@@ -171,6 +182,12 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
                 } catch let e {
                     fatal("Couldn't create request for new signaling keys: \(e)")
                 }
+            case _ where keys.contains(ZMUserClientNeedsToUpdateCapabilitiesKey):
+                do {
+                    try request = requestsFactory.updateClientCapabilitiesRequest(managedObject)
+                } catch let e {
+                    fatal("Couldn't create request for updating Capabilities: \(e)")
+                }
             default: fatal("Unknown keys to sync (\(keys))")
             }
             
@@ -209,6 +226,20 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
             (managedObject as? UserClient)?.needsToUploadSignalingKeys = false
             return false
         }
+        if keysToParse.contains(ZMUserClientNeedsToUpdateCapabilitiesKey) {
+            if response.httpStatus == 400, let label = response.payloadLabel(), label == "bad-request" {
+
+                if didRetryUpdatingCapabilities {
+                    (managedObject as? UserClient)?.needsToUpdateCapabilities = false
+                    managedObjectContext?.saveOrRollback()
+                    fatal("UserClientTranscoder PUT Capabilities request failed with bad-request - \(upstreamRequest.transportRequest.safeForLoggingDescription)")
+                }
+                didRetryUpdatingCapabilities = true
+                return true
+            }
+            (managedObject as? UserClient)?.needsToUpdateCapabilities = false
+            return false
+        }
         else if keysToParse.contains(ZMUserClientMarkedToDeleteKey) {
             let error = self.errorFromFailedDeleteResponse(response)
             if error.code == ClientUpdateError.clientToDeleteNotFound.rawValue {
@@ -221,7 +252,7 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
         else {
             //first we try to register without password (credentials can be there, but they can not contain password)
             //if there is no password in credentials but it's required, we will recieve error from backend and only then will ask for password
-            let error = self.errorFromFailedInsertResponse(response)
+            let error = errorFromFailedInsertResponse(response)
             if error.code == Int(ZMUserSessionErrorCode.canNotRegisterMoreClients.rawValue) {
                 clientUpdateStatus?.needsToFetchClients(andVerifySelfClient: false)
             }
@@ -360,6 +391,9 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
         }
         else if keysToParse.contains(ZMUserClientNeedsToUpdateSignalingKeysKey) {
             didRetryRegisteringSignalingKeys = false
+        }
+        else if keysToParse.contains(ZMUserClientNeedsToUpdateCapabilitiesKey) {
+            didRetryUpdatingCapabilities = false
         }
         
         return false

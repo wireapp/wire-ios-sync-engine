@@ -64,7 +64,6 @@ extern NSString *const ZMPersistedClientIdKey;
 
 - (void)didFetchSelfUser;
 - (void)didRegisterClient:(UserClient *)client;
-- (void)didFailToRegisterClient:(NSError *)error;
 
 - (void)didDetectCurrentClientDeletion;
 - (BOOL)clientIsReadyForRequests;
@@ -74,5 +73,10 @@ extern NSString *const ZMPersistedClientIdKey;
 @property (nonatomic, readonly) ZMPersistentCookieStorage *cookieStorage;
 @property (nonatomic, readonly) ZMClientRegistrationPhase currentPhase;
 @property (nonatomic) ZMEmailCredentials *emailCredentials;
+
+@property (nonatomic) NSManagedObjectContext *managedObjectContext;
+@property (nonatomic, weak) id <ZMClientRegistrationStatusDelegate> registrationStatusDelegate;
+@property (nonatomic) BOOL needsToCheckCredentials;
+@property (nonatomic) BOOL isWaitingForUserClients;
 
 @end

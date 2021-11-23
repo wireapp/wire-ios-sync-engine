@@ -675,7 +675,76 @@ extension UserClientRequestStrategyTests {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.2))
     }
 
+    func testThatItCreatesARequestForClientsThatNeedToUpdateCapabilities() {
 
+        var existingClient: UserClient! = nil
+        syncMOC.performGroupedBlock {
+            // given
+            self.clientRegistrationStatus.mockPhase = .registered
+
+            existingClient = self.createSelfClient()
+
+            // when
+            existingClient.needsToUpdateCapabilities = true
+            existingClient.setLocallyModifiedKeys(Set(arrayLiteral: ZMUserClientNeedsToUpdateCapabilitiesKey))
+            self.sut.contextChangeTrackers.forEach{$0.objectsDidChange(Set(arrayLiteral: existingClient))}
+            let request = self.sut.nextRequest()
+
+            // then
+            XCTAssertNotNil(request)
+
+            // and when
+            let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil)
+            request?.complete(with: response)
+        }
+        XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+
+        // then
+        syncMOC.performGroupedBlock {
+            XCTAssertFalse(existingClient.needsToUpdateCapabilities)
+            XCTAssertFalse(existingClient.hasLocalModifications(forKey: ZMUserClientNeedsToUpdateCapabilitiesKey))
+        }
+    }
+
+    func testThatItRetriesOnceWhenUpdateCapabilitiesFails() {
+
+        syncMOC.performGroupedBlock {
+            // given
+            self.clientRegistrationStatus.mockPhase = .registered
+
+            let existingClient = self.createSelfClient()
+
+            existingClient.needsToUpdateCapabilities = true
+            existingClient.setLocallyModifiedKeys(Set(arrayLiteral: ZMUserClientNeedsToUpdateCapabilitiesKey))
+            self.sut.contextChangeTrackers.forEach{$0.objectsDidChange(Set(arrayLiteral: existingClient))}
+
+            // when
+            let request = self.sut.nextRequest()
+            XCTAssertNotNil(request)
+            let badResponse = ZMTransportResponse(payload: ["label": "bad-request"] as ZMTransportData, httpStatus: 400, transportSessionError: nil)
+
+            request?.complete(with: badResponse)
+        }
+        XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.2))
+
+        // and when
+        syncMOC.performGroupedBlock {
+            let secondRequest = self.sut.nextRequest()
+            XCTAssertNotNil(secondRequest)
+            let success = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil)
+
+            secondRequest?.complete(with: success)
+        }
+        XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.2))
+
+        // and when
+        syncMOC.performGroupedBlock {
+            let thirdRequest = self.sut.nextRequest()
+            XCTAssertNil(thirdRequest)
+        }
+        XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.2))
+    }
+    
 }
 
 extension UserClientRequestStrategy {

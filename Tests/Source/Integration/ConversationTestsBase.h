@@ -22,7 +22,6 @@
 @import WireDataModel;
 
 #import "NotificationObservers.h"
-#import "ZMConversationTranscoder+Internal.h"
 #import <WireSyncEngine/WireSyncEngine-Swift.h>
 #import "IntegrationTest.h"
 

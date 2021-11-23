@@ -16,69 +16,6 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-@objc public enum SyncPhase : Int, CustomStringConvertible, CaseIterable {
-    case fetchingLastUpdateEventID
-    case fetchingTeams
-    case fetchingTeamMembers
-    case fetchingTeamRoles
-    case fetchingConnections
-    case fetchingConversations
-    case fetchingUsers
-    case fetchingSelfUser
-    case fetchingLegalHoldStatus
-    case fetchingFeatureFlags
-    case fetchingLabels
-    case fetchingMissedEvents
-    case done
-        
-    var isLastSlowSyncPhase : Bool {
-        return self == Self.lastSlowSyncPhase
-    }
-    
-    var isSyncing : Bool {
-        return self != .done
-    }
-
-    var nextPhase: SyncPhase {
-        return SyncPhase(rawValue: rawValue + 1) ?? .done
-    }
-
-    static var lastSlowSyncPhase: SyncPhase {
-        return .fetchingLabels
-    }
-    
-    public var description: String {
-        switch self {
-        case .fetchingLastUpdateEventID:
-            return "fetchingLastUpdateEventID"
-        case .fetchingConnections:
-            return "fetchingConnections"
-        case .fetchingConversations:
-            return "fetchingConversations"
-        case .fetchingTeams:
-            return "fetchingTeams"
-        case .fetchingTeamMembers:
-            return "fetchingTeamMembers"
-        case .fetchingTeamRoles:
-            return "fetchingTeamRoles"
-        case .fetchingUsers:
-            return "fetchingUsers"
-        case .fetchingSelfUser:
-            return "fetchingSelfUser"
-        case .fetchingLegalHoldStatus:
-            return "fetchingLegalHoldStatus"
-        case .fetchingFeatureFlags:
-            return "fetchingFeatureFlags"
-        case .fetchingLabels:
-            return "fetchingLabels"
-        case .fetchingMissedEvents:
-            return "fetchingMissedEvents"
-        case .done:
-            return "done"
-        }
-    }
-}
-
 private let zmLog = ZMSLog(tag: "SyncStatus")
 
 
@@ -89,7 +26,7 @@ extension Notification.Name {
 }
 
 
-@objcMembers public class SyncStatus : NSObject {
+@objcMembers public class SyncStatus: NSObject, SyncProgress {
 
     public internal (set) var currentSyncPhase : SyncPhase = .done {
         didSet {

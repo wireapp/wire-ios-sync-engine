@@ -19,7 +19,7 @@
 #import "ConversationTestsBase.h"
 #import "NotificationObservers.h"
 #import <WireSyncEngine/WireSyncEngine-Swift.h>
-#import "WireSyncEngine_iOS_Tests-Swift.h"
+#import "Tests-Swift.h"
 
 @import WireDataModel;
 @import WireUtilities;

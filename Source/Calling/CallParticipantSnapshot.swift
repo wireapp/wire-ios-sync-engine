@@ -38,26 +38,33 @@ class CallParticipantsSnapshot {
 
     private var participants = [CallParticipant]() {
         didSet {
-            updateUserTrustMap()
+            updateUserVerifiedMap()
             notifyChange()
         }
     }
 
-    private var userTrustMap = [ZMUser: Bool]()
+    private var userVerifiedMap = [ZMUser: Bool]()
 
-    private func updateUserTrustMap() {
+    private func updateUserVerifiedMap() {
         for user in participants.map(\.user) {
             let zmuser = user as! ZMUser
-            let userWasTrusted = userTrustMap[zmuser] ?? false
-            let userIsTrusted = zmuser.isTrusted
+            let userWasVerified = userVerifiedMap[zmuser] ?? false
+            let userIsVerified = zmuser.isVerified
 
-            userTrustMap[zmuser] = userIsTrusted
+            userVerifiedMap[zmuser] = userIsVerified
 
-            if userWasTrusted && !userIsTrusted {
-                callCenter.callDidDegrade(conversationId: conversationId, degradedUser: zmuser)
+            if userWasVerified && !userIsVerified {
+                guard let selfUser = selfUser else { return }
+                let degradedUser = selfUser.isTrusted ? zmuser : selfUser
+                callCenter.callDidDegrade(conversationId: conversationId, degradedUser: degradedUser)
                 break
             }
         }
+    }
+
+    private var selfUser: ZMUser? {
+        guard let moc = callCenter.uiMOC else { return nil }
+        return ZMUser.selfUser(in: moc)
     }
 
     /// Worst network quality of all the participants.

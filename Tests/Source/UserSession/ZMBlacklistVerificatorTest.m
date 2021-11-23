@@ -20,7 +20,7 @@
 #import "MessagingTest.h"
 #import "ZMBlacklistDownloader.h"
 #import "ZMBlacklistVerificator+Testing.h"
-#import "WireSyncEngine_iOS_Tests-Swift.h"
+#import "Tests-Swift.h"
 
 @import WireTransport;
 

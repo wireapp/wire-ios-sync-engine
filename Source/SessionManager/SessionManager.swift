@@ -23,18 +23,24 @@ import WireUtilities
 import CallKit
 import PushKit
 import UserNotifications
+import WireDataModel
 
 
 private let log = ZMSLog(tag: "SessionManager")
 public typealias LaunchOptions = [UIApplication.LaunchOptionsKey : Any]
 
+public extension Bundle {
+    @objc var appGroupIdentifier: String? {
+        return bundleIdentifier.map { "group." + $0 }
+    }
+}
 
 @objc public enum CallNotificationStyle : UInt {
     case pushNotifications
     case callKit
 }
 
-public protocol SessionActivationObserver: class {
+public protocol SessionActivationObserver: AnyObject {
     func sessionManagerDidChangeActiveUserSession(userSession: ZMUserSession)
     func sessionManagerDidReportLockChange(forSession session: UserSessionAppLockInterface)
 }
@@ -46,6 +52,7 @@ public protocol SessionManagerDelegate: SessionActivationObserver {
                                        from selectedAccount: Account?,
                                        userSessionCanBeTornDown: @escaping () -> Void)
     func sessionManagerWillMigrateAccount(userSessionCanBeTornDown: @escaping () -> Void)
+    func sessionManagerDidFailToLoadDatabase()
     func sessionManagerDidBlacklistCurrentVersion()
     func sessionManagerDidBlacklistJailbrokenDevice()
 }
@@ -53,7 +60,7 @@ public protocol SessionManagerDelegate: SessionActivationObserver {
 /// The public interface for the session manager.
 
 @objc
-public protocol SessionManagerType: class {
+public protocol SessionManagerType: AnyObject {
     
     var accountManager : AccountManager { get }
     
@@ -97,12 +104,12 @@ public protocol SessionManagerType: class {
 }
 
 @objc
-public protocol SessionManagerSwitchingDelegate: class {
+public protocol SessionManagerSwitchingDelegate: AnyObject {
     func confirmSwitchingAccount(completion: @escaping (Bool) -> Void)
 }
 
 @objc
-public protocol ForegroundNotificationResponder: class {
+public protocol ForegroundNotificationResponder: AnyObject {
     func shouldPresentNotification(with userInfo: NotificationUserInfo) -> Bool
 }
 
@@ -167,7 +174,6 @@ public protocol ForegroundNotificationResponder: class {
 /// | start the registration or login flow.  |
 /// +----------------------------------------+
 ///
-
 
 @objcMembers
 public final class SessionManager : NSObject, SessionManagerType {
@@ -416,22 +422,16 @@ public final class SessionManager : NSObject, SessionManagerType {
         if let account = accountManager.selectedAccount {
             selectInitialAccount(account, launchOptions: launchOptions)
         } else {
-            // We do not have an account, this means we are either dealing with a fresh install,
-            // or an update from a previous version and need to store the initial Account.
-            // In order to do so we open the old database and get the user identifier.
-            LocalStoreProvider.fetchUserIDFromLegacyStore(
-                in: sharedContainerURL,
-                migration: { [weak self] in self?.delegate?.sessionManagerWillMigrateAccount(userSessionCanBeTornDown: {}) },
-                completion: { [weak self] userIdentifier in
-                    guard let strongSelf = self, let userIdentifier = userIdentifier else {
-                        self?.createUnauthenticatedSession()
-                        self?.delegate?.sessionManagerDidFailToLogin(error: nil)
-                        return
-                    }
-                    let account = strongSelf.migrateAccount(with: userIdentifier)
-                    self?.selectInitialAccount(account, launchOptions: launchOptions)
-            })
+            createUnauthenticatedSession()
+            delegate?.sessionManagerDidFailToLogin(error: nil)
         }
+    }
+
+    public func removeDatabaseFromDisk() {
+        guard let account = accountManager.selectedAccount else {
+            return
+        }
+        delete(account: account)
     }
 
     /// Creates an account with the given identifier and migrates its cookie storage.
@@ -575,7 +575,6 @@ public final class SessionManager : NSObject, SessionManagerType {
             
             self?.activeUserSession?.close(deleteCookie: deleteCookie)
             self?.activeUserSession = nil
-            StorageStack.reset()
             
             if deleteAccount {
                 self?.deleteAccountData(for: account)
@@ -618,14 +617,14 @@ public final class SessionManager : NSObject, SessionManagerType {
             self.delegate?.sessionManagerDidChangeActiveUserSession(userSession: session)
             self.configureUserNotifications()
 
+            completion(session)
+            
             // If the user isn't logged in it's because they still need
             // to complete the login flow, which will be handle elsewhere.
             if session.isLoggedIn {            
                 self.delegate?.sessionManagerDidReportLockChange(forSession: session)
                 self.performPostUnlockActionsIfPossible(for: session)
             }
-            
-            completion(session)
         }
     }
 
@@ -650,22 +649,25 @@ public final class SessionManager : NSObject, SessionManagerType {
                 group?.leave()
             }
             else {
-                LocalStoreProvider.createStack(
-                    applicationContainer: self.sharedContainerURL,
-                    userIdentifier: account.userIdentifier,
-                    dispatchGroup: self.dispatchGroup,
-                    migration: { [weak self] in
-                        if notifyAboutMigration {
-                            self?.delegate?.sessionManagerWillMigrateAccount(userSessionCanBeTornDown: {})
-                        }
-                    },
-                    completion: { provider in
-                        let userSession = self.startBackgroundSession(for: account, with: provider)
-                        completion(userSession)
-                        onWorkDone()
-                        group?.leave()
+                let coreDataStack = CoreDataStack(account: account,
+                                                  applicationContainer: self.sharedContainerURL,
+                                                  dispatchGroup: self.dispatchGroup)
+
+                if coreDataStack.needsMigration {
+                    self.delegate?.sessionManagerWillMigrateAccount(userSessionCanBeTornDown: {})
                 }
-                )
+
+                coreDataStack.loadStores { (error) in
+                    if error != nil {
+                        self.delegate?.sessionManagerDidFailToLoadDatabase()
+                    } else {
+                        let userSession = self.startBackgroundSession(for: account,
+                                                                      with: coreDataStack)
+                        completion(userSession)
+                    }
+                    onWorkDone()
+                    group?.leave()
+                }
             }
         })
     }
@@ -680,7 +682,7 @@ public final class SessionManager : NSObject, SessionManagerType {
         self.accountManager.remove(account)
         
         do {
-            try FileManager.default.removeItem(at: StorageStack.accountFolder(accountIdentifier: accountID, applicationContainer: sharedContainerURL))
+            try FileManager.default.removeItem(at: CoreDataStack.accountDataFolder(accountIdentifier: accountID, applicationContainer: sharedContainerURL))
         }
         catch let error {
             log.error("Impossible to delete the acccount \(account): \(error)")
@@ -730,18 +732,19 @@ public final class SessionManager : NSObject, SessionManagerType {
         require(backgroundUserSessions[account.userIdentifier] == nil, "User session is already loaded")
         backgroundUserSessions[account.userIdentifier] = userSession
         userSession.useConstantBitRateAudio = useConstantBitRateAudio
+        userSession.usePackagingFeatureConfig = usePackagingFeatureConfig
         updatePushToken(for: userSession)
         registerObservers(account: account, session: userSession)
     }
     
-    private func deleteMessagesOlderThanRetentionLimit(provider: LocalStoreProviderProtocol) {
+    private func deleteMessagesOlderThanRetentionLimit(contextProvider: ContextProvider) {
         guard let messageRetentionInternal = configuration.messageRetentionInterval else { return }
         
         log.debug("Deleting messages older than the retention limit = \(messageRetentionInternal)")
         
-        provider.contextDirectory.syncContext.performGroupedBlock {
+        contextProvider.syncContext.performGroupedBlock {
             do {
-                try ZMMessage.deleteMessagesOlderThan(Date(timeIntervalSinceNow: -messageRetentionInternal), context: provider.contextDirectory.syncContext)
+                try ZMMessage.deleteMessagesOlderThan(Date(timeIntervalSinceNow: -messageRetentionInternal), context: contextProvider.syncContext)
             } catch {
                 log.error("Failed to delete messages older than the retention limit")
             }
@@ -749,17 +752,20 @@ public final class SessionManager : NSObject, SessionManagerType {
     }
 
     // Creates the user session for @c account given, calls @c completion when done.
-    private func startBackgroundSession(for account: Account, with provider: LocalStoreProviderProtocol) -> ZMUserSession {
-        let sessionConfig = ZMUserSession.Configuration(appLockConfig: configuration.appLockConfig)
+    private func startBackgroundSession(for account: Account, with coreDataStack: CoreDataStack) -> ZMUserSession {
+        let sessionConfig = ZMUserSession.Configuration(
+            appLockConfig: configuration.legacyAppLockConfig,
+            supportFederation: configuration.supportFederation
+        )
 
         guard let newSession = authenticatedSessionFactory.session(for: account,
-                                                                   storeProvider: provider,
+                                                                   coreDataStack: coreDataStack,
                                                                    configuration: sessionConfig) else {
             preconditionFailure("Unable to create session for \(account)")
         }
         
         self.configure(session: newSession, for: account)
-        self.deleteMessagesOlderThanRetentionLimit(provider: provider)
+        self.deleteMessagesOlderThanRetentionLimit(contextProvider: coreDataStack)
         self.updateSystemBootTimeIfNeeded()
 
         log.debug("Created ZMUserSession for account \(String(describing: account.userName)) — \(account.userIdentifier)")
@@ -840,6 +846,12 @@ public final class SessionManager : NSObject, SessionManagerType {
     public var useConstantBitRateAudio : Bool = false {
         didSet {
             activeUserSession?.useConstantBitRateAudio = useConstantBitRateAudio
+        }
+    }
+
+    public var usePackagingFeatureConfig : Bool = false {
+        didSet {
+            activeUserSession?.usePackagingFeatureConfig = usePackagingFeatureConfig
         }
     }
 
@@ -1015,7 +1027,13 @@ extension SessionManager: UserSessionSelfUserClientDelegate {
         log.debug("Client registration was successful")
         
         if self.configuration.encryptionAtRestEnabledByDefault {
-            try? activeUserSession?.setEncryptionAtRest(enabled: true)
+            do {
+                try activeUserSession?.setEncryptionAtRest(enabled: true)
+            } catch {
+                if let account = accountManager.account(with: accountId) {
+                    delete(account: account, reason: .biometricPasscodeNotAvailable)
+                }
+            }
         }
         
         loginDelegate?.clientRegistrationDidSucceed(accountId: accountId)
@@ -1191,7 +1209,7 @@ extension SessionManager {
 
 // MARK: - Session manager observer
 
-@objc public protocol SessionManagerCreatedSessionObserver: class {
+@objc public protocol SessionManagerCreatedSessionObserver: AnyObject {
     /// Invoked when the SessionManager creates a user session either by
     /// activating one or creating one in the background. No assumption should
     /// be made that the session is active.
@@ -1201,7 +1219,7 @@ extension SessionManager {
     func sessionManagerCreated(unauthenticatedSession: UnauthenticatedSession)
 }
 
-@objc public protocol SessionManagerDestroyedSessionObserver: class {
+@objc public protocol SessionManagerDestroyedSessionObserver: AnyObject {
     /// Invoked when the SessionManager tears down the user session associated
     /// with the accountId.
     func sessionManagerDestroyedUserSession(for accountId : UUID)

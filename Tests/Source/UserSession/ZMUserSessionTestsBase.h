@@ -46,19 +46,6 @@
 
 @end
 
-@protocol LocalStoreProviderProtocol;
-
-@interface MockLocalStoreProvider : NSObject <LocalStoreProviderProtocol>
-
-@property (nonatomic, copy) NSUUID *userIdentifier;
-@property (nonatomic, copy) NSURL *applicationContainer;
-@property (nonatomic, copy) NSURL *accountContainer;
-@property (nonatomic, strong) ManagedObjectContextDirectory *contextDirectory;
-
-- (instancetype)initWithSharedContainerDirectory:(NSURL *)sharedContainerDirectory userIdentifier:(NSUUID *)userIdentifier contextDirectory:(ManagedObjectContextDirectory *)contextDirectory;
-
-@end
-
 @interface ZMUserSessionTestsBase : MessagingTest <ZMAuthenticationStatusObserver>
 
 @property (nonatomic) MockSessionManager *mockSessionManager;
@@ -73,7 +60,6 @@
 @property (nonatomic) NSUInteger dataChangeNotificationsCount;
 @property (nonatomic) ThirdPartyServices *thirdPartyServices;
 @property (nonatomic) MockSyncStateDelegate *mockSyncStateDelegate;
-@property (nonatomic) id<LocalStoreProviderProtocol> storeProvider;
 
 - (void)simulateLoggedInUser;
 

@@ -69,7 +69,7 @@ class CallStateObserverTests : DatabaseTest, CallNotificationStyleProvider {
 
         senderUI = uiMOC.object(with: sender.objectID) as? ZMUser
         conversationUI = uiMOC.object(with: conversation.objectID) as? ZMConversation
-        sut = CallStateObserver(localNotificationDispatcher: localNotificationDispatcher, contextProvider: contextDirectory!, callNotificationStyleProvider: self)
+        sut = CallStateObserver(localNotificationDispatcher: localNotificationDispatcher, contextProvider: coreDataStack!, callNotificationStyleProvider: self)
         uiMOC.zm_callCenter = mockCallCenter
     }
     
@@ -86,7 +86,7 @@ class CallStateObserverTests : DatabaseTest, CallNotificationStyleProvider {
     }
     
     func testThatInstanceDoesntHaveRetainCycles() {
-        var instance: CallStateObserver? = CallStateObserver(localNotificationDispatcher: localNotificationDispatcher, contextProvider: contextDirectory!, callNotificationStyleProvider: self)
+        var instance: CallStateObserver? = CallStateObserver(localNotificationDispatcher: localNotificationDispatcher, contextProvider: coreDataStack!, callNotificationStyleProvider: self)
         weak var weakInstance = instance
         instance = nil
         XCTAssertNil(weakInstance)

@@ -16,12 +16,10 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import XCTest
 import WireTesting
 
-
-fileprivate class MockSearchDelegate: TextSearchQueryDelegate {
+private class MockSearchDelegate: TextSearchQueryDelegate {
     var results = [TextQueryResult]()
 
     func textSearchQueryDidReceive(result: TextQueryResult) {
@@ -29,9 +27,8 @@ fileprivate class MockSearchDelegate: TextSearchQueryDelegate {
     }
 }
 
-
 class TextSearchTests: ConversationTestsBase {
-        
+
     func testThatItFindsAMessageSendRemotely() {
         // Given
         XCTAssertTrue(login())
@@ -40,7 +37,7 @@ class TextSearchTests: ConversationTestsBase {
         let selfClient = selfUser.clients.anyObject() as! MockUserClient
 
         // When
-        mockTransportSession.performRemoteChanges { session in
+        mockTransportSession.performRemoteChanges { _ in
             let genericMessage = GenericMessage(content: Text(content: "Hello there!"))
             do {
                 self.selfToUser1Conversation.encryptAndInsertData(from: firstClient, to: selfClient, data: try genericMessage.serializedData())
@@ -56,7 +53,7 @@ class TextSearchTests: ConversationTestsBase {
         XCTAssertEqual(lastMessage?.textMessageData?.messageText, "Hello there!")
 
         // Then
-        verifyThatItCanSearch(for: "There", in: convo, andFinds: lastMessage)
+        verifyThatItCanSearch(for: "There", in: convo, andFinds: lastMessage as! ZMMessage)
     }
 
     func testThatItFindsAMessageEditedRemotely() {
@@ -86,7 +83,7 @@ class TextSearchTests: ConversationTestsBase {
         // And when
         mockTransportSession.performRemoteChanges { _ in
             let genericMessage = GenericMessage(content: MessageEdit(replacingMessageID: nonce, text: Text(content: "This is an edit!!")))
-    
+
             do {
                 self.selfToUser1Conversation.encryptAndInsertData(from: firstClient, to: selfClient, data: try genericMessage.serializedData())
 
@@ -100,7 +97,7 @@ class TextSearchTests: ConversationTestsBase {
         XCTAssertEqual(editedMessage.textMessageData?.messageText, "This is an edit!!")
 
         // Then
-        verifyThatItCanSearch(for: "edit", in: convo, andFinds: editedMessage)
+        verifyThatItCanSearch(for: "edit", in: convo, andFinds: editedMessage as! ZMMessage)
         verifyThatItCanSearch(for: "Hello", in: convo, andFinds: nil)
     }
 
@@ -113,9 +110,9 @@ class TextSearchTests: ConversationTestsBase {
         let text = "This is an ephemeral message"
 
         // When
-        mockTransportSession.performRemoteChanges { session in
+        mockTransportSession.performRemoteChanges { _ in
             let genericMessage = GenericMessage(content: Text(content: text), expiresAfter: 300)
-            
+
             do {
                 self.selfToUser1Conversation.encryptAndInsertData(from: firstClient, to: selfClient, data: try genericMessage.serializedData())
             } catch {
@@ -130,7 +127,7 @@ class TextSearchTests: ConversationTestsBase {
         XCTAssertEqual(lastMessage?.textMessageData?.messageText, text)
 
         // Then
-        verifyThatItCanSearch(for: "ephemeral", in: convo, andFinds: lastMessage)
+        verifyThatItCanSearch(for: "ephemeral", in: convo, andFinds: lastMessage as! ZMMessage)
     }
 
     func testThatItDoesNotFindAMessageDeletedRemotely() {
@@ -142,9 +139,9 @@ class TextSearchTests: ConversationTestsBase {
         let nonce = UUID.create()
 
         // When
-        mockTransportSession.performRemoteChanges { session in
+        mockTransportSession.performRemoteChanges { _ in
             let genericMessage = GenericMessage(content: Text(content: "Hello there!"), nonce: nonce)
-          
+
             do {
                 self.selfToUser1Conversation.encryptAndInsertData(from: firstClient, to: selfClient, data: try genericMessage.serializedData())
             } catch {
@@ -159,12 +156,12 @@ class TextSearchTests: ConversationTestsBase {
         XCTAssertEqual(lastMessage?.textMessageData?.messageText, "Hello there!")
 
         // Then
-        verifyThatItCanSearch(for: "Hello", in: convo, andFinds: lastMessage)
+        verifyThatItCanSearch(for: "Hello", in: convo, andFinds: lastMessage as! ZMMessage)
 
         // And when
         mockTransportSession.performRemoteChanges { _ in
             let genericMessage = GenericMessage(content: MessageDelete(messageId: nonce))
-            
+
             do {
                 self.selfToUser1Conversation.encryptAndInsertData(from: firstClient, to: selfClient, data: try genericMessage.serializedData())
             } catch {

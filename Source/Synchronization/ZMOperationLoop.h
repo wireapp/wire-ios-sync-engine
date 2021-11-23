@@ -19,7 +19,6 @@
 
 @protocol ZMSyncStateDelegate;
 @protocol ZMApplication;
-@protocol LocalStoreProviderProtocol;
 @protocol FlowManagerType;
 @protocol TransportSessionType;
 @protocol RequestStrategy;

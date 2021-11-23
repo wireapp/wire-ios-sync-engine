@@ -228,7 +228,6 @@ extension LocalNotificationType {
     }
     
     func messageBodyText(sender: ZMUser?, conversation: ZMConversation?) -> String {
-        
         if case LocalNotificationType.event(let eventType) = self {
             return messageBodyText(eventType: eventType, senderName: sender?.name)
         }
@@ -274,10 +273,16 @@ extension LocalNotificationType {
                     arguments.append(string)
                 }
                 conversationTypeKey = nil
-            
-            case .participantsAdded, .participantsRemoved:
+
+            case .participantsAdded:
                 conversationTypeKey = nil // System messages don't follow the template and is missing the `group` suffix
                 senderKey = SelfKey
+
+            case .participantsRemoved(let reason):
+                conversationTypeKey = nil // System messages don't follow the template and is missing the `group` suffix
+                senderKey = SelfKey
+                /// If there is a reason for removal, we should display a simple message "You were removed"
+                mentionOrReplyKey = reason.stringValue != nil ? NoUserNameKey : nil
             
             default:
                 break

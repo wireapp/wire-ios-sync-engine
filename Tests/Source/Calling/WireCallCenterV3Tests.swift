@@ -63,6 +63,7 @@ class WireCallCenterV3Tests: MessagingTest {
     var groupConversationID : UUID!
     var clientID: String!
     var mockTransport : WireCallCenterTransportMock!
+    var conferenceCalling : Feature!
 
     override func setUp() {
         super.setUp()
@@ -93,6 +94,10 @@ class WireCallCenterV3Tests: MessagingTest {
         mockAVSWrapper = MockAVSWrapper(userId: selfUserID, clientId: clientID, observer: nil)
         mockTransport = WireCallCenterTransportMock()
         sut = WireCallCenterV3(userId: selfUserID, clientId: clientID, avsWrapper: mockAVSWrapper, uiMOC: uiMOC, flowManager: flowManager, transport: mockTransport)
+        /// set conferenceCalling feature flag
+        conferenceCalling = Feature.fetch(name: .conferenceCalling, context: uiMOC)
+        conferenceCalling?.status = .enabled
+        sut.usePackagingFeatureConfig = true
 
         try! uiMOC.save()
     }
@@ -109,6 +114,7 @@ class WireCallCenterV3Tests: MessagingTest {
         groupConversationID = nil
         mockTransport = nil
         mockAVSWrapper = nil
+        conferenceCalling = nil
 
         super.tearDown()
     }
@@ -472,7 +478,7 @@ class WireCallCenterV3Tests: MessagingTest {
             
             // then
             XCTAssertEqual(mockAVSWrapper.answerCallArguments?.callType, AVSCallType.normal)
-            XCTAssertEqual(mockAVSWrapper.setVideoStateArguments?.videoState, VideoState.stopped)
+            XCTAssertNil(mockAVSWrapper.setVideoStateArguments)
         }
     }
     
@@ -627,6 +633,36 @@ class WireCallCenterV3Tests: MessagingTest {
             XCTAssertEqual(mockAVSWrapper.startCallArguments?.conversationType, AVSConversationType.conference)
             XCTAssertEqual(mockAVSWrapper.startCallArguments?.callType, AVSCallType.normal)
         }
+    }
+
+    func testThatItDoesNotStartAConferenceCall_IfConferenceCallingFeatureStatusIsDisabled(){
+        // given
+        conferenceCalling.status = .disabled
+
+        // expect
+        expectation(forNotification: WireCallCenterConferenceCallingUnavailableNotification.notificationName, object: nil)
+
+        // when
+        _ = sut.startCall(conversation: groupConversation, video: false)
+        XCTAssert(waitForCustomExpectations(withTimeout: 0.5))
+
+        // then
+        XCTAssertNil(mockAVSWrapper.startCallArguments)
+    }
+
+
+    func testThatItStartsAConferenceCall_IfPackagingFeatureIsDisabledByInternalFlag(){
+        // given
+        sut.usePackagingFeatureConfig = false
+        conferenceCalling.status = .disabled
+
+        // when
+        _ = sut.startCall(conversation: groupConversation, video: false)
+        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+
+        // then
+        XCTAssertEqual(mockAVSWrapper.startCallArguments?.conversationType, AVSConversationType.conference)
+        XCTAssertEqual(mockAVSWrapper.startCallArguments?.callType, AVSCallType.normal)
     }
         
     func testThatItStartsACall_conference_video() {
@@ -810,6 +846,19 @@ class WireCallCenterV3Tests: MessagingTest {
             sut.createSnapshot(callState: callState, members: [], callStarter: nil, video: false, for: groupConversation.remoteIdentifier!, isConferenceCall: false)
             XCTAssertEqual(sut.activeCalls.count, 1)
         }
+    }
+
+    func testThatItMutesMicrophone_WhenHandlingIncomingGroupCall() {
+        // given
+        let conversationID = UUID()
+        sut.callSnapshots = callSnapshot(conversationId: conversationID, clients: [])
+        sut.muted = false
+
+        // when
+        sut.handle(callState: .incoming(video: false, shouldRing: true, degraded: false), conversationId: conversationID)
+
+        // then
+        XCTAssertTrue(sut.muted)
     }
 }
 
@@ -1002,7 +1051,43 @@ extension WireCallCenterV3Tests {
             XCTAssertEqual(true, observer.muted)
         }
     }
-    
+
+    func testThat_ItMutesUser_When_AnsweringCall_InGroupConversation() {
+        // given
+        sut.handleIncomingCall(conversationId: groupConversationID,
+                               messageTime: Date(),
+                               client: AVSClient(userId: otherUserID, clientId: otherUserClientID),
+                               isVideoCall: false,
+                               shouldRing: true,
+                               conversationType: .conference)
+
+        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+
+        // when
+        XCTAssertTrue(sut.answerCall(conversation: groupConversation, video: false))
+
+        // then
+        XCTAssertTrue(sut.muted)
+    }
+
+    func testThat_ItDoesntMuteUser_When_AnsweringCall_InOneToOneConversation() {
+        // given
+        sut.handleIncomingCall(conversationId: oneOnOneConversationID,
+                               messageTime: Date(),
+                               client: AVSClient(userId: otherUserID, clientId: otherUserClientID),
+                               isVideoCall: false,
+                               shouldRing: true,
+                               conversationType: .oneToOne)
+
+        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+
+        // when
+        XCTAssertTrue(sut.answerCall(conversation: oneOnOneConversation, video: false))
+
+        // then
+        XCTAssertFalse(sut.muted)
+    }
+
 }
 
 // MARK: - Ignoring Calls
@@ -1413,6 +1498,30 @@ extension WireCallCenterV3Tests {
             
             XCTAssertEqual(activeSpeakerAmount, 0)
         }
+    }
+}
+
+// MARK: - Request Video Streams
+extension WireCallCenterV3Tests {
+    func testThatRequestVideoStreams_SendsCorrectParameters() {
+        // given
+        let clientId1 = UUID().transportString()
+        let clientId2 = UUID().transportString()
+        let conversationId = groupConversationID!
+        let clients = [
+            AVSClient(userId: selfUserID, clientId: clientId1),
+            AVSClient(userId: otherUserID, clientId: clientId2)
+        ]
+
+        let expectedResult = AVSVideoStreams(conversationId: conversationId.transportString(), clients: clients)
+
+        // when
+        sut.requestVideoStreams(conversationId: conversationId, clients: clients)
+
+        // then
+        XCTAssertNotNil(mockAVSWrapper.requestVideoStreamsArguments)
+        XCTAssertEqual(mockAVSWrapper.requestVideoStreamsArguments?.uuid, conversationId)
+        XCTAssertEqual(mockAVSWrapper.requestVideoStreamsArguments?.videoStreams, expectedResult)
     }
 }
 

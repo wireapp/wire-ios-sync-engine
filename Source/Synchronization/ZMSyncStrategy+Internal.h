@@ -24,7 +24,6 @@
 @property (atomic, readonly) BOOL tornDown;
 @property (nonatomic, weak, readonly) NSManagedObjectContext *uiMOC;
 @property (nonatomic, readonly) NotificationDispatcher *notificationDispatcher;
-@property (nonatomic, readonly) id<StrategyDirectoryProtocol> strategyDirectory;
 
 @end
 

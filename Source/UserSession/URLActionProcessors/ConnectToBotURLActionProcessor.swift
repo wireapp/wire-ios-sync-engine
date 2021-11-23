@@ -18,25 +18,23 @@
 
 import Foundation
 
-class ConnectToBotURLActionProcessor: NSObject, URLActionProcessor, ZMManagedObjectContextProvider {
+class ConnectToBotURLActionProcessor: NSObject, URLActionProcessor {
     
     var transportSession: TransportSessionType
     var eventProcessor: UpdateEventProcessor
-    var managedObjectContext: NSManagedObjectContext
-    var syncManagedObjectContext: NSManagedObjectContext
+    var contextProvider: ContextProvider
     
-    init(contextprovider: ZMManagedObjectContextProvider,
+    init(contextprovider: ContextProvider,
          transportSession: TransportSessionType,
          eventProcessor: UpdateEventProcessor) {
-        self.managedObjectContext = contextprovider.managedObjectContext
-        self.syncManagedObjectContext = contextprovider.syncManagedObjectContext
+        self.contextProvider = contextprovider
         self.transportSession = transportSession
         self.eventProcessor = eventProcessor
     }
     
     func process(urlAction: URLAction, delegate: PresentationDelegate?) {
         if case .connectBot(let serviceUserData) = urlAction {
-            let serviceUser = ZMSearchUser(contextProvider: self,
+            let serviceUser = ZMSearchUser(contextProvider: contextProvider,
                                            name: "",
                                            handle: nil,
                                            accentColor: .strongBlue,
@@ -47,7 +45,7 @@ class ConnectToBotURLActionProcessor: NSObject, URLActionProcessor, ZMManagedObj
             serviceUser.providerIdentifier = serviceUserData.provider.transportString()
             serviceUser.createConversation(transportSession: transportSession,
                                            eventProcessor: eventProcessor,
-                                           contextProvider: self) { [weak delegate] (result) in
+                                           contextProvider: contextProvider) { [weak delegate] (result) in
                                             
                                             if let error = result.error {
                                                 delegate?.failedToPerformAction(urlAction, error: error)

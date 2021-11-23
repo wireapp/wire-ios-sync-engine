@@ -34,16 +34,13 @@
 #import "ZMTimingTests.h"
 #import "MockModelObjectContextFactory.h"
 
-#import "ZMUserTranscoder.h"
-#import "ZMConversationTranscoder.h"
 #import "ZMSelfStrategy.h"
-#import "ZMConnectionTranscoder.h"
 #import "ZMMissingUpdateEventsTranscoder.h"
 #import "ZMLastUpdateEventIDTranscoder.h"
 #import "ZMLoginTranscoder.h"
 #import "ZMLoginCodeRequestTranscoder.h"
 #import <WireSyncEngine/WireSyncEngine-Swift.h>
-#import "WireSyncEngine_iOS_Tests-Swift.h"
+#import "Tests-Swift.h"
 
 static ZMReachability *sharedReachabilityMock = nil;
 
@@ -67,9 +64,7 @@ static ZMReachability *sharedReachabilityMock = nil;
 
 @interface MessagingTest ()
 
-@property (nonatomic) NSManagedObjectContext *testMOC;
-@property (nonatomic) NSManagedObjectContext *alternativeTestMOC;
-@property (nonatomic) ManagedObjectContextDirectory *contextDirectory;
+@property (nonatomic) CoreDataStack *coreDataStack;
 
 @property (nonatomic) NSString *groupIdentifier;
 @property (nonatomic) NSUUID *userIdentifier;
@@ -80,9 +75,6 @@ static ZMReachability *sharedReachabilityMock = nil;
 @property (nonatomic) NSTimeInterval originalConversationLastReadTimestampTimerValue; // this will speed up the tests A LOT
 
 @end
-
-
-
 
 @implementation MessagingTest
 
@@ -115,12 +107,12 @@ static ZMReachability *sharedReachabilityMock = nil;
 
 - (NSURL *)storeURL
 {
-    return self.accountDirectory.URLAppendingPersistentStoreLocation;
+    return self.accountDirectory.URLByAppendingPersistentStoreLocation;
 }
 
 - (NSURL *)accountDirectory
 {
-    return [StorageStack accountFolderWithAccountIdentifier:self.userIdentifier applicationContainer:self.sharedContainerURL];
+    return [CoreDataStack accountDataFolderWithAccountIdentifier:self.userIdentifier applicationContainer:self.sharedContainerURL];
 }
 
 - (NSURL *)keyStoreURL
@@ -156,10 +148,12 @@ static ZMReachability *sharedReachabilityMock = nil;
         ZM_SILENCE_CALL_TO_UNKNOWN_SELECTOR([self performSelector:selector]);
     }
 
-    StorageStack.shared.createStorageAsInMemory = self.shouldUseInMemoryStore;
+    self.coreDataStack = [self createCoreDataStack];
 
-    [self resetState];
-    
+    [self setupKeyStore];
+    [self setupCaches];
+
+
     if (self.shouldUseRealKeychain) {
         [ZMPersistentCookieStorage setDoNotPersistToKeychain:NO];
         
@@ -173,44 +167,88 @@ static ZMReachability *sharedReachabilityMock = nil;
     } else {
         [ZMPersistentCookieStorage setDoNotPersistToKeychain:YES];
     }
-    
-    [self resetUIandSyncContextsAndResetPersistentStore:YES];
-    
+
     ZMPersistentCookieStorage *cookieStorage = [[ZMPersistentCookieStorage alloc] init];
     [cookieStorage deleteKeychainItems];
-    
-    self.testMOC = [MockModelObjectContextFactory testContext];
-    [self.testMOC addGroup:self.dispatchGroup];
-    self.alternativeTestMOC = [MockModelObjectContextFactory alternativeMocForPSC:self.testMOC.persistentStoreCoordinator];
-    [self.alternativeTestMOC addGroup:self.dispatchGroup];
 
-    [self.searchMOC addGroup:self.dispatchGroup];
     self.mockTransportSession = [[MockTransportSession alloc] initWithDispatchGroup:self.dispatchGroup];
     Require([self waitForAllGroupsToBeEmptyWithTimeout:5]);
 }
 
+- (void)setupKeyStore
+{
+    [self performPretendingUiMocIsSyncMoc:^{
+        NSURL *url = [CoreDataStack accountDataFolderWithAccountIdentifier:self.userIdentifier
+                                                  applicationContainer:self.sharedContainerURL];
+        [self.uiMOC setupUserKeyStoreInAccountDirectory:url
+                                   applicationContainer:self.sharedContainerURL];
+    }];
+}
+
+- (void)setupCaches
+{
+    self.uiMOC.zm_userImageCache = [[UserImageLocalCache alloc] initWithLocation:nil];
+    self.uiMOC.zm_fileAssetCache = [[FileAssetCache alloc] initWithLocation:nil];
+
+    [self.syncMOC performGroupedBlockAndWait:^{
+        self.syncMOC.zm_fileAssetCache = self.uiMOC.zm_fileAssetCache;
+        self.syncMOC.zm_userImageCache = self.uiMOC.zm_userImageCache;
+    }];
+}
+
+- (void)wipeCaches
+{
+    [self.uiMOC.zm_fileAssetCache wipeCaches];
+    [self.uiMOC.zm_userImageCache wipeCache];
+
+    [self.syncMOC performGroupedBlockAndWait:^{
+        [self.syncMOC.zm_fileAssetCache wipeCaches];
+        [self.syncMOC.zm_userImageCache wipeCache];
+    }];
+    [PersonName.stringsToPersonNames removeAllObjects];
+}
+
 - (NSManagedObjectContext *)uiMOC
 {
-    return self.contextDirectory.uiContext;
+    return self.coreDataStack.viewContext;
 }
 
 - (NSManagedObjectContext *)syncMOC
 {
-    return self.contextDirectory.syncContext;
+    return self.coreDataStack.syncContext;
 }
 
 - (NSManagedObjectContext *)searchMOC
 {
-    return self.contextDirectory.searchContext;
+    return self.coreDataStack.searchContext;
+}
+
+- (NSManagedObjectContext *)eventMOC
+{
+    return self.coreDataStack.eventContext;
 }
 
 - (void)tearDown;
 {
+    Require([self waitForAllGroupsToBeEmptyWithTimeout:0.5]);
+    
     BackgroundActivityFactory.sharedFactory.activityManager = nil;
 
     ZMConversationDefaultLastReadTimestampSaveDelay = self.originalConversationLastReadTimestampTimerValue;
 
-    [self resetState];
+    [self wipeCaches];
+
+    self.coreDataStack = nil;
+
+    // teardown all mmanagedObjectContexts
+
+    [self.mockTransportSession.managedObjectContext performBlockAndWait:^{
+        // Do nothing
+    }];
+    [self.mockTransportSession tearDown];
+    self.mockTransportSession = nil;
+
+    self.ignoreTestDebugFlagForTestTimers = NO;
     [MessagingTest deleteAllFilesInCache];
     [self removeFilesInSharedContainer];
 
@@ -220,18 +258,6 @@ static ZMReachability *sharedReachabilityMock = nil;
     
     [super tearDown];
     Require([self waitForAllGroupsToBeEmptyWithTimeout:5]);
-}
-
-- (void)tearDownUserInfoObjectsOfMOC:(NSManagedObjectContext *)moc
-{
-    NSMutableArray *keysToRemove = [NSMutableArray array];
-    [moc.userInfo enumerateKeysAndObjectsUsingBlock:^(id  key, id  obj, BOOL * ZM_UNUSED stop) {
-        if ([obj respondsToSelector:@selector(tearDown)]) {
-            [obj tearDown];
-            [keysToRemove addObject:key];
-        }
-    }];
-    [moc.userInfo removeObjectsForKeys:keysToRemove];
 }
 
 - (void)removeFilesInSharedContainer
@@ -245,178 +271,6 @@ static ZMReachability *sharedReachabilityMock = nil;
     }
 }
 
-- (void)resetState
-{
-    [self tearDownUserInfoObjectsOfMOC:self.uiMOC];
-    [self tearDownUserInfoObjectsOfMOC:self.testMOC];
-    
-    [self.syncMOC performGroupedBlockAndWait:^{
-        [self tearDownUserInfoObjectsOfMOC:self.syncMOC];
-        [self.syncMOC zm_tearDownCryptKeyStore];
-        [self.syncMOC.userInfo removeAllObjects];
-    }];
-
-    WaitForAllGroupsToBeEmpty(0.5);
-    
-    // teardown all mmanagedObjectContexts
-    [self cleanUpAndVerify];
-
-    [self.mockTransportSession tearDown];
-    self.mockTransportSession = nil;
-    
-    self.ignoreTestDebugFlagForTestTimers = NO;
-
-    [StorageStack reset];
-}
-
-- (void)waitAndDeleteAllManagedObjectContexts;
-{
-    NSManagedObjectContext *refUiMOC = self.uiMOC;
-    NSManagedObjectContext *refTestMOC = self.testMOC;
-    NSManagedObjectContext *refAlternativeTestMOC = self.alternativeTestMOC;
-    NSManagedObjectContext *refSearchMoc = self.searchMOC;
-    NSManagedObjectContext *refSyncMoc = self.syncMOC;
-    WaitForAllGroupsToBeEmpty(2);
-
-    self.contextDirectory = nil;
-    self.testMOC = nil;
-    self.alternativeTestMOC = nil;
-    
-    [refUiMOC performBlockAndWait:^{
-        // Do nothing.
-    }];
-    [refSyncMoc performBlockAndWait:^{
-        
-    }];
-    [self.mockTransportSession.managedObjectContext performBlockAndWait:^{
-        // Do nothing
-    }];
-    [refTestMOC performBlockAndWait:^{
-        // Do nothing
-    }];
-    [refAlternativeTestMOC performBlockAndWait:^{
-        // Do nothing
-    }];
-    [refSearchMoc performBlockAndWait:^{
-        // Do nothing
-    }];
-}
-
-- (void)cleanUpAndVerify {
-    [self waitAndDeleteAllManagedObjectContexts];
-    [self verifyMocksNow];
-}
-
-- (void)resetUIandSyncContextsAndResetPersistentStore:(BOOL)resetPersistentStore
-{
-    [self resetUIandSyncContextsAndResetPersistentStore:resetPersistentStore notificationContentHidden:NO];
-}
-
-- (void)resetUIandSyncContextsAndResetPersistentStore:(BOOL)resetPersistentStore notificationContentHidden:(BOOL)notificationContentVisible;
-{
-    [self tearDownUserInfoObjectsOfMOC:self.uiMOC];
-    [self.syncMOC performGroupedBlockAndWait:^{
-        [self tearDownUserInfoObjectsOfMOC:self.syncMOC];
-    }];
-    WaitForAllGroupsToBeEmpty(0.5);
-    
-    self.contextDirectory = nil;
-    
-    WaitForAllGroupsToBeEmpty(2);
-    
-    if (resetPersistentStore) {
-        [StorageStack reset];
-    }
-
-    StorageStack.shared.createStorageAsInMemory = self.shouldUseInMemoryStore;
-
-    [StorageStack.shared createManagedObjectContextDirectoryForAccountIdentifier:self.userIdentifier
-                                                            applicationContainer:self.sharedContainerURL
-                                                                   dispatchGroup:self.dispatchGroup
-                                                        startedMigrationCallback:nil
-                                                               completionHandler:^(ManagedObjectContextDirectory * _Nonnull directory) {
-                                                                   self.contextDirectory = directory;
-                                                               }];
-
-    XCTAssert([self waitWithTimeout:0.5 verificationBlock:^BOOL{
-        return nil != self.contextDirectory;
-    }]);
-    
-    FileAssetCache *fileAssetCache = [[FileAssetCache alloc] initWithLocation:nil];
-    UserImageLocalCache *userImageCache = [[UserImageLocalCache alloc] initWithLocation:nil];
-    
-    [self.uiMOC addGroup:self.dispatchGroup];
-    self.uiMOC.userInfo[@"TestName"] = self.name;
-
-    [self.syncMOC performGroupedBlockAndWait:^{
-        self.syncMOC.userInfo[@"TestName"] = self.name;
-        [self.syncMOC addGroup:self.dispatchGroup];
-        [self.syncMOC saveOrRollback];
-        
-        [self.syncMOC setZm_userInterfaceContext:self.uiMOC];
-        [self.syncMOC setPersistentStoreMetadata:@(notificationContentVisible) forKey:@"ZMShouldNotificationContentKey"];
-        self.syncMOC.zm_fileAssetCache = fileAssetCache;
-        self.syncMOC.zm_userImageCache = userImageCache;
-    }];
-    
-    WaitForAllGroupsToBeEmpty(2);
-    
-    [self performPretendingUiMocIsSyncMoc:^{
-        [self.uiMOC setupUserKeyStoreInAccountDirectory:self.accountDirectory applicationContainer:self.sharedContainerURL];
-    }];
-    
-    [self.uiMOC saveOrRollback];
-    WaitForAllGroupsToBeEmpty(2);
-    
-    
-    [self.uiMOC setZm_syncContext:self.syncMOC];
-    [self.uiMOC setPersistentStoreMetadata:@(notificationContentVisible) forKey:@"ZMShouldNotificationContentKey"];
-
-    self.uiMOC.zm_fileAssetCache = fileAssetCache;
-    self.uiMOC.zm_userImageCache = userImageCache;
-}
-
-- (BOOL)waitWithTimeout:(NSTimeInterval)timeout forSaveOfContext:(NSManagedObjectContext *)moc untilBlock:(BOOL(^)(void))block;
-{
-    Require(moc != nil);
-    Require(block != nil);
-    
-    timeout = [MessagingTest timeToUseForOriginalTime:timeout];
-    dispatch_semaphore_t sem = dispatch_semaphore_create(0);
-    
-    NSDate * const start = [NSDate date];
-    NSNotificationCenter * const center = [NSNotificationCenter defaultCenter];
-    id token = [center addObserverForName:NSManagedObjectContextDidSaveNotification object:moc queue:nil usingBlock:^(NSNotification *note) {
-        NOT_USED(note);
-        if (block()) {
-            dispatch_semaphore_signal(sem);
-        }
-    }];
-    
-    BOOL success = NO;
-    
-    // We try to block the current thread as much as possible to not use too much CPU:
-    NSDate * const stopDate = [NSDate dateWithTimeIntervalSinceNow:timeout];
-    while ((! success) && (NSDate.timeIntervalSinceReferenceDate < stopDate.timeIntervalSinceReferenceDate)) {
-        // Block this thread for a bit:
-        NSTimeInterval const blockingTimeout = 0.01;
-        success = (0 == dispatch_semaphore_wait(sem, dispatch_walltime(NULL, llround(blockingTimeout * NSEC_PER_SEC))));
-        // Let anything on the main run loop run:
-        [MessagingTest performRunLoopTick];
-    }
-    
-    [center removeObserver:token];
-    PrintTimeoutWarning(self, timeout, -[start timeIntervalSinceNow]);
-    return success;
-}
-
-
-@end
-
-
-
-@implementation MessagingTest (Asyncronous)
-
 - (NSArray *)allManagedObjectContexts;
 {
     NSMutableArray *result = [NSMutableArray array];
@@ -425,12 +279,6 @@ static ZMReachability *sharedReachabilityMock = nil;
     }
     if (self.syncMOC != nil) {
         [result addObject:self.syncMOC];
-    }
-    if (self.testMOC != nil) {
-        [result addObject:self.testMOC];
-    }
-    if (self.alternativeTestMOC != nil) {
-        [result addObject:self.alternativeTestMOC];
     }
     if (self.searchMOC != nil) {
         [result addObject:self.searchMOC];
@@ -452,25 +300,7 @@ static ZMReachability *sharedReachabilityMock = nil;
     return groups;
 }
 
-
-- (XCTestExpectation *)expectationForSaveOnContext:(NSManagedObjectContext *)moc withUpdateOfClass:(Class)aClass handler:(SaveExpectationHandler)handler;
-{
-    return [self expectationForNotification:NSManagedObjectContextDidSaveNotification object:moc handler:^BOOL(NSNotification *notification) {
-        NSSet *updated = notification.userInfo[NSUpdatedObjectsKey];
-        for (ZMManagedObject *mo in updated) {
-            if ([mo isKindOfClass:aClass] &&
-                handler(mo))
-            {
-                return YES;
-            }
-        }
-        return NO;
-    }];
-}
-
 @end
-
-
 
 @implementation MessagingTest (UserTesting)
 
@@ -485,8 +315,6 @@ static ZMReachability *sharedReachabilityMock = nil;
 }
 
 @end
-
-
 
 @implementation MessagingTest (FilesInCache)
 
@@ -506,7 +334,6 @@ static ZMReachability *sharedReachabilityMock = nil;
 }
 
 @end
-
 
 @implementation MessagingTest (OTR)
 
@@ -538,7 +365,6 @@ static ZMReachability *sharedReachabilityMock = nil;
 }
 
 @end
-
 
 @implementation  MessagingTest (SwiftBridgeConversation)
 

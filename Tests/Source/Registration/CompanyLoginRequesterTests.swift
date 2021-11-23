@@ -61,7 +61,7 @@ class CompanyLoginRequesterTests: XCTestCase {
         XCTAssertEqual(components.query(for: "error_redirect"), "wire://login/failure?label=$label&validation_token=\(validationIdentifier)")
         XCTAssertEqual(validationURL.absoluteString.removingPercentEncoding, expectedURL.absoluteString)
     }
-    
+
     func testThatItReturnsNilWhenVerifyingTokenNoError() {
         // Given
         let session = MockSession { request in
@@ -74,94 +74,94 @@ class CompanyLoginRequesterTests: XCTestCase {
             defaults: UserDefaults(suiteName: name)!,
             session: session
         )
-        
+
         let callbackExpectation = expectation(description: "The completion closure is called")
-        
+
         // When
         sut.validate(host: "localhost", token: .create()) { error in
             XCTAssertNil(error)
             callbackExpectation.fulfill()
         }
-        
+
         // Then
         waitForExpectations(timeout: 0.5, handler: nil)
     }
-    
+
     func testThatItReturnsInvalidCodeErrorFor404Response() {
         // Given
         let session = MockSession { request in
             let response = HTTPURLResponse(url: request.url!, statusCode: 404, httpVersion: nil, headerFields: nil)
             return (nil, response, nil)
         }
-        
+
         let sut = CompanyLoginRequester(
             callbackScheme: "wire",
             defaults: UserDefaults(suiteName: name)!,
             session: session
         )
-        
+
         let callbackExpectation = expectation(description: "The completion closure is called")
-        
+
         // When
         sut.validate(host: "localhost", token: .create()) { error in
             XCTAssertEqual(error, .invalidCode)
             callbackExpectation.fulfill()
         }
-        
+
         // Then
         waitForExpectations(timeout: 0.5, handler: nil)
     }
-    
+
     func testThatItReturnsUnknownErrorForServerError() {
         // Given
         let session = MockSession { request in
             let response = HTTPURLResponse(url: request.url!, statusCode: 500, httpVersion: nil, headerFields: nil)
             return (nil, response, nil)
         }
-        
+
         let sut = CompanyLoginRequester(
             callbackScheme: "wire",
             defaults: UserDefaults(suiteName: name)!,
             session: session
         )
-        
+
         let callbackExpectation = expectation(description: "The completion closure is called")
-        
+
         // When
         sut.validate(host: "localhost", token: .create()) { error in
             XCTAssertEqual(error, .invalidStatus(500))
             callbackExpectation.fulfill()
         }
-        
+
         // Then
         waitForExpectations(timeout: 0.5, handler: nil)
     }
-    
+
     func testThatItReturnsUnknownErrorForTransportError() {
         // Given
-        let session = MockSession { url in
+        let session = MockSession { _ in
             let error = NSError(domain: "", code: NSURLErrorTimedOut, userInfo: nil)
             return (nil, nil, error)
         }
-        
+
         let sut = CompanyLoginRequester(
             callbackScheme: "wire",
             defaults: UserDefaults(suiteName: name)!,
             session: session
         )
-        
+
         let callbackExpectation = expectation(description: "The completion closure is called")
-        
+
         // When
         sut.validate(host: "localhost", token: .create()) { error in
             XCTAssertEqual(error, .unknown)
             callbackExpectation.fulfill()
         }
-        
+
         // Then
         waitForExpectations(timeout: 0.5, handler: nil)
     }
-    
+
     func testThatItReturnsUnknownErrorForInvalidResponse() {
         // Given
         let session = MockSession { _ in (nil, nil, nil) }
@@ -171,15 +171,15 @@ class CompanyLoginRequesterTests: XCTestCase {
             defaults: UserDefaults(suiteName: name)!,
             session: session
         )
-        
+
         let callbackExpectation = expectation(description: "The completion closure is called")
-        
+
         // When
         sut.validate(host: "localhost", token: .create()) { error in
             XCTAssertEqual(error, .unknown)
             callbackExpectation.fulfill()
         }
-        
+
         // Then
         waitForExpectations(timeout: 0.5, handler: nil)
     }
@@ -188,7 +188,7 @@ class CompanyLoginRequesterTests: XCTestCase {
 
 // MARK: - Helper
 
-fileprivate class MockSession: NSObject, URLSessionProtocol {
+private class MockSession: NSObject, URLSessionProtocol {
 
     class MockURLSessionDataTask: URLSessionDataTask {
         override func resume() {
@@ -198,12 +198,12 @@ fileprivate class MockSession: NSObject, URLSessionProtocol {
 
     typealias RequestHandler = (URLRequest) -> (Data?, URLResponse?, Error?)
     let handler: RequestHandler
-    
+
     init(handler: @escaping RequestHandler) {
         self.handler = handler
         super.init()
     }
-    
+
     func dataTask(with request: URLRequest, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask {
         let (data, response, error) = handler(request)
         completionHandler(data, response, error)

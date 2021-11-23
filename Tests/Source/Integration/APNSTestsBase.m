@@ -19,7 +19,7 @@
 @import WireMockTransport;
 
 #import "IntegrationTest.h"
-#import "WireSyncEngine_iOS_Tests-Swift.h"
+#import "Tests-Swift.h"
 #import "APNSTestsBase.h"
 
 @implementation APNSTestsBase

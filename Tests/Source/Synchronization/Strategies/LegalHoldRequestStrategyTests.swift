@@ -19,7 +19,7 @@
 import XCTest
 
 class LegalHoldRequestStrategyTests: MessagingTest {
-    
+
     var sut: LegalHoldRequestStrategy!
     var mockSyncStatus: MockSyncStatus!
     var mockSyncStateDelegate: MockSyncStateDelegate!
@@ -32,7 +32,7 @@ class LegalHoldRequestStrategyTests: MessagingTest {
         mockApplicationStatus = MockApplicationStatus()
         mockApplicationStatus.mockSynchronizationState = .slowSyncing
         sut = LegalHoldRequestStrategy(withManagedObjectContext: syncMOC, applicationStatus: mockApplicationStatus, syncStatus: mockSyncStatus)
-        
+
         syncMOC.performGroupedBlockAndWait {
             let selfUser = ZMUser.selfUser(in: self.syncMOC)
             selfUser.remoteIdentifier = UUID()
@@ -46,7 +46,7 @@ class LegalHoldRequestStrategyTests: MessagingTest {
         mockSyncStateDelegate = nil
         super.tearDown()
     }
-    
+
     static func legalHoldRequest(for user: ZMUser) -> LegalHoldRequest {
         return LegalHoldRequest(
             target: user.remoteIdentifier!,
@@ -58,7 +58,7 @@ class LegalHoldRequestStrategyTests: MessagingTest {
             )
         )
     }
-    
+
     static func payloadForReceivingLegalHoldRequestStatus(request: LegalHoldRequest) -> ZMTransportData {
         var payload: [String: Any] = [
             "status": "pending",
@@ -68,18 +68,18 @@ class LegalHoldRequestStrategyTests: MessagingTest {
                 "key": request.lastPrekey.key.base64EncodedString()
             ]
         ]
-        
+
         if let target = request.target {
             payload["id"] = target.transportString()
         }
-        
+
         if let requester = request.requester {
             payload["requester"] = requester.transportString()
         }
-        
+
         return payload as ZMTransportData
     }
-    
+
     static func payloadForReceivingLegalHoldRequestEvent(request: LegalHoldRequest) -> ZMTransportData {
         var payload: [String: Any] = [
             "type": "user.legalhold-request",
@@ -89,108 +89,107 @@ class LegalHoldRequestStrategyTests: MessagingTest {
                 "key": request.lastPrekey.key.base64EncodedString()
             ]
         ]
-        
-        
+
         if let target = request.target {
             payload["id"] = target.transportString()
         }
-        
+
         if let requester = request.requester {
             payload["requester"] = requester.transportString()
         }
-        
+
         return payload as ZMTransportData
     }
-    
+
     // MARK: - Slow Sync
 
     func testThatItRequestsLegalHoldStatus_DuringSlowSync() {
         syncMOC.performGroupedBlockAndWait {
             // GIVEN
             self.mockSyncStatus.mockPhase = .fetchingLegalHoldStatus
-            
+
             let selfUser = ZMUser.selfUser(in: self.syncMOC)
             let team = Team.insertNewObject(in: self.syncMOC)
             team.remoteIdentifier = .create()
             _ = Member.getOrCreateMember(for: selfUser, in: team, context: self.syncMOC)
-            
+
             // WHEN
             guard let request = self.sut.nextRequest() else { return XCTFail() }
-            
+
             // THEN
             XCTAssertEqual(request.path, "teams/\(team.remoteIdentifier!.transportString())/legalhold/\(selfUser.remoteIdentifier.transportString())")
         }
     }
-    
+
     func testThatItSkipsLegalHoldSyncPhase_IfUserDoesNotBelongToAteam() {
         syncMOC.performGroupedBlockAndWait {
             // GIVEN
             self.mockSyncStatus.mockPhase = .fetchingLegalHoldStatus
-            
+
             // WHEN
             _ = self.sut.nextRequest()
-            
+
             // THEN
             XCTAssertTrue(self.mockSyncStatus.didCallFinishCurrentSyncPhase)
         }
     }
-    
+
     func testThatISkipsLegalHoldSyncPhase_OnPermanentErrors() {
         syncMOC.performGroupedBlockAndWait {
             // GIVEN
             self.mockSyncStatus.mockPhase = .fetchingLegalHoldStatus
-            
+
             // WHEN
             let request = self.sut.nextRequest()
             request?.complete(with: ZMTransportResponse(payload: nil, httpStatus: 500, transportSessionError: nil))
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         syncMOC.performGroupedBlockAndWait {
             XCTAssertTrue(self.mockSyncStatus.didCallFinishCurrentSyncPhase)
         }
     }
-    
+
     func testThatItCreatesALegalHoldRequest_WhenLegalHoldStatusIsPending() {
         var expectedLegalHoldRequest: LegalHoldRequest!
-        
+
         syncMOC.performGroupedBlockAndWait {
             // GIVEN
             self.mockSyncStatus.mockPhase = .fetchingLegalHoldStatus
-            
+
             let selfUser = ZMUser.selfUser(in: self.syncMOC)
             let team = Team.insertNewObject(in: self.syncMOC)
             team.remoteIdentifier = .create()
             _ = Member.getOrCreateMember(for: selfUser, in: team, context: self.syncMOC)
             expectedLegalHoldRequest = type(of: self).legalHoldRequest(for: selfUser)
-            
+
             let payload = type(of: self).payloadForReceivingLegalHoldRequestStatus(request: expectedLegalHoldRequest)
             guard let request = self.sut.nextRequest() else { return XCTFail() }
             request.complete(with: ZMTransportResponse(payload: payload, httpStatus: 200, transportSessionError: nil))
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         syncMOC.performGroupedBlockAndWait {
             let selfUser = ZMUser.selfUser(in: self.syncMOC)
             guard case .pending(let legalHoldRequest) = selfUser.legalHoldStatus else { return XCTFail() }
             XCTAssertEqual(legalHoldRequest.clientIdentifier, expectedLegalHoldRequest.clientIdentifier)
         }
     }
-    
+
     func testThatItCancelsALegalHoldRequest_WhenLegalHoldStatusIsDisabled() {
         syncMOC.performGroupedBlockAndWait {
             // GIVEN
             self.mockSyncStatus.mockPhase = .fetchingLegalHoldStatus
-            
+
             let selfUser = ZMUser.selfUser(in: self.syncMOC)
-            
+
             let team = Team.insertNewObject(in: self.syncMOC)
             team.remoteIdentifier = .create()
             _ = Member.getOrCreateMember(for: selfUser, in: team, context: self.syncMOC)
-            
+
             let legalHoldRequest = type(of: self).legalHoldRequest(for: selfUser)
             selfUser.userDidReceiveLegalHoldRequest(legalHoldRequest)
-            
+
             let payload: [AnyHashable: Any] = [
                 "status": "disabled"
             ]
@@ -198,55 +197,55 @@ class LegalHoldRequestStrategyTests: MessagingTest {
             request.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil))
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         syncMOC.performGroupedBlockAndWait {
             let selfUser = ZMUser.selfUser(in: self.syncMOC)
             XCTAssertEqual(selfUser.legalHoldStatus, .disabled)
         }
     }
-    
+
     // MARK: - Event Processing
-        
+
     func testThatItProcessesLegalHoldRequestEvent() {
         // GIVEN
         var selfUser: ZMUser! = nil
-        
+
         syncMOC.performGroupedBlock {
             selfUser = ZMUser.selfUser(in: self.syncMOC)
         }
-        
+
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         let legalHoldRequest = type(of: self).legalHoldRequest(for: selfUser)
         let payload = type(of: self).payloadForReceivingLegalHoldRequestEvent(request: legalHoldRequest)
         let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: UUID())!
-        
+
         // WHEN
         syncMOC.performGroupedBlockAndWait {
             self.sut.processEvents([event], liveEvents: true, prefetchResult: .none)
-            
+
             // THEN
             XCTAssertEqual(selfUser.legalHoldStatus, .pending(legalHoldRequest))
         }
     }
-    
+
     func testThatItProcessesLegalHoldDisabledEvent() {
         // GIVEN
         syncMOC.performGroupedBlockAndWait {
             self.mockSyncStatus.mockPhase = .fetchingLegalHoldStatus
-            
+
             let selfUser = ZMUser.selfUser(in: self.syncMOC)
-            
+
             let team = Team.insertNewObject(in: self.syncMOC)
             team.remoteIdentifier = .create()
             _ = Member.getOrCreateMember(for: selfUser, in: team, context: self.syncMOC)
-            
+
             let legalHoldRequest = type(of: self).legalHoldRequest(for: selfUser)
             selfUser.userDidReceiveLegalHoldRequest(legalHoldRequest)
             XCTAssertEqual(selfUser.legalHoldStatus, .pending(legalHoldRequest))
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // WHEN
         syncMOC.performGroupedBlockAndWait {
             let payload: [String: Any] = [
@@ -256,12 +255,12 @@ class LegalHoldRequestStrategyTests: MessagingTest {
             self.sut.processEvents([event], liveEvents: true, prefetchResult: .none)
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // THEN
         syncMOC.performGroupedBlockAndWait {
             let selfUser = ZMUser.selfUser(in: self.syncMOC)
             XCTAssertEqual(selfUser.legalHoldStatus, .disabled)
         }
     }
-    
+
 }

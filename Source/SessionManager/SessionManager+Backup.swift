@@ -51,7 +51,7 @@ extension SessionManager {
             return completion(.failure(BackupError.noActiveAccount))
         }
 
-        StorageStack.backupLocalStorage(
+        CoreDataStack.backupLocalStorage(
             accountIdentifier: userId,
             clientIdentifier: clientId,
             applicationContainer: sharedContainerURL,
@@ -69,7 +69,7 @@ extension SessionManager {
     }
     
     private static func handle(
-        result: Result<StorageStack.BackupInfo>,
+        result: Result<CoreDataStack.BackupInfo>,
         password: String,
         accountId: UUID,
         dispatchGroup: ZMSDispatchGroup? = nil,
@@ -127,7 +127,7 @@ extension SessionManager {
             
             let url = SessionManager.unzippedBackupURL(for: location)
             guard decryptedURL.unzip(to: url) else { return complete(.failure(BackupError.compressionError)) }
-            StorageStack.importLocalStorage(
+            CoreDataStack.importLocalStorage(
                 accountIdentifier: userId,
                 from: url,
                 applicationContainer: self.sharedContainerURL,
@@ -157,21 +157,21 @@ extension SessionManager {
     
     /// Deletes all previously exported and imported backups.
     public static func clearPreviousBackups(dispatchGroup: ZMSDispatchGroup? = nil) {
-        StorageStack.clearBackupDirectory(dispatchGroup: dispatchGroup)
+        CoreDataStack.clearBackupDirectory(dispatchGroup: dispatchGroup)
     }
     
     private static func unzippedBackupURL(for url: URL) -> URL {
         let filename = url.deletingPathExtension().lastPathComponent
-        return StorageStack.importsDirectory.appendingPathComponent(filename)
+        return CoreDataStack.importsDirectory.appendingPathComponent(filename)
     }
     
-    private static func compress(backup: StorageStack.BackupInfo) throws -> URL {
+    private static func compress(backup: CoreDataStack.BackupInfo) throws -> URL {
         let url = temporaryURL(for: backup.url)
         guard backup.url.zipDirectory(to: url) else { throw BackupError.compressionError }
         return url
     }
 
-    private static func targetBackupURL(for backup: StorageStack.BackupInfo, handle: String) -> URL {
+    private static func targetBackupURL(for backup: CoreDataStack.BackupInfo, handle: String) -> URL {
         let component = backup.metadata.backupFilename(for: handle)
         return backup.url.deletingLastPathComponent().appendingPathComponent(component)
     }

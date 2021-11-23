@@ -17,38 +17,14 @@
 // 
 
 
-@import WireTransport;
-@import WireCryptobox;
-@import WireDataModel;
-@import avs;
-
 #import "MessagingTest.h"
 #import "ZMSyncStrategy.h"
-#import <WireSyncEngine/WireSyncEngine-Swift.h>
-#import "WireSyncEngine_iOS_Tests-Swift.h"
+#import "Tests-Swift.h"
 #import "MockModelObjectContextFactory.h"
 #import "ZMOperationLoop+Private.h"
 #import "ZMSyncStrategy+Internal.h"
 #import "ZMSyncStrategy+ManagedObjectChanges.h"
-
-@interface ZMOperationLoopTests : MessagingTest
-
-@property (nonatomic) ZMOperationLoop *sut;
-@property (nonatomic) ZMPersistentCookieStorage *cookieStorage;
-@property (nonatomic) MockPushChannel* mockPushChannel;
-@property (nonatomic) RecordingMockTransportSession *mockTransportSesssion;
-@property (nonatomic) ApplicationStatusDirectory *applicationStatusDirectory;
-@property (nonatomic) PushNotificationStatus *pushNotificationStatus;
-@property (nonatomic) CallEventStatus *callEventStatus;
-@property (nonatomic) SyncStatus *syncStatus;
-@property (nonatomic) MockSyncStateDelegate *mockSyncDelegate;
-@property (nonatomic) MockRequestStrategy *mockRequestStrategy;
-@property (nonatomic) MockUpdateEventProcessor *mockUpdateEventProcessor;
-@property (nonatomic) MockRequestCancellation *mockRequestCancellation;
-@property (nonatomic) NSMutableArray *pushChannelNotifications;
-@property (nonatomic) id pushChannelObserverToken;
-
-@end
+#import "ZMOperationLoopTests.h"
 
 @implementation ZMOperationLoopTests;
 
@@ -117,7 +93,7 @@
 - (void)testThatItNotifiesTheSyncStatus_WhenThePushChannelIsOpened
 {
     // when
-    [(id<ZMPushChannelConsumer>)self.sut pushChannelDidOpen:(ZMPushChannelConnection *)self.mockPushChannel withResponse:nil];
+    [(id<ZMPushChannelConsumer>)self.sut pushChannelDidOpen];
     
     // then
     XCTAssertNotNil(self.syncStatus.pushChannelEstablishedDate);
@@ -126,10 +102,10 @@
 - (void)testThatItNotifiesTheSyncStatus_WhenThePushChannelIsClosed
 {
     // given
-    [(id<ZMPushChannelConsumer>)self.sut pushChannelDidOpen:(ZMPushChannelConnection *)self.mockPushChannel withResponse:nil];
+    [(id<ZMPushChannelConsumer>)self.sut pushChannelDidOpen];
     
     // when
-    [(id<ZMPushChannelConsumer>)self.sut pushChannelDidClose:(ZMPushChannelConnection *)self.mockPushChannel withResponse:nil error:nil];
+    [(id<ZMPushChannelConsumer>)self.sut pushChannelDidClose];
     
     // then
     XCTAssertNil(self.syncStatus.pushChannelEstablishedDate);
@@ -218,57 +194,6 @@
 
 }
 
-- (void)testThatMOCIsSavedOnSuccessfulRequest
-{
-    // given
-    ZMTransportRequest *request = [ZMTransportRequest requestWithPath:@"/boo" method:ZMMethodGET payload:nil];
-    [request addCompletionHandler:[ZMCompletionHandler handlerOnGroupQueue:self.syncMOC block:^(ZMTransportResponse *resp ZM_UNUSED) {
-        NOT_USED([[ZMClientMessage alloc] initWithNonce:NSUUID.createUUID managedObjectContext:self.syncMOC]);
-    }]];
-    self.mockRequestStrategy.mockRequest = request;
-
-    [ZMRequestAvailableNotification notifyNewRequestsAvailable:self]; // this will enqueue `request`
-    WaitForAllGroupsToBeEmpty(0.5);
-        
-    // expect
-    [self expectationForNotification:NSManagedObjectContextDidSaveNotification
-                              object:nil
-                             handler:nil];
-    
-    // when
-    [request completeWithResponse:[ZMTransportResponse responseWithPayload:@{} HTTPStatus:200 transportSessionError:nil]];
-    WaitForAllGroupsToBeEmpty(0.5);
-    
-    // then
-    XCTAssertTrue([self waitForCustomExpectationsWithTimeout:0.5]);
-
-}
-
-- (void)testThatMOCIsSavedOnFailedRequest
-{
-    // given
-    ZMTransportRequest *request = [ZMTransportRequest requestWithPath:@"/boo" method:ZMMethodGET payload:nil];
-    [request addCompletionHandler:[ZMCompletionHandler handlerOnGroupQueue:self.syncMOC block:^(ZMTransportResponse *resp ZM_UNUSED) {
-        NOT_USED([[ZMClientMessage alloc] initWithNonce:NSUUID.createUUID managedObjectContext:self.syncMOC]);
-    }]];
-    self.mockRequestStrategy.mockRequest = request;
-    
-    [ZMRequestAvailableNotification notifyNewRequestsAvailable:self]; // this will enqueue `request`
-    WaitForAllGroupsToBeEmpty(0.5);
-    
-    // expect
-    [self expectationForNotification:NSManagedObjectContextDidSaveNotification
-                              object:nil
-                             handler:nil];
-    
-    // when
-    [request completeWithResponse:[ZMTransportResponse responseWithPayload:@{} HTTPStatus:400 transportSessionError:nil]];
-    WaitForAllGroupsToBeEmpty(0.5);
-    
-    // then
-    XCTAssertTrue([self waitForCustomExpectationsWithTimeout:0.5]);
-}
-
 - (void)testThatItAsksSyncStrategyForNextOperationOnZMOperationLoopNewRequestAvailableNotification
 {
     // when
@@ -308,7 +233,7 @@
     XCTAssertGreaterThan(expectedEvents.count, 0u);
     
     // when
-    [(id<ZMPushChannelConsumer>)self.sut pushChannel:(ZMPushChannelConnection *)self.mockPushChannel didReceiveTransportData:eventData];
+    [(id<ZMPushChannelConsumer>)self.sut pushChannelDidReceiveTransportData:eventData];
     WaitForAllGroupsToBeEmpty(0.5);
     
     // then
@@ -328,7 +253,7 @@
     
     // when
     [self performIgnoringZMLogError:^{
-        [(id<ZMPushChannelConsumer>)self.sut pushChannel:(ZMPushChannelConnection *)self.mockPushChannel didReceiveTransportData:eventdata];
+        [(id<ZMPushChannelConsumer>)self.sut pushChannelDidReceiveTransportData:eventdata];
         WaitForAllGroupsToBeEmpty(0.5);
     }];
     
@@ -343,7 +268,7 @@
     
     // when
     [self performIgnoringZMLogError:^{
-        [(id<ZMPushChannelConsumer>)self.sut pushChannel:(ZMPushChannelConnection *)self.mockPushChannel didReceiveTransportData:eventdata];
+        [(id<ZMPushChannelConsumer>)self.sut pushChannelDidReceiveTransportData:eventdata];
         WaitForAllGroupsToBeEmpty(0.5);
     }];
     
@@ -353,11 +278,8 @@
 
 - (void)testThatItSendsANotificationWhenClosingThePushChannelAndRemovingConsumers
 {
-    // given
-    NSHTTPURLResponse *response = [[NSHTTPURLResponse alloc] init];
-    
     // when
-    [(id<ZMPushChannelConsumer>)self.sut pushChannelDidClose:(ZMPushChannelConnection *)self.mockPushChannel withResponse:response error:nil];
+    [(id<ZMPushChannelConsumer>)self.sut pushChannelDidClose];
     
     // then
     XCTAssertEqual(self.pushChannelNotifications.count, 1u);
@@ -367,11 +289,8 @@
 
 - (void)testThatItSendsANotificationWhenOpeningThePushChannel
 {
-    // given
-    NSHTTPURLResponse *response = [[NSHTTPURLResponse alloc] init];
-
     // when
-    [(id<ZMPushChannelConsumer>)self.sut pushChannelDidOpen:(ZMPushChannelConnection *)self.mockPushChannel withResponse:response];
+    [(id<ZMPushChannelConsumer>)self.sut pushChannelDidOpen];
     
     // then
     XCTAssertEqual(self.pushChannelNotifications.count, 1u);

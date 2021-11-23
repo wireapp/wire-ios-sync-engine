@@ -18,37 +18,25 @@
 
 import Foundation
 
-extension ManagedObjectContextDirectory: ZMManagedObjectContextProvider {
-    
-    public var managedObjectContext: NSManagedObjectContext! {
-        return uiContext
-    }
-    
-    public var syncManagedObjectContext: NSManagedObjectContext! {
-        return syncContext
-    }
-    
-}
-
 class DatabaseTest: ZMTBaseTest {
     
     let accountId = UUID()
-    var contextDirectory: ManagedObjectContextDirectory?
+    var coreDataStack: CoreDataStack?
     
     var useInMemoryDatabase: Bool {
         return true
     }
     
     var uiMOC: NSManagedObjectContext {
-        return self.contextDirectory!.uiContext
+        return self.coreDataStack!.viewContext
     }
     
     var syncMOC: NSManagedObjectContext {
-        return self.contextDirectory!.syncContext
+        return self.coreDataStack!.syncContext
     }
     
     var searchMOC: NSManagedObjectContext {
-        return self.contextDirectory!.searchContext
+        return self.coreDataStack!.searchContext
     }
     
     var sharedContainerURL: URL? {
@@ -58,25 +46,25 @@ class DatabaseTest: ZMTBaseTest {
     }
     
     private func cleanUp() {
-        StorageStack.reset()
-        
         try? FileManager.default.contentsOfDirectory(at: sharedContainerURL!, includingPropertiesForKeys: nil, options: .skipsHiddenFiles).forEach {
             try? FileManager.default.removeItem(at: $0)
         }
     }
-    
-    private func createDatabase() {
-        StorageStack.reset()
-        
-        let expectation = self.expectation(description: "Created context")
-        StorageStack.shared.createStorageAsInMemory = useInMemoryDatabase
-        StorageStack.shared.createManagedObjectContextDirectory(accountIdentifier: accountId, applicationContainer: sharedContainerURL!, dispatchGroup: self.dispatchGroup) {
-            self.contextDirectory = $0
-            expectation.fulfill()
+
+    private func createCoreDataStack() -> CoreDataStack{
+        let account = Account(userName: "", userIdentifier: accountId)
+        let stack = CoreDataStack(account: account,
+                                  applicationContainer: sharedContainerURL!,
+                                  inMemoryStore: true,
+                                  dispatchGroup: dispatchGroup)
+
+        stack.loadStores { (error) in
+            XCTAssertNil(error)
         }
-        XCTAssert(waitForCustomExpectations(withTimeout: 0.5))
+
+        return stack
     }
-    
+        
     private func configureCaches() {
         let fileAssetCache = FileAssetCache(location: nil)
         let userImageCache = UserImageLocalCache(location: nil)
@@ -93,15 +81,17 @@ class DatabaseTest: ZMTBaseTest {
     override func setUp() {
         super.setUp()
         
-        createDatabase()
+        self.coreDataStack = createCoreDataStack()
+
         configureCaches()
     }
     
     override func tearDown() {
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
+        coreDataStack = nil
+
         cleanUp()
-        contextDirectory = nil
         
         super.tearDown()
     }

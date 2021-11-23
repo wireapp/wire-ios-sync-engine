@@ -18,6 +18,7 @@
 
 
 import avs
+import WireDataModel
 
 open class AuthenticatedSessionFactory {
 
@@ -48,7 +49,7 @@ open class AuthenticatedSessionFactory {
 
     func session(
         for account: Account,
-        storeProvider: LocalStoreProviderProtocol,
+        coreDataStack: CoreDataStack,
         configuration: ZMUserSession.Configuration) -> ZMUserSession? {
 
         let transportSession = ZMTransportSession(
@@ -68,15 +69,15 @@ open class AuthenticatedSessionFactory {
             analytics: analytics,
             application: application,
             appVersion: appVersion,
-            storeProvider: storeProvider,
+            coreDataStack: coreDataStack,
             configuration: configuration
         )
-        
+
         userSession.startRequestLoopTracker()
-        
+
         return userSession
     }
-    
+
 }
 
 

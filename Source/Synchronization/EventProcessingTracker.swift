@@ -19,7 +19,7 @@
 import Foundation
 import WireDataModel
 
-@objc public protocol EventProcessingTrackerProtocol: class {
+@objc public protocol EventProcessingTrackerProtocol: AnyObject {
     func registerEventProcessed()
     func registerDataInsertionPerformed(amount: UInt)
     func registerDataUpdatePerformed(amount: UInt)

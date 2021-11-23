@@ -35,7 +35,7 @@ public enum LocalNotificationContentType: Equatable {
     case reaction(emoji: String)
     case hidden
     case ephemeral(isMention: Bool, isReply: Bool)
-    case participantsRemoved
+    case participantsRemoved(reason: ZMParticipantsRemovedReason)
     case participantsAdded
     case messageTimerUpdate(String?)
 
@@ -45,7 +45,7 @@ public enum LocalNotificationContentType: Equatable {
             self = .participantsAdded
 
         case .conversationMemberLeave:
-            self = .participantsRemoved
+            self = .participantsRemoved(reason: event.participantsRemovedReason)
 
         case .conversationMessageTimerUpdate:
             guard let payload = event.payload["data"] as? [String : AnyHashable] else { return nil }

@@ -16,64 +16,12 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 // 
 
-
 import Foundation
 @testable import WireSyncEngine
 
-class TestRegistrationStatusDelegate: RegistrationStatusDelegate {
-
-    var activationCodeSentCalled = 0
-    func activationCodeSent() {
-        activationCodeSentCalled += 1
-    }
-
-    var activationCodeSendingFailedCalled = 0
-    var activationCodeSendingFailedError: Error?
-    func activationCodeSendingFailed(with error: Error) {
-        activationCodeSendingFailedCalled += 1
-        activationCodeSendingFailedError = error
-    }
-
-    var activationCodeValidatedCalled = 0
-    func activationCodeValidated() {
-        activationCodeValidatedCalled += 1
-    }
-
-    var activationCodeValidationFailedCalled = 0
-    var activationCodeValidationFailedError: Error?
-    func activationCodeValidationFailed(with error: Error) {
-        activationCodeValidationFailedCalled += 1
-        activationCodeValidationFailedError = error
-    }
-
-    var teamRegisteredCalled = 0
-    func teamRegistered() {
-        teamRegisteredCalled += 1
-    }
-
-    var userRegisteredCalled = 0
-    func userRegistered() {
-        userRegisteredCalled += 1
-    }
-
-    var teamRegistrationFailedCalled = 0
-    var teamRegistrationFailedError: Error?
-    func teamRegistrationFailed(with error: Error) {
-        teamRegistrationFailedCalled += 1
-        teamRegistrationFailedError = error
-    }
-
-    var userRegistrationFailedCalled = 0
-    var userRegistrationError: Error?
-    func userRegistrationFailed(with error: Error) {
-        userRegistrationFailedCalled += 1
-        userRegistrationError = error
-    }
-}
-
-class RegistrationStatusTests : MessagingTest{
-    var sut : WireSyncEngine.RegistrationStatus!
-    var delegate: TestRegistrationStatusDelegate!
+class RegistrationStatusTests: MessagingTest {
+    var sut: WireSyncEngine.RegistrationStatus!
+    var delegate: MockRegistrationStatusDelegate!
     var email: String!
     var code: String!
     var team: UnregisteredTeam!
@@ -81,9 +29,9 @@ class RegistrationStatusTests : MessagingTest{
 
     override func setUp() {
         super.setUp()
-        
+
         sut = WireSyncEngine.RegistrationStatus()
-        delegate = TestRegistrationStatusDelegate()
+        delegate = MockRegistrationStatusDelegate()
         sut.delegate = delegate
         email = "some@foo.bar"
         code = "123456"
@@ -111,7 +59,7 @@ class RegistrationStatusTests : MessagingTest{
 
     // MARK: - .none state tests
 
-    func testStartWithPhaseNone(){
+    func testStartWithPhaseNone() {
         XCTAssertEqual(sut.phase, .none)
     }
 
@@ -153,7 +101,7 @@ class RegistrationStatusTests : MessagingTest{
         // when
         sut.success()
 
-        //then
+        // then
         XCTAssertEqual(delegate.activationCodeSentCalled, 1)
         XCTAssertEqual(delegate.activationCodeSendingFailedCalled, 0)
     }
@@ -168,7 +116,7 @@ class RegistrationStatusTests : MessagingTest{
         // when
         sut.handleError(error)
 
-        //then
+        // then
         XCTAssertEqual(delegate.activationCodeSentCalled, 0)
         XCTAssertEqual(delegate.activationCodeSendingFailedCalled, 1)
         XCTAssertEqual(delegate.activationCodeSendingFailedError as NSError?, error)
@@ -192,7 +140,7 @@ class RegistrationStatusTests : MessagingTest{
         // when
         sut.success()
 
-        //then
+        // then
         XCTAssertEqual(delegate.activationCodeValidatedCalled, 1)
         XCTAssertEqual(delegate.activationCodeValidationFailedCalled, 0)
     }
@@ -207,7 +155,7 @@ class RegistrationStatusTests : MessagingTest{
         // when
         sut.handleError(error)
 
-        //then
+        // then
         XCTAssertEqual(delegate.activationCodeValidatedCalled, 0)
         XCTAssertEqual(delegate.activationCodeValidationFailedCalled, 1)
         XCTAssertEqual(delegate.activationCodeValidationFailedError as NSError?, error)
@@ -232,7 +180,7 @@ class RegistrationStatusTests : MessagingTest{
         // when
         sut.success()
 
-        //then
+        // then
         XCTAssertTrue(sut.completedRegistration)
         XCTAssertEqual(delegate.teamRegisteredCalled, 1)
         XCTAssertEqual(delegate.teamRegistrationFailedCalled, 0)
@@ -248,7 +196,7 @@ class RegistrationStatusTests : MessagingTest{
         // when
         sut.handleError(error)
 
-        //then
+        // then
         XCTAssertEqual(delegate.teamRegisteredCalled, 0)
         XCTAssertEqual(delegate.teamRegistrationFailedCalled, 1)
         XCTAssertEqual(delegate.teamRegistrationFailedError as NSError?, error)
@@ -273,7 +221,7 @@ class RegistrationStatusTests : MessagingTest{
         // when
         sut.success()
 
-        //then
+        // then
         XCTAssertTrue(sut.completedRegistration)
         XCTAssertEqual(delegate.userRegisteredCalled, 1)
         XCTAssertEqual(delegate.userRegistrationFailedCalled, 0)
@@ -289,11 +237,10 @@ class RegistrationStatusTests : MessagingTest{
         // when
         sut.handleError(error)
 
-        //then
+        // then
         XCTAssertEqual(delegate.userRegisteredCalled, 0)
         XCTAssertEqual(delegate.userRegistrationFailedCalled, 1)
         XCTAssertEqual(delegate.userRegistrationError as NSError?, error)
     }
 
 }
-

@@ -42,8 +42,7 @@ struct LabelPayload: Codable, Equatable {
     var labels: [LabelUpdate]
 }
 
-@objc
-public class LabelDownstreamRequestStrategy: AbstractRequestStrategy {
+public class LabelDownstreamRequestStrategy: AbstractRequestStrategy, ZMEventConsumer, ZMSingleRequestTranscoder {
     
     fileprivate let syncStatus: SyncStatus
     
@@ -114,9 +113,7 @@ public class LabelDownstreamRequestStrategy: AbstractRequestStrategy {
         managedObjectContext.saveOrRollback()
     }
     
-}
-
-extension LabelDownstreamRequestStrategy: ZMEventConsumer {
+    //MARK:- ZMEventConsumer
     
     public func processEvents(_ events: [ZMUpdateEvent], liveEvents: Bool, prefetchResult: ZMFetchRequestBatchResult?) {
         for event in events {
@@ -131,9 +128,7 @@ extension LabelDownstreamRequestStrategy: ZMEventConsumer {
         }
     }
 
-}
-
-extension LabelDownstreamRequestStrategy: ZMSingleRequestTranscoder {
+//MARK:- ZMSingleRequestTranscoder
     
     public func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
         return ZMTransportRequest(getFromPath: "/properties/labels")

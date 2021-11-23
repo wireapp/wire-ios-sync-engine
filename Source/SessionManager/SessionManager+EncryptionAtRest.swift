@@ -27,8 +27,7 @@ extension SessionManager: UserSessionEncryptionAtRestDelegate {
         delegate?.sessionManagerWillMigrateAccount(userSessionCanBeTornDown: { [weak self] in
             self?.tearDownBackgroundSession(for: account.userIdentifier)
             self?.activeUserSession = nil
-            StorageStack.reset()
-            StorageStack.migrateLocalStorage(accountIdentifier: account.userIdentifier,
+            CoreDataStack.migrateLocalStorage(accountIdentifier: account.userIdentifier,
                                              applicationContainer: sharedContainerURL,
                                              dispatchGroup: dispatchGroup,
                                              migration: { context in

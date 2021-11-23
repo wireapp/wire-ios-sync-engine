@@ -25,7 +25,7 @@
 
 #import <WireSyncEngine/WireSyncEngine-Swift.h>
 #import "ConversationTestsBase.h"
-#import "WireSyncEngine_iOS_Tests-Swift.h"
+#import "Tests-Swift.h"
 
 
 @interface ZMConversationList (ObjectIDs)
@@ -310,9 +310,8 @@
     ZMUser *user1 = [self userForMockUser:self.user1];
     XCTAssertFalse(user1.isBlocked);
 
-    [self.userSession performChanges:^{
-        [user1 block];
-    }];
+    [user1 blockWithCompletion:^(NSError *error) { NOT_USED(error); }];
+    WaitForAllGroupsToBeEmpty(0.5);
     
     XCTAssertTrue(user1.isBlocked);
     XCTAssertEqual(conversation.localParticipants.count, 2u);
@@ -406,9 +405,7 @@
     ConversationListChangeObserver *pendingObserver = [[ConversationListChangeObserver alloc] initWithConversationList:pending];
     
     // when
-    [self.userSession performChanges:^{
-        [realUser accept];
-    }];
+    [realUser acceptWithCompletion:^(NSError *error) { NOT_USED(error); }];
     WaitForAllGroupsToBeEmpty(0.5f);
 
     //then
@@ -539,7 +536,6 @@
         XCTAssertEqual(request.method, ZMMethodPUT);
         XCTAssertEqualObjects(conversation.lastServerTimeStamp, conversation.silencedChangedTimestamp);
         XCTAssertEqualObjects(request.payload.asDictionary[@"otr_muted_ref"], conversation.silencedChangedTimestamp.transportString);
-        XCTAssertEqualObjects(request.payload.asDictionary[@"otr_muted"], @(conversation.isFullyMuted));
         XCTAssertEqualObjects(request.payload.asDictionary[@"otr_muted_status"], @(conversation.isFullyMuted ? 3 : 0));
     }
     
@@ -578,7 +574,6 @@
         XCTAssertEqual(request.method, ZMMethodPUT);
         XCTAssertEqualObjects(conversation.lastServerTimeStamp, conversation.silencedChangedTimestamp);
         XCTAssertEqualObjects(request.payload.asDictionary[@"otr_muted_ref"], conversation.silencedChangedTimestamp.transportString);
-        XCTAssertEqualObjects(request.payload.asDictionary[@"otr_muted"], @(conversation.isFullyMuted));
         XCTAssertEqualObjects(request.payload.asDictionary[@"otr_muted_status"], @(conversation.isFullyMuted ? 3 : 0));
     }
 
@@ -621,7 +616,6 @@
     NSString *expectedPath = [NSString stringWithFormat:@"/conversations/%@/self", self.groupConversation.identifier];
     XCTAssertEqualObjects(request.path, expectedPath);
     XCTAssertEqual(request.method, ZMMethodPUT);
-    XCTAssertEqualObjects(request.payload.asDictionary[@"otr_muted"], @0);
     XCTAssertEqualObjects(request.payload.asDictionary[@"otr_muted_ref"], conversation.lastServerTimeStamp.transportString);
     XCTAssertEqualObjects(request.payload.asDictionary[@"otr_muted_status"], @0);
 }
@@ -650,7 +644,6 @@
     NSString *expectedPath = [NSString stringWithFormat:@"/conversations/%@/self", self.groupConversation.identifier];
     XCTAssertEqualObjects(request.path, expectedPath);
     XCTAssertEqual(request.method, ZMMethodPUT);
-    XCTAssertEqualObjects(request.payload.asDictionary[@"otr_muted"], @0);
     XCTAssertEqualObjects(request.payload.asDictionary[@"otr_muted_ref"], conversation.lastServerTimeStamp.transportString);
     XCTAssertEqualObjects(request.payload.asDictionary[@"otr_muted_status"], @0);
 }
@@ -678,10 +671,7 @@
     ConversationListChangeObserver *observer = [[ConversationListChangeObserver alloc] initWithConversationList:active];
     
     // when blocking user 1
-    
-    [self.userSession performChanges:^{
-        [user1 block];
-    }];
+    [user1 blockWithCompletion:^(NSError *error) { NOT_USED(error); }];
     WaitForAllGroupsToBeEmpty(0.5);
     
     // then the conversation should not be in the active list anymore
@@ -831,46 +821,6 @@
     XCTAssertNil(lastReadRequest);
     
     XCTAssertEqual(conv.estimatedUnreadCount, 0u);
-}
-
-#pragma mark - Conversation list pagination
-
-- (void)testThatItPaginatesConversationIDsRequests
-{
-    self.previousZMConversationTranscoderListPageSize = ZMConversationTranscoderListPageSize;
-    ZMConversationTranscoderListPageSize = 3;
-    
-    __block NSUInteger numberOfConversations;
-    [self.mockTransportSession performRemoteChanges:^ (id<MockTransportSessionObjectCreation>  _Nonnull __strong session) {
-        for(int i = 0; i < 10; ++i) {
-            [session insertGroupConversationWithSelfUser:self.selfUser otherUsers:@[self.user1, self.user2]];
-        }
-        
-        NSFetchRequest *request = [MockConversation sortedFetchRequest];
-        NSArray *conversations = [self.mockTransportSession.managedObjectContext executeFetchRequestOrAssert:request];
-        numberOfConversations = conversations.count;
-    }];
-    
-    // when
-    XCTAssertTrue([self login]);
-
-    NSArray *activeConversations = [ZMConversationList conversationsInUserSession:self.userSession];
-    NSArray *pendingConversations = [ZMConversationList pendingConnectionConversationsInUserSession:self.userSession];
-
-    // then
-    NSUInteger expectedRequests = (NSUInteger)ceil(numberOfConversations * 1.f / ZMConversationTranscoderListPageSize + 0.5f);
-    NSUInteger foundRequests = 0;
-    for(ZMTransportRequest *request in self.mockTransportSession.receivedRequests) {
-        if([request.path hasPrefix:@"/conversations/ids?size=3"]) {
-            ++foundRequests;
-        }
-    }
-    
-    XCTAssertEqual(expectedRequests, foundRequests);
-    XCTAssertEqual(1 + activeConversations.count + pendingConversations.count, numberOfConversations); // +1 is the self, which we don't return to UI
-    
-    // then
-    ZMConversationTranscoderListPageSize = self.previousZMConversationTranscoderListPageSize;
 }
 
 #pragma mark - Clearing history

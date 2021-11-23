@@ -18,7 +18,7 @@
 
 import Foundation
 
-@objc public class UserProfileRequestStrategy : AbstractRequestStrategy {
+public class UserProfileUpdateRequestStrategy : AbstractRequestStrategy, ZMSingleRequestTranscoder {
     
     let userProfileUpdateStatus : UserProfileUpdateStatus
     
@@ -112,9 +112,8 @@ import Foundation
         
         return nil
     }
-}
 
-extension UserProfileRequestStrategy : ZMSingleRequestTranscoder {
+    //MARK:-  ZMSingleRequestTranscoder
     
     public func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
         switch sync {
@@ -146,7 +145,7 @@ extension UserProfileRequestStrategy : ZMSingleRequestTranscoder {
             let payload : NSDictionary = [
                 "email" : self.userProfileUpdateStatus.emailToSet!
             ]
-            return ZMTransportRequest(path: "/self/email", method: .methodPUT, payload: payload)
+            return ZMTransportRequest(path: "/access/self/email", method: .methodPUT, payload: payload, authentication: .needsCookieAndAccessToken)
             
         case self.handleCheckSync:
             let handle = self.userProfileUpdateStatus.handleToCheck!

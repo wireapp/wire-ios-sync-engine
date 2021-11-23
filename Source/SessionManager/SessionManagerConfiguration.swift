@@ -68,19 +68,17 @@ public class SessionManagerConfiguration: NSObject, NSCopying, Codable {
     /// The default value of this property is `false`
     public var encryptionAtRestEnabledByDefault: Bool
 
-    /// If set to true, then the app lock feature will use biometric authentication if available,
-    /// or fallback on the custom passcode.
+    /// Configuration for the app lock feature.
+    ///
+    /// This is a legacy config, the preferred way is to use the feature config fetched
+    /// from the backend. If this is present, only this config will be used.
 
-    public var useBiometricsOrCustomPasscode: Bool
+    public var legacyAppLockConfig: AppLockController.LegacyConfig?
 
-    /// If set to true, the the app lock feature will be mandatory and can not be disabled by the
-    /// user.
-
-    public var forceAppLock: Bool
-
-    /// The amount of seconds in the background before the app will relock.
-
-    public var appLockTimeout: UInt
+    /// If set to true federation will be supported if the backend also supports it.
+    ///
+    /// The default value of this property is `false`
+    public var supportFederation: Bool
 
     // MARK: - Init
     
@@ -93,9 +91,8 @@ public class SessionManagerConfiguration: NSObject, NSCopying, Codable {
         authenticateAfterReboot: Bool = false,
         failedPasswordThresholdBeforeWipe: Int? = nil,
         encryptionAtRestIsEnabledByDefault: Bool = false,
-        useBiometricsOrCustomPasscode: Bool = false,
-        forceAppLock: Bool = false,
-        appLockTimeout: UInt = 10) {
+        legacyAppLockConfig: AppLockController.LegacyConfig? = nil,
+        supportFederation: Bool = false) {
 
         self.wipeOnCookieInvalid = wipeOnCookieInvalid
         self.blacklistDownloadInterval = blacklistDownloadInterval
@@ -105,9 +102,8 @@ public class SessionManagerConfiguration: NSObject, NSCopying, Codable {
         self.authenticateAfterReboot = authenticateAfterReboot
         self.failedPasswordThresholdBeforeWipe = failedPasswordThresholdBeforeWipe
         self.encryptionAtRestEnabledByDefault = encryptionAtRestIsEnabledByDefault
-        self.useBiometricsOrCustomPasscode = useBiometricsOrCustomPasscode
-        self.forceAppLock = forceAppLock
-        self.appLockTimeout = appLockTimeout
+        self.legacyAppLockConfig = legacyAppLockConfig
+        self.supportFederation = supportFederation
     }
 
     required public init(from decoder: Decoder) throws {
@@ -120,9 +116,8 @@ public class SessionManagerConfiguration: NSObject, NSCopying, Codable {
         authenticateAfterReboot = try container.decode(Bool.self, forKey: .authenticateAfterReboot)
         failedPasswordThresholdBeforeWipe = try container.decodeIfPresent(Int.self, forKey: .failedPasswordThresholdBeforeWipe)
         encryptionAtRestEnabledByDefault = try container.decode(Bool.self, forKey: .encryptionAtRestEnabledByDefault)
-        useBiometricsOrCustomPasscode = try container.decode(Bool.self, forKey: .useBiometricsOrCustomPasscode)
-        forceAppLock = try container.decode(Bool.self, forKey: .forceAppLock)
-        appLockTimeout = try container.decode(UInt.self, forKey: .appLockTimeout)
+        legacyAppLockConfig = try container.decodeIfPresent(AppLockController.LegacyConfig.self, forKey: .legacyAppLockConfig)
+        supportFederation = try container.decodeIfPresent(Bool.self, forKey: .supportFederation) ?? false
     }
 
     // MARK: - Methods
@@ -137,9 +132,8 @@ public class SessionManagerConfiguration: NSObject, NSCopying, Codable {
             authenticateAfterReboot: authenticateAfterReboot,
             failedPasswordThresholdBeforeWipe: failedPasswordThresholdBeforeWipe,
             encryptionAtRestIsEnabledByDefault: encryptionAtRestEnabledByDefault,
-            useBiometricsOrCustomPasscode: useBiometricsOrCustomPasscode,
-            forceAppLock: forceAppLock,
-            appLockTimeout: appLockTimeout
+            legacyAppLockConfig: legacyAppLockConfig,
+            supportFederation: supportFederation
         )
         
         return copy
@@ -172,24 +166,8 @@ extension SessionManagerConfiguration {
         case authenticateAfterReboot
         case failedPasswordThresholdBeforeWipe
         case encryptionAtRestEnabledByDefault
-        case useBiometricsOrCustomPasscode
-        case forceAppLock
-        case appLockTimeout
-    }
-
-}
-
-// MARK: - Helpers
-
-extension SessionManagerConfiguration {
-
-    var appLockConfig: AppLockController.Config {
-        return .init(
-            isAvailable: true,
-            isForced: forceAppLock,
-            timeout: appLockTimeout,
-            requireCustomPasscode: useBiometricsOrCustomPasscode
-        )
+        case legacyAppLockConfig
+        case supportFederation
     }
 
 }

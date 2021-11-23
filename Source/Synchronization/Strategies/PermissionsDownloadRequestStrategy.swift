@@ -55,14 +55,14 @@ extension MembershipPayload {
     
     @discardableResult
     func createOrUpdateMember(team: Team, in managedObjectContext: NSManagedObjectContext) -> Member? {
-        guard let user = ZMUser.fetchAndMerge(with: userID, createIfNeeded: true, in: managedObjectContext) else { return nil }
+        let user = ZMUser.fetchOrCreate(with: userID, domain: nil, in: managedObjectContext)
         let member = Member.getOrCreateMember(for: user, in: team, context: managedObjectContext)
         
         if let permissions = permissions.flatMap({ Permissions(rawValue: $0.selfPermissions) }) {
             member.permissions = permissions
         }
         
-        member.createdBy = ZMUser.fetchAndMerge(with: userID, createIfNeeded: true, in: managedObjectContext)
+        member.createdBy = ZMUser.fetchOrCreate(with: userID, domain: nil, in: managedObjectContext)
         member.createdAt = createdAt
         member.needsToBeUpdatedFromBackend = false
         
@@ -77,7 +77,7 @@ fileprivate extension Member {
 
 }
 
-public final class PermissionsDownloadRequestStrategy: AbstractRequestStrategy, ZMContextChangeTrackerSource, ZMRequestGeneratorSource {
+public final class PermissionsDownloadRequestStrategy: AbstractRequestStrategy, ZMContextChangeTrackerSource, ZMRequestGeneratorSource, ZMDownstreamTranscoder {
 
     fileprivate var sync: ZMDownstreamObjectSync!
 
@@ -105,9 +105,7 @@ public final class PermissionsDownloadRequestStrategy: AbstractRequestStrategy, 
         return [sync]
     }
 
-}
-
-extension PermissionsDownloadRequestStrategy: ZMDownstreamTranscoder {
+    //MARK:- ZMDownstreamTranscoder
 
     public func request(forFetching object: ZMManagedObject!, downstreamSync: ZMObjectSync!) -> ZMTransportRequest! {
         guard let member = object as? Member, downstreamSync as? ZMDownstreamObjectSync == sync else { fatal("Wrong object: \(object.safeForLoggingDescription)") }

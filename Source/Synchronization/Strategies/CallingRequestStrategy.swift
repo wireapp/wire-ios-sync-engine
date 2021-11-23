@@ -21,14 +21,14 @@ import WireRequestStrategy
 import WireDataModel
 
 @objcMembers
-public final class CallingRequestStrategy: AbstractRequestStrategy {
+public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequestTranscoder, ZMContextChangeTracker, ZMContextChangeTrackerSource, ZMEventConsumer, FederationAware {
 
     // MARK: - Private Properties
     
     private let zmLog = ZMSLog(tag: "calling")
     
     private var callCenter: WireCallCenterV3?
-    private let genericMessageStrategy: GenericMessageRequestStrategy
+    private let messageSync: ProteusMessageSync<GenericMessageEntity>
     private let flowManager: FlowManagerType
 
     private let callEventStatus: CallEventStatus
@@ -41,6 +41,17 @@ public final class CallingRequestStrategy: AbstractRequestStrategy {
 
     private let ephemeralURLSession = URLSession(configuration: .ephemeral)
 
+    // MARK: - Public Properties
+
+    public var useFederationEndpoint: Bool {
+        set {
+            messageSync.isFederationEndpointAvailable = newValue
+        }
+        get {
+            messageSync.isFederationEndpointAvailable
+        }
+    }
+
     // MARK: - Init
     
     public init(managedObjectContext: NSManagedObjectContext,
@@ -48,8 +59,8 @@ public final class CallingRequestStrategy: AbstractRequestStrategy {
                 clientRegistrationDelegate: ClientRegistrationDelegate,
                 flowManager: FlowManagerType,
                 callEventStatus: CallEventStatus) {
-        
-        self.genericMessageStrategy = GenericMessageRequestStrategy(context: managedObjectContext, clientRegistrationDelegate: clientRegistrationDelegate)
+
+        self.messageSync = ProteusMessageSync(context: managedObjectContext, applicationStatus: applicationStatus)
         self.flowManager = flowManager
         self.callEventStatus = callEventStatus
         
@@ -79,22 +90,18 @@ public final class CallingRequestStrategy: AbstractRequestStrategy {
     
     public override func nextRequestIfAllowed() -> ZMTransportRequest? {
         let request = callConfigRequestSync.nextRequest() ??
-                        clientDiscoverySync.nextRequest() ??
-                        genericMessageStrategy.nextRequest()
+                      clientDiscoverySync.nextRequest() ??
+                      messageSync.nextRequest()
         
         request?.forceToVoipSession()
         return request
     }
     
     public func dropPendingCallMessages(for conversation: ZMConversation) {
-        genericMessageStrategy.expireEntities(withDependency: conversation)
+        messageSync.expireMessages(withDependency: conversation)
     }
     
-}
-
 // MARK: - Single Request Transcoder
-
-extension CallingRequestStrategy: ZMSingleRequestTranscoder {
 
     public func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
         switch sync {
@@ -173,14 +180,11 @@ extension CallingRequestStrategy: ZMSingleRequestTranscoder {
             break
         }
     }
-}
 
-// MARK: - Context Change Tracker
-
-extension CallingRequestStrategy: ZMContextChangeTracker, ZMContextChangeTrackerSource {
+    // MARK: - Context Change Tracker
     
     public var contextChangeTrackers: [ZMContextChangeTracker] {
-        return [self, self.genericMessageStrategy]
+        return [self] + messageSync.contextChangeTrackers
     }
     
     public func fetchRequestForTrackedObjects() -> NSFetchRequest<NSFetchRequestResult>? {
@@ -212,11 +216,7 @@ extension CallingRequestStrategy: ZMContextChangeTracker, ZMContextChangeTracker
         }
     }
     
-}
-
-// MARK: - Event Consumer
-
-extension CallingRequestStrategy: ZMEventConsumer {
+    // MARK: - Event Consumer
 
     public func processEventsWhileInBackground(_ events: [ZMUpdateEvent]) {
         let serverTimeDelta = managedObjectContext.serverTimeDelta
@@ -275,7 +275,7 @@ extension CallingRequestStrategy: WireCallCenterTransport {
         }
         
         managedObjectContext.performGroupedBlock {
-            guard let conversation = ZMConversation(remoteID: conversationId, createIfNeeded: false, in: self.managedObjectContext) else {
+            guard let conversation = ZMConversation.fetch(with: conversationId, in: self.managedObjectContext) else {
                 self.zmLog.error("Not sending calling messsage since conversation doesn't exist")
                 completionHandler(500)
                 return
@@ -285,10 +285,13 @@ extension CallingRequestStrategy: WireCallCenterTransport {
             
             let genericMessage = GenericMessage(content: Calling(content: dataString))
             let recipients = targets.map { self.recipients(for: $0, in: self.managedObjectContext) } ?? .conversationParticipants
+            let message = GenericMessageEntity(conversation: conversation,
+                                               message: genericMessage,
+                                               targetRecipients: recipients,
+                                               completionHandler: nil)
 
-
-            self.genericMessageStrategy.schedule(message: genericMessage, inConversation: conversation, targetRecipients: recipients) { response in
-                if response.httpStatus == 201 {
+            self.messageSync.sync(message) { (result, response) in
+                if case .success(()) = result {
                     completionHandler(response.httpStatus)
                 }
             }

@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2018 Wire Swiss GmbH
+// Copyright (C) 2021 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -21,21 +21,28 @@ import XCTest
 @testable import WireSyncEngine
 
 final class DummyServiceUser: NSObject, ServiceUser {
-    func cancelConnectionRequest() {
-        
+
+    func cancelConnectionRequest(completion: @escaping (Error?) -> Void) {
+
     }
 
-    func block () {
-        
+    func connect(completion: @escaping (Error?) -> Void) {
+
     }
 
-    func accept() {
-        
+    func block(completion: @escaping (Error?) -> Void) {
+
     }
 
-    func ignore() {
-        
+    func accept(completion: @escaping (Error?) -> Void) {
+
     }
+
+    func ignore(completion: @escaping (Error?) -> Void) {
+
+    }
+
+    var remoteIdentifier: UUID?
 
     var isIgnored: Bool = false
 
@@ -47,11 +54,13 @@ final class DummyServiceUser: NSObject, ServiceUser {
     
     var needsRichProfileUpdate: Bool = false
     
-    var availability: Availability = .none
+    var availability: AvailabilityKind = .none
     
     var teamName: String? = nil
     
     var isBlocked: Bool = false
+
+    var blockState: ZMBlockState = .none
     
     var isExpired: Bool = false
     
@@ -187,6 +196,8 @@ final class DummyServiceUser: NSObject, ServiceUser {
     
     var isServiceUser: Bool = true
 
+    var isFederated: Bool = false
+
     var usesCompanyLogin: Bool = false
     
     var isAccountDeleted: Bool = false
@@ -224,11 +235,7 @@ final class DummyServiceUser: NSObject, ServiceUser {
     func refreshTeamData() {
         
     }
-    
-    func connect(message: String) {
-        
-    }
-    
+
     func isGuest(in conversation: ConversationLike) -> Bool {
         return false
     }

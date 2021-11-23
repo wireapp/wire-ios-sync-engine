@@ -70,7 +70,7 @@ extension TeamPayload {
     
     func updateTeam(_ team: Team, in managedObjectContext: NSManagedObjectContext) {
         team.name = name
-        team.creator = ZMUser.fetchAndMerge(with: creator, createIfNeeded: true, in: managedObjectContext)
+        team.creator = ZMUser.fetchOrCreate(with: creator, domain: nil, in: managedObjectContext)
         team.pictureAssetId = icon
         team.pictureAssetKey = iconKey
         
@@ -91,7 +91,8 @@ fileprivate extension Team {
 
 /// Responsible for downloading the team which the self user belongs to during the slow sync
 /// and for updating it when processing events or when manually requested.
-public final class TeamDownloadRequestStrategy: AbstractRequestStrategy, ZMContextChangeTrackerSource {
+    
+public final class TeamDownloadRequestStrategy: AbstractRequestStrategy, ZMContextChangeTrackerSource, ZMEventConsumer, ZMSingleRequestTranscoder, ZMDownstreamTranscoder {
 
     private (set) var downstreamSync: ZMDownstreamObjectSync!
     private (set) var slowSync: ZMSingleRequestSync!
@@ -134,9 +135,85 @@ public final class TeamDownloadRequestStrategy: AbstractRequestStrategy, ZMConte
         return syncStatus.currentSyncPhase == expectedSyncPhase
     }
 
-}
+    //MARK: - ZMEventConsumer
+    public func processEvents(_ events: [ZMUpdateEvent], liveEvents: Bool, prefetchResult: ZMFetchRequestBatchResult?) {
+        events.forEach(process)
+    }
+    
+    private func process(_ event: ZMUpdateEvent) {
+        switch event.type {
+        case .teamCreate: createTeam(with: event)
+        case .teamDelete: deleteTeam(with: event)
+        case .teamUpdate: updateTeam(with : event)
+        case .teamMemberJoin: processAddedMember(with: event)
+        case .teamMemberLeave: processRemovedMember(with: event)
+        case .teamMemberUpdate: processUpdatedMember(with: event)
+        default: break
+        }
+    }
 
-extension TeamDownloadRequestStrategy: ZMSingleRequestTranscoder {
+    private func createTeam(with event: ZMUpdateEvent) {
+        // With the new multi-account model this event should not be sent anymore,
+        // and if it is we should not act on it.
+        // An account will either have a team since registration or not,
+        // currently there is no way to get added to a team after registering.
+    }
+
+    private func deleteTeam(with event: ZMUpdateEvent) {
+        deleteAccount()
+    }
+
+    private func updateTeam(with event: ZMUpdateEvent) {
+        guard let identifier = event.teamId, let data = event.dataPayload else { return }
+        guard let existingTeam = Team.fetchOrCreate(with: identifier, create: false, in: managedObjectContext, created: nil) else { return }
+        
+        TeamUpdateEventPayload(data)?.updateTeam(existingTeam, in: managedObjectContext)
+    }
+
+    private func processAddedMember(with event: ZMUpdateEvent) {
+        guard let identifier = event.teamId, let data = event.dataPayload else { return }
+        guard let team = Team.fetchOrCreate(with: identifier, create: false, in: managedObjectContext, created: nil) else { return }
+        guard let addedUserId = (data[TeamEventPayloadKey.user.rawValue] as? String).flatMap(UUID.init) else { return }
+        let user = ZMUser.fetchOrCreate(with: addedUserId, domain: nil, in: managedObjectContext)
+        user.needsToBeUpdatedFromBackend = true
+        _ = Member.getOrCreateMember(for: user, in: team, context: managedObjectContext)
+    }
+
+    private func processRemovedMember(with event: ZMUpdateEvent) {
+        guard let identifier = event.teamId, let data = event.dataPayload else { return }
+        guard let team = Team.fetchOrCreate(with: identifier, create: false, in: managedObjectContext, created: nil) else { return }
+        guard let removedUserId = (data[TeamEventPayloadKey.user.rawValue] as? String).flatMap(UUID.init) else { return }
+        guard let user = ZMUser.fetch(with: removedUserId, in: managedObjectContext) else { return }
+        if let member = user.membership {
+            if user.isSelfUser {
+                deleteAccount()
+            } else {
+                user.markAccountAsDeleted(at: event.timestamp ?? Date())
+            }
+            managedObjectContext.delete(member)
+        } else {
+            log.error("Trying to delete non existent membership of \(user) in \(team)")
+        }
+    }
+
+    private func processUpdatedMember(with event: ZMUpdateEvent) {
+        guard nil != event.teamId, let data = event.dataPayload else { return }
+        guard let userId = (data[TeamEventPayloadKey.user.rawValue] as? String).flatMap(UUID.init) else { return }
+        guard let member = Member.fetch(with: userId, in: managedObjectContext) else { return }
+        member.needsToBeUpdatedFromBackend = true
+    }
+    
+    private func deleteTeamAndConversations(_ team: Team) {
+        team.conversations.forEach(managedObjectContext.delete)
+        managedObjectContext.delete(team)
+    }
+    
+    private func deleteAccount() {
+        let notification = AccountDeletedNotification(context: managedObjectContext)
+        notification.post(in: managedObjectContext.notificationContext)
+    }
+
+    //MARK:- ZMSingleRequestTranscoder
     
     public func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
         return TeamDownloadRequestFactory.getTeamsRequest
@@ -156,9 +233,7 @@ extension TeamDownloadRequestStrategy: ZMSingleRequestTranscoder {
         syncStatus.finishCurrentSyncPhase(phase: expectedSyncPhase)
     }
     
-}
-
-extension TeamDownloadRequestStrategy: ZMDownstreamTranscoder {
+    //MARK:- ZMDownstreamTranscoder
 
     public func request(forFetching object: ZMManagedObject!, downstreamSync: ZMObjectSync!) -> ZMTransportRequest! {
         guard downstreamSync as? ZMDownstreamObjectSync == self.downstreamSync, let team = object as? Team else { fatal("Wrong sync or object for: \(object.safeForLoggingDescription)") }
@@ -184,3 +259,51 @@ extension TeamDownloadRequestStrategy: ZMDownstreamTranscoder {
         managedObjectContext.delete(team)
     }
 }
+
+//MARK:- Event
+
+fileprivate extension ZMUpdateEvent {
+
+    var teamId: UUID? {
+        return(payload[TeamEventPayloadKey.team.rawValue] as? String).flatMap(UUID.init)
+    }
+
+    var dataPayload: [String: Any]? {
+        return payload[TeamEventPayloadKey.data.rawValue] as? [String: Any]
+    }
+}
+
+fileprivate  enum TeamEventPayloadKey: String {
+    
+    case team
+    case data
+    case user
+    case conversation = "conv"
+    
+}
+
+struct TeamUpdateEventPayload: Decodable {
+    
+    let name: String?
+    let icon: String?
+    let iconKey: String?
+    
+    private enum CodingKeys: String, CodingKey {
+        case name
+        case icon
+        case iconKey = "icon_key"
+    }
+        
+}
+
+extension TeamUpdateEventPayload {
+    
+    func updateTeam(_ team: Team, in managedObjectContext: NSManagedObjectContext) {
+        team.name = name
+        team.pictureAssetId = icon
+        team.pictureAssetKey = iconKey
+    }
+    
+}
+
+private let log = ZMSLog(tag: "Teams")

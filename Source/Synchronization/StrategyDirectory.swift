@@ -36,15 +36,16 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
     public let eventConsumers: [ZMEventConsumer]
     public let contextChangeTrackers: [ZMContextChangeTracker]
     
-    init(contextDirectory: ManagedObjectContextDirectory,
+    init(contextProvider: ContextProvider,
          applicationStatusDirectory: ApplicationStatusDirectory,
          cookieStorage: ZMPersistentCookieStorage,
          pushMessageHandler: PushMessageHandler,
          flowManager: FlowManagerType,
          updateEventProcessor: UpdateEventProcessor,
-         localNotificationDispatcher: LocalNotificationDispatcher) {
+         localNotificationDispatcher: LocalNotificationDispatcher,
+         supportFederation: Bool) {
         
-        self.strategies = Self.buildStrategies(contextDirectory: contextDirectory,
+        self.strategies = Self.buildStrategies(contextProvider: contextProvider,
                                                applicationStatusDirectory: applicationStatusDirectory,
                                                cookieStorage: cookieStorage,
                                                pushMessageHandler: pushMessageHandler,
@@ -63,6 +64,11 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
                 return []
             }
         })
+
+        strategies.forEach { strategy in
+            var federationAwareStrategy = strategy as? FederationAware
+            federationAwareStrategy?.useFederationEndpoint = supportFederation
+        }
     }
     
     deinit {
@@ -73,7 +79,7 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
         }
     }
             
-    static func buildStrategies(contextDirectory: ManagedObjectContextDirectory,
+    static func buildStrategies(contextProvider: ContextProvider,
                                 applicationStatusDirectory: ApplicationStatusDirectory,
                                 cookieStorage: ZMPersistentCookieStorage,
                                 pushMessageHandler: PushMessageHandler,
@@ -81,7 +87,7 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
                                 updateEventProcessor: UpdateEventProcessor,
                                 localNotificationDispatcher: LocalNotificationDispatcher) -> [Any] {
         
-        let syncMOC = contextDirectory.syncContext!
+        let syncMOC = contextProvider.syncContext
         let strategies: [Any] = [
             UserClientRequestStrategy(
                 clientRegistrationStatus: applicationStatusDirectory.clientRegistrationStatus,
@@ -129,8 +135,8 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
             AssetV3PreviewDownloadRequestStrategy(
                 withManagedObjectContext: syncMOC,
                 applicationStatus: applicationStatusDirectory),
-            ClientMessageTranscoder(
-                in: syncMOC,
+            ClientMessageRequestStrategy(
+                withManagedObjectContext: syncMOC,
                 localNotificationDispatcher: pushMessageHandler,
                 applicationStatus: applicationStatusDirectory),
             DeliveryReceiptRequestStrategy(
@@ -143,7 +149,7 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
             UserPropertyRequestStrategy(
                 withManagedObjectContext: syncMOC,
                 applicationStatus: applicationStatusDirectory),
-            UserProfileRequestStrategy(
+            UserProfileUpdateRequestStrategy(
                 managedObjectContext: syncMOC,
                 applicationStatus: applicationStatusDirectory,
                 userProfileUpdateStatus: applicationStatusDirectory.userProfileUpdateStatus),
@@ -155,7 +161,7 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
             LinkPreviewAssetDownloadRequestStrategy(
                 withManagedObjectContext: syncMOC,
                 applicationStatus: applicationStatusDirectory),
-            LinkPreviewUploadRequestStrategy(
+            LinkPreviewUpdateRequestStrategy(
                 withManagedObjectContext: syncMOC,
                 applicationStatus: applicationStatusDirectory),
             ImageV2DownloadRequestStrategy(
@@ -171,18 +177,18 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
             SearchUserImageStrategy(
                 applicationStatus: applicationStatusDirectory,
                 managedObjectContext: syncMOC),
-            ZMConnectionTranscoder(
+            ConnectionRequestStrategy(
+                withManagedObjectContext: syncMOC,
+                applicationStatus: applicationStatusDirectory,
+                syncProgress: applicationStatusDirectory.syncStatus),
+            ConversationRequestStrategy(
+                withManagedObjectContext: syncMOC,
+                applicationStatus: applicationStatusDirectory,
+                syncProgress: applicationStatusDirectory.syncStatus),
+            UserProfileRequestStrategy(
                 managedObjectContext: syncMOC,
                 applicationStatus: applicationStatusDirectory,
-                syncStatus: applicationStatusDirectory.syncStatus),
-            ZMConversationTranscoder(
-                managedObjectContext: syncMOC,
-                applicationStatus: applicationStatusDirectory,
-                syncStatus: applicationStatusDirectory.syncStatus),
-            ZMUserTranscoder(
-                managedObjectContext: syncMOC,
-                applicationStatus: applicationStatusDirectory,
-                syncStatus: applicationStatusDirectory.syncStatus),
+                syncProgress: applicationStatusDirectory.syncStatus),
             ZMLastUpdateEventIDTranscoder(
                 managedObjectContext: syncMOC,
                 applicationStatus: applicationStatusDirectory,
@@ -202,10 +208,6 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
                 withManagedObjectContext: syncMOC,
                 applicationStatus: applicationStatusDirectory,
                 syncStatus: applicationStatusDirectory.syncStatus),
-            UserImageAssetUpdateStrategy(
-                managedObjectContext: syncMOC,
-                applicationStatusDirectory: applicationStatusDirectory,
-                userProfileImageUpdateStatus: applicationStatusDirectory.userProfileImageUpdateStatus),
             TeamDownloadRequestStrategy(
                 withManagedObjectContext: syncMOC,
                 applicationStatus: applicationStatusDirectory,
@@ -245,9 +247,6 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
             ConversationRoleDownstreamRequestStrategy(
                 withManagedObjectContext: syncMOC,
                 applicationStatus: applicationStatusDirectory),
-            VerifyPasswordRequestStrategy(
-                withManagedObjectContext: syncMOC,
-                applicationStatus: applicationStatusDirectory),
             SignatureRequestStrategy(
                 withManagedObjectContext: syncMOC,
                 applicationStatus: applicationStatusDirectory),
@@ -268,7 +267,11 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
                 managedObjectContext: syncMOC,
                 applicationStatus: applicationStatusDirectory,
                 clientRegistrationDelegate: applicationStatusDirectory.clientRegistrationDelegate),
-            localNotificationDispatcher
+            UserImageAssetUpdateStrategy(
+                managedObjectContext: syncMOC,
+                applicationStatusDirectory: applicationStatusDirectory,
+                userProfileImageUpdateStatus: applicationStatusDirectory.userProfileImageUpdateStatus),
+            localNotificationDispatcher,
         ]
                 
         return strategies

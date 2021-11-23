@@ -24,7 +24,7 @@
 #import "ZMClientRegistrationStatus.h"
 #import "ZMCredentials.h"
 #import <WireSyncEngine/WireSyncEngine-Swift.h>
-#import "WireSyncEngine_iOS_Tests-Swift.h"
+#import "Tests-Swift.h"
 #import "ZMClientRegistrationStatus+Internal.h"
 #import "NSError+ZMUserSession.h"
 
@@ -53,16 +53,6 @@
 }
 
 @end
-
-
-@interface ZMClientRegistrationStatusTests : MessagingTest
-
-@property (nonatomic) ZMClientRegistrationStatus *sut;
-@property (nonatomic) id mockCookieStorage;
-@property (nonatomic) id mockClientRegistrationDelegate;
-@property (nonatomic) id sessionToken;
-@end
-
 
 
 @implementation ZMClientRegistrationStatusTests
@@ -155,19 +145,6 @@
     
     // then
     XCTAssertEqual(self.sut.currentPhase, ZMClientRegistrationPhaseRegistered);
-}
-
-- (void)testThatItReturns_FetchingClients_WhenReceivingAnErrorWithTooManyClients
-{
-    // given
-    ZMUser *selfUser = [ZMUser selfUserInContext:self.syncMOC];
-    selfUser.remoteIdentifier = [NSUUID UUID];
-    
-    // when
-    [self.sut didFailToRegisterClient:[self tooManyClientsError]];
-    
-    // then
-    XCTAssertEqual(self.sut.currentPhase, ZMClientRegistrationPhaseFetchingClients);
 }
 
 - (void)testThatItReturns_WaitingForDeletion_AfterUserSelectedClientToDelete

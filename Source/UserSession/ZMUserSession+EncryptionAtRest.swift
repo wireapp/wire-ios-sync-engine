@@ -29,7 +29,7 @@ public protocol UserSessionEncryptionAtRestInterface {
     func registerDatabaseLockedHandler(_ handler: @escaping (_ isDatabaseLocked: Bool) -> Void) -> Any
 }
 
-protocol UserSessionEncryptionAtRestDelegate: class {
+protocol UserSessionEncryptionAtRestDelegate: AnyObject {
     
     func setEncryptionAtRest(enabled: Bool, account: Account, encryptionKeys: EncryptionKeys)
     
@@ -52,14 +52,13 @@ extension ZMUserSession: UserSessionEncryptionAtRestInterface {
     public func setEncryptionAtRest(enabled: Bool, skipMigration: Bool = false) throws {
         guard enabled != encryptMessagesAtRest else { return }
 
-        let account = Account(userName: "", userIdentifier: storeProvider.userIdentifier)
-        let encryptionKeys = try storeProvider.contextDirectory.encryptionKeysForSettingEncryptionAtRest(enabled: enabled, account: account)
+        let encryptionKeys = try coreDataStack.encryptionKeysForSettingEncryptionAtRest(enabled: enabled)
         
         if skipMigration {
             try managedObjectContext.enableEncryptionAtRest(encryptionKeys: encryptionKeys, skipMigration: true)
         } else {
             delegate?.setEncryptionAtRest(enabled: enabled,
-                                          account: account,
+                                          account: coreDataStack.account,
                                           encryptionKeys: encryptionKeys)
         }
     }
@@ -89,7 +88,7 @@ extension ZMUserSession: UserSessionEncryptionAtRestInterface {
         guard managedObjectContext.encryptMessagesAtRest else { return }
         
         BackgroundActivityFactory.shared.notifyWhenAllBackgroundActivitiesEnd { [weak self] in
-            self?.storeProvider.contextDirectory.clearEncryptionKeysInAllContexts()
+            self?.coreDataStack.clearEncryptionKeysInAllContexts()
         
             if let notificationContext = self?.managedObjectContext.notificationContext {
                 DatabaseEncryptionLockNotification(databaseIsEncrypted: true).post(in: notificationContext)
@@ -98,10 +97,9 @@ extension ZMUserSession: UserSessionEncryptionAtRestInterface {
     }
     
     public func unlockDatabase(with context: LAContext) throws {
-        let account = Account(userName: "", userIdentifier: storeProvider.userIdentifier)
-        let keys = try EncryptionKeys.init(account: account, context: context)
+        let keys = try EncryptionKeys.init(account: coreDataStack.account, context: context)
 
-        storeProvider.contextDirectory.storeEncryptionKeysInAllContexts(encryptionKeys: keys)
+        coreDataStack.storeEncryptionKeysInAllContexts(encryptionKeys: keys)
         
         DatabaseEncryptionLockNotification(databaseIsEncrypted: false).post(in: managedObjectContext.notificationContext)
         

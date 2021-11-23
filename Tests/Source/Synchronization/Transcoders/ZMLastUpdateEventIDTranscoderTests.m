@@ -20,7 +20,7 @@
 @import WireTransport;
 @import WireSyncEngine;
 
-#import "WireSyncEngine_iOS_Tests-Swift.h"
+#import "Tests-Swift.h"
 #import "ObjectTranscoderTests.h"
 #import "ZMLastUpdateEventIDTranscoder+Internal.h"
 #import "ZMMissingUpdateEventsTranscoder+Internal.h"

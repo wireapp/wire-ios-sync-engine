@@ -17,23 +17,15 @@
 // 
 
 
-@import UIKit;
-@import WireTransport;
-@import WireSyncEngine;
-@import WireDataModel;
-@import WireRequestStrategy;
-@import OCMock;
-
-
-#import "MessagingTest.h"
+#import "ZMSyncStrategyTests.h"
 #import "ZMSyncStrategy+Internal.h"
 #import "ZMSyncStrategy+ManagedObjectChanges.h"
 #import "MessagingTest+EventFactory.h"
-#import "WireSyncEngine_iOS_Tests-Swift.h"
+#import "Tests-Swift.h"
 
 // Transcoders & strategies
 #import "MessagingTest+EventFactory.h"
-#import "WireSyncEngine_iOS_Tests-Swift.h"
+#import "Tests-Swift.h"
 
 @interface OCMockObject (TearDown)
 - (void)tearDown;
@@ -61,23 +53,6 @@
 
 @end
 
-
-@interface ZMSyncStrategyTests : MessagingTest <ZMRequestCancellation, ZMSyncStateDelegate>
-
-@property (nonatomic) ZMSyncStrategy *sut;
-
-@property (nonatomic) MockSyncStateDelegate *syncStateDelegate;
-@property (nonatomic) ApplicationStatusDirectory *applicationStatusDirectory;
-
-@property (nonatomic) MockEventConsumer *mockEventConsumer;
-@property (nonatomic) MockContextChangeTracker *mockContextChangeTracker;
-
-@property (nonatomic) NSFetchRequest *fetchRequestForTrackedObjects1;
-@property (nonatomic) NSFetchRequest *fetchRequestForTrackedObjects2;
-
-@property (nonatomic) id<LocalStoreProviderProtocol> storeProvider;
-
-@end
 
 @implementation ZMSyncStrategyTests;
 
@@ -134,21 +109,20 @@
     self.fetchRequestForTrackedObjects1.predicate = [NSPredicate predicateWithFormat:@"name != nil"];
     self.fetchRequestForTrackedObjects2 = [NSFetchRequest fetchRequestWithEntityName:@"Conversation"];
     self.fetchRequestForTrackedObjects2.predicate = [NSPredicate predicateWithFormat:@"userDefinedName != nil"];
-        
-    self.storeProvider = [[MockLocalStoreProvider alloc] initWithSharedContainerDirectory:self.sharedContainerURL userIdentifier:self.userIdentifier contextDirectory:self.contextDirectory];
+
     self.applicationStatusDirectory = [[ApplicationStatusDirectory alloc] initWithManagedObjectContext:self.syncMOC cookieStorage:[[FakeCookieStorage alloc] init] requestCancellation:self application:self.application syncStateDelegate:self analytics:nil];
     
     NotificationDispatcher *notificationDispatcher =
-    [[NotificationDispatcher alloc] initWithManagedObjectContext:self.contextDirectory .uiContext];
+    [[NotificationDispatcher alloc] initWithManagedObjectContext:self.coreDataStack.viewContext];
     
     EventProcessingTracker *eventProcessingTracker = [[EventProcessingTracker alloc] init];
         
-    self.sut = [[ZMSyncStrategy alloc] initWithStoreProvider:self.storeProvider
-                                     notificationsDispatcher:notificationDispatcher
-                                  applicationStatusDirectory:self.applicationStatusDirectory
-                                                 application:self.application
-                                           strategyDirectory:mockStrategyDirectory
-                                      eventProcessingTracker:eventProcessingTracker];
+    self.sut = [[ZMSyncStrategy alloc] initWithContextProvider:self.coreDataStack
+                                       notificationsDispatcher:notificationDispatcher
+                                    applicationStatusDirectory:self.applicationStatusDirectory
+                                                   application:self.application
+                                             strategyDirectory:mockStrategyDirectory
+                                        eventProcessingTracker:eventProcessingTracker];
     
     self.application.applicationState = UIApplicationStateBackground;
     
@@ -161,7 +135,6 @@
     self.fetchRequestForTrackedObjects1 = nil;
     self.fetchRequestForTrackedObjects2 = nil;
     self.syncStateDelegate = nil;
-    self.storeProvider = nil;
     [self.sut tearDown];
     self.sut = nil;
     [super tearDown];
@@ -277,34 +250,6 @@
     
     // then
     XCTAssertEqualObjects(name, uiUser.name);
-}
-
-- (void)testThatContextChangeTrackerIsInformed_WhenObjectIsInserted_OnUIContext {
-    // given
-    NOT_USED([[ZMClientMessage alloc] initWithNonce:NSUUID.createUUID managedObjectContext:self.uiMOC]);
-    
-    // when
-    [self.uiMOC saveOrRollback];
-    WaitForAllGroupsToBeEmpty(0.5);
-    
-    // then
-    XCTAssertTrue(self.mockContextChangeTracker.objectsDidChangeCalled);
-}
-
-- (void)testThatContextChangeTrackerIsInformed_WhenObjectIsInserted_OnSyncContext {
-    // given
-    [self.syncMOC performGroupedBlockThenWaitForReasonableTimeout:^{
-        NOT_USED([[ZMClientMessage alloc] initWithNonce:NSUUID.createUUID managedObjectContext:self.syncMOC]);
-    }];
-    
-    // when
-    [self.syncMOC performGroupedBlockThenWaitForReasonableTimeout:^{
-        XCTAssertTrue([self.syncMOC saveOrRollback]);
-    }];
-    WaitForAllGroupsToBeEmpty(0.5);
-    
-    // then
-    XCTAssertTrue(self.mockContextChangeTracker.objectsDidChangeCalled);
 }
 
 - (void)testThatContextChangeTrackerIsInformed_WhenObjectIsUpdated_OnUIContext {
@@ -424,20 +369,6 @@
     // THEN
     ZMOTRMessage *uiMessage = [self.uiMOC existingObjectWithID:message.objectID error:nil];
     XCTAssertTrue(uiMessage.causedSecurityLevelDegradation);
-}
-
-- (void)testThatItNotifiesTheOperationLoopOfNewOperation_WhenContextIsSaved
-{
-    // expect
-    [self expectationForNotification:@"RequestAvailableNotification" object:nil handler:nil];
-    
-    // when
-    NOT_USED([[ZMClientMessage alloc] initWithNonce:NSUUID.createUUID managedObjectContext:self.uiMOC]);
-    [self.uiMOC saveOrRollback];
-    WaitForAllGroupsToBeEmpty(0.5);
-    
-    // then
-    XCTAssertTrue([self waitForCustomExpectationsWithTimeout:0.5]);
 }
 
 @end

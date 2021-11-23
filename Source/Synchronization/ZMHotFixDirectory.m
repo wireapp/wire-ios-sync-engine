@@ -200,7 +200,19 @@ static NSString* ZMLogTag ZM_UNUSED = @"HotFix";
                      patchWithVersion:@"354.0.1"
                      patchCode:^(NSManagedObjectContext *context) {
                         [ZMHotFixDirectory restartSlowSync:context];
-                    }]
+                    }],
+                    /// We need to refetch the users after qualified ID was introduced
+                    [ZMHotFixPatch
+                     patchWithVersion:@"372.1.2"
+                     patchCode:^(NSManagedObjectContext *context) {
+                         [ZMHotFixDirectory refetchUsers:context];
+                     }],
+                    /// We need to set implicit legalhold consent capability for the SelfClient
+                    [ZMHotFixPatch
+                     patchWithVersion:@"381.0.1"
+                     patchCode:^(NSManagedObjectContext *context){
+                         [ZMHotFixDirectory updateClientCapabilities:context];
+                     }],
                     ];
     });
     return patches;

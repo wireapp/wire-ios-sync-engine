@@ -21,8 +21,7 @@ import Foundation
 
 /// Downloads all team members during the slow sync.
 
-@objc
-public final class TeamMembersDownloadRequestStrategy: AbstractRequestStrategy {
+public final class TeamMembersDownloadRequestStrategy: AbstractRequestStrategy, ZMSingleRequestTranscoder {
     
     let syncStatus: SyncStatus
     var sync: ZMSingleRequestSync!
@@ -48,9 +47,7 @@ public final class TeamMembersDownloadRequestStrategy: AbstractRequestStrategy {
         return sync.nextRequest()
     }
     
-}
-
-extension TeamMembersDownloadRequestStrategy: ZMSingleRequestTranscoder {
+//MARK:- ZMSingleRequestTranscoder
     
     public func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
         guard let teamID = ZMUser.selfUser(in: managedObjectContext).teamIdentifier else {

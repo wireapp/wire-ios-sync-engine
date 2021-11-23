@@ -144,10 +144,10 @@ extension SessionManager: PKPushRegistryDelegate {
     }
     
     public func updatePushToken(for session: ZMUserSession) {
-        session.managedObjectContext.performGroupedBlock {
+        session.managedObjectContext.performGroupedBlock { [weak session] in
             // Refresh the tokens if needed
             if let token = self.pushRegistry.pushToken(for: .voIP) {
-                session.setPushKitToken(token)
+                session?.setPushKitToken(token)
             }
         }
     }

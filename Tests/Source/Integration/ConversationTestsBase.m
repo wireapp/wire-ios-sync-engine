@@ -18,7 +18,7 @@
 
 
 #import "ConversationTestsBase.h"
-#import "WireSyncEngine_iOS_Tests-Swift.h"
+#import "Tests-Swift.h"
 
 @interface ConversationTestsBase()
 

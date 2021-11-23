@@ -20,23 +20,23 @@ import Foundation
 
 @testable import WireSyncEngine
 
-class MockSessionManager : NSObject, WireSyncEngine.SessionManagerType {
-    
+class MockSessionManager: NSObject, WireSyncEngine.SessionManagerType {
+
     static let accountManagerURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("MockSessionManager.accounts")
-    
-    var foregroundNotificationResponder: ForegroundNotificationResponder? = nil
-    var callKitManager: WireSyncEngine.CallKitManager? = nil
+
+    var foregroundNotificationResponder: ForegroundNotificationResponder?
+    var callKitManager: WireSyncEngine.CallKitManager?
     var callNotificationStyle: CallNotificationStyle = .pushNotifications
     var accountManager: AccountManager = AccountManager(sharedDirectory: accountManagerURL)
-    var backgroundUserSessions: [UUID : ZMUserSession] = [:]
-    var mockUserSession: ZMUserSession? = nil
-    
+    var backgroundUserSessions: [UUID: ZMUserSession] = [:]
+    var mockUserSession: ZMUserSession?
+
     var lastRequestToShowMessage: (ZMUserSession, ZMConversation, ZMConversationMessage)?
     var lastRequestToShowConversation: (ZMUserSession, ZMConversation)?
     var lastRequestToShowConversationsList: ZMUserSession?
     var lastRequestToShowUserProfile: UserType?
     var lastRequestToShowConnectionRequest: UUID?
-        
+
     func showConversation(_ conversation: ZMConversation, at message: ZMConversationMessage?, in session: ZMUserSession) {
         if let message = message {
             lastRequestToShowMessage = (session, conversation, message)
@@ -44,41 +44,40 @@ class MockSessionManager : NSObject, WireSyncEngine.SessionManagerType {
             lastRequestToShowConversation = (session, conversation)
         }
     }
-    
+
     func showConversationList(in session: ZMUserSession) {
         lastRequestToShowConversationsList = session
     }
-    
+
     func showUserProfile(user: UserType) {
         lastRequestToShowUserProfile = user
     }
-    
+
     func showConnectionRequest(userId: UUID) {
         lastRequestToShowConnectionRequest = userId
     }
-    
-    
+
     @objc public var updatePushTokenCalled = false
     func updatePushToken(for session: ZMUserSession) {
         updatePushTokenCalled = true
     }
-    
+
     func updateAppIconBadge(accountID: UUID, unreadCount: Int) {
         // no-op
     }
-    
+
     func configureUserNotifications() {
         // no-op
     }
-    
+
     func update(credentials: ZMCredentials) -> Bool {
         return false
     }
-    
+
     func checkJailbreakIfNeeded() -> Bool {
         return false
     }
-    
+
     func passwordVerificationDidFail(with failCount: Int) {
         // no-op
     }

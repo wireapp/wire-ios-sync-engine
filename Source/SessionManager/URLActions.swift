@@ -29,6 +29,9 @@ public enum URLAction: Equatable {
     /// Start the SSO login flow
     case startCompanyLogin(code: UUID)
 
+    /// Join a public conversation
+    case joinConversation(key: String, code: String)
+
     /// Navigate to a conversation
     case openConversation(id: UUID)
 
@@ -47,7 +50,8 @@ public enum URLAction: Equatable {
 
     public var requiresAuthentication: Bool {
         switch self {
-        case .openConversation,
+        case .joinConversation,
+             .openConversation,
              .openUserProfile,
              .connectBot:
              return true
@@ -57,7 +61,8 @@ public enum URLAction: Equatable {
 
     public var opensDeepLink: Bool {
         switch self {
-        case .openConversation,
+        case .joinConversation,
+             .openConversation,
              .openUserProfile:
             return true
         default: return false
@@ -89,6 +94,16 @@ extension URLAction {
             } else {
                 throw DeepLinkRequestError.invalidUserLink
             }
+
+        case URL.DeepLink.conversationJoin:
+            guard
+                let key = components.query(for: URLQueryItem.Key.conversationKey),
+                let code = components.query(for: URLQueryItem.Key.conversationCode)
+            else {
+                throw DeepLinkRequestError.malformedLink
+            }
+
+            self = .joinConversation(key: key, code: code)
             
         case URL.DeepLink.conversation:
             if let lastComponent = url.pathComponents.last,
@@ -172,4 +187,11 @@ extension URLAction {
         return storedToken.matches(identifier: token)
     }
     
+}
+
+extension URLQueryItem.Key {
+
+    static let conversationKey = "key"
+    static let conversationCode = "code"
+
 }

@@ -20,7 +20,7 @@ import Foundation
 import avs
 
 @objc
-public protocol MediaManagerType: class {
+public protocol MediaManagerType: AnyObject {
  
     func setUiStartsAudio(_ enabled: Bool)
     func startAudio()

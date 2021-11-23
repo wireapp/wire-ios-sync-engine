@@ -21,7 +21,7 @@
 
 #import "ZMOperationLoop+Private.h"
 #import "ZMSyncStrategy.h"
-#import "WireSyncEngine_iOS_Tests-Swift.h"
+#import "Tests-Swift.h"
 #import "APNSTestsBase.h"
 
 @interface APNSTests : APNSTestsBase

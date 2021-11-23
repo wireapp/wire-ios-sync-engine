@@ -26,7 +26,7 @@
 #import "ZMAuthenticationStatus.h"
 #import "ZMCredentials.h"
 #import "ZMAuthenticationStatus.h"
-#import "WireSyncEngine_iOS_Tests-Swift.h"
+#import "Tests-Swift.h"
 
 @interface ZMLoginCodeRequestTranscoderTests : MessagingTest
 

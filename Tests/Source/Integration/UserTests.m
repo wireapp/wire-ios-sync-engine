@@ -24,7 +24,7 @@
 @import WireRequestStrategy;
 
 #import "ZMUser+Testing.h"
-#import "WireSyncEngine_iOS_Tests-Swift.h"
+#import "Tests-Swift.h"
 
 @interface UserTests : IntegrationTest
 

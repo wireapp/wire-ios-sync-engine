@@ -19,25 +19,8 @@
 
 #import <Foundation/Foundation.h>
 #include "ZMUserSessionTestsBase.h"
-#import "WireSyncEngine_iOS_Tests-Swift.h"
+#import "Tests-Swift.h"
 @import WireSyncEngine;
-
-
-@implementation MockLocalStoreProvider
-
-- (instancetype)initWithSharedContainerDirectory:(NSURL *)sharedContainerDirectory userIdentifier:(NSUUID *)userIdentifier contextDirectory:(ManagedObjectContextDirectory *)contextDirectory
-{
-    self = [super init];
-    if (self) {
-        self.userIdentifier = userIdentifier;
-        self.accountContainer = [[sharedContainerDirectory URLByAppendingPathComponent:@"AccountData"] URLByAppendingPathComponent:userIdentifier.UUIDString];
-        self.applicationContainer = sharedContainerDirectory;
-        self.contextDirectory = contextDirectory;
-    }
-    return self;
-}
-
-@end
 
 @implementation ThirdPartyServices
 
@@ -66,28 +49,12 @@
     self.mockSessionManager = [[MockSessionManager alloc] init];
     self.mediaManager = [[MockMediaManager alloc] init];
     self.flowManagerMock = [[FlowManagerMock alloc] init];
-    self.storeProvider = [[MockLocalStoreProvider alloc] initWithSharedContainerDirectory:self.sharedContainerURL userIdentifier:self.userIdentifier contextDirectory:self.contextDirectory];
 
     NSUUID *userId = [NSUUID createUUID];
     [ZMUser selfUserInContext:self.syncMOC].remoteIdentifier = userId;
     
-    MockStrategyDirectory *mockStrategyDirectory = [[MockStrategyDirectory alloc] init];
-    MockUpdateEventProcessor *mockUpdateEventProcessor = [[MockUpdateEventProcessor alloc] init];
-    
-    self.sut = [[ZMUserSession alloc] initWithUserId:userId
-                                    transportSession:self.transportSession
-                                        mediaManager:self.mediaManager
-                                         flowManager:self.flowManagerMock
-                                           analytics:nil
-                                      eventProcessor:mockUpdateEventProcessor
-                                   strategyDirectory:mockStrategyDirectory
-                                        syncStrategy:nil
-                                       operationLoop:nil
-                                         application:self.application
-                                          appVersion:@"00000"
-                                       storeProvider:self.storeProvider
-                                       configuration:ZMUserSessionConfiguration.defaultConfig];
-        
+    [self createSutWithUserId:userId];
+
     self.sut.thirdPartyServicesDelegate = self.thirdPartyServices;
     self.sut.sessionManager = (id<SessionManagerType>)self.mockSessionManager;
     
@@ -98,21 +65,12 @@
 
 - (void)tearDown
 {
-    [self tearDownUserInfoObjectsOfMOC:self.syncMOC];
-    [self.syncMOC.userInfo removeAllObjects];
-    
-    [self tearDownUserInfoObjectsOfMOC:self.uiMOC];
-    [self.uiMOC.userInfo removeAllObjects];
-    
-    [super cleanUpAndVerify];
     NSURL *cachesURL = [[NSFileManager defaultManager] cachesURLForAccountWith:self.userIdentifier in:self.sut.sharedContainerURL];
     NSArray *items = [[NSFileManager defaultManager] contentsOfDirectoryAtURL:cachesURL includingPropertiesForKeys:nil options:0 error:nil];
     for (NSURL *item in items) {
         [[NSFileManager defaultManager] removeItemAtURL:item error:nil];
     }
     
-    self.storeProvider = nil;
-
     self.baseURL = nil;
     self.cookieStorage = nil;
     self.validCookie = nil;

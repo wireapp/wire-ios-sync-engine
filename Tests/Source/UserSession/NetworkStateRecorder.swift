@@ -19,27 +19,27 @@
 import Foundation
 
 @objcMembers
-public class NetworkStateRecorder : NSObject, ZMNetworkAvailabilityObserver {
-    
+public class NetworkStateRecorder: NSObject, ZMNetworkAvailabilityObserver {
+
     var stateChanges: [ZMNetworkState] = []
     var stateChanges_objc: [NSNumber] {
         stateChanges.map { NSNumber(value: $0.rawValue) }
     }
-    
+
     var observerToken: Any?
-    
+
     public override init() {
         super.init()
     }
-    
+
     init(userSession: ZMUserSession) {
         super.init()
-        
+
         observerToken = ZMNetworkAvailabilityChangeNotification.addNetworkAvailabilityObserver(self, userSession: userSession)
     }
-    
+
     public func didChangeAvailability(newState: ZMNetworkState) {
         stateChanges.append(newState)
     }
-    
+
 }

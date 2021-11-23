@@ -29,7 +29,6 @@
 #import <WireSyncEngine/ZMAuthenticationStatus.h>
 #import <WireSyncEngine/ZMClientRegistrationStatus.h>
 #import <WireSyncEngine/ZMAPSMessageDecoder.h>
-#import <WireSyncEngine/ZMUserTranscoder.h>
 #import <WireSyncEngine/NSError+ZMUserSessionInternal.h>
 #import <WireSyncEngine/ZMOperationLoop.h>
 #import <WireSyncEngine/ZMOperationLoop+Private.h>
@@ -40,10 +39,8 @@
 #import <WireSyncEngine/ZMLoginTranscoder.h>
 #import <WireSyncEngine/ZMLoginCodeRequestTranscoder.h>
 #import <WireSyncEngine/ZMLastUpdateEventIDTranscoder.h>
-#import <WireSyncEngine/ZMConnectionTranscoder.h>
 #import <WireSyncEngine/ZMSelfStrategy.h>
 #import <WireSyncEngine/ZMHotFix.h>
 #import <WireSyncEngine/ZMSyncStrategy.h>
 #import <WireSyncEngine/ZMUpdateEventsBuffer.h>
-#import <WireSyncEngine/ZMConversationTranscoder.h>
 #import <WireSyncEngine/ZMMissingUpdateEventsTranscoder.h>

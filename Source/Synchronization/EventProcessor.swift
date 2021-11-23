@@ -23,7 +23,7 @@ extension NSNotification.Name {
 }
 
 @objc
-public protocol UpdateEventProcessor: class {
+public protocol UpdateEventProcessor: AnyObject {
             
     @objc(storeUpdateEvents:ignoreBuffer:)
     func storeUpdateEvents(_ updateEvents: [ZMUpdateEvent], ignoreBuffer: Bool)
@@ -53,13 +53,11 @@ class EventProcessor: UpdateEventProcessor {
     
     // MARK: Life Cycle
     
-    init(storeProvider: LocalStoreProviderProtocol,
+    init(storeProvider: CoreDataStack,
          syncStatus: SyncStatus,
          eventProcessingTracker: EventProcessingTrackerProtocol) {
-        self.syncContext = storeProvider.contextDirectory.syncContext
-        self.eventContext = NSManagedObjectContext.createEventContext(withSharedContainerURL: storeProvider.applicationContainer,
-                                                                      userIdentifier: storeProvider.userIdentifier)
-        self.eventContext.add(syncContext.dispatchGroup)
+        self.syncContext = storeProvider.syncContext
+        self.eventContext = storeProvider.eventContext
         self.syncStatus = syncStatus
         self.eventDecoder = EventDecoder(eventMOC: eventContext, syncMOC: syncContext)
         self.eventProcessingTracker = eventProcessingTracker

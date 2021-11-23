@@ -151,7 +151,7 @@ extension ZMUserSession {
     
     /// Count number of conversations with unread messages and update the application icon badge count.
     func calculateBadgeCount() {
-        let accountID = storeProvider.userIdentifier
+        let accountID = coreDataStack.account.userIdentifier
         let unreadCount = Int(ZMConversation.unreadConversationCount(in: self.syncManagedObjectContext))
         Logging.push.safePublic("Updating badge count for \(accountID) to \(SanitizedString(stringLiteral: String(unreadCount)))")
         self.sessionManager?.updateAppIconBadge(accountID: accountID, unreadCount: unreadCount)

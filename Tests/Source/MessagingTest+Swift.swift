@@ -19,10 +19,11 @@
 @testable import WireSyncEngine
 
 extension MessagingTest {
+
     public func createClientTextMessage() -> ZMClientMessage? {
         return createClientTextMessageWith(text: self.name)
     }
-    
+
     public func createClientTextMessageWith(text: String) -> ZMClientMessage? {
         let nonce = UUID.create()
         let message = ZMClientMessage.init(nonce: nonce, managedObjectContext: self.syncMOC)
@@ -36,5 +37,20 @@ extension MessagingTest {
             return nil
         }
         return message
+    }
+
+    @objc
+    public func createCoreDataStack() -> CoreDataStack {
+        let account = Account(userName: "", userIdentifier: userIdentifier)
+        let stack = CoreDataStack(account: account,
+                                  applicationContainer: sharedContainerURL,
+                                  inMemoryStore: shouldUseInMemoryStore,
+                                  dispatchGroup: dispatchGroup)
+
+        stack.loadStores(completionHandler: { error in
+            XCTAssertNil(error)
+        })
+
+        return stack
     }
 }

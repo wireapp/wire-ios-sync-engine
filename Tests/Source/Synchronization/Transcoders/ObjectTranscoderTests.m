@@ -18,7 +18,7 @@
 
 
 #import "ObjectTranscoderTests.h"
-#import "WireSyncEngine_iOS_Tests-Swift.h"
+#import "Tests-Swift.h"
 
 @implementation ObjectTranscoderTests
 

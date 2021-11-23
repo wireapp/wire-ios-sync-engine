@@ -20,6 +20,7 @@
 import WireDataModel
 
 // MARK: - Initial sync
+
 @objc public protocol ZMInitialSyncCompletionObserver: NSObjectProtocol
 {
     func initialSyncCompleted()
@@ -54,6 +55,7 @@ extension ZMUserSession {
 }
 
 // MARK: - Network Availability
+
 @objcMembers public class ZMNetworkAvailabilityChangeNotification : NSObject {
 
     private static let name = Notification.Name(rawValue: "ZMNetworkAvailabilityChangeNotification")
@@ -81,6 +83,7 @@ extension ZMUserSession {
 
 
 // MARK: - Typing
+
 private let typingNotificationUsersKey = "typingUsers"
 
 extension ZMConversation {
@@ -114,31 +117,7 @@ extension ZMConversation {
     func typingDidChange(conversation: ZMConversation, typingUsers: [UserType])
 }
 
-// MARK: - Connection limit reached
-@objc public protocol ZMConnectionLimitObserver: NSObjectProtocol {
-    
-    func connectionLimitReached()
-}
-
-
-@objcMembers public class ZMConnectionLimitNotification : NSObject {
-
-    private static let name = Notification.Name(rawValue: "ZMConnectionLimitReachedNotification")
-    
-    public static func addConnectionLimitObserver(_ observer: ZMConnectionLimitObserver, context: NSManagedObjectContext) -> Any {
-        return NotificationInContext.addObserver(name: self.name, context: context.notificationContext) {
-            [weak observer] _ in
-            observer?.connectionLimitReached()
-        }
-    }
-    
-    @objc(notifyInContext:)
-    public static func notify(context: NSManagedObjectContext) {
-        NotificationInContext(name: self.name, context: context.notificationContext).post()
-    }
-}
-
-// MARK: Encryption at rest
+// MARK: - Encryption at rest
 
 public struct DatabaseEncryptionLockNotification: SelfPostingNotification {
         
@@ -147,7 +126,3 @@ public struct DatabaseEncryptionLockNotification: SelfPostingNotification {
     var databaseIsEncrypted: Bool
     
 }
-
-
-
-

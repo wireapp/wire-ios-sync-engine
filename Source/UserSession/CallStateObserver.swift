@@ -35,11 +35,11 @@ public final class CallStateObserver : NSObject {
     fileprivate let systemMessageGenerator = CallSystemMessageGenerator()
     
     @objc public init(localNotificationDispatcher: LocalNotificationDispatcher,
-                      contextProvider: ZMManagedObjectContextProvider,
+                      contextProvider: ContextProvider,
                       callNotificationStyleProvider: CallNotificationStyleProvider) {
         
-        self.uiContext = contextProvider.managedObjectContext
-        self.syncContext = contextProvider.syncManagedObjectContext
+        self.uiContext = contextProvider.viewContext
+        self.syncContext = contextProvider.syncContext
         self.notificationStyleProvider = callNotificationStyleProvider
         self.localNotificationDispatcher = localNotificationDispatcher
         
@@ -73,8 +73,8 @@ extension CallStateObserver : WireCallCenterCallStateObserver, WireCallCenterMis
             guard
                 let callerId = callerId,
                 let conversationId = conversationId,
-                let conversation = ZMConversation(remoteID: conversationId, createIfNeeded: false, in: self.syncContext),
-                let caller = ZMUser(remoteID: callerId, createIfNeeded: false, in: self.syncContext)
+                let conversation = ZMConversation.fetch(with: conversationId, in: self.syncContext),
+                let caller = ZMUser.fetch(with: callerId, in: self.syncContext)
             else {
                 return
             }
@@ -150,8 +150,8 @@ extension CallStateObserver : WireCallCenterCallStateObserver, WireCallCenterMis
             guard
                 let callerId = callerId,
                 let conversationId = conversationId,
-                let conversation = ZMConversation(remoteID: conversationId, createIfNeeded: false, in: self.syncContext),
-                let caller = ZMUser(remoteID: callerId, createIfNeeded: false, in: self.syncContext)
+                let conversation =  ZMConversation.fetch(with: conversationId, in: self.syncContext),
+                let caller = ZMUser.fetch(with: callerId, in: self.syncContext)
                 else {
                     return
             }

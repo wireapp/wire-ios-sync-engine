@@ -38,6 +38,8 @@ public struct SearchOptions : OptionSet {
     public static let conversations = SearchOptions(rawValue: 1 << 6)
     /// Services which are enabled in your team
     public static let services = SearchOptions(rawValue: 1 << 7)
+    /// Users from federated servers
+    public static let federated = SearchOptions(rawValue: 1 << 8)
     
     public init(rawValue: Int) {
         self.rawValue = rawValue
@@ -73,6 +75,21 @@ public struct SearchRequest {
     
     var normalizedQuery: String {
         return query.normalizedAndTrimmed()
+    }
+
+    var handleAndDomain: (String, String)? {
+        let components = query.split(separator: "@")
+            .map({ String($0).trimmingCharacters(in: .whitespaces).lowercased() })
+            .filter({ !$0.isEmpty })
+
+        guard
+            let handle = components.element(atIndex: 0),
+            let domain = components.element(atIndex: 1)
+        else {
+            return nil
+        }
+
+        return (String(handle), String(domain))
     }
     
 }

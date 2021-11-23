@@ -22,7 +22,7 @@
 @import UIKit;
 
 #import "IntegrationTest.h"
-#import "WireSyncEngine_iOS_Tests-Swift.h"
+#import "Tests-Swift.h"
 #import <WireSyncEngine/WireSyncEngine.h>
 
 @implementation IntegrationTest
@@ -52,11 +52,6 @@
     [NSFileManager.defaultManager removeItemAtURL:[MockUserClient mockEncryptionSessionDirectory] error:nil];
     
     [super tearDown];
-}
-
-
-- (SessionManagerConfiguration *)sessionManagerConfiguration {
-    return [SessionManagerConfiguration defaultConfiguration];
 }
 
 - (BOOL)useInMemoryStore

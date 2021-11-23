@@ -37,12 +37,12 @@ extension ZMConversation {
     ///
     /// Only team conversations can be deleted.
     public func delete(in userSession: ZMUserSession, completion: @escaping (VoidResult) -> Void) {
-        delete(in: userSession, transportSession: userSession.transportSession, completion: completion)
+        delete(in: userSession.coreDataStack, transportSession: userSession.transportSession, completion: completion)
     }
         
-    func delete(in contextProvider: ZMManagedObjectContextProvider, transportSession: TransportSessionType, completion: @escaping (VoidResult) -> Void) {
+    func delete(in contextProvider: ContextProvider, transportSession: TransportSessionType, completion: @escaping (VoidResult) -> Void) {
         
-        guard ZMUser.selfUser(in: contextProvider.managedObjectContext).canDeleteConversation(self),
+        guard ZMUser.selfUser(in: contextProvider.viewContext).canDeleteConversation(self),
               let conversationId = remoteIdentifier,
               let request = ConversationDeletionRequestFactory.requestForDeletingTeamConversation(self)
         else {
@@ -54,10 +54,10 @@ extension ZMConversation {
             
             if response.httpStatus == 200 {
                 
-                contextProvider.syncManagedObjectContext.performGroupedBlock {
-                    guard let conversation = ZMConversation(remoteID: conversationId, createIfNeeded: false, in: contextProvider.syncManagedObjectContext) else { return }
-                    contextProvider.syncManagedObjectContext.delete(conversation)
-                    contextProvider.syncManagedObjectContext.saveOrRollback()
+                contextProvider.syncContext.performGroupedBlock {
+                    guard let conversation = ZMConversation.fetch(with: conversationId, domain: nil, in: contextProvider.syncContext) else { return }
+                    contextProvider.syncContext.delete(conversation)
+                    contextProvider.syncContext.saveOrRollback()
                 }
                 
                 completion(.success)

@@ -22,7 +22,7 @@ import Foundation
 @objcMembers public class SearchDirectory : NSObject {
     
     let searchContext: NSManagedObjectContext
-    let contextProvider: ZMManagedObjectContextProvider
+    let contextProvider: ContextProvider
     let transportSession: TransportSessionType
     var isTornDown = false
     
@@ -34,7 +34,7 @@ import Foundation
         self.init(searchContext: userSession.searchManagedObjectContext, contextProvider: userSession, transportSession: userSession.transportSession)
     }
     
-    init(searchContext: NSManagedObjectContext, contextProvider: ZMManagedObjectContextProvider, transportSession: TransportSessionType) {
+    init(searchContext: NSManagedObjectContext, contextProvider: ContextProvider, transportSession: TransportSessionType) {
         self.searchContext = searchContext
         self.contextProvider = contextProvider
         self.transportSession = transportSession
@@ -68,9 +68,10 @@ import Foundation
     }
     
     func observeSearchUsers(_ result : SearchResult) {
-        let searchUserObserverCenter = contextProvider.managedObjectContext.searchUserObserverCenter
+        let searchUserObserverCenter = contextProvider.viewContext.searchUserObserverCenter
         result.directory.forEach(searchUserObserverCenter.addSearchUser)
         result.services.compactMap { $0 as? ZMSearchUser }.forEach(searchUserObserverCenter.addSearchUser)
+        try? result.federation.get().forEach(searchUserObserverCenter.addSearchUser)
     }
     
 }
@@ -81,10 +82,10 @@ extension SearchDirectory: TearDownCapable {
     /// NOTE: this must be called before releasing the instance
     public func tearDown() {
         // Evict all cached search users
-        contextProvider.managedObjectContext.zm_searchUserCache?.removeAllObjects()
+        contextProvider.viewContext.zm_searchUserCache?.removeAllObjects()
 
         // Reset search user observer center to remove unnecessarily observed search users
-        contextProvider.managedObjectContext.searchUserObserverCenter.reset()
+        contextProvider.viewContext.searchUserObserverCenter.reset()
 
         isTornDown = true
     }

@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2017 Wire Swiss GmbH
+// Copyright (C) 2021 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@
 import WireDataModel
 
 extension ConversationListChangeInfo {
-    @objc(addObserver:forList:userSession:)
     public static func add(observer: ZMConversationListObserver,
                            for list: ZMConversationList,
                            userSession: ZMUserSession
@@ -27,9 +26,7 @@ extension ConversationListChangeInfo {
         return self.addListObserver(observer, for: list, managedObjectContext: userSession.managedObjectContext)
     }
     
-    @objc(addConversationListReloadObserver:userSession:)
     public static func add(observer: ZMConversationListReloadObserver, userSession: ZMUserSession) -> NSObjectProtocol {
         return addReloadObserver(observer, managedObjectContext: userSession.managedObjectContext)
     }
 }
-

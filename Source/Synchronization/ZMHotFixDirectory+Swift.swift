@@ -36,7 +36,11 @@ import Foundation
         
         context.enqueueDelayedSave()
     }
-    
+
+    public static func updateClientCapabilities(_ context: NSManagedObjectContext) {
+        UserClient.triggerSelfClientCapabilityUpdate(context)
+    }
+
     /// In the model schema version 2.6 we removed the flags `needsToUploadMedium` and `needsToUploadPreview` on `ZMAssetClientMessage`
     /// and introduced an enum called `ZMAssetUploadedState`. During the migration this value will be set to `.Done` on all `ZMAssetClientMessages`.
     /// There is an edge case in which the user has such a message in his database which is not yet uploaded and we want to upload it again, thus

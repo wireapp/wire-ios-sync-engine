@@ -169,7 +169,7 @@ extension NotificationUserInfo {
             return nil
         }
 
-        return ZMConversation(remoteID: remoteID, createIfNeeded: false, in: managedObjectContext)
+        return ZMConversation.fetch(with: remoteID, domain: nil, in: managedObjectContext)
     }
 
     /**
@@ -200,7 +200,7 @@ extension NotificationUserInfo {
             return nil
         }
 
-        return ZMUser(remoteID: senderID, createIfNeeded: false, in: managedObjectContext)
+        return ZMUser.fetch(with: senderID, domain: nil, in: managedObjectContext)
     }
 
 }

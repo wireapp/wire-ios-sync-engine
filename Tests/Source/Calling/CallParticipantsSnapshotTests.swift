@@ -31,6 +31,12 @@ class CallParticipantsSnapshotTests: MessagingTest {
     private var aliceDesktop: AVSClient!
     private var bobIphone: AVSClient!
     private var bobDesktop: AVSClient!
+    private var conversationId = UUID()
+    private var selfUser: ZMUser!
+    private var user2: ZMUser!
+    private var selfClient: UserClient!
+    private var client1: UserClient!
+    private var client2: UserClient!
 
     override func setUp() {
         super.setUp()
@@ -53,11 +59,16 @@ class CallParticipantsSnapshotTests: MessagingTest {
     override func tearDown() {
         mockFlowManager = nil
         mockWireCallCenterV3 = nil
+        selfUser = nil
+        selfClient = nil
+        user2 = nil
+        client1 = nil
+        client2 = nil
         super.tearDown()
     }
 
     private func createSut(members: [AVSCallMember]) -> Sut {
-        return Sut(conversationId: UUID(), members: members, callCenter: mockWireCallCenterV3)
+        return Sut(conversationId: conversationId, members: members, callCenter: mockWireCallCenterV3)
     }
 
     // MARK: - Duplicates
@@ -219,6 +230,93 @@ class CallParticipantsSnapshotTests: MessagingTest {
         XCTAssertEqual(sut.members.array, [updatedMember1, member2])
     }
 
+    // MARK: - Call Degradation
+
+    func testThat_ItDegradesCallSecurity_WithCorrectUser_WhenUserBecomesUnverified() {
+        // Given / When
+        setupCallSnapshot()
+        setupUsersAndClients()
+        setupDegradationTest(degradedClient: client2)
+
+        // Then
+        XCTAssertTrue(mockWireCallCenterV3.mockAVSWrapper.didCallEndCall)
+        XCTAssertEqual(mockWireCallCenterV3.callSnapshots[conversationId]!.degradedUser, user2)
+    }
+
+    func testThat_ItDegradesCallSecurity_WithSelfUser_WhenSelfUserBecomesUnverified() {
+        // Given
+        setupCallSnapshot()
+        setupUsersAndClients()
+        setupDegradationTest(degradedClient: client1)
+
+        // Then
+        XCTAssertTrue(mockWireCallCenterV3.mockAVSWrapper.didCallEndCall)
+        XCTAssertEqual(mockWireCallCenterV3.callSnapshots[conversationId]!.degradedUser, selfUser)
+    }
+
+    func setupCallSnapshot() {
+        mockWireCallCenterV3.callSnapshots[conversationId] = CallSnapshot(
+            callParticipants: CallParticipantsSnapshot(conversationId: conversationId, members: [], callCenter: mockWireCallCenterV3),
+            callState: .established,
+            callStarter: aliceIphone.userId,
+            isVideo: false,
+            isGroup: true,
+            isConstantBitRate: false,
+            videoState: .stopped,
+            networkQuality: .normal,
+            isConferenceCall: true,
+            degradedUser: nil,
+            activeSpeakers: [],
+            videoGridPresentationMode: .allVideoStreams,
+            conversationObserverToken: nil
+        )
+    }
+
+    private func setupUsersAndClients() {
+        performPretendingUiMocIsSyncMoc {
+            self.selfUser = ZMUser.selfUser(in: self.uiMOC)
+            self.selfUser.remoteIdentifier = self.aliceIphone.userId
+
+            self.selfClient = UserClient.insertNewObject(in: self.uiMOC)
+            self.selfClient.user = self.selfUser
+            self.selfClient.remoteIdentifier = self.aliceIphone.clientId
+            self.uiMOC.setPersistentStoreMetadata(self.selfClient.remoteIdentifier, key: "PersistedClientId")
+
+            self.client1 = UserClient.insertNewObject(in: self.uiMOC)
+            self.client1.user = self.selfUser
+            self.client1.remoteIdentifier = self.aliceDesktop.clientId
+
+            self.user2 = ZMUser.fetchOrCreate(with: self.bobIphone.userId, domain: nil, in: self.uiMOC)
+
+            self.client2 = UserClient.insertNewObject(in: self.uiMOC)
+            self.client2.user = self.user2
+            self.client2.remoteIdentifier = self.bobIphone.clientId
+
+            self.uiMOC.saveOrRollback()
+        }
+
+        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.2))
+    }
+
+    private func setupDegradationTest(degradedClient: UserClient) {
+        // Given
+        let sut = createSut(members: [])
+
+        // trust clients
+        client2.trustClient(selfClient)
+        selfClient.trustClients([client1, client2])
+
+        // Create call members
+        let member1 = AVSCallMember(client: aliceIphone, microphoneState: .unmuted)
+        let member2 = AVSCallMember(client: bobIphone, microphoneState: .unmuted)
+
+        // setup participants list
+        sut.callParticipantsChanged(participants: [member1, member2])
+
+        // When
+        selfClient.ignoreClient(degradedClient)
+        sut.callParticipantsChanged(participants: [member1, member2])
+    }
 }
 
 private extension AVSCallMember {

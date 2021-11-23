@@ -94,6 +94,16 @@ public final class UserClientRequestFactory {
         })
         return completionHandler
     }
+
+    func storeCapabilitiesHandler(_ client: UserClient) -> ZMCompletionHandler {
+        let completionHandler = ZMCompletionHandler(on: client.managedObjectContext!, block: { [weak client] response in
+            guard let client = client else { return }
+            if response.result == .success {
+                client.needsToUpdateCapabilities = false
+            }
+        })
+        return completionHandler
+    }
     
     internal func payloadForPreKeys(_ client: UserClient, startIndex: UInt16 = 0) throws -> (payload: [[String: Any]], maxRange: UInt16) {
         //we don't want to generate new prekeys if we already have them
@@ -160,6 +170,19 @@ public final class UserClientRequestFactory {
             return ZMUpstreamRequest(keys: Set(arrayLiteral: ZMUserClientNeedsToUpdateSignalingKeysKey), transportRequest: request, userInfo: nil)
         }
         throw UserClientRequestError.clientNotRegistered
+    }
+
+    public func updateClientCapabilitiesRequest(_ client: UserClient) throws -> ZMUpstreamRequest? {
+        guard let remoteIdentifier = client.remoteIdentifier else {
+            throw UserClientRequestError.clientNotRegistered
+        }
+        let payload: [String: Any] = [
+            "capabilities": ["legalhold-implicit-consent"]
+        ]
+        let request = ZMTransportRequest(path: "/clients/\(remoteIdentifier)", method: ZMTransportRequestMethod.methodPUT, payload: payload as ZMTransportData)
+        request.add(storeCapabilitiesHandler(client))
+
+        return ZMUpstreamRequest(keys: Set(arrayLiteral: ZMUserClientNeedsToUpdateCapabilitiesKey), transportRequest: request, userInfo: nil)
     }
     
     /// Password needs to be set

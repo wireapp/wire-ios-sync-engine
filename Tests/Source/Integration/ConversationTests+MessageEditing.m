@@ -22,7 +22,7 @@
 
 #import "ConversationTestsBase.h"
 #import "NotificationObservers.h"
-#import "WireSyncEngine_iOS_Tests-Swift.h"
+#import "Tests-Swift.h"
 
 @interface ConversationTests_MessageEditing : ConversationTestsBase
 
