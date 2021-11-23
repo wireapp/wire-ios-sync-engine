@@ -19,21 +19,21 @@
 import Foundation
 
 protocol CompanyLoginURLActionProcessorDelegate: AnyObject {
-    
+
     var isAllowedToCreateNewAccount: Bool { get }
-    
+
 }
 
 class CompanyLoginURLActionProcessor: URLActionProcessor {
-    
+
     private weak var delegate: CompanyLoginURLActionProcessorDelegate?
     private var authenticationStatus: ZMAuthenticationStatus
-    
+
     init(delegate: CompanyLoginURLActionProcessorDelegate, authenticationStatus: ZMAuthenticationStatus) {
         self.delegate = delegate
         self.authenticationStatus = authenticationStatus
     }
-    
+
     func process(urlAction: URLAction, delegate presentationDelegate: PresentationDelegate?) {
         switch urlAction {
         case .companyLoginSuccess(let userInfo):
@@ -47,11 +47,11 @@ class CompanyLoginURLActionProcessor: URLActionProcessor {
         default:
             break
         }
-        
+
         // Delete the url scheme verification token
         CompanyLoginVerificationToken.flush()
-        
+
         presentationDelegate?.completedURLAction(urlAction)
     }
-    
+
 }
