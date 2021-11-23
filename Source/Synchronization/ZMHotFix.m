@@ -62,7 +62,7 @@ NSString * const ZMSkipHotfix = @"ZMSkipHotfix";
     }
     
    /// Normally we fetch the short version from the framework bundle, but it's not working so we hardcode the version.
-    NSString * currentVersionString = @"402";
+    NSString * currentVersionString = @"402.0.0";
     [self applyPatchesForCurrentVersion:currentVersionString];
 }
 
