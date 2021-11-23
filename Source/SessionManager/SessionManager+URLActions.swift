@@ -71,7 +71,7 @@ extension SessionManager {
         })
     }
     
-    public func processPendingURLAction() {
+    public func processPendingURLActionRequiresAuthentication() {
         if let action = pendingURLAction, action.requiresAuthentication,
            let userSession = activeUserSession {
             process(urlAction: action, on: userSession)
@@ -79,7 +79,7 @@ extension SessionManager {
         }
     }
 
-    public func processLoginPendingURLAction() {
+    public func processPendingURLActionDoesNotRequireAuthentication() {
         if let action = pendingURLAction, !action.requiresAuthentication {
             process(urlAction: action, on: activeUnauthenticatedSession)
             pendingURLAction = nil
@@ -90,7 +90,7 @@ extension SessionManager {
         guard let delegate = delegate else {
             return false
         }
-        return delegate.isAuthenticated || delegate.isUnauthenticated
+        return delegate.isInAuthenticatedAppState || delegate.isInUnathenticatedAppState
     }
     
 }

@@ -1535,8 +1535,13 @@ extension SessionManagerTests {
 // MARK: - Mocks
 class SessionManagerTestDelegate: SessionManagerDelegate {
     var onLogout: ((NSError?) -> Void)?
-    var isAuthenticated: Bool = true
-    var isUnauthenticated: Bool = false
+    var appState = "authenticated"
+    var isInAuthenticatedAppState: Bool {
+        return appState == "authenticated"
+    }
+    var isInUnathenticatedAppState: Bool {
+        return appState == "unauthenticated"
+    }
     func sessionManagerWillLogout(error: Error?, userSessionCanBeTornDown: (() -> Void)?) {
         onLogout?(error as NSError?)
         userSessionCanBeTornDown?()

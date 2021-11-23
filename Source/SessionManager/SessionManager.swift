@@ -56,8 +56,8 @@ public protocol SessionManagerDelegate: SessionActivationObserver {
     func sessionManagerDidBlacklistCurrentVersion()
     func sessionManagerDidBlacklistJailbrokenDevice()
 
-    var isAuthenticated: Bool { get }
-    var isUnauthenticated: Bool { get }
+    var isInAuthenticatedAppState: Bool { get }
+    var isInUnathenticatedAppState: Bool { get }
 }
 
 /// The public interface for the session manager.
@@ -422,6 +422,7 @@ public final class SessionManager : NSObject, SessionManagerType {
     }
     
     public func start(launchOptions: LaunchOptions) {
+//        pendingURLAction = .startLogin
         if let account = accountManager.selectedAccount {
             selectInitialAccount(account, launchOptions: launchOptions)
         } else {
@@ -633,7 +634,7 @@ public final class SessionManager : NSObject, SessionManagerType {
 
     func performPostUnlockActionsIfPossible(for session: ZMUserSession) {
         guard session.lock == .none else { return }
-        processPendingURLAction()
+        processPendingURLActionRequiresAuthentication()
     }
 
     // Loads user session for @c account given and executes the @c action block.
