@@ -3,7 +3,9 @@ name: "Semantic Commit Linting of PR titles"
 on:
   pull_request:
     types: [ opened, edited, synchronize ]
-
+  pull_request_review:
+    types:
+      - submitted
 jobs:
   semantic-commit-pr-title-lint:
     runs-on: ubuntu-latest
