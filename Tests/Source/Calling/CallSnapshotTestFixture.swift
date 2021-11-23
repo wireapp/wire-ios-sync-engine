@@ -21,15 +21,15 @@ import Foundation
 
 struct CallSnapshotTestFixture {
     static func degradedCallSnapshot(conversationId: UUID, user: ZMUser, callCenter: WireCallCenterV3) -> CallSnapshot {
-        
+
         let callMember = AVSCallMember(client: AVSClient(userId: user.remoteIdentifier, clientId: UUID().transportString()))
-        
+
         let callParticipantSnapshot = CallParticipantsSnapshot(
             conversationId: conversationId,
             members: [callMember],
             callCenter: callCenter
         )
-        
+
         return CallSnapshot(
             callParticipants: callParticipantSnapshot,
             callState: .established,
@@ -46,15 +46,15 @@ struct CallSnapshotTestFixture {
             conversationObserverToken: nil
         )
     }
-    
+
     static func callSnapshot(conversationId: UUID, callCenter: WireCallCenterV3, clients: [AVSClient]) -> CallSnapshot {
-              
+
         let callParticipantsSnapshot = CallParticipantsSnapshot(
             conversationId: conversationId,
             members: clients.map { AVSCallMember(client: $0) },
             callCenter: callCenter
         )
-        
+
         return CallSnapshot(
             callParticipants: callParticipantsSnapshot,
             callState: .established,

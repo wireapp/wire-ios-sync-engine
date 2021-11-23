@@ -23,12 +23,12 @@ import XCTest
 
 class CallParticipantsKindTests: XCTestCase {
     var client: AVSClient!
-    
+
     override func setUp() {
         super.setUp()
         client = AVSClient(userId: UUID(), clientId: UUID().transportString())
     }
-    
+
     private var realTimeActiveSpeaker: AVSActiveSpeakersChange.ActiveSpeaker {
         AVSActiveSpeakersChange.ActiveSpeaker(
             userId: client.userId,
@@ -37,7 +37,7 @@ class CallParticipantsKindTests: XCTestCase {
             audioLevelNow: 100
         )
     }
-    
+
     private var smoothedActiveSpeaker: AVSActiveSpeakersChange.ActiveSpeaker {
         AVSActiveSpeakersChange.ActiveSpeaker(
             userId: client.userId,
@@ -46,28 +46,28 @@ class CallParticipantsKindTests: XCTestCase {
             audioLevelNow: 0
         )
     }
-    
+
     func testThat_RealTimeActiveSpeaker_IsActive_WhenCase_All() {
         XCTAssertEqual(
             CallParticipantsListKind.all.state(ofActiveSpeaker: realTimeActiveSpeaker),
             ActiveSpeakerState.active(audioLevelNow: 100)
         )
     }
-    
+
     func testThat_RealTimeActiveSpeaker_IsInactive_WhenCase_SmoothedActiveSpeakers() {
         XCTAssertEqual(
             CallParticipantsListKind.smoothedActiveSpeakers.state(ofActiveSpeaker: realTimeActiveSpeaker),
             ActiveSpeakerState.inactive
         )
     }
-    
+
     func testThat_SmoothedActiveSpeaker_IsInactive_WhenCase_All() {
         XCTAssertEqual(
             CallParticipantsListKind.all.state(ofActiveSpeaker: smoothedActiveSpeaker),
             ActiveSpeakerState.inactive
         )
     }
-    
+
     func testThat_SmoothedActiveSpeaker_IsActive_WhenCase_SmoothedActiveSpeakers() {
         XCTAssertEqual(
             CallParticipantsListKind.smoothedActiveSpeakers.state(ofActiveSpeaker: smoothedActiveSpeaker),
