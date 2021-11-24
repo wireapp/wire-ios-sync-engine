@@ -25,20 +25,20 @@ public enum SSOSettingsError: Error, Equatable {
 }
 
 public struct SSOSettings: Codable, Equatable {
-    
+
     public let ssoCode: UUID?
-    
+
     private enum CodingKeys: String, CodingKey {
         case ssoCode = "default_sso_code"
     }
-    
+
     init(ssoCode: UUID?) {
         self.ssoCode = ssoCode
     }
-    
+
     init?(_ data: Data) {
         let decoder = JSONDecoder()
-        
+
         do {
             self = try decoder.decode(SSOSettings.self, from: data)
         } catch {
@@ -48,26 +48,26 @@ public struct SSOSettings: Codable, Equatable {
 }
 
 extension UnauthenticatedSession {
-    
+
     /// Fetch the SSO settings for the backend.
     ///
     /// This is only interesting if you run against a custom backend.
     ///
     /// - parameter completion: The result closure with the sso settings
-    
+
     public func fetchSSOSettings(completion: @escaping (Result<SSOSettings>) -> Void) {
-        
+
         let path = "/sso/settings"
         let request = ZMTransportRequest(path: path, method: .methodGET, payload: nil)
-        
+
         request.add(ZMCompletionHandler(on: operationLoop.operationQueue!, block: { (response) in
-            
+
             switch response.result {
             case .success:
                 guard let data = response.rawData, let ssoSettings = SSOSettings(data) else {
                     return completion(.failure(SSOSettingsError.malformedData))
                 }
-                
+
                 return completion(.success(ssoSettings))
             case .expired, .temporaryError, .tryAgainLater:
                 completion(.failure(SSOSettingsError.networkFailure))
@@ -77,8 +77,8 @@ extension UnauthenticatedSession {
                 completion(.failure(SSOSettingsError.unknown))
             }
         }))
-        
+
         operationLoop.transportSession.enqueueOneTime(request)
     }
-    
+
 }

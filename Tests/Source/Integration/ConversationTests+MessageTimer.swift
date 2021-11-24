@@ -36,8 +36,11 @@ class ConversationMessageTimerTests: IntegrationTest {
         ]
 
         switch timeout {
-        case .none: payload["data"] = ["message_timer": NSNull()]
-        default: payload["data"] = ["message_timer": Int(timeout.rawValue)]
+        case .none:
+            payload["data"] = ["message_timer": NSNull()]
+        default:
+            let timeoutInMiliseconds = timeout.rawValue * 1000
+            payload["data"] = ["message_timer": Int(timeoutInMiliseconds)]
         }
 
         return payload as ZMTransportData
@@ -47,13 +50,14 @@ class ConversationMessageTimerTests: IntegrationTest {
         // given
         XCTAssert(login())
         let sut = conversation(for: groupConversation)!
-        XCTAssertNil(sut.messageDestructionTimeout)
-
+        XCTAssertNil(sut.activeMessageDestructionTimeoutValue)
+        
         // when
-        setGlobalTimeout(for: sut, timeout: 86400000)
-
+        setGlobalTimeout(for: sut, timeout: .oneDay)
+        
         // then
-        XCTAssertEqual(sut.messageDestructionTimeout, .synced(.oneDay))
+        XCTAssertEqual(sut.activeMessageDestructionTimeoutValue, .oneDay)
+        XCTAssertEqual(sut.activeMessageDestructionTimeoutType, .groupConversation)
     }
 
     func testThatItRemovesTheDestructionTimer() {
@@ -63,12 +67,12 @@ class ConversationMessageTimerTests: IntegrationTest {
 
         // given
         userSession?.enqueue {
-            sut.messageDestructionTimeout = .synced(.oneDay)
+            sut.setMessageDestructionTimeoutValue(.oneDay, for: .groupConversation)
         }
 
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
-        XCTAssertNotNil(sut.messageDestructionTimeout)
-
+        XCTAssertNotNil(sut.activeMessageDestructionTimeoutValue)
+        
         setGlobalTimeout(for: sut, timeout: .none)
 
         // then
@@ -77,7 +81,7 @@ class ConversationMessageTimerTests: IntegrationTest {
             return
         }
         XCTAssertNotNil(request.payload?.asDictionary()?["message_timer"] as? NSNull)
-        XCTAssertNil(sut.messageDestructionTimeout)
+        XCTAssertNil(sut.activeMessageDestructionTimeoutValue)
     }
 
     func testThatItCanSetASyncedTimerWithExistingLocalOneAndFallsBackToTheLocalAfterRemovingSyncedTimer() {
@@ -86,23 +90,26 @@ class ConversationMessageTimerTests: IntegrationTest {
         let sut = conversation(for: groupConversation)!
 
         userSession?.enqueue {
-            sut.messageDestructionTimeout = .local(.oneDay)
+            sut.setMessageDestructionTimeoutValue(.oneDay, for: .selfUser)
         }
 
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
-        XCTAssertEqual(sut.messageDestructionTimeout, .local(86400))
-
+        XCTAssertEqual(sut.activeMessageDestructionTimeoutValue, .oneDay)
+        XCTAssertEqual(sut.activeMessageDestructionTimeoutType, .selfUser)
+        
         // when
-        setGlobalTimeout(for: sut, timeout: 10000)
-
+        setGlobalTimeout(for: sut, timeout: .tenSeconds)
+        
         // then
-        XCTAssertEqual(sut.messageDestructionTimeout, .synced(10))
-
+        XCTAssertEqual(sut.activeMessageDestructionTimeoutValue, .tenSeconds)
+        XCTAssertEqual(sut.activeMessageDestructionTimeoutType, .groupConversation)
+        
         // when
-        setGlobalTimeout(for: sut, timeout: 0)
-
+        setGlobalTimeout(for: sut, timeout: .none)
+        
         // then
-        XCTAssertEqual(sut.messageDestructionTimeout, .local(86400))
+        XCTAssertEqual(sut.activeMessageDestructionTimeoutValue, .oneDay)
+        XCTAssertEqual(sut.activeMessageDestructionTimeoutType, .selfUser)
     }
 
     // MARK: - Helper

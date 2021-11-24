@@ -19,21 +19,21 @@
 import XCTest
 
 class ConversationTests_ClearingHistory: ConversationTestsBase {
-    
+
     func loginAndFillConversationWithMessages(mockConversation: MockConversation, messagesCount: UInt) {
         XCTAssertTrue(login())
-        
+
         var conversation = self.conversation(for: mockConversation)
         let otherUser = mockConversation.activeUsers.firstObjectNot(in: Set(arrayLiteral: self.selfUser)) as! MockUser
-        
+
         // given
         let fromClient = otherUser.clients.anyObject() as! MockUserClient
         let toClient = self.selfUser.clients.anyObject() as! MockUserClient
-        
-        self.mockTransportSession.performRemoteChanges { (session) in
+
+        self.mockTransportSession.performRemoteChanges { (_) in
             // If the client is not registered yet we need to account for the added System Message
             for i in 0..<(Int(messagesCount) - conversation!.allMessages.count) {
-                
+
                 let message = GenericMessage(content: Text(content: "foo" + String(i), mentions: [], linkPreviews: [], replyingTo: nil), nonce: UUID.create())
                 mockConversation.encryptAndInsertData(from: fromClient,
                                                       to: toClient,
@@ -41,94 +41,94 @@ class ConversationTests_ClearingHistory: ConversationTestsBase {
             }
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         conversation = self.conversation(for: mockConversation)
         conversation?.markAsRead()
-        
+
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         XCTAssertEqual(conversation!.allMessages.count, Int(messagesCount))
     }
 
     func testThatItRemovesMessagesAfterReceivingAPushEventToClearHistory() {
-        //given
+        // given
         let messagesCount: UInt = 5
         loginAndFillConversationWithMessages(mockConversation: self.groupConversation, messagesCount: messagesCount)
         var conversation = self.conversation(for: self.groupConversation!)
-        
+
         let conversationDirectory = self.userSession?.managedObjectContext.conversationListDirectory()
         let conversationID = conversation?.objectID
-        
+
         // when removing messages remotely
-      
+
         self.remotelyAppendSelfConversationWithZMCleared(for: self.groupConversation, at: conversation!.lastServerTimeStamp!)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         XCTAssertEqual(conversation!.allMessages.count, 0)
-        
+
         // when adding new messages
         self.userSession?.perform {
             self.spinMainQueue(withTimeout: 1)// if the message is sent within the same second of clearing the window, it will not be added when resyncing
             let message = try! conversation?.appendText(content: "lalala")
             conversation?.markMessagesAsRead(until: message!)
         }
-        
+
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         XCTAssertEqual(conversation?.allMessages.count, 1)
-        
+
         self.recreateSessionManagerAndDeleteLocalData()
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // Wait for sync to be done
         XCTAssertTrue(self.login())
-        
+
         // then
         conversation = self.conversation(for: self.groupConversation!)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         let objectIDs = conversationDirectory?.conversationsIncludingArchived.compactMap { $0 as? ZMConversation}.map { $0.objectID }
         XCTAssertTrue(objectIDs!.contains(conversationID!))
     }
 
     func testThatDeletedConversationsStayDeletedAfterResyncing() {
-        //given
+        // given
         let messagesCount: UInt = 5
         loginAndFillConversationWithMessages(mockConversation: self.groupConversation, messagesCount: messagesCount)
-        
+
         var conversation = self.conversation(for: self.groupConversation!)
         XCTAssertEqual(conversation!.allMessages.count, 5)
-        
+
         let conversationDirectory = self.userSession?.managedObjectContext.conversationListDirectory()
         let conversationID = conversation?.objectID
-        
+
         // when deleting the conversation remotely
-        
-        self.mockTransportSession.performRemoteChanges { (session) in
+
+        self.mockTransportSession.performRemoteChanges { (_) in
             self.groupConversation.remotelyArchive(from: self.selfUser, referenceDate: Date())
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         self.remotelyAppendSelfConversationWithZMCleared(for: self.groupConversation, at: conversation!.lastServerTimeStamp!)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         XCTAssertEqual(conversation!.allMessages.count, 0)
         XCTAssertFalse(conversationDirectory!.conversationsIncludingArchived.contains(conversation))
-        
+
         conversation = nil
         self.recreateSessionManagerAndDeleteLocalData()
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // Wait for sync to be done
         XCTAssertTrue(self.login())
-        
+
         // then
         conversation = self.conversation(for: self.groupConversation!)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         let conversationsIncludingArchivedObjectIDs = conversationDirectory?.conversationsIncludingArchived.compactMap { $0 as? ZMConversation}.map { $0.objectID }
         let archivedConversationsObjectIDs = conversationDirectory?.archivedConversations.compactMap { $0 as? ZMConversation}.map { $0.objectID }
         let clearedConversationsObjectIDs = conversationDirectory?.clearedConversations.compactMap { $0 as? ZMConversation}.map { $0.objectID }
@@ -138,7 +138,7 @@ class ConversationTests_ClearingHistory: ConversationTestsBase {
     }
 
     func testFirstArchivingThenClearingRemotelyShouldDeleteConversation() {
-        //given
+        // given
         let messagesCount: UInt = 5
         loginAndFillConversationWithMessages(mockConversation: self.groupConversation, messagesCount: messagesCount)
         let conversation = self.conversation(for: self.groupConversation!)
@@ -146,7 +146,7 @@ class ConversationTests_ClearingHistory: ConversationTestsBase {
         let conversationDirectory = self.userSession?.managedObjectContext.conversationListDirectory()
         let conversationID = conversation?.objectID
 
-        self.mockTransportSession.performRemoteChanges { (session) in
+        self.mockTransportSession.performRemoteChanges { (_) in
             self.groupConversation.remotelyArchive(from: self.selfUser, referenceDate: Date())
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
@@ -160,7 +160,7 @@ class ConversationTests_ClearingHistory: ConversationTestsBase {
     }
 
     func testFirstClearingThenArchivingRemotelyShouldDeleteConversation() {
-        //given
+        // given
         let messagesCount: UInt = 5
         loginAndFillConversationWithMessages(mockConversation: self.groupConversation, messagesCount: messagesCount)
         let conversation = self.conversation(for: self.groupConversation!)
@@ -171,7 +171,7 @@ class ConversationTests_ClearingHistory: ConversationTestsBase {
         self.remotelyAppendSelfConversationWithZMCleared(for: self.groupConversation, at: conversation!.lastServerTimeStamp!)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
-        self.mockTransportSession.performRemoteChanges { (session) in
+        self.mockTransportSession.performRemoteChanges { (_) in
             self.groupConversation.remotelyArchive(from: self.selfUser, referenceDate: Date())
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
@@ -190,7 +190,7 @@ class ConversationTests_ClearingHistory: ConversationTestsBase {
         let conversationDirectory = self.userSession?.managedObjectContext.conversationListDirectory()
 
         // when archiving the conversation remotely
-        self.mockTransportSession.performRemoteChanges { (session) in
+        self.mockTransportSession.performRemoteChanges { (_) in
             self.groupConversation.remotelyArchive(from: self.selfUser, referenceDate: Date())
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
@@ -206,25 +206,24 @@ class ConversationTests_ClearingHistory: ConversationTestsBase {
         let messagesCount: UInt = 5
         loginAndFillConversationWithMessages(mockConversation: self.groupConversation, messagesCount: messagesCount)
         var conversation = self.conversation(for: self.groupConversation!)
-        
+
         let conversationDirectory = self.userSession?.managedObjectContext.conversationListDirectory()
         let conversationID = conversation?.objectID
-        
+
         // when deleting the conversation remotely, whiping the cache and resyncing
-        self.mockTransportSession.performRemoteChanges { (session) in
+        self.mockTransportSession.performRemoteChanges { (_) in
             self.groupConversation.remotelyArchive(from: self.selfUser, referenceDate: Date())
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         self.recreateSessionManagerAndDeleteLocalData()
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         XCTAssertTrue(self.login())
-        
-        
+
         // then
         conversation = self.conversation(for: self.groupConversation!)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         let conversationsIncludingArchivedObjectIDs = conversationDirectory?.conversationsIncludingArchived.compactMap { $0 as? ZMConversation}.map { $0.objectID }
         let archivedConversationsObjectIDs = conversationDirectory?.archivedConversations.compactMap { $0 as? ZMConversation}.map { $0.objectID }
@@ -233,22 +232,22 @@ class ConversationTests_ClearingHistory: ConversationTestsBase {
         XCTAssertTrue(archivedConversationsObjectIDs!.contains(conversationID!))
         XCTAssertFalse(clearedConversationsObjectIDs!.contains(conversationID!))
     }
-    
+
     func testThatReceivingRemoteTextMessageRevealsClearedConversation() {
-        //given
+        // given
         let messagesCount: UInt = 5
         loginAndFillConversationWithMessages(mockConversation: self.groupConversation, messagesCount: messagesCount)
         var conversation = self.conversation(for: self.groupConversation!)
-        
+
         self.userSession?.perform {
             conversation?.clearMessageHistory()
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         XCTAssertEqual(conversation!.allMessages.count, 0)
-        
+
         // when
-        self.mockTransportSession.performRemoteChanges { (session) in
+        self.mockTransportSession.performRemoteChanges { (_) in
             self.spinMainQueue(withTimeout: 1)// if the action happens within the same second the user clears the history, the event is not added
             let message = GenericMessage(content: Text(content: "foo", mentions: [], linkPreviews: [], replyingTo: nil), nonce: UUID.create())
             self.groupConversation.encryptAndInsertData(from: self.user2.clients.anyObject() as! MockUserClient,
@@ -256,7 +255,7 @@ class ConversationTests_ClearingHistory: ConversationTestsBase {
                                                         data: try! message.serializedData())
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         conversation = self.conversation(for: self.groupConversation!)
         XCTAssertEqual(conversation!.allMessages.count, 1)
@@ -264,34 +263,34 @@ class ConversationTests_ClearingHistory: ConversationTestsBase {
     }
 
     func testThatReceivingRemoteSystemMessageRevealsClearedConversation() {
-        //given
+        // given
         let messagesCount: UInt = 5
         loginAndFillConversationWithMessages(mockConversation: self.groupConversation, messagesCount: messagesCount)
         var conversation = self.conversation(for: self.groupConversation!)
-        
+
         self.userSession?.perform {
             conversation?.clearMessageHistory()
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         XCTAssertEqual(conversation!.allMessages.count, 0)
-        
+
         // when
-        self.mockTransportSession.performRemoteChanges { (session) in
+        self.mockTransportSession.performRemoteChanges { (_) in
             self.spinMainQueue(withTimeout: 1)// if the action happens within the same second the user clears the history, the event is not added
             self.groupConversation.removeUsers(by: self.user2, removedUser: self.user3)
         }
-        
+
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         conversation = self.conversation(for: self.groupConversation!)
-        
+
         XCTAssertEqual(conversation!.allMessages.count, 1)
         XCTAssertTrue(conversation!.isArchived)
     }
-  
+
     func testThatOpeningClearedConversationRevealsIt() {
-        //given
+        // given
         let messagesCount: UInt = 5
         loginAndFillConversationWithMessages(mockConversation: self.groupConversation, messagesCount: messagesCount)
         var conversation = self.conversation(for: self.groupConversation!)

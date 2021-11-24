@@ -53,7 +53,7 @@ class LocalNotificationContentTypeTest: ZMLocalNotificationTests {
 
     func testThatItCreatesACorrectLocalNotificationContentTypeForTheEphemeralMessage() {
         // given
-        let message = GenericMessage(content: Text(content: "Ephemeral Message"), nonce: UUID(), expiresAfter: 100)
+        let message = GenericMessage(content: Text(content: "Ephemeral Message"), nonce: UUID(), expiresAfterTimeInterval: 100)
         let event = createUpdateEvent(UUID.create(), conversationID: UUID.create(), genericMessage: message)
 
         // when

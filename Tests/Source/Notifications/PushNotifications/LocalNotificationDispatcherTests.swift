@@ -114,13 +114,12 @@ extension LocalNotificationDispatcherTests {
 
     func testThatItCreatesNotificationFromSystemMessagesIfNotActive() {
         // GIVEN
-        conversation1.messageDestructionTimeout = .synced(.fiveMinutes)
         let payload: [String: Any] = [
             "id": UUID.create().transportString(),
             "from": self.user1.remoteIdentifier.transportString(),
             "conversation": self.conversation1.remoteIdentifier!.transportString(),
             "time": Date().transportString(),
-            "data": ["message_timer": conversation1.messageDestructionTimeoutValue],
+            "data": ["message_timer": MessageDestructionTimeoutValue.fiveMinutes.rawValue],
             "type": "conversation.message-timer-update"
         ]
         let event = ZMUpdateEvent(fromEventStreamPayload: payload as ZMTransportData, uuid: UUID.create())!

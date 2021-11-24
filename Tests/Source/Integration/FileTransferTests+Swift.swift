@@ -41,8 +41,8 @@ class FileTransferTests_Swift: ConversationTestsBase {
         XCTAssertNotNil(senderClient)
 
         let asset = WireProtos.Asset(original: WireProtos.Asset.Original(withSize: 256, mimeType: mimeType, name: "foo229"), preview: nil)
-        let original = GenericMessage(content: asset, nonce: nonce, expiresAfter: isEphemeral ? 20 : 0)
-
+        let original = GenericMessage(content: asset, nonce: nonce, expiresAfterTimeInterval: isEphemeral ? 20 : 0)
+        
         // when
         self.mockTransportSession.performRemoteChanges { (_) in
             mockConversation!.encryptAndInsertData(from: senderClient,
@@ -199,9 +199,9 @@ extension FileTransferTests_Swift {
         let assetData = Data.secureRandomData(length: 256)
         let encryptedAsset = assetData.zmEncryptPrefixingPlainTextIV(key: otrKey)
         let sha256 = encryptedAsset.zmSHA256Digest()
-
-        let uploaded = GenericMessage(content: WireProtos.Asset(withUploadedOTRKey: otrKey, sha256: sha256), nonce: nonce, expiresAfter: 30)
-
+        
+        let uploaded = GenericMessage(content: WireProtos.Asset(withUploadedOTRKey: otrKey, sha256: sha256), nonce: nonce, expiresAfterTimeInterval: 30)
+        
         // when
         let message = self.remotelyInsertAssetOriginalAndUpdate(updateMessage: uploaded, insertBlock: { (data, conversation, from, to) in
             conversation.insertOTRAsset(from: from, to: to, metaData: data, imageData: assetData, assetId: assetID, isInline: false)
@@ -262,7 +262,7 @@ extension FileTransferTests_Swift {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         let nonce = UUID.create()
-        let original = GenericMessage(content: WireProtos.Asset(imageSize: .zero, mimeType: "text/plain", size: 256), nonce: nonce, expiresAfter: 30)
+        let original = GenericMessage(content: WireProtos.Asset(imageSize: .zero, mimeType: "text/plain", size: 256), nonce: nonce, expiresAfterTimeInterval: 30)
 
         // when
         self.mockTransportSession.performRemoteChanges { (_) in
@@ -295,7 +295,7 @@ extension FileTransferTests_Swift {
         XCTAssertTrue(self.login())
 
         let nonce = UUID.create()
-        let cancelled = GenericMessage(content: WireProtos.Asset(withNotUploaded: .cancelled), nonce: nonce, expiresAfter: 30)
+        let cancelled = GenericMessage(content: WireProtos.Asset(withNotUploaded: .cancelled), nonce: nonce, expiresAfterTimeInterval: 30)
 
         // when
         let message = self.remotelyInsertAssetOriginalAndUpdate(updateMessage: cancelled, insertBlock: { (data, conversation, from, to) in
@@ -311,7 +311,7 @@ extension FileTransferTests_Swift {
         XCTAssertTrue(self.login())
 
         let nonce = UUID.create()
-        let failed = GenericMessage(content: WireProtos.Asset(withNotUploaded: .failed), nonce: nonce, expiresAfter: 30)
+        let failed = GenericMessage(content: WireProtos.Asset(withNotUploaded: .failed), nonce: nonce, expiresAfterTimeInterval: 30)
 
         // when
         let message = self.remotelyInsertAssetOriginalAndUpdate(updateMessage: failed, insertBlock: { (data, conversation, from, to) in
@@ -412,7 +412,7 @@ extension FileTransferTests_Swift {
                                                remoteData: remote,
                                                imageMetadata: image)
         let asset = WireProtos.Asset(original: nil, preview: preview)
-        let updateMessage = GenericMessage(content: asset, nonce: nonce, expiresAfter: 20)
+        let updateMessage = GenericMessage(content: asset, nonce: nonce, expiresAfterTimeInterval: 20)
 
         // when
         var observer: MessageChangeObserver?

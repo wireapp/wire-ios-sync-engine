@@ -43,8 +43,8 @@ extension ConversationTests_Ephemeral {
         mockTransportSession?.resetReceivedRequests()
 
         // when
-        conversation.messageDestructionTimeout = .local(100)
-        var message: ZMClientMessage!
+        conversation.setMessageDestructionTimeoutValue(.custom(100), for: .selfUser)
+        var message : ZMClientMessage!
         self.userSession?.perform {
             message = try! conversation.appendText(content: "Hello") as? ZMClientMessage
             XCTAssertTrue(message.isEphemeral)
@@ -71,8 +71,8 @@ extension ConversationTests_Ephemeral {
         mockTransportSession?.resetReceivedRequests()
 
         // when
-        conversation.messageDestructionTimeout = .local(100)
-        var message: ZMAssetClientMessage!
+        conversation.setMessageDestructionTimeoutValue(.custom(100), for: .selfUser)
+        var message : ZMAssetClientMessage!
         self.userSession?.perform {
             message = try! conversation.appendImage(from: self.verySmallJPEGData()) as? ZMAssetClientMessage
             XCTAssertTrue(message.isEphemeral)
@@ -95,8 +95,8 @@ extension ConversationTests_Ephemeral {
         let messageCount = conversation.allMessages.count
 
         // insert ephemeral message
-        conversation.messageDestructionTimeout = .local(0.1)
-        var ephemeral: ZMClientMessage!
+        conversation.setMessageDestructionTimeoutValue(.custom(0.1), for: .selfUser)
+        var ephemeral : ZMClientMessage!
         self.userSession?.perform {
             ephemeral = try! conversation.appendText(content: "Hello") as? ZMClientMessage
         }
@@ -130,7 +130,7 @@ extension ConversationTests_Ephemeral {
     func remotelyInsertEphemeralMessage(conversation: MockConversation) {
         let fromClient = user1?.clients.anyObject() as! MockUserClient
         let toClient = selfUser?.clients.anyObject() as! MockUserClient
-        let genericMessage = GenericMessage(content: Text(content: "foo"), expiresAfter: 0.1)
+        let genericMessage = GenericMessage(content: Text(content: "foo"), expiresAfterTimeInterval: 0.1)
         XCTAssertEqual(genericMessage.ephemeral.expireAfterMillis, 100)
         guard case .ephemeral? = genericMessage.content else {
             return XCTFail()
@@ -204,8 +204,8 @@ extension ConversationTests_Ephemeral {
         let conversation = self.conversation(for: selfToUser1Conversation!)!
 
         // when
-        conversation.messageDestructionTimeout = .local(1)
-        var ephemeral: ZMClientMessage!
+        conversation.setMessageDestructionTimeoutValue(.custom(1), for: .selfUser)
+        var ephemeral : ZMClientMessage!
         self.userSession?.perform {
             ephemeral = try! conversation.appendText(content: "Hello") as? ZMClientMessage
         }

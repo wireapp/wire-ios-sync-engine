@@ -20,29 +20,29 @@ import Foundation
 
 final class CallParticipantTests: MessagingTest {
     var otherUser: ZMUser!
-    let otherUserID : UUID = UUID()
+    let otherUserID: UUID = UUID()
     let otherUserClientID = UUID().transportString()
 
     override func setUp() {
         super.setUp()
-        
+
         otherUser = ZMUser.insertNewObject(in: uiMOC)
         otherUser.remoteIdentifier = otherUserID
     }
-    
+
     override func tearDown() {
         otherUser = nil
-        
+
         super.tearDown()
     }
 
     func testThatHashIsSameWithDifferentState() {
-        
-        //GIVEN & WHEN
+
+        // GIVEN & WHEN
         let callParticipant1 = CallParticipant(user: otherUser, clientId: otherUserClientID, state: .connecting, activeSpeakerState: .inactive)
         let callParticipant2 = CallParticipant(user: otherUser, clientId: otherUserClientID, state: .unconnected, activeSpeakerState: .inactive)
 
-        //THEN
+        // THEN
         XCTAssertEqual(callParticipant1.hashValue, callParticipant2.hashValue)
     }
 }

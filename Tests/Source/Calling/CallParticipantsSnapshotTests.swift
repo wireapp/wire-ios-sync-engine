@@ -16,7 +16,6 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import Foundation
 @testable import WireSyncEngine
 
@@ -55,7 +54,7 @@ class CallParticipantsSnapshotTests: MessagingTest {
         bobIphone = AVSClient(userId: bobId, clientId: "iphone")
         bobDesktop = AVSClient(userId: bobId, clientId: "desktop")
     }
-    
+
     override func tearDown() {
         mockFlowManager = nil
         mockWireCallCenterV3 = nil
@@ -73,7 +72,7 @@ class CallParticipantsSnapshotTests: MessagingTest {
 
     // MARK: - Duplicates
 
-    func testThat_ItDoesNotCrash_WhenInitialized_WithDuplicateCallMembers(){
+    func testThat_ItDoesNotCrash_WhenInitialized_WithDuplicateCallMembers() {
         // Given
         let member1 = AVSCallMember(client: aliceIphone, audioState: .established)
         let member2 = AVSCallMember(client: aliceIphone, audioState: .connecting)
@@ -81,12 +80,11 @@ class CallParticipantsSnapshotTests: MessagingTest {
         // When
         let sut = createSut(members: [member1, member2])
 
-        
         // Then
         XCTAssertEqual(sut.members.array, [member1])
     }
-    
-    func testThat_ItDoesNotCrash_WhenUpdated_WithDuplicateCallMembers(){
+
+    func testThat_ItDoesNotCrash_WhenUpdated_WithDuplicateCallMembers() {
         // Given
         let member1 = AVSCallMember(client: aliceIphone, audioState: .established)
         let member2 = AVSCallMember(client: aliceIphone, audioState: .connecting)
@@ -94,7 +92,7 @@ class CallParticipantsSnapshotTests: MessagingTest {
 
         // when
         sut.callParticipantsChanged(participants: [member1, member2])
-        
+
         // then
         XCTAssertEqual(sut.members.array, [member1])
     }
@@ -187,7 +185,6 @@ class CallParticipantsSnapshotTests: MessagingTest {
         XCTAssertEqual(sut.members.array, [member1, member2])
     }
 
-
     func testThat_ItUpdatesAudioState_WhenItChangesForParticipant() {
         // Given
         let member1 = AVSCallMember(client: aliceIphone, audioState: .connecting)
@@ -215,17 +212,17 @@ class CallParticipantsSnapshotTests: MessagingTest {
         // Then
         XCTAssertEqual(sut.members.array, [updatedMember1, member2])
     }
-    
+
     func testThat_ItUpdateMicrophoneState_WhenItChangesForParticipant() {
         // Given
         let member1 = AVSCallMember(client: aliceIphone, microphoneState: .unmuted)
         let member2 = AVSCallMember(client: bobIphone, microphoneState: .unmuted)
         let sut = createSut(members: [member1, member2])
-        
+
         // When
         let updatedMember1 = member1.with(microphoneState: .muted)
         sut.callParticipantsChanged(participants: [updatedMember1, member2])
-        
+
         // Then
         XCTAssertEqual(sut.members.array, [updatedMember1, member2])
     }
@@ -336,7 +333,7 @@ private extension AVSCallMember {
                              microphoneState: microphoneState,
                              networkQuality: networkQuality)
     }
-    
+
     func with(microphoneState: MicrophoneState) -> AVSCallMember {
         return AVSCallMember(client: client,
                              audioState: audioState,
