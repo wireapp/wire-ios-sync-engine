@@ -20,9 +20,9 @@ import Foundation
 
 final class MockAnalytics: NSObject, AnalyticsType {
 
-    var eventAttributes = [String : [String : NSObject]]()
+    var eventAttributes = [String: [String: NSObject]]()
 
-    public func setPersistedAttributes(_ attributes: [String : NSObject]?, for event: String) {
+    public func setPersistedAttributes(_ attributes: [String: NSObject]?, for event: String) {
         if let attributes = attributes {
             eventAttributes[event] = attributes
         } else {
@@ -30,7 +30,7 @@ final class MockAnalytics: NSObject, AnalyticsType {
         }
     }
 
-    public func persistedAttributes(for event: String) -> [String : NSObject]? {
+    public func persistedAttributes(for event: String) -> [String: NSObject]? {
         let value = eventAttributes[event] ?? [:]
         return value
     }
@@ -39,7 +39,7 @@ final class MockAnalytics: NSObject, AnalyticsType {
         taggedEvents.append(event)
     }
 
-    @objc func tagEvent(_ event: String, attributes: [String : NSObject]) {
+    @objc func tagEvent(_ event: String, attributes: [String: NSObject]) {
         taggedEventsWithAttributes.append(EventWithAttributes(event: event, attributes: attributes))
     }
 

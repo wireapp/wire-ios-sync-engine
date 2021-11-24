@@ -16,12 +16,10 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import XCTest
 import WireTesting
 
-
-fileprivate class MockSearchDelegate: TextSearchQueryDelegate {
+private class MockSearchDelegate: TextSearchQueryDelegate {
     var results = [TextQueryResult]()
 
     func textSearchQueryDidReceive(result: TextQueryResult) {
@@ -29,9 +27,8 @@ fileprivate class MockSearchDelegate: TextSearchQueryDelegate {
     }
 }
 
-
 class TextSearchTests: ConversationTestsBase {
-        
+
     func testThatItFindsAMessageSendRemotely() {
         // Given
         XCTAssertTrue(login())
@@ -40,7 +37,7 @@ class TextSearchTests: ConversationTestsBase {
         let selfClient = selfUser.clients.anyObject() as! MockUserClient
 
         // When
-        mockTransportSession.performRemoteChanges { session in
+        mockTransportSession.performRemoteChanges { _ in
             let genericMessage = GenericMessage(content: Text(content: "Hello there!"))
             do {
                 self.selfToUser1Conversation.encryptAndInsertData(from: firstClient, to: selfClient, data: try genericMessage.serializedData())
@@ -86,7 +83,7 @@ class TextSearchTests: ConversationTestsBase {
         // And when
         mockTransportSession.performRemoteChanges { _ in
             let genericMessage = GenericMessage(content: MessageEdit(replacingMessageID: nonce, text: Text(content: "This is an edit!!")))
-    
+
             do {
                 self.selfToUser1Conversation.encryptAndInsertData(from: firstClient, to: selfClient, data: try genericMessage.serializedData())
 
@@ -113,9 +110,9 @@ class TextSearchTests: ConversationTestsBase {
         let text = "This is an ephemeral message"
 
         // When
-        mockTransportSession.performRemoteChanges { session in
+        mockTransportSession.performRemoteChanges { _ in
             let genericMessage = GenericMessage(content: Text(content: text), expiresAfter: 300)
-            
+
             do {
                 self.selfToUser1Conversation.encryptAndInsertData(from: firstClient, to: selfClient, data: try genericMessage.serializedData())
             } catch {
@@ -142,9 +139,9 @@ class TextSearchTests: ConversationTestsBase {
         let nonce = UUID.create()
 
         // When
-        mockTransportSession.performRemoteChanges { session in
+        mockTransportSession.performRemoteChanges { _ in
             let genericMessage = GenericMessage(content: Text(content: "Hello there!"), nonce: nonce)
-          
+
             do {
                 self.selfToUser1Conversation.encryptAndInsertData(from: firstClient, to: selfClient, data: try genericMessage.serializedData())
             } catch {
@@ -164,7 +161,7 @@ class TextSearchTests: ConversationTestsBase {
         // And when
         mockTransportSession.performRemoteChanges { _ in
             let genericMessage = GenericMessage(content: MessageDelete(messageId: nonce))
-            
+
             do {
                 self.selfToUser1Conversation.encryptAndInsertData(from: firstClient, to: selfClient, data: try genericMessage.serializedData())
             } catch {

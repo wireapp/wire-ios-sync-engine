@@ -24,48 +24,48 @@ import Foundation
 /// NOTE that we are not receiving encrypted events since we are not
 /// interested in measuring decryption performance here.
 class EventProcessingPerformanceTests: IntegrationTest {
-    
+
     override func setUp() {
         super.setUp()
-        
+
         createSelfUserAndConversation()
         createTeamAndConversations()
     }
-    
+
     var users: [MockUser]!
     var conversations: [MockConversation]!
-    
+
     func testTextEventProcessingPerformance_InLargeGroups() {
         // given
         createUsersAndConversations(userCount: 100, conversationCount: 10)
         XCTAssertTrue(login())
-        
+
         simulateApplicationDidEnterBackground()
-        mockTransportSession.performRemoteChanges { (session) in
+        mockTransportSession.performRemoteChanges { (_) in
             self.conversations.forEach { (conversation) in
                 conversation.insertRandomTextMessages(count: 100, from: self.users)
             }
         }
-        
+
         // then
         measure {
             simulateApplicationWillEnterForeground()
             XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         }
     }
-    
+
     func testTextEventProcessingPerformance_inSmallGroups() {
         // given
         createUsersAndConversations(userCount: 5, conversationCount: 10)
         XCTAssertTrue(login())
-        
+
         simulateApplicationDidEnterBackground()
-        mockTransportSession.performRemoteChanges { (session) in
+        mockTransportSession.performRemoteChanges { (_) in
             self.conversations.forEach { (conversation) in
                 conversation.insertRandomTextMessages(count: 100, from: self.users)
             }
         }
-        
+
         // then
         measure {
             simulateApplicationWillEnterForeground()
@@ -77,31 +77,31 @@ class EventProcessingPerformanceTests: IntegrationTest {
         // given
         createUsersAndConversations(userCount: 5, conversationCount: 10)
         XCTAssertTrue(login())
-        
+
         simulateApplicationDidEnterBackground()
-        mockTransportSession.performRemoteChanges { (session) in
+        mockTransportSession.performRemoteChanges { (_) in
             self.conversations.forEach { (conversation) in
                 conversation.insertRandomKnocks(count: 100, from: self.users)
             }
         }
-        
+
         // then
         measure {
             simulateApplicationWillEnterForeground()
             XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         }
     }
-    
+
     // MARK: Helpers
-            
+
     func createUsersAndConversations(userCount: Int, conversationCount: Int) {
         mockTransportSession.performRemoteChanges { (session) in
             self.users = (1...userCount).map({
                 session.insertUser(withName: "User \($0)")
             })
-            
+
             let usersIncludingSelfUser = self.users + [self.selfUser!]
-            
+
             self.conversations = (1...conversationCount).map({
                 let conversation = session.insertTeamConversation(to: self.team, with: usersIncludingSelfUser, creator: self.selfUser)
                 conversation.changeName(by: self.selfUser, name: "Team conversation \($0)")
@@ -109,23 +109,23 @@ class EventProcessingPerformanceTests: IntegrationTest {
             })
         }
     }
-    
+
 }
 
 extension MockConversation {
-    
+
     func insertRandomKnocks(count: Int, from users: [MockUser]) {
         (1...count).forEach { (_) in
             let knock = try! GenericMessage(content: Knock.with { $0.hotKnock = false }).serializedData()
             insertClientMessage(from: users.randomElement()!, data: knock)
         }
     }
-        
+
     func insertRandomTextMessages(count: Int, from users: [MockUser]) {
         (1...count).forEach { (counter) in
             let text = try! GenericMessage(content: Text(content: "Random message \(counter)")).serializedData()
             insertClientMessage(from: users.randomElement()!, data: text)
         }
     }
-    
+
 }

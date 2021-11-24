@@ -18,34 +18,33 @@
 
 import Foundation
 
+class ConversationTests_Ephemeral: ConversationTestsBase {
 
-class ConversationTests_Ephemeral : ConversationTestsBase {
-    
-    var obfuscationTimer : ZMMessageDestructionTimer? {
+    var obfuscationTimer: ZMMessageDestructionTimer? {
         return userSession!.syncManagedObjectContext.zm_messageObfuscationTimer
     }
-    
-    var deletionTimer : ZMMessageDestructionTimer? {
+
+    var deletionTimer: ZMMessageDestructionTimer? {
         return userSession!.managedObjectContext.zm_messageDeletionTimer
     }
 }
 
 extension ConversationTests_Ephemeral {
 
-    func testThatItCreatesAndSendsAnEphemeralMessage(){
+    func testThatItCreatesAndSendsAnEphemeralMessage() {
         // given
         XCTAssert(login())
-        
+
         let conversation = self.conversation(for: selfToUser1Conversation!)!
         self.userSession?.perform {
             _ = try! conversation.appendText(content: "Hello") as! ZMClientMessage
         }
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
         mockTransportSession?.resetReceivedRequests()
-        
+
         // when
         conversation.messageDestructionTimeout = .local(100)
-        var message : ZMClientMessage!
+        var message: ZMClientMessage!
         self.userSession?.perform {
             message = try! conversation.appendText(content: "Hello") as? ZMClientMessage
             XCTAssertTrue(message.isEphemeral)
@@ -59,27 +58,27 @@ extension ConversationTests_Ephemeral {
         XCTAssertEqual(obfuscationTimer?.runningTimersCount, 1)
         XCTAssertEqual(deletionTimer?.runningTimersCount, 0)
     }
-    
-    func testThatItCreatesAndSendsAnEphemeralImageMessage(){
+
+    func testThatItCreatesAndSendsAnEphemeralImageMessage() {
         // given
         XCTAssert(login())
-        
+
         let conversation = self.conversation(for: selfToUser1Conversation!)!
         self.userSession?.perform {
             _ = try! conversation.appendText(content: "Hello") as! ZMClientMessage
         }
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
         mockTransportSession?.resetReceivedRequests()
-        
+
         // when
         conversation.messageDestructionTimeout = .local(100)
-        var message : ZMAssetClientMessage!
+        var message: ZMAssetClientMessage!
         self.userSession?.perform {
             message = try! conversation.appendImage(from: self.verySmallJPEGData()) as? ZMAssetClientMessage
             XCTAssertTrue(message.isEphemeral)
         }
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
-        
+
         // then
         XCTAssertEqual(mockTransportSession?.receivedRequests().count, 2)
         XCTAssertEqual(message.deliveryState, ZMDeliveryState.sent)
@@ -87,17 +86,17 @@ extension ConversationTests_Ephemeral {
         XCTAssertEqual(obfuscationTimer?.runningTimersCount, 1)
         XCTAssertEqual(deletionTimer?.runningTimersCount, 0)
     }
-    
-    func testThatItDeletesAnEphemeralMessage(){
+
+    func testThatItDeletesAnEphemeralMessage() {
         // given
         XCTAssert(login())
-        
+
         let conversation = self.conversation(for: selfToUser1Conversation!)!
         let messageCount = conversation.allMessages.count
 
         // insert ephemeral message
         conversation.messageDestructionTimeout = .local(0.1)
-        var ephemeral : ZMClientMessage!
+        var ephemeral: ZMClientMessage!
         self.userSession?.perform {
             ephemeral = try! conversation.appendText(content: "Hello") as? ZMClientMessage
         }
@@ -111,8 +110,8 @@ extension ConversationTests_Ephemeral {
         let fromClient = user1?.clients.anyObject() as! MockUserClient
         let toClient = selfUser?.clients.anyObject() as! MockUserClient
         let deleteMessage = GenericMessage(content: MessageDelete(messageId: ephemeral.nonce!))
-        
-        mockTransportSession?.performRemoteChanges { session in
+
+        mockTransportSession?.performRemoteChanges { _ in
             do {
                 self.selfToUser1Conversation?.encryptAndInsertData(from: fromClient, to: toClient, data: try deleteMessage.serializedData())
             } catch {
@@ -120,14 +119,14 @@ extension ConversationTests_Ephemeral {
             }
         }
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
-        
+
         // then
         XCTAssertNotEqual(ephemeral.visibleInConversation, conversation)
         XCTAssertEqual(ephemeral.hiddenInConversation, conversation)
         XCTAssertNil(ephemeral.sender)
         XCTAssertEqual(conversation.allMessages.count, messageCount)
     }
-    
+
     func remotelyInsertEphemeralMessage(conversation: MockConversation) {
         let fromClient = user1?.clients.anyObject() as! MockUserClient
         let toClient = selfUser?.clients.anyObject() as! MockUserClient
@@ -136,8 +135,8 @@ extension ConversationTests_Ephemeral {
         guard case .ephemeral? = genericMessage.content else {
             return XCTFail()
         }
-        
-        mockTransportSession?.performRemoteChanges { session in
+
+        mockTransportSession?.performRemoteChanges { _ in
             do {
                 conversation.encryptAndInsertData(from: fromClient, to: toClient, data: try genericMessage.serializedData())
             } catch {
@@ -146,11 +145,11 @@ extension ConversationTests_Ephemeral {
         }
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
     }
-    
-    func testThatItSendsADeletionMessageForAnEphemeralMessageWhenTheTimerFinishes(){
+
+    func testThatItSendsADeletionMessageForAnEphemeralMessageWhenTheTimerFinishes() {
         // given
         XCTAssert(login())
-        
+
         let conversation = self.conversation(for: selfToUser1Conversation!)!
         let messageCount = conversation.allMessages.count
 
@@ -164,14 +163,14 @@ extension ConversationTests_Ephemeral {
         XCTAssertEqual(genMessage.ephemeral.expireAfterMillis, 100)
         XCTAssertEqual(conversation.allMessages.count, messageCount+1)
         mockTransportSession?.resetReceivedRequests()
-        
+
         // when
         // we start the destruction timer
         self.userSession?.perform {
             ephemeral.startDestructionIfNeeded()
         }
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
-        spinMainQueue(withTimeout:5.1) // We can't set isTesting and therefore have to wait 5sec at least :-/
+        spinMainQueue(withTimeout: 5.1) // We can't set isTesting and therefore have to wait 5sec at least :-/
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1)) // we have to wait until the request "made the roundtrip" to the backend
 
         // then
@@ -197,16 +196,16 @@ extension ConversationTests_Ephemeral {
             return XCTFail()
         }
     }
-    
+
     func testThatItSendsANotificationThatTheMessageWasObfuscatedWhenTheTimerRunsOut() {
         // given
         XCTAssert(login())
-        
+
         let conversation = self.conversation(for: selfToUser1Conversation!)!
-        
+
         // when
         conversation.messageDestructionTimeout = .local(1)
-        var ephemeral : ZMClientMessage!
+        var ephemeral: ZMClientMessage!
         self.userSession?.perform {
             ephemeral = try! conversation.appendText(content: "Hello") as? ZMClientMessage
         }
@@ -214,7 +213,7 @@ extension ConversationTests_Ephemeral {
 
         let messageObserver = MessageChangeObserver(message: ephemeral)!
         spinMainQueue(withTimeout: 1.1)
-        
+
         // then
         XCTAssertTrue(ephemeral.isObfuscated)
         guard let messageChangeInfo = messageObserver.notifications.firstObject  as? MessageChangeInfo else {
@@ -223,5 +222,5 @@ extension ConversationTests_Ephemeral {
         XCTAssertTrue(messageChangeInfo.isObfuscatedChanged)
 
     }
-    
+
 }

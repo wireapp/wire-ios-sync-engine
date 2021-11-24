@@ -22,18 +22,18 @@ class ConversationTests_Guests: IntegrationTest {
 
     override func setUp() {
         super.setUp()
-        
+
         createSelfUserAndConversation()
         createExtraUsersAndConversations()
         createTeamAndConversations()
     }
-    
+
     func testThatItSendsRequestToChangeAccessMode() {
         // given
         XCTAssert(login())
-        
+
         let conversation = self.conversation(for: self.groupConversationWithWholeTeam)!
-        
+
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
         XCTAssertFalse(conversation.accessMode!.contains(.allowGuests))
         mockTransportSession?.resetReceivedRequests()
@@ -58,19 +58,19 @@ class ConversationTests_Guests: IntegrationTest {
 
     func testThatItSendsRequestToCreateTheLink() {
         // given
-        mockTransportSession.performRemoteChanges { session in
+        mockTransportSession.performRemoteChanges { _ in
             self.groupConversationWithWholeTeam.accessMode = ["code", "invite"]
             self.groupConversationWithWholeTeam.accessRole = "non_activated"
         }
         XCTAssert(login())
-        
+
         let conversation = self.conversation(for: self.groupConversationWithWholeTeam)!
 
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
         XCTAssertEqual(conversation.accessMode, [.code, .invite])
         XCTAssertEqual(conversation.accessRole, .nonActivated)
         mockTransportSession?.resetReceivedRequests()
-        
+
         // when
         conversation.updateAccessAndCreateWirelessLink(in: self.userSession!) { result in
             switch result {
@@ -82,29 +82,29 @@ class ConversationTests_Guests: IntegrationTest {
             }
         }
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
-        
+
         // then
         XCTAssertEqual(mockTransportSession.receivedRequests().count, 1)
         guard let request = mockTransportSession.receivedRequests().first else { return }
         XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/code")
         XCTAssertEqual(request.method, .methodPOST)
     }
-    
+
     func testThatItSendsRequestToSetModeIfLegacyWhenFetchingTheLink() {
         // given
-        mockTransportSession.performRemoteChanges { session in
+        mockTransportSession.performRemoteChanges { _ in
             self.groupConversationWithWholeTeam.accessMode = ["invite"]
             self.groupConversationWithWholeTeam.accessRole = "activated"
         }
         XCTAssert(login())
-        
+
         let conversation = self.conversation(for: self.groupConversationWithWholeTeam)!
-        
+
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
         XCTAssertEqual(conversation.accessMode, [.invite])
         XCTAssertEqual(conversation.accessRole, .activated)
         mockTransportSession?.resetReceivedRequests()
-        
+
         // when
         conversation.updateAccessAndCreateWirelessLink(in: self.userSession!) { result in
             switch result {
@@ -116,7 +116,7 @@ class ConversationTests_Guests: IntegrationTest {
             }
         }
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
-        
+
         // then
         XCTAssertEqual(mockTransportSession.receivedRequests().count, 2)
         guard let requestFirst = mockTransportSession.receivedRequests().first else { return }
@@ -125,22 +125,22 @@ class ConversationTests_Guests: IntegrationTest {
         XCTAssertEqual(requestLast.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/code")
         XCTAssertEqual(requestLast.method, .methodPOST)
     }
-    
+
     func testThatItSendsRequestToFetchTheLink_NoLink() {
         // given
-        mockTransportSession.performRemoteChanges { session in
+        mockTransportSession.performRemoteChanges { _ in
             self.groupConversationWithWholeTeam.accessMode = ["code", "invite"]
             self.groupConversationWithWholeTeam.accessRole = "non_activated"
         }
         XCTAssert(login())
-        
+
         let conversation = self.conversation(for: self.groupConversationWithWholeTeam)!
-        
+
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
         XCTAssertEqual(conversation.accessMode, [.code, .invite])
         XCTAssertEqual(conversation.accessRole, .nonActivated)
         mockTransportSession?.resetReceivedRequests()
-        
+
         // when
         conversation.fetchWirelessLink(in: self.userSession!) { result in
             switch result {
@@ -152,32 +152,32 @@ class ConversationTests_Guests: IntegrationTest {
             }
         }
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
-        
+
         // then
         XCTAssertEqual(mockTransportSession.receivedRequests().count, 1)
         guard let request = mockTransportSession.receivedRequests().first else { return }
         XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/code")
         XCTAssertEqual(request.method, .methodGET)
     }
-    
+
     func testThatItSendsRequestToFetchTheLink_LinkExists() {
         // given
         let existingLink = "https://wire-website.com/some-magic-link"
-        
-        mockTransportSession.performRemoteChanges { session in
+
+        mockTransportSession.performRemoteChanges { _ in
             self.groupConversationWithWholeTeam.accessMode = ["code", "invite"]
             self.groupConversationWithWholeTeam.accessRole = "non_activated"
             self.groupConversationWithWholeTeam.link = existingLink
         }
         XCTAssert(login())
-        
+
         let conversation = self.conversation(for: self.groupConversationWithWholeTeam)!
-        
+
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
         XCTAssertEqual(conversation.accessMode, [.code, .invite])
         XCTAssertEqual(conversation.accessRole, .nonActivated)
         mockTransportSession?.resetReceivedRequests()
-        
+
         // when
         conversation.fetchWirelessLink(in: self.userSession!) { result in
             switch result {
@@ -189,32 +189,32 @@ class ConversationTests_Guests: IntegrationTest {
             }
         }
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
-        
+
         // then
         XCTAssertEqual(mockTransportSession.receivedRequests().count, 1)
         guard let request = mockTransportSession.receivedRequests().first else { return }
         XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/code")
         XCTAssertEqual(request.method, .methodGET)
     }
-    
+
     func testThatItSendsRequestToDeleteTheLink() {
         // given
         let existingLink = "https://wire-website.com/some-magic-link"
-        
-        mockTransportSession.performRemoteChanges { session in
+
+        mockTransportSession.performRemoteChanges { _ in
             self.groupConversationWithWholeTeam.accessMode = ["code", "invite"]
             self.groupConversationWithWholeTeam.accessRole = "non_activated"
             self.groupConversationWithWholeTeam.link = existingLink
         }
         XCTAssert(login())
-        
+
         let conversation = self.conversation(for: self.groupConversationWithWholeTeam)!
-        
+
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
         XCTAssertEqual(conversation.accessMode, [.code, .invite])
         XCTAssertEqual(conversation.accessRole, .nonActivated)
         mockTransportSession?.resetReceivedRequests()
-        
+
         // when
         conversation.deleteWirelessLink(in: self.userSession!) { result in
             switch result {
@@ -225,30 +225,30 @@ class ConversationTests_Guests: IntegrationTest {
             }
         }
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
-        
+
         // then
         XCTAssertEqual(mockTransportSession.receivedRequests().count, 1)
         guard let request = mockTransportSession.receivedRequests().first else { return }
         XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/code")
         XCTAssertEqual(request.method, .methodDELETE)
     }
-    
+
     func testThatItSendsRequestToDeleteTheLink_LinkDoesNotExist() {
         // given
-        mockTransportSession.performRemoteChanges { session in
+        mockTransportSession.performRemoteChanges { _ in
             self.groupConversationWithWholeTeam.accessMode = ["code", "invite"]
             self.groupConversationWithWholeTeam.accessRole = "non_activated"
             self.groupConversationWithWholeTeam.link = nil
         }
         XCTAssert(login())
-        
+
         let conversation = self.conversation(for: self.groupConversationWithWholeTeam)!
-        
+
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
         XCTAssertEqual(conversation.accessMode, [.code, .invite])
         XCTAssertEqual(conversation.accessRole, .nonActivated)
         mockTransportSession?.resetReceivedRequests()
-        
+
         // when
         conversation.deleteWirelessLink(in: self.userSession!) { result in
             switch result {
@@ -259,14 +259,14 @@ class ConversationTests_Guests: IntegrationTest {
             }
         }
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
-        
+
         // then
         XCTAssertEqual(mockTransportSession.receivedRequests().count, 1)
         guard let request = mockTransportSession.receivedRequests().first else { return }
         XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/code")
         XCTAssertEqual(request.method, .methodDELETE)
     }
-    
+
     func testThatAccessModeChangeEventIsHandled() {
         // given
         XCTAssert(login())
@@ -276,7 +276,7 @@ class ConversationTests_Guests: IntegrationTest {
         XCTAssertFalse(conversation.accessMode!.contains(.allowGuests))
 
         // when
-        mockTransportSession?.performRemoteChanges { session in
+        mockTransportSession?.performRemoteChanges { _ in
             self.groupConversationWithWholeTeam.set(allowGuests: true)
         }
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
