@@ -422,7 +422,6 @@ public final class SessionManager : NSObject, SessionManagerType {
     }
     
     public func start(launchOptions: LaunchOptions) {
-//        pendingURLAction = .startLogin
         if let account = accountManager.selectedAccount {
             selectInitialAccount(account, launchOptions: launchOptions)
         } else {
@@ -493,16 +492,13 @@ public final class SessionManager : NSObject, SessionManagerType {
             })
         }
     }
-    
+
     public func addAccount(userInfo: [String: Any]? = nil) {
         confirmSwitchingAccount { [weak self] in
             let error = NSError(code: .addAccountRequested, userInfo: userInfo)
-            if self?.activeUserSession == nil {
-                // If the user is already unauthenticated, we dont need to log out the current session
-                self?.delegate?.sessionManagerWillLogout(error: error, userSessionCanBeTornDown: nil)
-            } else {
-                self?.logoutCurrentSession(deleteCookie: false, error: error)
-            }
+            self?.delegate?.sessionManagerWillLogout(error: error, userSessionCanBeTornDown: { [weak self] in
+                self?.activeUserSession = nil
+            })
         }
     }
     

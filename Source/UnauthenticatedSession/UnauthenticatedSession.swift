@@ -69,7 +69,10 @@ public class UnauthenticatedSession: NSObject {
                                                            groupQueue: groupQueue,
                                                            userInfoParser: self)
         self.urlActionProcessors = [CompanyLoginURLActionProcessor(delegate: self,
-                                                                   authenticationStatus: authenticationStatus)]
+                                                                   authenticationStatus: authenticationStatus),
+                                    StartLoginURLActionProcessor(delegate: self,
+                                                                 authenticationStatus: authenticationStatus)
+        ]
         self.operationLoop = UnauthenticatedOperationLoop(
             transportSession: transportSession,
             operationQueue: groupQueue,
@@ -96,7 +99,7 @@ public class UnauthenticatedSession: NSObject {
     }
 }
 
-extension UnauthenticatedSession: CompanyLoginURLActionProcessorDelegate {
+extension UnauthenticatedSession: UnauthenticatedSessionStatusDelegate {
     
     var isAllowedToCreateNewAccount: Bool {
         return delegate?.sessionIsAllowedToCreateNewAccount(self) ?? false

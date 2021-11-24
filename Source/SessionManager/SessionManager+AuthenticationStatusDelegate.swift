@@ -31,7 +31,7 @@ extension SessionManager: ZMAuthenticationStatusDelegate {
         loginDelegate?.authenticationDidSucceed()
     }
 
-    public func authenticationDidBecomeAvailable() {
+    public func authenticationDidStarted() {
         addAccount()
     }
     

@@ -346,8 +346,8 @@ static NSString* ZMLogTag ZM_UNUSED = @"Authentication";
     [self.delegate companyLoginCodeDidBecomeAvailable:uuid];
 }
 
-- (void)authenticationDidBecomeAvailable {
-    [self.delegate authenticationDidBecomeAvailable];
+- (void)startLogin {
+    [self.delegate authenticationDidStarted];
 }
 
 @end

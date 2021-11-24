@@ -19,7 +19,7 @@
 import Foundation
 @testable import WireSyncEngine
 
-class CompanyLoginURLActionProcessorTests: ZMTBaseTest, WireSyncEngine.CompanyLoginURLActionProcessorDelegate {
+class CompanyLoginURLActionProcessorTests: ZMTBaseTest, WireSyncEngine.UnauthenticatedSessionStatusDelegate {
 
     var isAllowedToCreateNewAccount: Bool = true
     var sut: WireSyncEngine.CompanyLoginURLActionProcessor!
@@ -86,7 +86,7 @@ class CompanyLoginURLActionProcessorTests: ZMTBaseTest, WireSyncEngine.CompanyLo
         sut.process(urlAction: action, delegate: presentationDelegate)
 
         // then
-        XCTAssertEqual(delegate.authenticationDidBecomeAvailableEvents, 1)
+        XCTAssertEqual(delegate.authenticationDidStartedEvents, 1)
     }
 
     func testThatStartLoginActionFails_WhenAccountLimitIsReached() {
