@@ -16,7 +16,6 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import Foundation
 import WireDataModel
 
@@ -49,9 +48,9 @@ internal protocol UserProfileImageUploadStateChangeDelegate: AnyObject {
 }
 
 public final class UserProfileImageUpdateStatus: NSObject {
-    
+
     fileprivate var log = ZMSLog(tag: "UserProfileImageUpdateStatus")
-    
+
     internal enum ImageState {
         case ready
         case preprocessing
@@ -59,7 +58,7 @@ public final class UserProfileImageUpdateStatus: NSObject {
         case uploading
         case uploaded(assetId: String)
         case failed(UserProfileImageUpdateError)
-        
+
         internal func canTransition(to newState: ImageState) -> Bool {
             switch (self, newState) {
             case (.ready, .preprocessing),
@@ -80,13 +79,13 @@ public final class UserProfileImageUpdateStatus: NSObject {
             }
         }
     }
-    
+
     internal enum ProfileUpdateState {
         case ready
         case preprocess(image: Data)
         case update(previewAssetId: String, completeAssetId: String)
         case failed(UserProfileImageUpdateError)
-        
+
         internal func canTransition(to newState: ProfileUpdateState) -> Bool {
             switch (self, newState) {
             case (.ready, .preprocess),
@@ -105,7 +104,7 @@ public final class UserProfileImageUpdateStatus: NSObject {
             }
         }
     }
-    
+
     internal var preprocessor: ZMAssetsPreprocessorProtocol?
     internal let queue: OperationQueue
     internal weak var changeDelegate: UserProfileImageUploadStateChangeDelegate?
@@ -115,16 +114,16 @@ public final class UserProfileImageUpdateStatus: NSObject {
     fileprivate let syncMOC: NSManagedObjectContext
     fileprivate let uiMOC: NSManagedObjectContext
 
-    fileprivate var imageState = [ProfileImageSize : ImageState]()
-    fileprivate var resizedImages = [ProfileImageSize : Data]()
+    fileprivate var imageState = [ProfileImageSize: ImageState]()
+    fileprivate var resizedImages = [ProfileImageSize: Data]()
     internal fileprivate(set) var state: ProfileUpdateState = .ready
     internal fileprivate(set) var assetsToDelete = Set<String>()
-    
+
     public convenience init(managedObjectContext: NSManagedObjectContext) {
         self.init(managedObjectContext: managedObjectContext, preprocessor: ZMAssetsPreprocessor(delegate: nil), queue: ZMImagePreprocessor.createSuitableImagePreprocessingQueue(), delegate: nil)
     }
-    
-    internal init(managedObjectContext: NSManagedObjectContext, preprocessor: ZMAssetsPreprocessorProtocol, queue: OperationQueue, delegate: UserProfileImageUploadStateChangeDelegate?){
+
+    internal init(managedObjectContext: NSManagedObjectContext, preprocessor: ZMAssetsPreprocessorProtocol, queue: OperationQueue, delegate: UserProfileImageUploadStateChangeDelegate?) {
         log.debug("Created")
         self.queue = queue
         self.preprocessor = preprocessor
@@ -134,7 +133,7 @@ public final class UserProfileImageUpdateStatus: NSObject {
         super.init()
         self.preprocessor?.delegate = self
     }
-    
+
 }
 
 // MARK: Main state transitions
@@ -149,7 +148,7 @@ extension UserProfileImageUpdateStatus {
         self.state = newState
         self.didTransition(from: currentState, to: newState)
     }
-    
+
     private func didTransition(from oldState: ProfileUpdateState, to currentState: ProfileUpdateState) {
         log.debug("Transition: [\(oldState)] -> [\(currentState)]")
         changeDelegate?.didTransition(from: oldState, to: currentState)
@@ -159,13 +158,13 @@ extension UserProfileImageUpdateStatus {
         case let (_, .preprocess(image: data)):
             startPreprocessing(imageData: data)
         case let (_, .update(previewAssetId: previewAssetId, completeAssetId: completeAssetId)):
-            updateUserProfile(with:previewAssetId, completeAssetId: completeAssetId)
+            updateUserProfile(with: previewAssetId, completeAssetId: completeAssetId)
         case (_, .failed):
             resetImageState()
             setState(state: .ready)
         }
     }
-    
+
     private func updateUserProfile(with previewAssetId: String, completeAssetId: String) {
         let selfUser = ZMUser.selfUser(in: self.syncMOC)
         assetsToDelete.formUnion([selfUser.previewProfileAssetIdentifier, selfUser.completeProfileAssetIdentifier].compactMap { $0 })
@@ -176,19 +175,19 @@ extension UserProfileImageUpdateStatus {
         self.syncMOC.saveOrRollback()
         self.setState(state: .ready)
     }
-    
+
     private func startPreprocessing(imageData: Data) {
         ProfileImageSize.allSizes.forEach {
             setState(state: .preprocessing, for: $0)
         }
-        
+
         let imageOwner = UserProfileImageOwner(imageData: imageData)
         guard let operations = preprocessor?.operations(forPreprocessingImageOwner: imageOwner), !operations.isEmpty else {
             resetImageState()
             setState(state: .failed(.preprocessingFailed))
             return
         }
-        
+
         queue.addOperations(operations, waitUntilFinished: false)
     }
 }
@@ -198,23 +197,23 @@ extension UserProfileImageUpdateStatus {
     internal func imageState(for imageSize: ProfileImageSize) -> ImageState {
         return imageState[imageSize] ?? .ready
     }
-    
+
     internal func setState(state newState: ImageState, for imageSize: ProfileImageSize) {
         let currentState = self.imageState(for: imageSize)
         guard currentState.canTransition(to: newState) else {
             // Trying to transition to invalid state - ignore
             return
         }
-        
+
         self.imageState[imageSize] = newState
         self.didTransition(from: currentState, to: newState, for: imageSize)
     }
-    
+
     internal func resetImageState() {
         imageState.removeAll()
         resizedImages.removeAll()
     }
-    
+
     private func didTransition(from oldState: ImageState, to currentState: ImageState, for size: ProfileImageSize) {
         log.debug("Transition [\(size)]: [\(oldState)] -> [\(currentState)]")
         changeDelegate?.didTransition(from: oldState, to: currentState, for: size)
@@ -226,7 +225,7 @@ extension UserProfileImageUpdateStatus {
             // When one image is uploaded we check state of all other images
             let previewState = imageState(for: .preview)
             let completeState = imageState(for: .complete)
-            
+
             switch (previewState, completeState) {
             case let (.uploaded(assetId: previewAssetId), .uploaded(assetId: completeAssetId)):
                 // If both images are uploaded we can update profile
@@ -244,7 +243,7 @@ extension UserProfileImageUpdateStatus {
 
 // Called from the UI to update a v3 image
 extension UserProfileImageUpdateStatus: UserProfileImageUpdateProtocol {
-    
+
     /// Starts the process of updating profile picture. 
     ///
     /// - Important: Expected to be run from UI thread
@@ -258,7 +257,7 @@ extension UserProfileImageUpdateStatus: UserProfileImageUpdateProtocol {
 }
 
 extension UserProfileImageUpdateStatus: ZMAssetsPreprocessorDelegate {
-    
+
     public func completedDownsampleOperation(_ operation: ZMImageDownsampleOperationProtocol, imageOwner: ZMImageOwner) {
         syncMOC.performGroupedBlock {
             ProfileImageSize.allSizes.forEach {
@@ -269,40 +268,40 @@ extension UserProfileImageUpdateStatus: ZMAssetsPreprocessorDelegate {
             }
         }
     }
-    
+
     public func failedPreprocessingImageOwner(_ imageOwner: ZMImageOwner) {
         syncMOC.performGroupedBlock {
             self.setState(state: .failed(.preprocessingFailed))
         }
     }
-    
+
     public func didCompleteProcessingImageOwner(_ imageOwner: ZMImageOwner) {}
-    
+
     public func preprocessingCompleteOperation(for imageOwner: ZMImageOwner) -> Operation? {
         let dispatchGroup = syncMOC.dispatchGroup
         dispatchGroup?.enter()
-        return BlockOperation() {
+        return BlockOperation {
             dispatchGroup?.leave()
         }
     }
 }
 
 extension UserProfileImageUpdateStatus: UserProfileImageUploadStatusProtocol {
-    
+
     /// Checks if there are assets that needs to be deleted
     ///
     /// - Returns: true if there are assets that needs to be deleted
     func hasAssetToDelete() -> Bool {
         return !assetsToDelete.isEmpty
     }
-    
+
     /// Takes an asset ID that needs to be deleted and removes from the internal list
     ///
     /// - Returns: Asset ID or nil if nothing needs to be deleted
     internal func consumeAssetToDelete() -> String? {
         return assetsToDelete.removeFirst()
     }
-    
+
     /// Checks if there is an image to upload
     ///
     /// - Important: should be called from sync thread
@@ -316,7 +315,7 @@ extension UserProfileImageUpdateStatus: UserProfileImageUploadStatusProtocol {
             return false
         }
     }
-    
+
     /// Takes an image that is ready for upload and marks it internally
     /// as currently being uploaded.
     ///
@@ -331,7 +330,7 @@ extension UserProfileImageUpdateStatus: UserProfileImageUploadStatusProtocol {
             return nil
         }
     }
-    
+
     /// Marks the image as uploaded successfully
     ///
     /// - Parameters:
@@ -340,7 +339,7 @@ extension UserProfileImageUpdateStatus: UserProfileImageUploadStatusProtocol {
     internal func uploadingDone(imageSize: ProfileImageSize, assetId: String) {
         setState(state: .uploaded(assetId: assetId), for: imageSize)
     }
-    
+
     /// Marks the image as failed to upload
     ///
     /// - Parameters:

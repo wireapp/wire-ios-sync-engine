@@ -24,14 +24,14 @@ extension ZMClientRegistrationStatus {
     @objc(didFailToRegisterClient:)
     public func didFail(toRegisterClient error: NSError) {
         zmLog.debug(#function)
-        
+
         var error: NSError = error
 
-        //we should not reset login state for client registration errors
+        // we should not reset login state for client registration errors
         if error.code != ZMUserSessionErrorCode.needsPasswordToRegisterClient.rawValue && error.code != ZMUserSessionErrorCode.needsToRegisterEmailToRegisterClient.rawValue && error.code != ZMUserSessionErrorCode.canNotRegisterMoreClients.rawValue {
             emailCredentials = nil
         }
-        
+
         if error.code == ZMUserSessionErrorCode.needsPasswordToRegisterClient.rawValue {
             // help the user by providing the email associated with this account
             error = NSError(domain: error.domain, code: error.code, userInfo: ZMUser.selfUser(in: managedObjectContext).loginCredentials.dictionaryRepresentation)
@@ -50,7 +50,7 @@ extension ZMClientRegistrationStatus {
             registrationStatusDelegate?.didFailToRegisterSelfUserClient(error: error)
         }
     }
-    
+
     @objc
     public func invalidateCookieAndNotify() {
         emailCredentials = nil

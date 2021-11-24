@@ -18,22 +18,21 @@
 
 import Foundation
 
+@objcMembers public class SearchDirectory: NSObject {
 
-@objcMembers public class SearchDirectory : NSObject {
-    
     let searchContext: NSManagedObjectContext
     let contextProvider: ContextProvider
     let transportSession: TransportSessionType
     var isTornDown = false
-    
+
     deinit {
         assert(isTornDown, "`tearDown` must be called before SearchDirectory is deinitialized")
     }
-    
+
     public convenience init(userSession: ZMUserSession) {
         self.init(searchContext: userSession.searchManagedObjectContext, contextProvider: userSession, transportSession: userSession.transportSession)
     }
-    
+
     init(searchContext: NSManagedObjectContext, contextProvider: ContextProvider, transportSession: TransportSessionType) {
         self.searchContext = searchContext
         self.contextProvider = contextProvider
@@ -45,35 +44,35 @@ import Foundation
     /// Returns a SearchTask which should be retained until the results arrive.
     public func perform(_ request: SearchRequest) -> SearchTask {
         let task = SearchTask(task: .search(searchRequest: request), searchContext: searchContext, contextProvider: contextProvider, transportSession: transportSession)
-        
+
         task.onResult { [weak self] (result, _) in
             self?.observeSearchUsers(result)
         }
-        
+
         return task
     }
-    
+
     /// Lookup a user by user Id and returns a search user in the directory results. If the user doesn't exists
     /// an empty directory result is returned.
     ///
     /// Returns a SearchTask which should be retained until the results arrive.
     public func lookup(userId: UUID) -> SearchTask {
         let task = SearchTask(task: .lookup(userId: userId), searchContext: searchContext, contextProvider: contextProvider, transportSession: transportSession)
-        
+
         task.onResult { [weak self] (result, _) in
             self?.observeSearchUsers(result)
         }
-        
+
         return task
     }
-    
-    func observeSearchUsers(_ result : SearchResult) {
+
+    func observeSearchUsers(_ result: SearchResult) {
         let searchUserObserverCenter = contextProvider.viewContext.searchUserObserverCenter
         result.directory.forEach(searchUserObserverCenter.addSearchUser)
         result.services.compactMap { $0 as? ZMSearchUser }.forEach(searchUserObserverCenter.addSearchUser)
         try? result.federation.get().forEach(searchUserObserverCenter.addSearchUser)
     }
-    
+
 }
 
 extension SearchDirectory: TearDownCapable {

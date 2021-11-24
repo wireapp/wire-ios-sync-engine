@@ -19,7 +19,7 @@
 import Foundation
 
 class DeepLinkURLActionProcessor: URLActionProcessor {
-    
+
     var contextProvider: ContextProvider
     var transportSession: TransportSessionType
     var eventProcessor: UpdateEventProcessor
@@ -31,7 +31,7 @@ class DeepLinkURLActionProcessor: URLActionProcessor {
         self.transportSession = transportSession
         self.eventProcessor = eventProcessor
     }
-    
+
     func process(urlAction: URLAction, delegate: PresentationDelegate?) {
         switch urlAction {
         case let .joinConversation(key: key, code: code):
@@ -82,14 +82,14 @@ class DeepLinkURLActionProcessor: URLActionProcessor {
                     delegate.completedURLAction(urlAction)
                 }
             }
-            
+
         case .openConversation(let id):
             let viewContext = contextProvider.viewContext
             guard let conversation = ZMConversation.fetch(with: id, domain: nil, in: viewContext) else {
                 delegate?.failedToPerformAction(urlAction, error: DeepLinkRequestError.invalidConversationLink)
                 return
             }
-            
+
             delegate?.showConversation(conversation, at: nil)
             delegate?.completedURLAction(urlAction)
 
@@ -102,7 +102,7 @@ class DeepLinkURLActionProcessor: URLActionProcessor {
             }
 
             delegate?.completedURLAction(urlAction)
-            
+
         default:
             delegate?.completedURLAction(urlAction)
         }

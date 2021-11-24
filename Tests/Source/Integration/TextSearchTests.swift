@@ -110,9 +110,9 @@ class TextSearchTests: ConversationTestsBase {
         let text = "This is an ephemeral message"
 
         // When
-        mockTransportSession.performRemoteChanges { session in
+        mockTransportSession.performRemoteChanges { _ in
             let genericMessage = GenericMessage(content: Text(content: text), expiresAfterTimeInterval: 300)
-            
+
             do {
                 self.selfToUser1Conversation.encryptAndInsertData(from: firstClient, to: selfClient, data: try genericMessage.serializedData())
             } catch {

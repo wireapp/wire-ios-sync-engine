@@ -30,7 +30,6 @@ extension ZMUser {
 
 }
 
-
 extension LoginCredentials {
 
     /// This will be used to set user info on the NSError

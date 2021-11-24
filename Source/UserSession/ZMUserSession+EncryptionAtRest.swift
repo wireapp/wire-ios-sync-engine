@@ -23,16 +23,16 @@ import WireDataModel
 public protocol UserSessionEncryptionAtRestInterface {
     var encryptMessagesAtRest: Bool { get }
     var isDatabaseLocked: Bool { get }
-    
+
     func setEncryptionAtRest(enabled: Bool, skipMigration: Bool) throws
     func unlockDatabase(with context: LAContext) throws
     func registerDatabaseLockedHandler(_ handler: @escaping (_ isDatabaseLocked: Bool) -> Void) -> Any
 }
 
 protocol UserSessionEncryptionAtRestDelegate: AnyObject {
-    
+
     func setEncryptionAtRest(enabled: Bool, account: Account, encryptionKeys: EncryptionKeys)
-    
+
 }
 
 extension ZMUserSession: UserSessionEncryptionAtRestInterface {
@@ -53,7 +53,7 @@ extension ZMUserSession: UserSessionEncryptionAtRestInterface {
         guard enabled != encryptMessagesAtRest else { return }
 
         let encryptionKeys = try coreDataStack.encryptionKeysForSettingEncryptionAtRest(enabled: enabled)
-        
+
         if skipMigration {
             try managedObjectContext.enableEncryptionAtRest(encryptionKeys: encryptionKeys, skipMigration: true)
         } else {
@@ -62,50 +62,49 @@ extension ZMUserSession: UserSessionEncryptionAtRestInterface {
                                           encryptionKeys: encryptionKeys)
         }
     }
-    
+
     public var encryptMessagesAtRest: Bool {
         get {
             return managedObjectContext.encryptMessagesAtRest
         }
     }
-    
+
     public var isDatabaseLocked: Bool {
         managedObjectContext.encryptMessagesAtRest && managedObjectContext.encryptionKeys == nil
     }
-        
+
     public func registerDatabaseLockedHandler(_ handler: @escaping (_ isDatabaseLocked: Bool) -> Void) -> Any {
         return NotificationInContext.addObserver(name: DatabaseEncryptionLockNotification.notificationName,
                                                  context: managedObjectContext.notificationContext,
-                                                 queue: .main)
-        { note in
+                                                 queue: .main) { note in
             guard let note = note.userInfo[DatabaseEncryptionLockNotification.userInfoKey] as? DatabaseEncryptionLockNotification else { return }
-            
+
             handler(note.databaseIsEncrypted)
         }
     }
-    
+
     func lockDatabase() {
         guard managedObjectContext.encryptMessagesAtRest else { return }
-        
+
         BackgroundActivityFactory.shared.notifyWhenAllBackgroundActivitiesEnd { [weak self] in
             self?.coreDataStack.clearEncryptionKeysInAllContexts()
-        
+
             if let notificationContext = self?.managedObjectContext.notificationContext {
                 DatabaseEncryptionLockNotification(databaseIsEncrypted: true).post(in: notificationContext)
             }
         }
     }
-    
+
     public func unlockDatabase(with context: LAContext) throws {
         let keys = try EncryptionKeys.init(account: coreDataStack.account, context: context)
 
         coreDataStack.storeEncryptionKeysInAllContexts(encryptionKeys: keys)
-        
+
         DatabaseEncryptionLockNotification(databaseIsEncrypted: false).post(in: managedObjectContext.notificationContext)
-        
+
         syncManagedObjectContext.performGroupedBlock {
             self.processEvents()
         }
     }
-    
+
 }

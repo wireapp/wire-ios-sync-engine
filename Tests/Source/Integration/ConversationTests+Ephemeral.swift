@@ -44,7 +44,7 @@ extension ConversationTests_Ephemeral {
 
         // when
         conversation.setMessageDestructionTimeoutValue(.custom(100), for: .selfUser)
-        var message : ZMClientMessage!
+        var message: ZMClientMessage!
         self.userSession?.perform {
             message = try! conversation.appendText(content: "Hello") as? ZMClientMessage
             XCTAssertTrue(message.isEphemeral)
@@ -72,7 +72,7 @@ extension ConversationTests_Ephemeral {
 
         // when
         conversation.setMessageDestructionTimeoutValue(.custom(100), for: .selfUser)
-        var message : ZMAssetClientMessage!
+        var message: ZMAssetClientMessage!
         self.userSession?.perform {
             message = try! conversation.appendImage(from: self.verySmallJPEGData()) as? ZMAssetClientMessage
             XCTAssertTrue(message.isEphemeral)
@@ -96,7 +96,7 @@ extension ConversationTests_Ephemeral {
 
         // insert ephemeral message
         conversation.setMessageDestructionTimeoutValue(.custom(0.1), for: .selfUser)
-        var ephemeral : ZMClientMessage!
+        var ephemeral: ZMClientMessage!
         self.userSession?.perform {
             ephemeral = try! conversation.appendText(content: "Hello") as? ZMClientMessage
         }
@@ -205,7 +205,7 @@ extension ConversationTests_Ephemeral {
 
         // when
         conversation.setMessageDestructionTimeoutValue(.custom(1), for: .selfUser)
-        var ephemeral : ZMClientMessage!
+        var ephemeral: ZMClientMessage!
         self.userSession?.perform {
             ephemeral = try! conversation.appendText(content: "Hello") as? ZMClientMessage
         }

@@ -25,27 +25,26 @@ public typealias BackgroundTaskHandler = (_ taskResult: BackgroundTaskResult) ->
 private let zmLog = ZMSLog(tag: "OperationStatus")
 
 @objc(ZMOperationStatusDelegate)
-public protocol OperationStatusDelegate : AnyObject {
-    
+public protocol OperationStatusDelegate: AnyObject {
+
     @objc(operationStatusDidChangeState:)
     func operationStatus(didChangeState state: SyncEngineOperationState)
 }
 
-
 @objc(ZMBackgroundTaskResult)
-public enum BackgroundTaskResult : UInt {
+public enum BackgroundTaskResult: UInt {
     case finished
     case failed
 }
 
-@objc public enum SyncEngineOperationState : UInt, CustomStringConvertible {
+@objc public enum SyncEngineOperationState: UInt, CustomStringConvertible {
     case background
     case backgroundCall
     case backgroundFetch
     case backgroundTask
     case foreground
-    
-    public var description : String {
+
+    public var description: String {
         switch self {
         case .background:
             return "background"
@@ -62,78 +61,78 @@ public enum BackgroundTaskResult : UInt {
 }
 
 @objcMembers
-public class OperationStatus : NSObject {
-        
-    public weak var delegate : OperationStatusDelegate?
-    
-    private var backgroundFetchTimer : Timer?
-    private var backgroundTaskTimer : Timer?
+public class OperationStatus: NSObject {
 
-    private var backgroundFetchHandler : BackgroundFetchHandler? {
+    public weak var delegate: OperationStatusDelegate?
+
+    private var backgroundFetchTimer: Timer?
+    private var backgroundTaskTimer: Timer?
+
+    private var backgroundFetchHandler: BackgroundFetchHandler? {
         didSet {
             updateOperationState()
         }
     }
-    
-    private var backgroundTaskHandler : BackgroundTaskHandler? {
+
+    private var backgroundTaskHandler: BackgroundTaskHandler? {
         didSet {
             updateOperationState()
         }
     }
-    
+
     public var isInBackground = true {
         didSet {
             updateOperationState()
         }
     }
-    
+
     public var hasOngoingCall = false {
         didSet {
             updateOperationState()
         }
     }
-    
-    public private(set) var operationState : SyncEngineOperationState = .background {
+
+    public private(set) var operationState: SyncEngineOperationState = .background {
         didSet {
             delegate?.operationStatus(didChangeState: operationState)
         }
     }
-    
+
     public func startBackgroundFetch(withCompletionHandler completionHandler: @escaping BackgroundFetchHandler) {
         startBackgroundFetch(timeout: 30.0, withCompletionHandler: completionHandler)
     }
-    
+
     public func startBackgroundFetch(timeout: TimeInterval, withCompletionHandler completionHandler: @escaping BackgroundFetchHandler) {
         guard backgroundFetchHandler == nil else {
             return completionHandler(.failed)
         }
-        
+
         backgroundFetchHandler = completionHandler
         backgroundFetchTimer = Timer.scheduledTimer(timeInterval: timeout, target: self, selector: #selector(backgroundFetchTimeout), userInfo: nil, repeats: false)
         RequestAvailableNotification.notifyNewRequestsAvailable(self)
     }
-    
+
     public func startBackgroundTask(withCompletionHandler completionHandler: @escaping BackgroundTaskHandler) {
         startBackgroundTask(timeout: 30.0, withCompletionHandler: completionHandler)
     }
-    
+
     public func startBackgroundTask(timeout: TimeInterval, withCompletionHandler completionHandler: @escaping BackgroundTaskHandler) {
         guard backgroundTaskHandler == nil, isInBackground else {
             return completionHandler(.failed)
         }
-        
+
         backgroundTaskHandler = completionHandler
         backgroundTaskTimer = Timer.scheduledTimer(timeInterval: timeout, target: self, selector: #selector(backgroundTaskTimeout), userInfo: nil, repeats: false)
     }
-    
-    @objc func backgroundFetchTimeout() {
+
+    func backgroundFetchTimeout() {
         finishBackgroundFetch(withFetchResult: .failed)
     }
-    
-    @objc func backgroundTaskTimeout() {
+
+    func backgroundTaskTimeout() {
         finishBackgroundTask(withTaskResult: .failed)
     }
-    
+
     public func finishBackgroundFetch(withFetchResult result: UIBackgroundFetchResult) {
         backgroundFetchTimer?.invalidate()
         backgroundFetchTimer = nil
@@ -142,7 +141,7 @@ public class OperationStatus : NSObject {
             self.backgroundFetchHandler = nil
         }
     }
-    
+
     public func finishBackgroundTask(withTaskResult result: BackgroundTaskResult) {
         backgroundTaskTimer?.invalidate()
         backgroundTaskTimer = nil
@@ -151,35 +150,35 @@ public class OperationStatus : NSObject {
             self.backgroundTaskHandler = nil
         }
     }
-    
+
     fileprivate func updateOperationState() {
         let oldOperationState = operationState
         let newOperationState = calculatedOperationState
-        
+
         if newOperationState != oldOperationState {
             zmLog.debug("operation state changed from \(oldOperationState) to \(newOperationState)")
             operationState = newOperationState
         }
     }
-    
-    fileprivate var calculatedOperationState : SyncEngineOperationState {
-        if (isInBackground) {
+
+    fileprivate var calculatedOperationState: SyncEngineOperationState {
+        if isInBackground {
             if hasOngoingCall {
                 return .backgroundCall
             }
-            
+
             if backgroundFetchHandler != nil {
                 return .backgroundFetch
             }
-            
+
             if backgroundTaskHandler != nil {
                 return .backgroundTask
             }
-            
+
             return .background
         } else {
             return .foreground
         }
     }
-    
+
 }

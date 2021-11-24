@@ -16,21 +16,20 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 // 
 
-
 import Foundation
 
 @objc extension UIDevice {
-    
+
     public func zm_model() -> String {
         var systemInfo = utsname()
         uname(&systemInfo)
-        
+
         let machineMirror = Mirror(reflecting: systemInfo.machine)
         let identifier = machineMirror.children.reduce("") { identifier, element in
-            guard let value = element.value as? Int8 , value != 0 else { return identifier }
+            guard let value = element.value as? Int8, value != 0 else { return identifier }
             return identifier + String(UnicodeScalar(UInt8(value)))
         }
-        
+
         switch identifier {
         case "iPod5,1":                                     return "iPod Touch 5"
         case "iPod7,1":                                     return "iPod Touch 6"
@@ -81,11 +80,11 @@ import Foundation
         case "iPad11,3", "iPad11,4":                        return "iPad Air 3"
         case "iPad11,6", "iPad11,7":                        return "iPad 8th Gen"
         case "iPad13,1", "iPad13,2":                        return "iPad air 4th Gen"
-        case "iPad13,4","iPad13,5","iPad13,6", "iPad13,7":  return "iPad Pro 11 inch 3rd Gen"
-        case "iPad13,8","iPad13,9","iPad13,10","iPad13,11": return "iPad Pro 12.9 inch 5th Gen"
+        case "iPad13,4", "iPad13,5", "iPad13,6", "iPad13,7":  return "iPad Pro 11 inch 3rd Gen"
+        case "iPad13,8", "iPad13,9", "iPad13,10", "iPad13,11": return "iPad Pro 12.9 inch 5th Gen"
         case "i386", "x86_64":                              return "Simulator"
         default:                                            return identifier
         }
     }
-    
+
 }

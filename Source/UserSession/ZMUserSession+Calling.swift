@@ -20,43 +20,43 @@ import Foundation
 
 @objc
 public protocol CallNotificationStyleProvider: AnyObject {
-    
+
     var callNotificationStyle: CallNotificationStyle { get }
-    
+
 }
 
 @objc extension ZMUserSession: CallNotificationStyleProvider {
-    
-    public var callCenter : WireCallCenterV3? {
+
+    public var callCenter: WireCallCenterV3? {
         return managedObjectContext.zm_callCenter
     }
-    
-    public var callNotificationStyle : CallNotificationStyle {
+
+    public var callNotificationStyle: CallNotificationStyle {
         return sessionManager?.callNotificationStyle ?? .pushNotifications
     }
-    
+
     public var isCallOngoing: Bool {
         guard let callCenter = callCenter else { return false }
-        
+
         return !callCenter.activeCallConversations(in: self).isEmpty
     }
-    
-    internal var callKitManager : CallKitManager? {
+
+    internal var callKitManager: CallKitManager? {
         return sessionManager?.callKitManager
     }
-    
-    @objc var useConstantBitRateAudio : Bool {
+
+    var useConstantBitRateAudio: Bool {
         set {
             managedObjectContext.zm_useConstantBitRateAudio = newValue
             callCenter?.useConstantBitRateAudio = newValue
         }
-        
+
         get {
             return managedObjectContext.zm_useConstantBitRateAudio
         }
     }
 
-    @objc var usePackagingFeatureConfig : Bool {
+    var usePackagingFeatureConfig: Bool {
         set {
             managedObjectContext.zm_usePackagingFeatureConfig = newValue
             callCenter?.usePackagingFeatureConfig = newValue

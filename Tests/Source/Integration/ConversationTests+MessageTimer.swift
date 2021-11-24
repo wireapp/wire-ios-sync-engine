@@ -51,10 +51,10 @@ class ConversationMessageTimerTests: IntegrationTest {
         XCTAssert(login())
         let sut = conversation(for: groupConversation)!
         XCTAssertNil(sut.activeMessageDestructionTimeoutValue)
-        
+
         // when
         setGlobalTimeout(for: sut, timeout: .oneDay)
-        
+
         // then
         XCTAssertEqual(sut.activeMessageDestructionTimeoutValue, .oneDay)
         XCTAssertEqual(sut.activeMessageDestructionTimeoutType, .groupConversation)
@@ -72,7 +72,7 @@ class ConversationMessageTimerTests: IntegrationTest {
 
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
         XCTAssertNotNil(sut.activeMessageDestructionTimeoutValue)
-        
+
         setGlobalTimeout(for: sut, timeout: .none)
 
         // then
@@ -96,17 +96,17 @@ class ConversationMessageTimerTests: IntegrationTest {
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
         XCTAssertEqual(sut.activeMessageDestructionTimeoutValue, .oneDay)
         XCTAssertEqual(sut.activeMessageDestructionTimeoutType, .selfUser)
-        
+
         // when
         setGlobalTimeout(for: sut, timeout: .tenSeconds)
-        
+
         // then
         XCTAssertEqual(sut.activeMessageDestructionTimeoutValue, .tenSeconds)
         XCTAssertEqual(sut.activeMessageDestructionTimeoutType, .groupConversation)
-        
+
         // when
         setGlobalTimeout(for: sut, timeout: .none)
-        
+
         // then
         XCTAssertEqual(sut.activeMessageDestructionTimeoutValue, .oneDay)
         XCTAssertEqual(sut.activeMessageDestructionTimeoutType, .selfUser)

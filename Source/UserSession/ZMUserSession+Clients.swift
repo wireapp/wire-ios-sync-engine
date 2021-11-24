@@ -22,24 +22,24 @@ import Foundation
 public protocol ClientUpdateObserver: NSObjectProtocol {
     @objc(finishedFetchingClients:)
     func finishedFetching(_ clients: [UserClient])
-    
+
     @objc(failedToFetchClientsWithError:)
     func failedToFetchClients(_ error: Error)
-    
+
     @objc(finishedDeletingClients:)
     func finishedDeleting(_ remainingClients: [UserClient])
-    
+
     @objc(failedToDeleteClientsWithError:)
     func failedToDeleteClients(_ error: Error)
 }
 
 extension ZMUserSession {
-    
+
     /// Fetch all selfUser clients to manage them from the settings screen
     /// The current client must be already registered
     ///
     /// Calling this method without a registered client will fail.
-    
+
     @objc
     public func fetchAllClients() {
         syncManagedObjectContext.performGroupedBlock {
@@ -47,27 +47,27 @@ extension ZMUserSession {
             RequestAvailableNotification.notifyNewRequestsAvailable(self)
         }
     }
-    
+
     /// Deletes selfUser clients from the backend
-    
+
     @objc(deleteClient:withCredentials:)
     public func deleteClient(_ client: UserClient, credentials: ZMEmailCredentials?) {
         client.markForDeletion()
         client.managedObjectContext?.saveOrRollback()
-        
+
         syncManagedObjectContext.performGroupedBlock {
             self.applicationStatusDirectory?.clientUpdateStatus.deleteClients(withCredentials: credentials)
             RequestAvailableNotification.notifyNewRequestsAvailable(self)
         }
     }
-    
+
     /// Adds an observer that is notified when the selfUser clients were successfully fetched and deleted
     ///
     /// - Returns: Token that needs to be stored as long the observer should be active.
-    
+
     @objc(addClientUpdateObserver:)
     public func addClientUpdateObserver(_ observer: ClientUpdateObserver) -> Any {
-        
+
         return ZMClientUpdateNotification.addObserver(context: managedObjectContext) { [weak self] (type, clientObjectIDs, error) in
             self?.managedObjectContext.performGroupedBlock {
                 switch type {
@@ -89,5 +89,5 @@ extension ZMUserSession {
             }
         }
     }
-    
+
 }

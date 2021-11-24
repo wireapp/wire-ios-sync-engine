@@ -42,7 +42,7 @@ class FileTransferTests_Swift: ConversationTestsBase {
 
         let asset = WireProtos.Asset(original: WireProtos.Asset.Original(withSize: 256, mimeType: mimeType, name: "foo229"), preview: nil)
         let original = GenericMessage(content: asset, nonce: nonce, expiresAfterTimeInterval: isEphemeral ? 20 : 0)
-        
+
         // when
         self.mockTransportSession.performRemoteChanges { (_) in
             mockConversation!.encryptAndInsertData(from: senderClient,
@@ -199,9 +199,9 @@ extension FileTransferTests_Swift {
         let assetData = Data.secureRandomData(length: 256)
         let encryptedAsset = assetData.zmEncryptPrefixingPlainTextIV(key: otrKey)
         let sha256 = encryptedAsset.zmSHA256Digest()
-        
+
         let uploaded = GenericMessage(content: WireProtos.Asset(withUploadedOTRKey: otrKey, sha256: sha256), nonce: nonce, expiresAfterTimeInterval: 30)
-        
+
         // when
         let message = self.remotelyInsertAssetOriginalAndUpdate(updateMessage: uploaded, insertBlock: { (data, conversation, from, to) in
             conversation.insertOTRAsset(from: from, to: to, metaData: data, imageData: assetData, assetId: assetID, isInline: false)

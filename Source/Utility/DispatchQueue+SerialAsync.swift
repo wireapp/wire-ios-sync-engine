@@ -18,7 +18,7 @@
 
 import Foundation
 
-public typealias AsyncAction = (_ whenDone: @escaping ()->()) -> ()
+public typealias AsyncAction = (_ whenDone: @escaping ()->Void) -> Void
 
 extension DispatchQueue {
     // Dispatches the @c action on the queue in the serial way, waiting for the completion call (whenDone).
@@ -26,15 +26,15 @@ extension DispatchQueue {
         self.async {
             let loadingGroup = DispatchGroup()
             loadingGroup.enter()
-            
+
             DispatchQueue.main.async {
                 action {
                     loadingGroup.leave()
                 }
             }
-            
+
             loadingGroup.wait()
         }
-        
+
     }
 }
