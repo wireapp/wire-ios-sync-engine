@@ -156,7 +156,7 @@ extension IntegrationTest {
 
         deleteSharedContainerContent()
         sharedContainerDirectory = nil
-        
+
     }
 
     @objc
@@ -269,7 +269,7 @@ extension IntegrationTest {
 
             let selfConversation = session.insertSelfConversation(withSelfUser: selfUser)
             selfConversation.identifier = selfUser.identifier
-            
+
             self.selfUser = selfUser
             self.selfConversation = selfConversation
         })
@@ -427,7 +427,7 @@ extension IntegrationTest {
         let predicate = NSPredicate(format: "remoteIdentifier_data == %@", data)
         let request = ZMUser.sortedFetchRequest(with: predicate)
         let result = userSession?.managedObjectContext.executeFetchRequestOrAssert(request) as? [ZMUser]
-        
+
         if let user = result?.first {
             return user
         } else {
@@ -444,7 +444,7 @@ extension IntegrationTest {
         let predicate = NSPredicate(format: "remoteIdentifier_data == %@", data)
         let request = ZMConversation.sortedFetchRequest(with: predicate)
         let result = userSession?.managedObjectContext.executeFetchRequestOrAssert(request) as? [ZMConversation]
-        
+
         if let conversation = result?.first {
             return conversation
         } else {
