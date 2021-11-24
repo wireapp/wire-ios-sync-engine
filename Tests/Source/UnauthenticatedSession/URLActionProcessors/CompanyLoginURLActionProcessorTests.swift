@@ -19,7 +19,7 @@
 import Foundation
 @testable import WireSyncEngine
 
-class CompanyLoginURLActionProcessorTests: ZMTBaseTest, WireSyncEngine.CompanyLoginURLActionProcessorDelegate {
+class CompanyLoginURLActionProcessorTests: ZMTBaseTest, WireSyncEngine.UnauthenticatedSessionStatusDelegate {
 
     var isAllowedToCreateNewAccount: Bool = true
     var sut: WireSyncEngine.CompanyLoginURLActionProcessor!
@@ -65,6 +65,34 @@ class CompanyLoginURLActionProcessorTests: ZMTBaseTest, WireSyncEngine.CompanyLo
         isAllowedToCreateNewAccount = false
         let ssoCode = UUID()
         let action: URLAction = .startCompanyLogin(code: ssoCode)
+        let presentationDelegate = MockPresentationDelegate()
+        
+        // when
+        sut.process(urlAction: action, delegate: presentationDelegate)
+        
+        // then
+        XCTAssertEqual(presentationDelegate.failedToPerformActionCalls.count, 1)
+        XCTAssertEqual(presentationDelegate.failedToPerformActionCalls.first?.0, action)
+        XCTAssertEqual(presentationDelegate.failedToPerformActionCalls.first?.1 as? SessionManager.AccountError, .accountLimitReached)
+    }
+
+    func testThatAuthenticationStatusChanges_OnStartLoginAction() {
+        // given
+        isAllowedToCreateNewAccount = true
+        let action: URLAction = .startLogin
+        let presentationDelegate = MockPresentationDelegate()
+
+        // when
+        sut.process(urlAction: action, delegate: presentationDelegate)
+
+        // then
+        XCTAssertEqual(delegate.authenticationWasRequestedEvents, 1)
+    }
+
+    func testThatStartLoginActionFails_WhenAccountLimitIsReached() {
+        // given
+        isAllowedToCreateNewAccount = false
+        let action: URLAction = .startLogin
         let presentationDelegate = MockPresentationDelegate()
 
         // when

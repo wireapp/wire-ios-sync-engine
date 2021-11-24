@@ -55,6 +55,9 @@ public protocol SessionManagerDelegate: SessionActivationObserver {
     func sessionManagerDidFailToLoadDatabase()
     func sessionManagerDidBlacklistCurrentVersion()
     func sessionManagerDidBlacklistJailbrokenDevice()
+
+    var isInAuthenticatedAppState: Bool { get }
+    var isInUnathenticatedAppState: Bool { get }
 }
 
 /// The public interface for the session manager.
@@ -489,16 +492,13 @@ public final class SessionManager : NSObject, SessionManagerType {
             })
         }
     }
-    
+
     public func addAccount(userInfo: [String: Any]? = nil) {
         confirmSwitchingAccount { [weak self] in
             let error = NSError(code: .addAccountRequested, userInfo: userInfo)
-            if self?.activeUserSession == nil {
-                // If the user is already unauthenticated, we dont need to log out the current session
-                self?.delegate?.sessionManagerWillLogout(error: error, userSessionCanBeTornDown: nil)
-            } else {
-                self?.logoutCurrentSession(deleteCookie: false, error: error)
-            }
+            self?.delegate?.sessionManagerWillLogout(error: error, userSessionCanBeTornDown: { [weak self] in
+                self?.activeUserSession = nil
+            })
         }
     }
     
@@ -630,7 +630,7 @@ public final class SessionManager : NSObject, SessionManagerType {
 
     func performPostUnlockActionsIfPossible(for session: ZMUserSession) {
         guard session.lock == .none else { return }
-        processPendingURLAction()
+        processPendingURLActionRequiresAuthentication()
     }
 
     // Loads user session for @c account given and executes the @c action block.

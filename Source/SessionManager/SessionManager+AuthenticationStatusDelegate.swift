@@ -30,6 +30,10 @@ extension SessionManager: ZMAuthenticationStatusDelegate {
     public func authenticationDidSucceed() {
         loginDelegate?.authenticationDidSucceed()
     }
+
+    public func authenticationWasRequested() {
+        addAccount()
+    }
     
     public func loginCodeRequestDidFail(_ error: Error!) {
         loginDelegate?.loginCodeRequestDidFail(error as NSError)

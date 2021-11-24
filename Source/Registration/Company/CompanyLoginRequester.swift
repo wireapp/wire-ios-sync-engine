@@ -22,6 +22,7 @@ extension URL {
     enum Host {
         static let connect = "connect"
         static let login = "login"
+        static let startLogin = "start-login"
         static let startSSO = "start-sso"
         static let accessBackend = "access" // Used for connecting to custom backend
     }

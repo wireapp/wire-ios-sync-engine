@@ -29,6 +29,9 @@ public enum URLAction: Equatable {
     /// Start the SSO login flow
     case startCompanyLogin(code: UUID)
 
+    /// Start the login flow
+    case startLogin
+
     /// Join a public conversation
     case joinConversation(key: String, code: String)
 
@@ -134,7 +137,10 @@ extension URLAction {
                 throw DeepLinkRequestError.malformedLink
             }
             self = .accessBackend(configurationURL: url)
-            
+
+        case URL.Host.startLogin:
+            self = .startLogin
+
         case URL.Host.login:
             let pathComponents = url.pathComponents
             

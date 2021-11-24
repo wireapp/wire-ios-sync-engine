@@ -26,23 +26,23 @@ public enum DomainLookupError: Error, Equatable {
 }
 
 public struct DomainInfo: Codable, Equatable {
-    
+
     public let configurationURL: URL
-    
+
     private enum CodingKeys: String, CodingKey {
         case configurationURL = "config_json_url"
     }
-    
+
     init(configurationURL: URL) {
         self.configurationURL = configurationURL
     }
-    
+
     init?(_ data: Data) {
         let decoder = JSONDecoder()
-        
+
         do {
             let domainInfo = try decoder.decode(DomainInfo.self, from: data)
-            
+
             if domainInfo.configurationURL.scheme != nil {
                 self = domainInfo
             } else {
@@ -55,25 +55,25 @@ public struct DomainInfo: Codable, Equatable {
 }
 
 extension UnauthenticatedSession {
-    
+
     /// Lookup a domain and fetch its configuration if it's registered in the Wire cloud.
     ///
     /// - parameter domain: Domain to look up (e.g. example.com)
     /// - parameter completion: The result closure will with the result of the lookup.
-    
+
     public func lookup(domain: String, completion: @escaping (Result<DomainInfo>) -> Void) {
-        
+
         let path = "/custom-backend/by-domain/\(domain.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!)"
         let request = ZMTransportRequest(path: path, method: .methodGET, payload: nil)
-        
+
         request.add(ZMCompletionHandler(on: operationLoop.operationQueue!, block: { (response) in
-            
+
             switch response.result {
             case .success:
                 guard let data = response.rawData, let domainInfo = DomainInfo(data) else {
                     return completion(.failure(DomainLookupError.malformedData))
                 }
-                
+
                 return completion(.success(domainInfo))
             case .expired, .temporaryError, .tryAgainLater:
                 completion(.failure(DomainLookupError.networkFailure))
@@ -87,8 +87,8 @@ extension UnauthenticatedSession {
                 completion(.failure(DomainLookupError.unknown))
             }
         }))
-        
+
         operationLoop.transportSession.enqueueOneTime(request)
     }
-    
+
 }

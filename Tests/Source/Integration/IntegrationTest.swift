@@ -606,6 +606,14 @@ extension IntegrationTest {
 
 extension IntegrationTest: SessionManagerDelegate {
 
+    public var isInAuthenticatedAppState: Bool {
+        return appState == "authenticated"
+    }
+
+    public var isInUnathenticatedAppState: Bool {    
+        return appState == "unauthenticated"
+    }
+
     public func sessionManagerDidFailToLogin(error: Error?) {
         // no op
     }

@@ -16,11 +16,9 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 // 
 
-
 import Foundation
 import WireTesting
 import WireDataModel
-
 
 func AssertKeyPathDictionaryHasOptionalValue<T: NSObject>(_ dictionary: @autoclosure () -> [WireDataModel.StringKeyPath: T?], key: @autoclosure () -> WireDataModel.StringKeyPath, expected: @autoclosure () -> T, _ message: String = "", file: StaticString = #file, line: UInt = #line) {
     if let v = dictionary()[key()] {
@@ -30,10 +28,9 @@ func AssertKeyPathDictionaryHasOptionalValue<T: NSObject>(_ dictionary: @autoclo
     }
 }
 
-
 func AssertKeyPathDictionaryHasOptionalNilValue<T: NSObject>(_ dictionary: @autoclosure () -> [WireDataModel.StringKeyPath: T?], key: @autoclosure () -> WireDataModel.StringKeyPath, _ message: String = "", file: StaticString = #file, line: UInt = #line) {
     if let v = dictionary()[key()] {
-        AssertOptionalNil(v, message , file: file, line: line)
+        AssertOptionalNil(v, message, file: file, line: line)
     } else {
         XCTFail("No value for \(key()). \(message)", file: file, line: line)
     }

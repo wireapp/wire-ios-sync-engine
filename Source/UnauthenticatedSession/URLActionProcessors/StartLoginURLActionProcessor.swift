@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2020 Wire Swiss GmbH
+// Copyright (C) 2021 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,17 +18,11 @@
 
 import Foundation
 
-protocol UnauthenticatedSessionStatusDelegate: AnyObject {
+class StartLoginURLActionProcessor: URLActionProcessor {
 
-    var isAllowedToCreateNewAccount: Bool { get }
-
-}
-
-class CompanyLoginURLActionProcessor: URLActionProcessor {
-    
     private weak var delegate: UnauthenticatedSessionStatusDelegate?
     private var authenticationStatus: ZMAuthenticationStatus
-    
+
     init(delegate: UnauthenticatedSessionStatusDelegate, authenticationStatus: ZMAuthenticationStatus) {
         self.delegate = delegate
         self.authenticationStatus = authenticationStatus
@@ -36,22 +30,17 @@ class CompanyLoginURLActionProcessor: URLActionProcessor {
 
     func process(urlAction: URLAction, delegate presentationDelegate: PresentationDelegate?) {
         switch urlAction {
-        case .companyLoginSuccess(let userInfo):
-            authenticationStatus.loginSucceeded(with: userInfo)
-        case .startCompanyLogin(let code):
+        case .startLogin:
             guard delegate?.isAllowedToCreateNewAccount == true else {
                 presentationDelegate?.failedToPerformAction(urlAction, error: SessionManager.AccountError.accountLimitReached)
                 return
             }
-            authenticationStatus.notifyCompanyLoginCodeDidBecomeAvailable(code)
+            authenticationStatus.startLogin()
         default:
             break
         }
-
-        // Delete the url scheme verification token
-        CompanyLoginVerificationToken.flush()
-
-        presentationDelegate?.completedURLAction(urlAction)
     }
 
 }
+
+
