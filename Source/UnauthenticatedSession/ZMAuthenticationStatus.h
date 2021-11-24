@@ -46,7 +46,7 @@ FOUNDATION_EXPORT NSTimeInterval DebugLoginFailureTimerOverride;
 - (void)loginCodeRequestDidFail:(NSError *)error;
 - (void)loginCodeRequestDidSucceed;
 - (void)companyLoginCodeDidBecomeAvailable:(NSUUID *)uuid;
-- (void)authenticationDidStarted;
+- (void)authenticationDidRequested;
 @end
 
 typedef NS_ENUM(NSUInteger, ZMAuthenticationPhase) {

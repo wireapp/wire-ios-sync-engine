@@ -347,7 +347,7 @@ static NSString* ZMLogTag ZM_UNUSED = @"Authentication";
 }
 
 - (void)startLogin {
-    [self.delegate authenticationDidStarted];
+    [self.delegate authenticationDidRequested];
 }
 
 @end

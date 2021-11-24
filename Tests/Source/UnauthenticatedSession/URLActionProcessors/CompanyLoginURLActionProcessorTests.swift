@@ -86,7 +86,7 @@ class CompanyLoginURLActionProcessorTests: ZMTBaseTest, WireSyncEngine.Unauthent
         sut.process(urlAction: action, delegate: presentationDelegate)
 
         // then
-        XCTAssertEqual(delegate.authenticationDidStartedEvents, 1)
+        XCTAssertEqual(delegate.authenticationDidRequestedEvents, 1)
     }
 
     func testThatStartLoginActionFails_WhenAccountLimitIsReached() {
