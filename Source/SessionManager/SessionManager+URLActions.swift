@@ -42,7 +42,7 @@ extension SessionManager {
         guard let action = try URLAction(url: url) else { return false }
 
         guard action.requiresAuthentication else {
-            if canProcessUrlAction() {
+            if canProcessUrlAction {
                 process(urlAction: action, on: activeUnauthenticatedSession)
             } else {
                 pendingURLAction = action
@@ -86,7 +86,7 @@ extension SessionManager {
         }
     }
 
-    func canProcessUrlAction() -> Bool {
+    var canProcessUrlAction: Bool {
         guard let delegate = delegate else {
             return false
         }
