@@ -44,7 +44,7 @@ final class TestUnauthenticatedTransportSession: NSObject, UnauthenticatedTransp
 final class MockAuthenticationStatusDelegate: NSObject, ZMAuthenticationStatusDelegate {
     public var authenticationDidSucceedEvents: Int = 0
     public var authenticationDidFailEvents: [Error] = []
-    public var authenticationDidRequestedEvents: Int = 0
+    public var authenticationWasRequestedEvents: Int = 0
     public var receivedSSOCode: UUID? = nil
     
     func authenticationDidFail(_ error: Error!) {
@@ -71,8 +71,8 @@ final class MockAuthenticationStatusDelegate: NSObject, ZMAuthenticationStatusDe
         receivedSSOCode = uuid
     }
 
-    func authenticationDidRequested() {
-        authenticationDidRequestedEvents += 1
+    func authenticationWasRequested() {
+        authenticationWasRequestedEvents += 1
     }
 }
 
