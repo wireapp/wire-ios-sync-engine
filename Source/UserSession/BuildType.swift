@@ -23,14 +23,16 @@ enum BuildType: Equatable {
     case alpha
     case development
     case `internal`
+    case releaseCandidate
     case custom(bundleID: String)
 
     init(bundleID: String) {
         switch bundleID {
-        case "com.wearezeta.zclient.ios": self = .production
-        case "com.wearezeta.zclient-alpha": self = .alpha
-        case "com.wearezeta.zclient.ios-development": self = .development
-        case "com.wearezeta.zclient.ios-internal": self = .internal
+        case BuildType.production.bundleID: self = .production
+        case BuildType.alpha.bundleID: self = .alpha
+        case BuildType.development.bundleID: self = .development
+        case BuildType.internal.bundleID: self = .internal
+        case BuildType.releaseCandidate.bundleID: self = .releaseCandidate
         default: self = .custom(bundleID: bundleID)
         }
     }
@@ -45,6 +47,8 @@ enum BuildType: Equatable {
             return "com.wire.dev.ent"
         case .internal:
             return "com.wire.int.ent"
+        case .releaseCandidate:
+            return "com.wire.rc.ent"
         case .custom(let bundleID):
             return bundleID
         }
@@ -60,6 +64,8 @@ enum BuildType: Equatable {
             return "com.wearezeta.zclient.ios-development"
         case .internal:
             return "com.wearezeta.zclient.ios-internal"
+        case .releaseCandidate:
+            return "com.wearezeta.zclient.ios-release"
         case .custom(let bundleID):
             return bundleID
         }
