@@ -16,17 +16,16 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import Foundation
 
 // Sign a PDF document
 public final class SignatureRequestStrategy: AbstractRequestStrategy, ZMSingleRequestTranscoder {
-    
+
     // MARK: - Private Property
     private let syncContext: NSManagedObjectContext
     private var signatureResponse: SignatureResponse?
     private var retrieveResponse: SignatureRetrieveResponse?
-    
+
     // MARK: - Public Property
     var requestSync: ZMSingleRequestSync?
     var retrieveSync: ZMSingleRequestSync?
@@ -35,7 +34,7 @@ public final class SignatureRequestStrategy: AbstractRequestStrategy, ZMSingleRe
     @objc
     public override init(withManagedObjectContext managedObjectContext: NSManagedObjectContext,
                          applicationStatus: ApplicationStatus) {
-        
+
         syncContext = managedObjectContext
         super.init(withManagedObjectContext: managedObjectContext,
                    applicationStatus: applicationStatus)
@@ -44,13 +43,13 @@ public final class SignatureRequestStrategy: AbstractRequestStrategy, ZMSingleRe
         self.retrieveSync = ZMSingleRequestSync(singleRequestTranscoder: self,
                                                 groupQueue: syncContext)
     }
-    
+
     @objc
     public override func nextRequestIfAllowed() -> ZMTransportRequest? {
         guard let signatureStatus = syncContext.signatureStatus else {
             return nil
         }
-        
+
         switch signatureStatus.state {
         case .initial:
             break
@@ -88,14 +87,14 @@ public final class SignatureRequestStrategy: AbstractRequestStrategy, ZMSingleRe
             return nil
         }
     }
-    
+
     public func didReceive(_ response: ZMTransportResponse,
                            forSingleRequest sync: ZMSingleRequestSync) {
         guard let signatureStatus = syncContext.signatureStatus else {
             return
         }
-        
-        switch (response.result) {
+
+        switch response.result {
         case .success:
             switch sync {
             case requestSync:
@@ -129,7 +128,7 @@ public final class SignatureRequestStrategy: AbstractRequestStrategy, ZMSingleRe
             }
         }
     }
-    
+
     // MARK: - Helpers
     private func makeSignatureRequest() -> ZMTransportRequest? {
         guard
@@ -143,23 +142,23 @@ public final class SignatureRequestStrategy: AbstractRequestStrategy, ZMSingleRe
         else {
             return nil
         }
-        
+
         return ZMTransportRequest(path: "/signature/request",
                                   method: .methodPOST,
                                   payload: payload as ZMTransportData)
     }
-    
+
     private func makeRetrieveSignatureRequest() -> ZMTransportRequest? {
-        
+
         guard let responseID = signatureResponse?.responseID else {
             return nil
         }
-        
+
         return ZMTransportRequest(path: "/signature/pending/\(responseID)",
                                   method: .methodGET,
                                   payload: nil)
     }
-    
+
     private func processRequestSignatureSuccess(with data: Data?) {
         guard
             let responseData = data,
@@ -167,7 +166,7 @@ public final class SignatureRequestStrategy: AbstractRequestStrategy, ZMSingleRe
         else {
             return
         }
-        
+
         do {
             let decodedResponse = try JSONDecoder().decode(SignatureResponse.self,
                                                            from: responseData)
@@ -177,7 +176,7 @@ public final class SignatureRequestStrategy: AbstractRequestStrategy, ZMSingleRe
             Logging.network.debug("Failed to decode SignatureResponse with \(error)")
         }
     }
-    
+
     private func processRetrieveSignatureSuccess(with data: Data?) {
         guard
             let responseData = data,
@@ -185,7 +184,7 @@ public final class SignatureRequestStrategy: AbstractRequestStrategy, ZMSingleRe
         else {
             return
         }
-        
+
         do {
             let decodedResponse = try JSONDecoder().decode(SignatureRetrieveResponse.self,
                                                            from: responseData)
@@ -202,23 +201,23 @@ private struct SignaturePayload: Codable, Equatable {
     let documentID: String?
     let fileName: String?
     let hash: String?
-    var jsonDictionary: [String : String]? {
+    var jsonDictionary: [String: String]? {
         return makeJSONDictionary()
     }
-    
+
     private enum CodingKeys: String, CodingKey {
         case documentID = "documentId"
         case fileName = "name"
         case hash = "hash"
     }
-    
-    private func makeJSONDictionary() -> [String : String]? {
+
+    private func makeJSONDictionary() -> [String: String]? {
         let signaturePayload = SignaturePayload(documentID: documentID,
                                                 fileName: fileName,
                                                 hash: hash)
         guard
             let jsonData = try? JSONEncoder().encode(signaturePayload),
-            let payload = try? JSONDecoder().decode([String : String].self, from: jsonData)
+            let payload = try? JSONDecoder().decode([String: String].self, from: jsonData)
         else {
             return nil
         }
@@ -230,12 +229,12 @@ private struct SignaturePayload: Codable, Equatable {
 private struct SignatureResponse: Codable, Equatable {
     let responseID: String?
     let consentURL: URL?
-    
+
     private enum CodingKeys: String, CodingKey {
         case consentURL = "consentURL"
         case responseID = "responseId"
     }
-    
+
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         responseID = try container.decodeIfPresent(String.self, forKey: .responseID)
@@ -246,7 +245,7 @@ private struct SignatureResponse: Codable, Equatable {
             consentURL = nil
             return
         }
-        
+
         consentURL = url
     }
 }
@@ -255,7 +254,7 @@ private struct SignatureResponse: Codable, Equatable {
 private struct SignatureRetrieveResponse: Codable, Equatable {
     let documentId: String?
     let cms: Data?
-    
+
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         documentId = try container.decodeIfPresent(String.self, forKey: .documentId)
@@ -269,4 +268,3 @@ private struct SignatureRetrieveResponse: Codable, Equatable {
         cms = cmsEncodedData
     }
 }
-

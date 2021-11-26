@@ -20,22 +20,22 @@ import Foundation
 
 @objc
 public protocol StrategyDirectoryProtocol {
-        
+
     var eventConsumers: [ZMEventConsumer] { get }
     var requestStrategies: [RequestStrategy] { get }
     var contextChangeTrackers: [ZMContextChangeTracker] {get }
-    
+
 }
 
 @objcMembers
 public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
-    
+
     let strategies: [Any]
-    
+
     public let requestStrategies: [RequestStrategy]
     public let eventConsumers: [ZMEventConsumer]
     public let contextChangeTrackers: [ZMContextChangeTracker]
-    
+
     init(contextProvider: ContextProvider,
          applicationStatusDirectory: ApplicationStatusDirectory,
          cookieStorage: ZMPersistentCookieStorage,
@@ -44,7 +44,7 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
          updateEventProcessor: UpdateEventProcessor,
          localNotificationDispatcher: LocalNotificationDispatcher,
          supportFederation: Bool) {
-        
+
         self.strategies = Self.buildStrategies(contextProvider: contextProvider,
                                                applicationStatusDirectory: applicationStatusDirectory,
                                                cookieStorage: cookieStorage,
@@ -52,7 +52,7 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
                                                flowManager: flowManager,
                                                updateEventProcessor: updateEventProcessor,
                                                localNotificationDispatcher: localNotificationDispatcher)
-        
+
         self.requestStrategies = strategies.compactMap({ $0 as? RequestStrategy})
         self.eventConsumers = strategies.compactMap({ $0 as? ZMEventConsumer })
         self.contextChangeTrackers = strategies.flatMap({ (object: Any) -> [ZMContextChangeTracker] in
@@ -70,7 +70,7 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
             federationAwareStrategy?.useFederationEndpoint = supportFederation
         }
     }
-    
+
     deinit {
         strategies.forEach { strategy in
             if let strategy = strategy as? TearDownCapable {
@@ -78,7 +78,7 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
             }
         }
     }
-            
+
     static func buildStrategies(contextProvider: ContextProvider,
                                 applicationStatusDirectory: ApplicationStatusDirectory,
                                 cookieStorage: ZMPersistentCookieStorage,
@@ -86,7 +86,7 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
                                 flowManager: FlowManagerType,
                                 updateEventProcessor: UpdateEventProcessor,
                                 localNotificationDispatcher: LocalNotificationDispatcher) -> [Any] {
-        
+
         let syncMOC = contextProvider.syncContext
         let strategies: [Any] = [
             UserClientRequestStrategy(
@@ -271,10 +271,10 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
                 managedObjectContext: syncMOC,
                 applicationStatusDirectory: applicationStatusDirectory,
                 userProfileImageUpdateStatus: applicationStatusDirectory.userProfileImageUpdateStatus),
-            localNotificationDispatcher,
+            localNotificationDispatcher
         ]
-                
+
         return strategies
     }
-    
+
 }

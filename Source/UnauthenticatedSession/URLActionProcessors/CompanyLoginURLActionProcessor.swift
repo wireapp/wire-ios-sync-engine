@@ -25,10 +25,10 @@ protocol UnauthenticatedSessionStatusDelegate: AnyObject {
 }
 
 class CompanyLoginURLActionProcessor: URLActionProcessor {
-    
+
     private weak var delegate: UnauthenticatedSessionStatusDelegate?
     private var authenticationStatus: ZMAuthenticationStatus
-    
+
     init(delegate: UnauthenticatedSessionStatusDelegate, authenticationStatus: ZMAuthenticationStatus) {
         self.delegate = delegate
         self.authenticationStatus = authenticationStatus

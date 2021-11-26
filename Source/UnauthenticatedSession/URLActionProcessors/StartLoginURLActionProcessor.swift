@@ -42,5 +42,3 @@ class StartLoginURLActionProcessor: URLActionProcessor {
     }
 
 }
-
-

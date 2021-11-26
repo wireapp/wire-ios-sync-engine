@@ -610,7 +610,7 @@ extension IntegrationTest: SessionManagerDelegate {
         return appState == "authenticated"
     }
 
-    public var isInUnathenticatedAppState: Bool {    
+    public var isInUnathenticatedAppState: Bool {
         return appState == "unauthenticated"
     }
 

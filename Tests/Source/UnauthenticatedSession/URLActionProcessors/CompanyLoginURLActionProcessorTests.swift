@@ -66,10 +66,10 @@ class CompanyLoginURLActionProcessorTests: ZMTBaseTest, WireSyncEngine.Unauthent
         let ssoCode = UUID()
         let action: URLAction = .startCompanyLogin(code: ssoCode)
         let presentationDelegate = MockPresentationDelegate()
-        
+
         // when
         sut.process(urlAction: action, delegate: presentationDelegate)
-        
+
         // then
         XCTAssertEqual(presentationDelegate.failedToPerformActionCalls.count, 1)
         XCTAssertEqual(presentationDelegate.failedToPerformActionCalls.first?.0, action)

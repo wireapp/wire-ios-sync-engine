@@ -22,19 +22,19 @@ import WireRequestStrategy
 /// TeamImageAssetUpdateStrategy is responsible for downloading the image associated with a team
 
 public final class TeamImageAssetUpdateStrategy: AbstractRequestStrategy, ZMContextChangeTrackerSource, ZMDownstreamTranscoder {
-    
+
     fileprivate var downstreamRequestSync: ZMDownstreamObjectSyncWithWhitelist!
     fileprivate var observer: Any!
 
     public override init(withManagedObjectContext managedObjectContext: NSManagedObjectContext, applicationStatus: ApplicationStatus) {
-        
+
         super.init(withManagedObjectContext: managedObjectContext, applicationStatus: applicationStatus)
 
         downstreamRequestSync = ZMDownstreamObjectSyncWithWhitelist(transcoder: self,
                                                                     entityName: Team.entityName(),
                                                                     predicateForObjectsToDownload: Team.imageDownloadFilter,
                                                                     managedObjectContext: managedObjectContext)
-        
+
         observer = NotificationInContext.addObserver(name: .teamDidRequestAsset, context: managedObjectContext.notificationContext, using: { [weak self] in self?.requestAssetForNotification(note: $0) })
     }
 
@@ -47,22 +47,22 @@ public final class TeamImageAssetUpdateStrategy: AbstractRequestStrategy, ZMCont
             RequestAvailableNotification.notifyNewRequestsAvailable(nil)
         }
     }
-    
+
     public override func nextRequestIfAllowed() -> ZMTransportRequest? {
         return downstreamRequestSync?.nextRequest()
     }
-    
-    //MARK:- ZMContextChangeTrackerSource {
-        
+
+    // MARK: - ZMContextChangeTrackerSource {
+
     public var contextChangeTrackers: [ZMContextChangeTracker] {
         return [downstreamRequestSync]
     }
 
-    //MARK:- ZMDownstreamTranscoder
-    
+    // MARK: - ZMDownstreamTranscoder
+
     public func request(forFetching object: ZMManagedObject!, downstreamSync: ZMObjectSync!) -> ZMTransportRequest! {
         guard let team = object as? Team, let assetId = team.pictureAssetId else { return nil }
-        
+
         return ZMTransportRequest.imageGet(fromPath: "/assets/v3/\(assetId)")
     }
 

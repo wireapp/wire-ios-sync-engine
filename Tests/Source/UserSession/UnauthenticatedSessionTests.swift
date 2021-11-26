@@ -45,8 +45,8 @@ final class MockAuthenticationStatusDelegate: NSObject, ZMAuthenticationStatusDe
     public var authenticationDidSucceedEvents: Int = 0
     public var authenticationDidFailEvents: [Error] = []
     public var authenticationWasRequestedEvents: Int = 0
-    public var receivedSSOCode: UUID? = nil
-    
+    public var receivedSSOCode: UUID?
+
     func authenticationDidFail(_ error: Error!) {
         authenticationDidFailEvents.append(error)
     }

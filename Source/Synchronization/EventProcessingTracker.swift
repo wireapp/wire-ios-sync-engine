@@ -25,53 +25,53 @@ import WireDataModel
     func registerDataUpdatePerformed(amount: UInt)
     func registerDataDeletionPerformed(amount: UInt)
     func registerSavePerformed()
-    func persistedAttributes(for event: String) -> [String : NSObject]
+    func persistedAttributes(for event: String) -> [String: NSObject]
     var debugDescription: String { get }
 }
 
 @objc public class EventProcessingTracker: NSObject, EventProcessingTrackerProtocol {
 
-    var eventAttributes = [String : [String : NSObject]]()
+    var eventAttributes = [String: [String: NSObject]]()
     public let eventName = "event.processing"
-    
+
     enum Attributes: String {
         case processedEvents
         case dataDeletionPerformed
         case dataInsertionPerformed
         case dataUpdatePerformed
         case savesPerformed
-        
+
         var identifier: String {
             return "event_" + rawValue
         }
     }
-    
+
     private let isolationQueue = DispatchQueue(label: "EventProcessing")
-    
+
     public override init() {
         super.init()
     }
-    
+
     public func registerEventProcessed() {
         increment(attribute: .processedEvents)
     }
-    
+
     public func registerSavePerformed() {
         increment(attribute: .savesPerformed)
     }
-    
+
     public func registerDataInsertionPerformed(amount: UInt = 1) {
         increment(attribute: .dataInsertionPerformed)
     }
-    
+
     public func registerDataUpdatePerformed(amount: UInt = 1) {
         increment(attribute: .dataUpdatePerformed)
     }
-    
+
     public func registerDataDeletionPerformed(amount: UInt = 1) {
         increment(attribute: .dataDeletionPerformed)
     }
-    
+
     private func increment(attribute: Attributes, by amount: Int = 1) {
         isolationQueue.sync {
             var currentAttributes = persistedAttributes(for: eventName)
@@ -81,7 +81,7 @@ import WireDataModel
             setPersistedAttributes(currentAttributes, for: eventName)
         }
     }
-    
+
     private func save(attribute: Attributes, value: Int) {
         isolationQueue.sync {
             var currentAttributes = persistedAttributes(for: eventName)
@@ -91,7 +91,7 @@ import WireDataModel
             setPersistedAttributes(currentAttributes, for: eventName)
         }
     }
-    
+
     public func dispatchEvent() {
         isolationQueue.sync {
             let attributes = persistedAttributes(for: eventName)
@@ -100,24 +100,24 @@ import WireDataModel
             }
         }
     }
-    
-    private func setPersistedAttributes(_ attributes: [String : NSObject]?, for event: String) {
+
+    private func setPersistedAttributes(_ attributes: [String: NSObject]?, for event: String) {
         if let attributes = attributes {
             eventAttributes[event] = attributes
         } else {
             eventAttributes.removeValue(forKey: event)
         }
     }
-    
-    public func persistedAttributes(for event: String) -> [String : NSObject] {
+
+    public func persistedAttributes(for event: String) -> [String: NSObject] {
         return eventAttributes[event] ?? [:]
     }
-    
+
     override public var debugDescription: String {
         let description = isolationQueue.sync {
             "\(persistedAttributes(for: eventName))"
         }
-        
+
         return description
     }
 }

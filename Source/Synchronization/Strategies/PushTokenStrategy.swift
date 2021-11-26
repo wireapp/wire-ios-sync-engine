@@ -23,7 +23,7 @@ let VoIPIdentifierSuffix = "-voip"
 let TokenKey = "token"
 let PushTokenPath = "/push/tokens"
 
-public class PushTokenStrategy : AbstractRequestStrategy, ZMUpstreamTranscoder, ZMContextChangeTrackerSource, ZMEventConsumer {
+public class PushTokenStrategy: AbstractRequestStrategy, ZMUpstreamTranscoder, ZMContextChangeTrackerSource, ZMEventConsumer {
 
     enum Keys {
         static let UserClientPushTokenKey = "pushToken"
@@ -36,8 +36,7 @@ public class PushTokenStrategy : AbstractRequestStrategy, ZMUpstreamTranscoder, 
         case deleteToken
     }
 
-
-    fileprivate var pushKitTokenSync : ZMUpstreamModifiedObjectSync!
+    fileprivate var pushKitTokenSync: ZMUpstreamModifiedObjectSync!
     fileprivate var notificationsTracker: NotificationsTracker?
 
     private func modifiedPredicate() -> NSPredicate {
@@ -62,7 +61,7 @@ public class PushTokenStrategy : AbstractRequestStrategy, ZMUpstreamTranscoder, 
         return pushKitTokenSync.nextRequest()
     }
 
-//MARK:- ZMUpstreamTranscoder
+// MARK: - ZMUpstreamTranscoder
 
     public func request(forUpdating managedObject: ZMManagedObject, forKeys keys: Set<String>) -> ZMUpstreamRequest? {
         guard let client = managedObject as? UserClient else { return nil }
@@ -84,14 +83,14 @@ public class PushTokenStrategy : AbstractRequestStrategy, ZMUpstreamTranscoder, 
             let payloadData = try! JSONEncoder().encode(tokenPayload)
 
             // In various places (MockTransport for example) the payload is expected to be dictionary
-            let payload = ((try? JSONDecoder().decode([String : String].self, from: payloadData)) ?? [:]) as NSDictionary
+            let payload = ((try? JSONDecoder().decode([String: String].self, from: payloadData)) ?? [:]) as NSDictionary
             request = ZMTransportRequest(path: "\(PushTokenPath)", method: .methodPOST, payload: payload)
             requestType = .postToken
         } else {
             return nil
         }
 
-        return ZMUpstreamRequest(keys: [Keys.UserClientPushTokenKey], transportRequest: request, userInfo: [Keys.RequestTypeKey : requestType.rawValue])
+        return ZMUpstreamRequest(keys: [Keys.UserClientPushTokenKey], transportRequest: request, userInfo: [Keys.RequestTypeKey: requestType.rawValue])
     }
 
     public func request(forInserting managedObject: ZMManagedObject, forKeys keys: Set<String>?) -> ZMUpstreamRequest? {
@@ -102,11 +101,11 @@ public class PushTokenStrategy : AbstractRequestStrategy, ZMUpstreamTranscoder, 
 
     }
 
-    public func updateUpdatedObject(_ managedObject: ZMManagedObject, requestUserInfo: [AnyHashable : Any]? = nil, response: ZMTransportResponse, keysToParse: Set<String>) -> Bool {
+    public func updateUpdatedObject(_ managedObject: ZMManagedObject, requestUserInfo: [AnyHashable: Any]? = nil, response: ZMTransportResponse, keysToParse: Set<String>) -> Bool {
         guard let client = managedObject as? UserClient else { return false }
         guard client.isSelfClient() else { return false }
         guard let pushToken = client.pushToken else { return false }
-        guard let userInfo = requestUserInfo as? [String : String] else { return false }
+        guard let userInfo = requestUserInfo as? [String: String] else { return false }
         guard let requestTypeValue = userInfo[Keys.RequestTypeKey], let requestType = RequestType(rawValue: requestTypeValue) else { return false }
 
         switch requestType {
@@ -123,7 +122,7 @@ public class PushTokenStrategy : AbstractRequestStrategy, ZMUpstreamTranscoder, 
             return false
         case .getToken:
             guard let responseData = response.rawData else { return false }
-            guard let payload = try? JSONDecoder().decode([String : [PushTokenPayload]].self, from: responseData) else { return false }
+            guard let payload = try? JSONDecoder().decode([String: [PushTokenPayload]].self, from: responseData) else { return false }
             guard let tokens = payload["tokens"] else { return false }
 
             // Find tokens belonging to self client
@@ -162,18 +161,18 @@ public class PushTokenStrategy : AbstractRequestStrategy, ZMUpstreamTranscoder, 
         return false
     }
 
-    //MARK:- ZMContextChangeTrackerSource
-    
+    // MARK: - ZMContextChangeTrackerSource
+
     public var contextChangeTrackers: [ZMContextChangeTracker] {
         return [self.pushKitTokenSync]
     }
-    
-    //MARK:- ZMEventConsumer
+
+    // MARK: - ZMEventConsumer
 
     public func processEvents(_ events: [ZMUpdateEvent], liveEvents: Bool, prefetchResult: ZMFetchRequestBatchResult?) {
         guard liveEvents else { return }
 
-        events.forEach{ process(updateEvent:$0) }
+        events.forEach { process(updateEvent: $0) }
     }
 
     func process(updateEvent event: ZMUpdateEvent) {
@@ -194,7 +193,7 @@ public class PushTokenStrategy : AbstractRequestStrategy, ZMUpstreamTranscoder, 
     }
 }
 
-fileprivate struct PushTokenPayload: Codable {
+private struct PushTokenPayload: Codable {
 
     init(pushToken: PushToken, clientIdentifier: String) {
         token = pushToken.deviceTokenString
