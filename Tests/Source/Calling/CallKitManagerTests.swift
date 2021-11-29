@@ -441,6 +441,55 @@ class CallKitManagerTest: DatabaseTest {
         XCTAssertTrue(action.isFulfilled)
     }
 
+    // MARK: Pending calls
+    
+    func testThatItSavesPendingCallKitAnswerAction() {
+        // given
+        let otherUser = self.otherUser(moc: self.uiMOC)
+        createOneOnOneConversation(user: otherUser)
+        let conversation = otherUser.oneToOneConversation!
+        let provider = MockProvider(foo: true)
+        sut.reportIncomingCall(from: otherUser, in: conversation, video: false)
+        let action = MockCallAnswerAction(call: sut.callUUID(for: conversation)!)
+        
+        // when
+        self.sut.provider(provider, perform: action)
+        
+        // then
+        XCTAssertTrue(sut.hasPendingAnswerAction)
+    }
+    
+    func testThatThereIsNoPendingCallIfUserStartsCall() {
+        // given
+        let provider = MockProvider(foo: true)
+        let conversation = self.conversation(type: .oneOnOne)
+        sut.requestStartCall(in: conversation, video: false)
+        let action = MockStartCallAction(call: sut.callUUID(for: conversation)!, handle: CXHandle(type: CXHandle.HandleType.generic, value: conversation.remoteIdentifier!.transportString()))
+        
+        // when
+        self.sut.provider(provider, perform: action)
+        
+        // then
+        XCTAssertFalse(sut.hasPendingAnswerAction)
+    }
+    
+    func testThatItRemovesPendingCallKitAnswerActionAfterExecuteThisCall() {
+        // given
+        let otherUser = self.otherUser(moc: self.uiMOC)
+        createOneOnOneConversation(user: otherUser)
+        let conversation = otherUser.oneToOneConversation!
+        let provider = MockProvider(foo: true)
+        sut.reportIncomingCall(from: otherUser, in: conversation, video: false)
+        let answerAction = MockCallAnswerAction(call: sut.callUUID(for: conversation)!)
+        self.sut.provider(provider, perform: answerAction)
+        
+        // when
+        sut.answerPendingCallIfNeeded()
+        
+        // then
+        XCTAssertFalse(sut.hasPendingAnswerAction)
+    }
+    
     /* Disabled for now, pending furter investigation
     func testThatCallAnswerActionFailWhenCallCantBeJoined() {
         // given

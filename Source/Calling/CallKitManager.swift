@@ -66,6 +66,7 @@ protocol CallKitManagerDelegate: AnyObject {
 @objc
 public class CallKitManager: NSObject {
     
+    fileprivate var pendingCallKitAnswerAction: (() -> Void)?
     fileprivate let provider: CXProvider
     fileprivate let callController: CXCallController
     fileprivate weak var delegate: CallKitManagerDelegate?
@@ -141,6 +142,10 @@ public class CallKitManager: NSObject {
     
     internal func callUUID(for conversation: ZMConversation) -> UUID? {
         return calls.first(where: { $0.value.conversation == conversation })?.key
+    }
+    
+    internal var hasPendingAnswerAction: Bool {
+        return pendingCallKitAnswerAction != nil
     }
 
 }
@@ -416,8 +421,10 @@ extension CallKitManager : CXProviderDelegate {
             action.fail()
         }
         
-        if call.conversation.voiceChannel?.join(video: false) != true {
-            action.fail()
+        pendingCallKitAnswerAction = {
+            if call.conversation.voiceChannel?.join(video: false) != true {
+                action.fail()
+            }
         }
     }
     
@@ -468,6 +475,17 @@ extension CallKitManager : CXProviderDelegate {
         log("didDeactivate audioSession")
         mediaManager?.resetAudioDevice()
     }
+}
+
+// MARK: - Execute a pending call
+
+extension CallKitManager {
+    
+    public func answerPendingCallIfNeeded() {
+        pendingCallKitAnswerAction?()
+        pendingCallKitAnswerAction = nil
+    }
+    
 }
 
 extension CallKitManager : WireCallCenterCallStateObserver, WireCallCenterMissedCallObserver {
