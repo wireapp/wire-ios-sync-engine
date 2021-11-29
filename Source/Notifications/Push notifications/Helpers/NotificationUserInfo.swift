@@ -40,10 +40,10 @@ private enum NotificationUserInfoKey: String {
  */
 
 public class NotificationUserInfo: NSObject, NSCoding {
-    
+
     /// The key under which the storage property is encoded.
     private static let storageKey = "storageKey"
-   
+
     /// The raw values of the user info. These must contain property list
     /// data types only, otherwise scheduled UNNotificationRequest objects
     /// using this user info within its content will fail.
@@ -59,15 +59,15 @@ public class NotificationUserInfo: NSObject, NSCoding {
     public override convenience init() {
         self.init(storage: [:])
     }
-    
+
     public required convenience init?(coder aDecoder: NSCoder) {
-        guard let data = aDecoder.decodeObject(forKey: type(of: self).storageKey) as? [AnyHashable : Any] else {
+        guard let data = aDecoder.decodeObject(forKey: type(of: self).storageKey) as? [AnyHashable: Any] else {
             return nil
         }
-        
+
         self.init(storage: data)
     }
-    
+
     public func encode(with aCoder: NSCoder) {
         aCoder.encode(storage, forKey: type(of: self).storageKey)
     }
@@ -78,12 +78,12 @@ public class NotificationUserInfo: NSObject, NSCoding {
         guard let uuidString = self[key] as? String else { return nil }
         return UUID(uuidString: uuidString)
     }
-    
+
     public var requestID: UUID? {
         get { return uuid(for: .requestID) }
         set { self[.requestID] = newValue?.uuidString }
     }
-    
+
     public var conversationID: UUID? {
         get { return uuid(for: .conversationID)}
         set { self[.conversationID] = newValue?.uuidString }
@@ -126,7 +126,7 @@ public class NotificationUserInfo: NSObject, NSCoding {
 // MARK: - Utilities
 
 extension NotificationUserInfo {
-    
+
     fileprivate subscript(_ key: NotificationUserInfoKey) -> Any? {
         get {
             return storage[key.rawValue]
@@ -135,12 +135,12 @@ extension NotificationUserInfo {
             storage[key.rawValue] = newValue
         }
     }
-    
+
     override public func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? NotificationUserInfo else { return false }
         return self == other
     }
-    
+
     static func ==(lhs: NotificationUserInfo, rhs: NotificationUserInfo) -> Bool {
         return  lhs.requestID == rhs.requestID &&
                 lhs.conversationID == rhs.conversationID &&

@@ -291,7 +291,7 @@ extension CallingRequestStrategy: WireCallCenterTransport {
                                                completionHandler: nil)
 
             self.messageSync.sync(message) { (result, response) in
-                if case .success() = result {
+                if case .success = result {
                     completionHandler(response.httpStatus)
                 }
             }

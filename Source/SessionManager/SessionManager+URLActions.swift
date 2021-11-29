@@ -27,12 +27,11 @@ protocol URLActionProcessor {
     /// - parameter urlAction: URLAction to process.
     /// - parameter delegate: Delegate which observes the attempt of processing the action.
     func process(urlAction: URLAction, delegate: PresentationDelegate?)
-    
+
 }
 
 extension SessionManager {
-    
-    
+
     /// React to the application being opened via a URL
     ///
     /// - parameter url: URL the application was launched with
@@ -63,14 +62,14 @@ extension SessionManager {
         process(urlAction: action, on: userSession)
         return true
     }
-    
+
     func process(urlAction action: URLAction, on processor: URLActionProcessor) {
         presentationDelegate?.shouldPerformAction(action, decisionHandler: { [weak self] (shouldPerformAction) in
             guard shouldPerformAction, let strongSelf = self else { return }
             processor.process(urlAction: action, delegate: strongSelf.presentationDelegate)
         })
     }
-    
+
     public func processPendingURLActionRequiresAuthentication() {
         if let action = pendingURLAction, action.requiresAuthentication,
            let userSession = activeUserSession {
@@ -92,5 +91,5 @@ extension SessionManager {
         }
         return delegate.isInAuthenticatedAppState || delegate.isInUnathenticatedAppState
     }
-    
+
 }

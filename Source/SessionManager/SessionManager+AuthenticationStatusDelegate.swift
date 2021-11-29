@@ -22,11 +22,11 @@ extension SessionManager: ZMAuthenticationStatusDelegate {
     public func authenticationDidFail(_ error: Error!) {
         loginDelegate?.authenticationDidFail(error as NSError)
     }
-    
+
     public func authenticationReadyImportingBackup(_ existingAccount: Bool) {
         loginDelegate?.authenticationReadyToImportBackup(existingAccount: existingAccount)
     }
-    
+
     public func authenticationDidSucceed() {
         loginDelegate?.authenticationDidSucceed()
     }
@@ -34,15 +34,15 @@ extension SessionManager: ZMAuthenticationStatusDelegate {
     public func authenticationWasRequested() {
         addAccount()
     }
-    
+
     public func loginCodeRequestDidFail(_ error: Error!) {
         loginDelegate?.loginCodeRequestDidFail(error as NSError)
     }
-    
+
     public func loginCodeRequestDidSucceed() {
         loginDelegate?.loginCodeRequestDidSucceed()
     }
-    
+
     public func companyLoginCodeDidBecomeAvailable(_ uuid: UUID!) {
         addAccount(userInfo: [SessionManager.companyLoginCodeKey: uuid ?? UUID(),
         SessionManager.companyLoginRequestTimestampKey: Date()])

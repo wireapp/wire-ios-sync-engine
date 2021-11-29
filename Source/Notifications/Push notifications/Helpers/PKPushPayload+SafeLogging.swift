@@ -32,8 +32,8 @@ extension PKPushPayload: SafeForLoggingStringConvertible {
         //          "user" : "1a62954d-8123-11e9-8e56-2211e919a0df"
         //      }
         //  }
-        let data = dictionaryPayload["data"] as? [String : Any]
-        let payloadData = data?["data"] as? [String : String]
+        let data = dictionaryPayload["data"] as? [String: Any]
+        let payloadData = data?["data"] as? [String: String]
         let payloadID = payloadData?["id"]?.readableHash ?? "n/a"
         let userID = (data?["user"] as? String)?.readableHash ?? "n/a"
         return "id=\(payloadID) user=\(userID)"

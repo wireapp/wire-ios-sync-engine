@@ -39,7 +39,7 @@ public enum ZMAccountDeletedReason: Int {
     /// The user account was deleted because the user chose to wipe the database.
 
     case databaseWiped
-    
+
     /// The user account was deleted because the there's no biometric passcode configured when it's required.
 
     case biometricPasscodeNotAvailable

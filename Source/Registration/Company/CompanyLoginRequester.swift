@@ -48,7 +48,7 @@ extension URLQueryItem {
         static let errorLabel = "label"
         static let validationToken = "validation_token"
     }
-    
+
     enum Template {
         static let cookie = "$cookie"
         static let userIdentifier = "$userid"
@@ -69,7 +69,7 @@ public enum ValidationError: Equatable {
     case invalidCode
     case invalidStatus(StatusCode)
     case unknown
-    
+
     init?(response: HTTPURLResponse?, error: Error?) {
         switch (response?.statusCode, error) {
         case (404?, _): self = .invalidCode
@@ -98,7 +98,7 @@ public protocol CompanyLoginRequesterDelegate: AnyObject {
  */
 
 public class CompanyLoginRequester {
-    
+
     /// The URL scheme that where the callback will be provided.
     public let callbackScheme: String
 
@@ -118,9 +118,9 @@ public class CompanyLoginRequester {
         self.defaults = defaults
         self.session = session ?? URLSession(configuration: .ephemeral)
     }
-    
+
     // MARK: - Token Validation
-    
+
     /**
      * Validated a company login token.
      *
@@ -132,18 +132,18 @@ public class CompanyLoginRequester {
      * - parameter token: The user login token.
      * - parameter completion: The completion closure called with the validation result.
      */
-    
+
     public func validate(host: String, token: UUID, completion: @escaping (ValidationError?) -> Void) {
         guard let url = urlComponents(host: host, token: token).url else { fatalError("Invalid company login url.") }
         var request = URLRequest(url: url)
         request.httpMethod = "HEAD"
-        
+
         let task = session.dataTask(with: request) { _, response, error in
             DispatchQueue.main.async {
                 completion(ValidationError(response: response as? HTTPURLResponse, error: error))
             }
         }
-        
+
         task.resume()
     }
 
@@ -162,7 +162,7 @@ public class CompanyLoginRequester {
     public func requestIdentity(host: String, token: UUID) {
         let validationToken = CompanyLoginVerificationToken()
         var components = urlComponents(host: host, token: token)
-        
+
         components.queryItems = [
             URLQueryItem(name: URLQueryItem.Key.successRedirect, value: makeSuccessCallbackString(using: validationToken)),
             URLQueryItem(name: URLQueryItem.Key.errorRedirect, value: makeFailureCallbackString(using: validationToken))
@@ -177,7 +177,7 @@ public class CompanyLoginRequester {
     }
 
     // MARK: - Utilities
-    
+
     private func urlComponents(host: String, token: UUID) -> URLComponents {
         var components = URLComponents()
         components.scheme = "https"
