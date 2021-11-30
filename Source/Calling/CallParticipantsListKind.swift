@@ -19,13 +19,13 @@
 import Foundation
 
 public enum CallParticipantsListKind {
-    
+
     /// All the active participants, including the real time active speakers
-    
+
     case all
 
     /// Only the smoothed active speakers
-    
+
     case smoothedActiveSpeakers
 
 }

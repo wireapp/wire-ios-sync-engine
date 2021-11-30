@@ -466,7 +466,7 @@ public final class SessionManager: NSObject, SessionManagerType {
     /// Select the account to be the active account.
     /// - completion: runs when the user session was loaded
     /// - tearDownCompletion: runs when the UI no longer holds any references to the previous user session.
-    public func select(_ account: Account, completion: ((ZMUserSession)->Void)? = nil, tearDownCompletion: (() -> Void)? = nil) {
+    public func select(_ account: Account, completion: ((ZMUserSession) -> Void)? = nil, tearDownCompletion: (() -> Void)? = nil) {
         guard !isSelectingAccount else { return }
 
         confirmSwitchingAccount { [weak self] in
@@ -633,7 +633,7 @@ public final class SessionManager: NSObject, SessionManagerType {
     // Loads user session for @c account given and executes the @c action block.
     func withSession(for account: Account,
                      notifyAboutMigration: Bool = false,
-                     perform completion: @escaping (ZMUserSession)->Void) {
+                     perform completion: @escaping (ZMUserSession) -> Void) {
         log.debug("Request to load session for \(account)")
         let group = self.dispatchGroup
         group?.enter()
@@ -1255,7 +1255,7 @@ extension SessionManager: NotificationContext {
 }
 
 extension SessionManager {
-    public func markAllConversationsAsRead(completion: (()->Void)?) {
+    public func markAllConversationsAsRead(completion: (() -> Void)?) {
         let group = DispatchGroup()
 
         self.accountManager.accounts.forEach { account in

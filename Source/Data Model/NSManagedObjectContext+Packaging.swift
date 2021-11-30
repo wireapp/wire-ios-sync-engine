@@ -22,7 +22,7 @@ public extension NSManagedObjectContext {
     private static let PackagingFeatureConfigKey = "PackagingFeatureConfigKey"
 
     @objc
-    var zm_usePackagingFeatureConfig : Bool {
+    var zm_usePackagingFeatureConfig: Bool {
 
         get {
             precondition(zm_isUserInterfaceContext, "zm_usePackagingFeatureConfig can only be accessed on the ui context")

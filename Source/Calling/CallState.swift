@@ -26,13 +26,13 @@ private let zmLog = ZMSLog(tag: "calling")
  */
 
 public struct CallParticipant: Hashable {
-    
+
     public let user: UserType
     public let clientId: String
     public let userId: UUID
     public let state: CallParticipantState
     public let activeSpeakerState: ActiveSpeakerState
-        
+
     /// convenience init method for ZMUser
     /// - Parameters:
     ///   - user: the call participant ZMUser
@@ -87,7 +87,6 @@ public struct CallParticipant: Hashable {
 
 }
 
-
 /**
  * The state of a participant in a call.
  */
@@ -103,7 +102,6 @@ public enum CallParticipantState: Equatable, Hashable {
     case connected(videoState: VideoState, microphoneState: MicrophoneState)
 }
 
-
 /**
  * The audio state of a participant in a call.
  */
@@ -116,7 +114,6 @@ public enum AudioState: Int32, Codable {
     /// No relay candidate, though audio may still connect.
     case networkProblem = 2
 }
-
 
 /**
  * The state of video in the call.

@@ -22,7 +22,6 @@ import Foundation
 
 public typealias WireCallMessageToken = UnsafeMutableRawPointer
 
-
 /// The possible types of call.
 
 public enum AVSCallType: Int32 {

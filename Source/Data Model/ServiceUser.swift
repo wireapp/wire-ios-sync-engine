@@ -132,7 +132,7 @@ public extension ServiceUserData {
 
 public extension ServiceUser {
 
-    func fetchProvider(in userSession: ZMUserSession, completion: @escaping (ServiceProvider?)->Void) {
+    func fetchProvider(in userSession: ZMUserSession, completion: @escaping (ServiceProvider?) -> Void) {
         guard let serviceUserData = self.serviceUserData else {
             fatal("Not a service user")
         }
@@ -155,7 +155,7 @@ public extension ServiceUser {
         userSession.transportSession.enqueueOneTime(request)
     }
 
-    func fetchDetails(in userSession: ZMUserSession, completion: @escaping (ServiceDetails?)->Void) {
+    func fetchDetails(in userSession: ZMUserSession, completion: @escaping (ServiceDetails?) -> Void) {
         guard let serviceUserData = self.serviceUserData else {
             fatal("Not a service user")
         }

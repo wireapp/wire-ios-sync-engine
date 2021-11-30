@@ -19,11 +19,11 @@
 import Foundation
 
 @objc(ZMCaptureDevice)
-public enum CaptureDevice : Int {
+public enum CaptureDevice: Int {
     case front
     case back
-    
-    var deviceIdentifier : String {
+
+    var deviceIdentifier: String {
         switch  self {
         case .front:
             return "com.apple.avfoundation.avcapturedevice.built-in_video:1"
@@ -33,27 +33,27 @@ public enum CaptureDevice : Int {
     }
 }
 
-public protocol VoiceChannel : AnyObject, CallProperties, CallActions, CallActionsInternal, CallObservers {
-    
+public protocol VoiceChannel: AnyObject, CallProperties, CallActions, CallActionsInternal, CallObservers {
+
     init(conversation: ZMConversation)
-    
+
 }
 
-public protocol CallProperties : NSObjectProtocol {
-    
+public protocol CallProperties: NSObjectProtocol {
+
     var state: CallState { get }
-    
+
     var conversation: ZMConversation? { get }
-    
+
     /// The date and time of current call start
     var callStartDate: Date? { get }
-    
+
     /// Voice channel participants. May be a subset of conversation participants.
     var participants: [CallParticipant] { get }
-    
+
     /// Voice channel participants with a limit on participants flagged as active.
     func participants(ofKind kind: CallParticipantsListKind, activeSpeakersLimit limit: Int?) -> [CallParticipant]
-        
+
     /// Voice channel is sending audio using a contant bit rate
     var isConstantBitRateAudioActive: Bool { get }
     var isVideoCall: Bool { get }
@@ -70,11 +70,11 @@ public protocol CallProperties : NSObjectProtocol {
     func setVideoCaptureDevice(_ device: CaptureDevice) throws
 }
 
-public protocol CallActions : NSObjectProtocol {
-    
+public protocol CallActions: NSObjectProtocol {
+
     func mute(_ muted: Bool, userSession: ZMUserSession)
     func join(video: Bool, userSession: ZMUserSession) -> Bool
-    func leave(userSession: ZMUserSession, completion: (() -> ())?)
+    func leave(userSession: ZMUserSession, completion: (() -> Void)?)
     func continueByDecreasingConversationSecurity(userSession: ZMUserSession)
     func leaveAndDecreaseConversationSecurity(userSession: ZMUserSession)
     func request(videoStreams: [AVSClient])
@@ -82,30 +82,30 @@ public protocol CallActions : NSObjectProtocol {
 }
 
 @objc
-public protocol CallActionsInternal : NSObjectProtocol {
-    
+public protocol CallActionsInternal: NSObjectProtocol {
+
     func join(video: Bool) -> Bool
     func leave()
-    
+
 }
 
-public protocol CallObservers : NSObjectProtocol {
-    
+public protocol CallObservers: NSObjectProtocol {
+
     /// Add observer of voice channel state. Returns a token which needs to be retained as long as the observer should be active.
     func addCallStateObserver(_ observer: WireCallCenterCallStateObserver) -> Any
-    
+
     /// Add observer of voice channel participants. Returns a token which needs to be retained as long as the observer should be active.
     func addParticipantObserver(_ observer: WireCallCenterCallParticipantObserver) -> Any
-    
+
     /// Add observer of voice gain. Returns a token which needs to be retained as long as the observer should be active.
     func addVoiceGainObserver(_ observer: VoiceGainObserver) -> Any
-    
+
     /// Add observer of constant bit rate audio. Returns a token which needs to be retained as long as the observer should be active.
     func addConstantBitRateObserver(_ observer: ConstantBitRateAudioObserver) -> Any
 
     /// Add observer of network quality. Returns a token which needs to be retained as long as the observer should be active.
     func addNetworkQualityObserver(_ observer: NetworkQualityObserver) -> Any
-    
+
     /// Add observer of the mute state. Returns a token which needs to be retained as long as the observer should be active.
     func addMuteStateObserver(_ observer: MuteStateObserver) -> Any
 

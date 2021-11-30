@@ -19,20 +19,20 @@
 import Foundation
 
 extension AnalyticsType {
-    
+
     public func tagActionOnPushNotification(conversation: ZMConversation?, action: ConversationMediaAction) {
         guard let conversation = conversation else { return }
         var attributes = conversation.ephemeralTrackingAttributes
         attributes["action"] = action.attributeValue
         attributes["conversation_type"] = conversation.conversationType.analyticsType
         attributes["with_service"] = conversation.includesServiceUser ? "true" : "false"
-        tagEvent("contributed", attributes: attributes as! [String : NSObject])
+        tagEvent("contributed", attributes: attributes as! [String: NSObject])
     }
-    
+
 }
 
 public extension ZMConversation {
-    
+
     @objc
     var ephemeralTrackingAttributes: [String: Any] {
         if let timeout = activeMessageDestructionTimeoutValue {
@@ -44,7 +44,7 @@ public extension ZMConversation {
             return ["is_ephemeral": false]
         }
     }
-    
+
     /// Whether the conversation includes at least 1 service user.
     @objc
     var includesServiceUser: Bool {
@@ -53,8 +53,8 @@ public extension ZMConversation {
 }
 
 extension ZMConversationType {
-    
-     var analyticsType : String {
+
+     var analyticsType: String {
         switch self {
         case .oneOnOne:
             return "one_to_one"
@@ -68,7 +68,7 @@ extension ZMConversationType {
 
 public enum ConversationMediaAction: UInt {
     case text, photo, audioCall, videoCall, gif, ping, fileTransfer, videoMessage, audioMessage, location
-    
+
     public var attributeValue: String {
         switch self {
         case .text:         return "text"
@@ -84,7 +84,3 @@ public enum ConversationMediaAction: UInt {
         }
     }
 }
-
-
-
-
