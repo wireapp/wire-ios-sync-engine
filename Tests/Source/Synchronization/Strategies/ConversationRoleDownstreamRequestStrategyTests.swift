@@ -141,6 +141,30 @@ final class ConversationRoleDownstreamRequestStrategyTests: MessagingTest {
 
         }
     }
+    
+    func testThatItSetsNeedsToDownloadRolesToFalse_WhenTheResponseIs404() {
+        var convo1: ZMConversation?
+        syncMOC.performGroupedBlockAndWait {
+            // given
+            convo1 = self.createConversationToDownload()
+            self.mockApplicationStatus.mockSynchronizationState = .online
+            self.boostrapChangeTrackers(with: convo1!)
+
+            // when
+            guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
+            request.complete(with: ZMTransportResponse(payload: nil,
+                                                       httpStatus: 404,
+                                                       transportSessionError: nil))
+        }
+
+        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.2))
+
+        syncMOC.performGroupedBlockAndWait {
+            // then
+            XCTAssertFalse(convo1!.needsToDownloadRoles)
+
+        }
+    }
 
     private let sampleRolesPayload: [String: Any] = [
         "conversation_roles": [
