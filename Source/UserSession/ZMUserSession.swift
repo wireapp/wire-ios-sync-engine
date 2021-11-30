@@ -103,9 +103,9 @@ public class ZMUserSession: NSObject {
         return featureService.fetchSelfDeletingMesssages()
     }
 
-    public var guestLinkFeature: Feature.GuestLink {
+    public var guestLinksFeature: Feature.GuestLinks {
         let featureService = FeatureService(context: coreDataStack.viewContext)
-        return featureService.fetchGuestLink()
+        return featureService.fetchGuestLinks()
     }
 
     public var hasCompletedInitialSync: Bool = false
@@ -551,7 +551,7 @@ extension ZMUserSession: ZMSyncStateDelegate {
         featureService.enqueueBackendRefresh(for: .fileSharing)
         featureService.enqueueBackendRefresh(for: .conferenceCalling)
         featureService.enqueueBackendRefresh(for: .selfDeletingMessages)
-        featureService.enqueueBackendRefresh(for: .guestLink)
+        featureService.enqueueBackendRefresh(for: .guestLinks)
 
     }
 
