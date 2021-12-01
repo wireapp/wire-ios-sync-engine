@@ -64,9 +64,7 @@ extension ZMUserSession: UserSessionEncryptionAtRestInterface {
     }
 
     public var encryptMessagesAtRest: Bool {
-        get {
-            return managedObjectContext.encryptMessagesAtRest
-        }
+        return managedObjectContext.encryptMessagesAtRest
     }
 
     public var isDatabaseLocked: Bool {

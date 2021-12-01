@@ -127,7 +127,6 @@ public enum ZMSound: String, CustomStringConvertible {
     }
 
     public var descriptionLocalizationKey: String {
-        get {
             switch self {
             case .None:
                 return "self.settings.sound_menu.sounds.none"
@@ -140,7 +139,6 @@ public enum ZMSound: String, CustomStringConvertible {
             default:
                 return self.rawValue.capitalized
             }
-        }
     }
 
     public func playPreview() {
