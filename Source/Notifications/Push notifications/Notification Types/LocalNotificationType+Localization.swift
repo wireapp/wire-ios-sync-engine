@@ -320,8 +320,6 @@ extension String {
             return String.localizedStringWithFormat(format, arguments[0], arguments[1], arguments[2])
         case 4:
             return String.localizedStringWithFormat(format, arguments[0], arguments[1], arguments[2], arguments[3])
-        case 0:
-            return NSLocalizedString(format, comment: "")
         default:
             return NSLocalizedString(format, comment: "")
 
