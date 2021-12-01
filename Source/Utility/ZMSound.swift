@@ -72,7 +72,7 @@ public enum ZMSound: String, CustomStringConvertible {
     fileprivate static var playingPreviewURL: URL?
 
     fileprivate static func stopPlayingPreview() {
-        if self.playingPreviewURL != nil ,
+        if let _ = self.playingPreviewURL,
             let soundId = self.playingPreviewID {
             AudioServicesDisposeSystemSoundID(soundId)
             self.playingPreviewID = .none
