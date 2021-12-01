@@ -1210,7 +1210,7 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
 
     func testThatItActivatesTheAccountForPushReaction() {
         // GIVEN
-        let session = self.setupSession()/// TODO: crash at RequireString([NSOperationQueue mainQueue] == [NSOperationQueue currentQueue],
+        let session = self.setupSession() // TODO: crash at RequireString([NSOperationQueue mainQueue] == [NSOperationQueue currentQueue],
 //        "Must call be called on the main queue.");
         session.isPerformingSync = false
         application?.applicationState = .background
