@@ -53,7 +53,7 @@ public final class SignatureRequestStrategy: AbstractRequestStrategy, ZMSingleRe
         switch signatureStatus.state {
         case .initial:
             break
-         case .waitingForConsentURL:
+        case .waitingForConsentURL:
             guard let requestSync = requestSync else {
                 return nil
             }

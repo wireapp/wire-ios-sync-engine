@@ -320,10 +320,8 @@ extension CallKitManager {
     func reportCall(in conversation: ZMConversation, endedAt timestamp: Date?, reason: CXCallEndedReason) {
 
         var associatedCallUUIDs: [UUID] = []
-        for call in calls {
-            if call.value.conversation == conversation {
+        for call in calls where call.value.conversation == conversation {
                 associatedCallUUIDs.append(call.key)
-            }
         }
 
         associatedCallUUIDs.forEach { (callUUID) in

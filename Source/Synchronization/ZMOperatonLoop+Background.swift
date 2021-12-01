@@ -25,9 +25,9 @@ private enum PushChannelKeys: String {
 }
 
 private enum PushNotificationType: String {
-    case plain = "plain"
-    case cipher = "cipher"
-    case notice = "notice"
+    case plain
+    case cipher
+    case notice
 }
 
 @objc
