@@ -265,7 +265,7 @@ extension CallKitManager {
         }
     }
 
-    func requestEndCall(in conversation: ZMConversation, completion: (()->Void)? = nil) {
+    func requestEndCall(in conversation: ZMConversation, completion: (() -> Void)? = nil) {
         guard let callUUID = callUUID(for: conversation) else { return }
 
         let action = CXEndCallAction(call: callUUID)
