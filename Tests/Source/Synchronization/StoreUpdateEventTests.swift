@@ -156,9 +156,9 @@ class StoreUpdateEventTests: MessagingTest {
         let payload = payloadForMessage(in: conversation, type: EventConversationAdd, data: ["foo": "bar"])!
         let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: UUID.create())!
 
-        guard let _ = StoredUpdateEvent.encryptAndCreate(event, managedObjectContext: eventMOC, index: 0),
-            let _ = StoredUpdateEvent.encryptAndCreate(event, managedObjectContext: eventMOC, index: 1),
-            let _ = StoredUpdateEvent.encryptAndCreate(event, managedObjectContext: eventMOC, index: 2)
+        guard (StoredUpdateEvent.encryptAndCreate(event, managedObjectContext: eventMOC, index: 0) != nil),
+              (StoredUpdateEvent.encryptAndCreate(event, managedObjectContext: eventMOC, index: 1) != nil),
+              (StoredUpdateEvent.encryptAndCreate(event, managedObjectContext: eventMOC, index: 2) != nil)
             else {
                 return XCTFail("Could not create storedEvents")
         }
