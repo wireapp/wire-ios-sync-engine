@@ -60,9 +60,9 @@ public enum CompanyLoginError: Error, Equatable {
         case "-2063": self = .missingRequiredParameter
         case "-67700": self = .invalidCookie
         case "-25346": self = .tokenNotFound
-            
+
             // MARK: - SAML
-            
+
         case "server-error-unsupported-saml": self = .serverErrorUnsupportedSAML
         case "bad-success-redirect": self = .badSuccessRedirect
         case "bad-failure-redirect": self = .badFailureRedirect

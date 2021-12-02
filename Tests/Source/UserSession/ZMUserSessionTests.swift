@@ -16,28 +16,26 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import Foundation
 import WireSyncEngine
 
 class ZMUserSessionSwiftTests: ZMUserSessionTestsBase {
-  
-    
+
     func testThatItMarksTheConversationsAsRead() throws {
         // given
         let conversationsRange: CountableClosedRange = 1...10
-        
+
         let conversations: [ZMConversation] = conversationsRange.map { _ in
             return self.sut.insertConversationWithUnreadMessage()
         }
 
         try self.uiMOC.save()
-        
+
         // when
         self.sut.markAllConversationsAsRead()
-        
+
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-    
+
         // then
         self.uiMOC.refreshAllObjects()
         XCTAssertEqual(conversations.filter { $0.firstUnreadMessage != nil }.count, 0)

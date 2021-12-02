@@ -25,12 +25,12 @@ private let zmLog = ZMSLog(tag: "calling")
 /// call events.
 @objcMembers
 public class CallEventStatus: NSObject, ZMTimerClient {
-        
+
     var eventProcessingTimoutInterval: TimeInterval = 2
-    
+
     fileprivate var observers: [() -> Void] = []
-    fileprivate var eventProcessingTimer: ZMTimer? = nil
-    
+    fileprivate var eventProcessingTimer: ZMTimer?
+
     fileprivate var callEventsWaitingToBeProcessed: Int = 0 {
         didSet {
             if callEventsWaitingToBeProcessed == 0 {
@@ -40,18 +40,18 @@ public class CallEventStatus: NSObject, ZMTimerClient {
             }
         }
     }
-    
+
     public func timerDidFire(_ timer: ZMTimer!) {
         zmLog.debug("CallEventStatus: finished timer")
         observers.forEach({ $0() })
         observers = []
         eventProcessingTimer = nil
     }
-    
+
     deinit {
         eventProcessingTimer = nil
     }
-    
+
     /// Wait for all calling events to be processed and then calls the completion handler.
     ///
     /// NOTE it is not guranteed that completion handler is called on the same thread as the caller.
@@ -68,13 +68,13 @@ public class CallEventStatus: NSObject, ZMTimerClient {
         observers.append(completionHandler)
         return true
     }
-    
+
     public func scheduledCallEventForProcessing() {
         callEventsWaitingToBeProcessed += 1
     }
-    
+
     public func finishedProcessingCallEvent() {
         callEventsWaitingToBeProcessed -= 1
     }
-    
+
 }

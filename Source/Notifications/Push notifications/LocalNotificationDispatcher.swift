@@ -48,10 +48,10 @@ import UserNotifications
                                               using: { [weak self] in self?.cancelNotificationForLastReadChanged(notification: $0)})
         )
     }
-    
+
     func scheduleLocalNotification(_ note: ZMLocalNotification) {
         Logging.push.safePublic("Scheduling local notification with id=\(note.id)")
-        
+
         notificationCenter.add(note.request, withCompletionHandler: { error in
             if let error = error {
                 Logging.push.safePublic("Error scheduling local notification")
@@ -76,7 +76,7 @@ extension LocalNotificationDispatcher: ZMEventConsumer {
     public func processEvents(_ events: [ZMUpdateEvent], liveEvents: Bool, prefetchResult: ZMFetchRequestBatchResult?) {
         // nop
     }
-    
+
     public func processEventsWhileInBackground(_ events: [ZMUpdateEvent]) {
         let eventsToForward = events.filter { $0.source.isOne(of: .pushNotification, .webSocket) }
         self.didReceive(events: eventsToForward, conversationMap: [:])
@@ -90,7 +90,7 @@ extension LocalNotificationDispatcher: ZMEventConsumer {
                 // Fetch the conversation here to avoid refetching every time we try to create a notification
                 conversation = conversationMap[conversationID] ?? ZMConversation.fetch(with: conversationID, domain: event.conversationDomain, in: self.syncMOC)
             }
-            
+
             if let messageNonce = event.messageNonce {
                 if eventNotifications.notifications.contains(where: { $0.messageNonce == messageNonce }) {
                     // ignore events which we already scheduled a notification for
@@ -99,22 +99,22 @@ extension LocalNotificationDispatcher: ZMEventConsumer {
             }
 
             if let receivedMessage = GenericMessage(from: event) {
-                
+
                 if receivedMessage.hasReaction,
                    receivedMessage.reaction.emoji.isEmpty,
                    let messageID = UUID(uuidString: receivedMessage.reaction.messageID) {
                     // if it's an "unlike" reaction event, cancel the previous "like" notification for this message
                     eventNotifications.cancelCurrentNotifications(messageNonce: messageID)
                 }
-                
+
                 if receivedMessage.hasHidden || receivedMessage.hasDeleted {
                     // Cancel notification for message that was deleted or hidden
                     cancelMessageForDeletedMessage(receivedMessage)
                 }
             }
-                        
+
             let note = ZMLocalNotification(event: event, conversation: conversation, managedObjectContext: self.syncMOC)
-            
+
             note?.increaseEstimatedUnreadCount(on: conversation)
             note.apply(eventNotifications.addObject)
             note.apply(scheduleLocalNotification)
@@ -125,20 +125,20 @@ extension LocalNotificationDispatcher: ZMEventConsumer {
 // MARK: - Availability behaviour change
 
 extension LocalNotificationDispatcher {
-    
+
     public func notifyAvailabilityBehaviourChangedIfNeeded() {
         let selfUser = ZMUser.selfUser(in: syncMOC)
         var notify = selfUser.needsToNotifyAvailabilityBehaviourChange
-        
+
         guard notify.contains(.notification) else { return }
-        
+
         let note = ZMLocalNotification(availability: selfUser.availability, managedObjectContext: syncMOC)
         note.apply(scheduleLocalNotification)
         notify.remove(.notification)
         selfUser.needsToNotifyAvailabilityBehaviourChange = notify
         syncMOC.enqueueDelayedSave()
     }
-    
+
 }
 
 // MARK: - Failed messages
@@ -184,9 +184,9 @@ extension LocalNotificationDispatcher {
     public func cancelNotification(for conversation: ZMConversation) {
         self.allNotificationSets.forEach { $0.cancelNotifications(conversation) }
     }
-    
+
     func cancelMessageForDeletedMessage(_ genericMessage: GenericMessage) {
-        var idToDelete : UUID?
+        var idToDelete: UUID?
 
         if genericMessage.hasDeleted {
             let deleted = genericMessage.deleted.messageID
@@ -196,7 +196,7 @@ extension LocalNotificationDispatcher {
             let hidden = genericMessage.hidden.messageID
             idToDelete = UUID(uuidString: hidden)
         }
-        
+
         if let idToDelete = idToDelete {
             eventNotifications.cancelCurrentNotifications(messageNonce: idToDelete)
         }

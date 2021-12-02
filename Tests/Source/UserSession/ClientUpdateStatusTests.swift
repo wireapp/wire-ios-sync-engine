@@ -16,51 +16,50 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 // 
 
-
 import Foundation
 import WireTesting
 
 struct ClientUpdateStatusChange {
     let type: ZMClientUpdateNotificationType
     var clientObjectIDs: [NSManagedObjectID]
-    var error : NSError?
+    var error: NSError?
 }
 
 class ClientUpdateStatusTests: MessagingTest {
-    var sut : ClientUpdateStatus!
-    var clientObserverToken : Any?
-    var receivedNotifications : [ClientUpdateStatusChange] = []
-    
+    var sut: ClientUpdateStatus!
+    var clientObserverToken: Any?
+    var receivedNotifications: [ClientUpdateStatusChange] = []
+
     override func setUp() {
         super.setUp()
         self.sut = ClientUpdateStatus(syncManagedObjectContext: self.syncMOC)
-        
+
         clientObserverToken = ZMClientUpdateNotification.addObserver(context: uiMOC) { [weak self] (type, clientObjectIDs, error) in
             self?.receivedNotifications.append(ClientUpdateStatusChange(type: type, clientObjectIDs: clientObjectIDs, error: error))
         }
     }
-    
+
     override func tearDown() {
         sut = nil
         clientObserverToken = nil
         receivedNotifications = []
         super.tearDown()
     }
-    
+
     func testThatItReturnsfetchingClientsByDefault() {
         XCTAssertEqual(self.sut.currentPhase, ClientUpdatePhase.fetchingClients)
     }
- 
+
     func testThatItReturnsFetchingClientsWhenFetchStarted() {
         // when
         self.sut.needsToFetchClients(andVerifySelfClient: true)
-        
+
         // then
         XCTAssertEqual(self.sut.currentPhase, ClientUpdatePhase.fetchingClients)
     }
-    
+
     func insertNewClient(_ isSelfClient: Bool) -> UserClient! {
-        var client : UserClient!
+        var client: UserClient!
         self.syncMOC.performGroupedBlockAndWait { () -> Void in
             client = UserClient.insertNewObject(in: self.syncMOC)
             client.remoteIdentifier = isSelfClient ? "selfIdentifier" : "identifier"
@@ -73,28 +72,28 @@ class ClientUpdateStatusTests: MessagingTest {
         }
         return client
     }
-    
+
     func insertSelfClient() -> UserClient {
         return insertNewClient(true)!
     }
-    
+
     func insertNewClient() -> UserClient {
         return insertNewClient(false)!
     }
-    
+
     func testThatFetchedClientsDoNotContainSelfClient() {
         // given
         let selfClient = insertSelfClient()
         let otherClient = insertNewClient()
-        
+
         // when
         self.sut.needsToFetchClients(andVerifySelfClient: true)
         self.sut.didFetchClients([selfClient, otherClient])
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         XCTAssertEqual(self.sut.currentPhase, ClientUpdatePhase.done)
-        
+
         XCTAssertEqual(self.receivedNotifications.count, 1)
         let note = self.receivedNotifications.first
         if let note = note {
@@ -107,12 +106,12 @@ class ClientUpdateStatusTests: MessagingTest {
         }
 
     }
-    
+
     func testThatItCallsTheCompletionHandlerWhenFetchCompletes() {
         // given
         let selfClient = insertSelfClient()
         let client = insertNewClient()
-        
+
         // when
         self.sut.needsToFetchClients(andVerifySelfClient: true)
         self.sut.didFetchClients([client, selfClient])
@@ -120,12 +119,12 @@ class ClientUpdateStatusTests: MessagingTest {
 
         // then
         XCTAssertEqual(self.sut.currentPhase, ClientUpdatePhase.done)
-        
+
         XCTAssertEqual(self.receivedNotifications.count, 1)
         let note = self.receivedNotifications.first
         if let note = note {
             let clientIDs = note.clientObjectIDs
-            XCTAssertEqual(clientIDs.count, 1);
+            XCTAssertEqual(clientIDs.count, 1)
             XCTAssertEqual(clientIDs.first, client.objectID)
             XCTAssertEqual(note.type, ZMClientUpdateNotificationType.fetchCompleted)
             XCTAssertNil(note.error)
@@ -133,20 +132,20 @@ class ClientUpdateStatusTests: MessagingTest {
             XCTFail("no notification received")
         }
     }
-    
+
     func testThatItCallsTheCompletionHandlerWithErrorWhenFetchFails() {
         // when
         self.sut.needsToFetchClients(andVerifySelfClient: true)
         self.sut.failedToFetchClients()
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         XCTAssertEqual(self.sut.currentPhase, ClientUpdatePhase.fetchingClients) // if we go back online we want to try to verify the client
         XCTAssertEqual(self.receivedNotifications.count, 1)
         let note = self.receivedNotifications.first
         if let note = note {
             let clients = note.clientObjectIDs
-            XCTAssertEqual(clients, []);
+            XCTAssertEqual(clients, [])
             XCTAssertEqual(note.type, ZMClientUpdateNotificationType.fetchFailed)
             XCTAssertNotNil(note.error)
             XCTAssertEqual(note.error?.code, ClientUpdateError.deviceIsOffline.rawValue)
@@ -154,12 +153,12 @@ class ClientUpdateStatusTests: MessagingTest {
             XCTFail("no notification received")
         }
     }
-    
+
     func testThatItCallsCompletionHandlerAfterDeletingClient_AllClientsDeleted() {
         // given
         let selfClient = insertSelfClient()
         let client = insertNewClient()
-        
+
         self.sut.needsToFetchClients(andVerifySelfClient: true)
         self.sut.didFetchClients([client, selfClient])
         XCTAssertEqual(self.sut.currentPhase, ClientUpdatePhase.done)
@@ -172,7 +171,7 @@ class ClientUpdateStatusTests: MessagingTest {
 
         self.sut.didDeleteClient()
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         XCTAssertEqual(self.sut.currentPhase, ClientUpdatePhase.done)
         XCTAssertEqual(self.receivedNotifications.count, 1)
@@ -186,7 +185,7 @@ class ClientUpdateStatusTests: MessagingTest {
             XCTFail("no notification received")
         }
     }
-    
+
     func testThatItReturnsAnErrorIfSelfClientWasRemovedRemotely() {
         // given
         _ = insertSelfClient()
@@ -196,7 +195,7 @@ class ClientUpdateStatusTests: MessagingTest {
         self.sut.needsToFetchClients(andVerifySelfClient: true)
         self.sut.didFetchClients([otherClient])
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         XCTAssertEqual(self.sut.currentPhase, ClientUpdatePhase.done)
         XCTAssertEqual(self.receivedNotifications.count, 1)
@@ -209,16 +208,16 @@ class ClientUpdateStatusTests: MessagingTest {
             XCTFail("no notification received")
         }
     }
-    
+
     func testThatItReturnsAnErrorIfSelfClientIsNotRegistered() {
         // given
         let otherClient = insertNewClient()
-        
+
         // when
         self.sut.needsToFetchClients(andVerifySelfClient: true)
         self.sut.didFetchClients([otherClient])
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         XCTAssertEqual(self.sut.currentPhase, ClientUpdatePhase.done)
         XCTAssertEqual(self.receivedNotifications.count, 1)
@@ -231,25 +230,25 @@ class ClientUpdateStatusTests: MessagingTest {
             XCTFail("no notification received")
         }
     }
-    
+
     func testThatItReturnsAnErrorIfCredentialsAreInvalid() {
         // given
         let selfClient = insertSelfClient()
         let client = insertNewClient()
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         self.sut.needsToFetchClients(andVerifySelfClient: true)
         self.sut.didFetchClients([client, selfClient])
-        
+
         let error = NSError(domain: "ClientManagement", code: Int(ClientUpdateError.invalidCredentials.rawValue), userInfo: nil)
         self.receivedNotifications.removeAll()
 
         // when
         let credentials = ZMEmailCredentials(email: "hallo@example.com", password: "secret123456")
         self.sut.deleteClients(withCredentials: credentials)
-        self.sut.failedToDeleteClient(client, error:error)
+        self.sut.failedToDeleteClient(client, error: error)
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         XCTAssertEqual(self.sut.currentPhase, ClientUpdatePhase.done)
         XCTAssertEqual(self.receivedNotifications.count, 1)
@@ -262,9 +261,9 @@ class ClientUpdateStatusTests: MessagingTest {
             XCTFail("no notification received")
         }
     }
-    
+
     func testThatItResetsTheDeletionOfTheSelfClientAtInit() {
-        
+
         // GIVEN
         // remove previous
         clientObserverToken = nil
@@ -274,7 +273,7 @@ class ClientUpdateStatusTests: MessagingTest {
         selfClient.markedToDelete = true
         selfClient.setLocallyModifiedKeys(Set([ZMUserClientMarkedToDeleteKey]))
         selfClient.managedObjectContext?.saveOrRollback()
-        
+
         // WHEN
         // re-create
         self.sut = ClientUpdateStatus(syncManagedObjectContext: self.syncMOC)
@@ -282,12 +281,10 @@ class ClientUpdateStatusTests: MessagingTest {
             self?.receivedNotifications.append(ClientUpdateStatusChange(type: type, clientObjectIDs: clientObjectIDs, error: error))
         }
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // THEN
         XCTAssertFalse(selfClient.markedToDelete)
         XCTAssertFalse(selfClient.hasLocalModifications(forKey: ZMUserClientMarkedToDeleteKey))
-        
+
     }
 }
-
-

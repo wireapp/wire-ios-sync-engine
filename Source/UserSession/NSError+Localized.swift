@@ -22,7 +22,7 @@ extension NSError {
     @objc public static var ZMUserSessionErrorDomain = "ZMUserSession"
 
     @objc(initWitUserSessionErrorWithErrorCode:userInfo:)
-    public convenience init(code: ZMUserSessionErrorCode, userInfo: [String : Any]?) {
+    public convenience init(code: ZMUserSessionErrorCode, userInfo: [String: Any]?) {
         var info = userInfo ?? [:]
         if let description = code.errorDescription {
             info[NSLocalizedDescriptionKey] = description

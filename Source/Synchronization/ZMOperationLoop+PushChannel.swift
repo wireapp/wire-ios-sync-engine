@@ -19,35 +19,35 @@
 import Foundation
 
 extension ZMOperationLoop: ZMPushChannelConsumer {
-    
+
     public func pushChannelDidReceive(_ data: ZMTransportData) {
         Logging.network.info("Push Channel:\n\(data)")
-        
+
         if let events = ZMUpdateEvent.eventsArray(fromPushChannelData: data), !events.isEmpty {
             Logging.eventProcessing.info("Received \(events.count) events from push channel")
             events.forEach({ $0.appendDebugInformation("from push channel (web socket)")})
             self.updateEventProcessor.storeAndProcessUpdateEvents(events, ignoreBuffer: false)
         }
     }
-    
+
     public func pushChannelDidClose() {
         NotificationInContext(name: ZMOperationLoop.pushChannelStateChangeNotificationName,
                               context: syncMOC.notificationContext,
                               object: self,
                               userInfo: [ ZMPushChannelIsOpenKey: false]).post()
-        
+
         syncStatus.pushChannelDidClose()
         RequestAvailableNotification.notifyNewRequestsAvailable(nil)
     }
-    
+
     public func pushChannelDidOpen() {
         NotificationInContext(name: ZMOperationLoop.pushChannelStateChangeNotificationName,
                               context: syncMOC.notificationContext,
                               object: self,
                               userInfo: [ ZMPushChannelIsOpenKey: true]).post()
-        
+
         syncStatus.pushChannelDidOpen()
         RequestAvailableNotification.notifyNewRequestsAvailable(nil)
     }
-    
+
 }

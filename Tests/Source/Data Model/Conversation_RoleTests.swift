@@ -144,13 +144,12 @@ class Conversation_RoleTests: MessagingTest {
         let role = Role.insertNewObject(in: uiMOC)
         role.name = "wire_admin"
 
-
         let expectation = self.expectation(description: "completed")
 
         // When
         let maybeRequest = Factory.requestForUpdatingParticipantRole(role, for: user, in: conversation) { result in
             switch result {
-            case .failure(_): XCTFail("The request did not succeed")
+            case .failure: XCTFail("The request did not succeed")
             default: break
             }
 

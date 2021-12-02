@@ -35,7 +35,7 @@ class DeepLinkURLActionProcessorTests: DatabaseTest {
                                                         transportSession: mockTransportSession,
                                                         eventProcessor: mockUpdateEventProcessor)
     }
-    
+
     override func tearDown() {
         presentationDelegate = nil
         sut = nil
@@ -43,61 +43,61 @@ class DeepLinkURLActionProcessorTests: DatabaseTest {
         mockUpdateEventProcessor = nil
         super.tearDown()
     }
-    
+
     // MARK: Tests
-    
+
     func testThatItAsksForConversationToBeShown() {
         // given
         let conversationId = UUID()
         let action: URLAction = .openConversation(id: conversationId)
         let conversation = ZMConversation.insertNewObject(in: uiMOC)
         conversation.remoteIdentifier = conversationId
-        
+
         // when
         sut.process(urlAction: action, delegate: presentationDelegate)
-        
+
         // then
         XCTAssertEqual(presentationDelegate.showConversationCalls.count, 1)
         XCTAssertEqual(presentationDelegate.showConversationCalls.first, conversation)
     }
-    
+
     func testThatItReportsTheActionAsFailed_WhenTheConversationDoesntExist() {
         // given
         let conversationId = UUID()
         let action: URLAction = .openConversation(id: conversationId)
-        
+
         // when
         sut.process(urlAction: action, delegate: presentationDelegate)
-        
+
         // then
         XCTAssertEqual(presentationDelegate.failedToPerformActionCalls.count, 1)
         XCTAssertEqual(presentationDelegate.failedToPerformActionCalls.first?.0, action)
         XCTAssertEqual(presentationDelegate.failedToPerformActionCalls.first?.1 as? DeepLinkRequestError, .invalidConversationLink)
     }
-    
+
     func testThatItAsksToShowUserProfile_WhenUserIsKnown() {
         // given
         let userId = UUID()
         let action: URLAction = .openUserProfile(id: userId)
         let user = ZMUser.insertNewObject(in: uiMOC)
         user.remoteIdentifier = userId
-        
+
         // when
         sut.process(urlAction: action, delegate: presentationDelegate)
-        
+
         // then
         XCTAssertEqual(presentationDelegate.showUserProfileCalls.count, 1)
         XCTAssertEqual(presentationDelegate.showUserProfileCalls.first as? ZMUser, user)
     }
-    
+
     func testThatItAsksToShowConnectionRequest_WhenUserIsUnknown() {
         // given
         let userId = UUID()
         let action: URLAction = .openUserProfile(id: userId)
-        
+
         // when
         sut.process(urlAction: action, delegate: presentationDelegate)
-        
+
         // then
         XCTAssertEqual(presentationDelegate.showConnectionRequestCalls.count, 1)
         XCTAssertEqual(presentationDelegate.showConnectionRequestCalls.first, userId)
@@ -131,5 +131,5 @@ class DeepLinkURLActionProcessorTests: DatabaseTest {
         XCTAssertEqual(presentationDelegate.failedToPerformActionCalls.first?.0, action)
         XCTAssertEqual(presentationDelegate.failedToPerformActionCalls.first?.1 as? ConversationFetchError, ConversationFetchError.invalidCode)
     }
-    
+
 }

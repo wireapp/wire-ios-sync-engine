@@ -21,12 +21,12 @@ import CoreData
 
 @objc(StoredUpdateEvent)
 public final class StoredUpdateEvent: NSManagedObject {
-    
+
     static let entityName =  "StoredUpdateEvent"
     static let SortIndexKey = "sortIndex"
     /// The key under which the event payload is encrypted by the public key.
     static internal let encryptedPayloadKey = "encryptedPayload"
-    
+
     @NSManaged var uuidString: String?
     @NSManaged var debugInformation: String?
     @NSManaged var isTransient: Bool
@@ -34,11 +34,11 @@ public final class StoredUpdateEvent: NSManagedObject {
     @NSManaged var isEncrypted: Bool
     @NSManaged var source: Int16
     @NSManaged var sortIndex: Int64
-    
+
     static func insertNewObject(_ context: NSManagedObjectContext) -> StoredUpdateEvent? {
         return NSEntityDescription.insertNewObject(forEntityName: self.entityName, into: context) as? StoredUpdateEvent
     }
-       
+
     /// Maps a passed in `ZMUpdateEvent` to a `StoredUpdateEvent` which is persisted in a database
     /// - Parameters:
     ///   - event: received events
@@ -55,10 +55,10 @@ public final class StoredUpdateEvent: NSManagedObject {
         storedEvent.uuidString = event.uuid?.transportString()
         storedEvent.payload = encryptIfNeeded(eventPayload: event.payload as NSDictionary, publicKey: publicKey)
         storedEvent.isEncrypted = publicKey != nil
-        
+
         return storedEvent
     }
-    
+
     /// Encrypts the passed payload if publicKey exists. Otherwise, returns the passed event payload
     /// - Parameters:
     ///   - eventPayload: the envent payload
@@ -77,7 +77,7 @@ public final class StoredUpdateEvent: NSManagedObject {
         }
         return NSDictionary(dictionary: [encryptedPayloadKey: encryptedData])
     }
-    
+
     /// Returns stored events sorted by and up until (including) the defined `stopIndex`
     /// Returns a maximum of `batchSize` events at a time
     public static func nextEvents(_ context: NSManagedObjectContext, batchSize: Int) -> [StoredUpdateEvent] {
@@ -88,7 +88,7 @@ public final class StoredUpdateEvent: NSManagedObject {
         let result = context.fetchOrAssert(request: fetchRequest)
         return result
     }
-    
+
     /// Returns the highest index of all stored events
     public static func highestIndex(_ context: NSManagedObjectContext) -> Int64 {
         let fetchRequest = NSFetchRequest<StoredUpdateEvent>(entityName: self.entityName)
@@ -97,19 +97,19 @@ public final class StoredUpdateEvent: NSManagedObject {
         let result = context.fetchOrAssert(request: fetchRequest)
         return result.first?.sortIndex ?? 0
     }
-    
+
     /// Maps passed in objects of type `StoredUpdateEvent` to `ZMUpdateEvent`
     public static func eventsFromStoredEvents(_ storedEvents: [StoredUpdateEvent], encryptionKeys: EncryptionKeys? = nil) -> [ZMUpdateEvent] {
-        let events : [ZMUpdateEvent] = storedEvents.compactMap {
-            var eventUUID : UUID?
+        let events: [ZMUpdateEvent] = storedEvents.compactMap {
+            var eventUUID: UUID?
             if let uuid = $0.uuidString {
                 eventUUID = UUID(uuidString: uuid)
             }
-            
+
             guard let payload = decryptPayloadIfNeeded(storedEvent: $0, encryptionKeys: encryptionKeys) else {
                 return nil
             }
-            let decryptedEvent = ZMUpdateEvent.decryptedUpdateEvent(fromEventStreamPayload: payload, uuid:eventUUID, transient: $0.isTransient, source: ZMUpdateEventSource(rawValue:Int($0.source))!)
+            let decryptedEvent = ZMUpdateEvent.decryptedUpdateEvent(fromEventStreamPayload: payload, uuid: eventUUID, transient: $0.isTransient, source: ZMUpdateEventSource(rawValue: Int($0.source))!)
             if let debugInfo = $0.debugInformation {
                 decryptedEvent?.appendDebugInformation(debugInfo)
             }
@@ -117,7 +117,7 @@ public final class StoredUpdateEvent: NSManagedObject {
         }
         return events
     }
-    
+
     /// Decrypts the passed stored event payload if the isEncrypted property is true.
     /// - Parameters:
     ///   - storedEvent: the stored event
@@ -136,7 +136,7 @@ public final class StoredUpdateEvent: NSManagedObject {
                                                           nil) else {
                                                             return nil
         }
-        
-      return try? JSONSerialization.jsonObject(with: decryptedData as Data , options: []) as? NSDictionary
+
+      return try? JSONSerialization.jsonObject(with: decryptedData as Data, options: []) as? NSDictionary
     }
 }

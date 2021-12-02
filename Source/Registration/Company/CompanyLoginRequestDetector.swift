@@ -35,7 +35,6 @@ public final class CompanyLoginRequestDetector: NSObject {
         public let isNew: Bool  // Weather or not the code changed since the last check.
     }
 
-    
     /// An enum describing the parsing result of a presumed SSO code / email
     ///
     /// - ssoCode: SSO code
@@ -46,11 +45,11 @@ public final class CompanyLoginRequestDetector: NSObject {
         case domain(String)
         case unknown
     }
-    
+
     private let pasteboard: Pasteboard
     private let processQueue = DispatchQueue(label: "WireSyncEngine.SharedIdentitySessionRequestDetector")
     private var previouslyDetectedSSOCode: String?
-    
+
     // MARK: - Initialization
 
     /// Returns the detector that uses the system pasteboard to detect session requests.
@@ -88,7 +87,6 @@ public final class CompanyLoginRequestDetector: NSObject {
         }
     }
 
-    
     /// Parses the input and returns its type (.ssoCode, .domain or .unknown)
     ///
     /// - Parameter input: to be parsed
@@ -102,7 +100,7 @@ public final class CompanyLoginRequestDetector: NSObject {
             return .unknown
         }
     }
-    
+
     /// Tries to extract the domain from a given email
     ///
     /// - Parameter email: the email to extract the domain from. e.g. bob@domain.com
@@ -111,7 +109,7 @@ public final class CompanyLoginRequestDetector: NSObject {
         guard ZMEmailAddressValidator.isValidEmailAddress(email) else { return nil }
         return email.components(separatedBy: "@").last
     }
-    
+
     /**
      * Tries to extract the request ID from the contents of the text.
      */

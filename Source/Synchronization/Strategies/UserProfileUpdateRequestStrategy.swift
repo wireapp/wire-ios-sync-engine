@@ -18,37 +18,37 @@
 
 import Foundation
 
-public class UserProfileUpdateRequestStrategy : AbstractRequestStrategy, ZMSingleRequestTranscoder {
-    
-    let userProfileUpdateStatus : UserProfileUpdateStatus
-    
-    fileprivate var phoneCodeRequestSync : ZMSingleRequestSync! = nil
-    
-    fileprivate var phoneUpdateSync : ZMSingleRequestSync! = nil
-    
-    fileprivate var phoneNumberDeleteSync : ZMSingleRequestSync! = nil
-    
-    fileprivate var passwordUpdateSync : ZMSingleRequestSync! = nil
-    
-    fileprivate var emailUpdateSync : ZMSingleRequestSync! = nil
-    
-    fileprivate var handleCheckSync : ZMSingleRequestSync! = nil
-    
-    fileprivate var handleSetSync : ZMSingleRequestSync! = nil
-    
-    fileprivate var handleSuggestionSearchSync : ZMSingleRequestSync! = nil
-    
+public class UserProfileUpdateRequestStrategy: AbstractRequestStrategy, ZMSingleRequestTranscoder {
+
+    let userProfileUpdateStatus: UserProfileUpdateStatus
+
+    fileprivate var phoneCodeRequestSync: ZMSingleRequestSync! = nil
+
+    fileprivate var phoneUpdateSync: ZMSingleRequestSync! = nil
+
+    fileprivate var phoneNumberDeleteSync: ZMSingleRequestSync! = nil
+
+    fileprivate var passwordUpdateSync: ZMSingleRequestSync! = nil
+
+    fileprivate var emailUpdateSync: ZMSingleRequestSync! = nil
+
+    fileprivate var handleCheckSync: ZMSingleRequestSync! = nil
+
+    fileprivate var handleSetSync: ZMSingleRequestSync! = nil
+
+    fileprivate var handleSuggestionSearchSync: ZMSingleRequestSync! = nil
+
     @available (*, unavailable, message: "use `init(managedObjectContext:appStateDelegate:userProfileUpdateStatus)`instead")
     override init(withManagedObjectContext managedObjectContext: NSManagedObjectContext, applicationStatus: ApplicationStatus) {
         fatalError()
     }
-    
+
     public init(managedObjectContext: NSManagedObjectContext,
                 applicationStatus: ApplicationStatus,
                 userProfileUpdateStatus: UserProfileUpdateStatus) {
         self.userProfileUpdateStatus = userProfileUpdateStatus
         super.init(withManagedObjectContext: managedObjectContext, applicationStatus: applicationStatus)
-        
+
         self.configuration = [
             .allowsRequestsWhileUnauthenticated,
             .allowsRequestsWhileOnline,
@@ -66,132 +66,132 @@ public class UserProfileUpdateRequestStrategy : AbstractRequestStrategy, ZMSingl
         self.handleSetSync = ZMSingleRequestSync(singleRequestTranscoder: self, groupQueue: managedObjectContext)
         self.handleSuggestionSearchSync = ZMSingleRequestSync(singleRequestTranscoder: self, groupQueue: managedObjectContext)
     }
-    
+
     @objc public override func nextRequestIfAllowed() -> ZMTransportRequest? {
-        
+
         if self.userProfileUpdateStatus.currentlyRequestingPhoneVerificationCode {
             self.phoneCodeRequestSync.readyForNextRequestIfNotBusy()
             return self.phoneCodeRequestSync.nextRequest()
         }
-        
+
         if self.userProfileUpdateStatus.currentlySettingPhone {
             self.phoneUpdateSync.readyForNextRequestIfNotBusy()
             return self.phoneUpdateSync.nextRequest()
         }
-        
+
         if self.userProfileUpdateStatus.currentlySettingEmail ||
             self.userProfileUpdateStatus.currentlyChangingEmail {
             self.emailUpdateSync.readyForNextRequestIfNotBusy()
             return self.emailUpdateSync.nextRequest()
         }
-        
+
         if self.userProfileUpdateStatus.currentlyRemovingPhoneNumber {
             self.phoneNumberDeleteSync.readyForNextRequestIfNotBusy()
             return self.phoneNumberDeleteSync.nextRequest()
         }
-        
+
         if self.userProfileUpdateStatus.currentlySettingPassword {
             self.passwordUpdateSync.readyForNextRequestIfNotBusy()
             return self.passwordUpdateSync.nextRequest()
         }
-        
+
         if self.userProfileUpdateStatus.currentlyCheckingHandleAvailability {
             self.handleCheckSync.readyForNextRequestIfNotBusy()
             return self.handleCheckSync.nextRequest()
         }
-        
+
         if self.userProfileUpdateStatus.currentlySettingHandle {
             self.handleSetSync.readyForNextRequestIfNotBusy()
             return self.handleSetSync.nextRequest()
         }
-        
+
         if self.userProfileUpdateStatus.currentlyGeneratingHandleSuggestion {
             self.handleSuggestionSearchSync.readyForNextRequestIfNotBusy()
             return self.handleSuggestionSearchSync.nextRequest()
         }
-        
+
         return nil
     }
 
-    //MARK:-  ZMSingleRequestTranscoder
-    
+    // MARK: - ZMSingleRequestTranscoder
+
     public func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
         switch sync {
-            
+
         case self.phoneCodeRequestSync:
-            let payload : NSDictionary = [
-                "phone" : self.userProfileUpdateStatus.phoneNumberForWhichCodeIsRequested!
+            let payload: NSDictionary = [
+                "phone": self.userProfileUpdateStatus.phoneNumberForWhichCodeIsRequested!
             ]
             return ZMTransportRequest(path: "/self/phone", method: .methodPUT, payload: payload)
-        
+
         case self.phoneUpdateSync:
-            let payload : NSDictionary = [
-                "phone" : self.userProfileUpdateStatus.phoneNumberToSet!.phoneNumber!,
-                "code" : self.userProfileUpdateStatus.phoneNumberToSet!.phoneNumberVerificationCode!,
-                "dryrun" : false
+            let payload: NSDictionary = [
+                "phone": self.userProfileUpdateStatus.phoneNumberToSet!.phoneNumber!,
+                "code": self.userProfileUpdateStatus.phoneNumberToSet!.phoneNumberVerificationCode!,
+                "dryrun": false
             ]
             return ZMTransportRequest(path: "/activate", method: .methodPOST, payload: payload)
-        
+
         case self.phoneNumberDeleteSync:
             return ZMTransportRequest(path: "/self/phone", method: .methodDELETE, payload: nil)
 
         case self.passwordUpdateSync:
-            let payload : NSDictionary = [
-                "new_password" : self.userProfileUpdateStatus.passwordToSet!
+            let payload: NSDictionary = [
+                "new_password": self.userProfileUpdateStatus.passwordToSet!
             ]
             return ZMTransportRequest(path: "/self/password", method: .methodPUT, payload: payload)
-        
+
         case self.emailUpdateSync:
-            let payload : NSDictionary = [
-                "email" : self.userProfileUpdateStatus.emailToSet!
+            let payload: NSDictionary = [
+                "email": self.userProfileUpdateStatus.emailToSet!
             ]
             return ZMTransportRequest(path: "/access/self/email", method: .methodPUT, payload: payload, authentication: .needsCookieAndAccessToken)
-            
+
         case self.handleCheckSync:
             let handle = self.userProfileUpdateStatus.handleToCheck!
             return ZMTransportRequest(path: "/users/handles/\(handle)", method: .methodHEAD, payload: nil)
-        
+
         case self.handleSetSync:
-            let payload : NSDictionary = ["handle" : self.userProfileUpdateStatus.handleToSet!]
+            let payload: NSDictionary = ["handle": self.userProfileUpdateStatus.handleToSet!]
             return ZMTransportRequest(path: "/self/handle", method: .methodPUT, payload: payload)
-            
+
         case self.handleSuggestionSearchSync:
             guard let handlesToCheck = self.userProfileUpdateStatus.suggestedHandlesToCheck else {
                 fatal("Tried to check handles availability, but no handle was available")
             }
             let payload = [
-                    "handles" :  handlesToCheck,
-                    "return" : 1
+                    "handles": handlesToCheck,
+                    "return": 1
                 ] as NSDictionary
             return ZMTransportRequest(path: "/users/handles", method: .methodPOST, payload: payload)
-        
+
         default:
             return nil
         }
     }
-    
+
     public func didReceive(_ response: ZMTransportResponse, forSingleRequest sync: ZMSingleRequestSync) {
         switch sync {
-            
+
         case self.phoneCodeRequestSync:
             if response.result == .success {
                 self.userProfileUpdateStatus.didRequestPhoneVerificationCodeSuccessfully()
             } else {
-                let error : Error = NSError.phoneNumberIsAlreadyRegisteredError(with: response) ??
+                let error: Error = NSError.phoneNumberIsAlreadyRegisteredError(with: response) ??
                     NSError.invalidPhoneNumber(withReponse: response) ??
                     NSError(code: .unknownError, userInfo: nil)
                 self.userProfileUpdateStatus.didFailPhoneVerificationCodeRequest(error: error)
             }
-            
+
         case self.phoneUpdateSync:
             if response.result == .success {
                 self.userProfileUpdateStatus.didChangePhoneSuccesfully()
             } else {
-                let error : Error = NSError.invalidPhoneVerificationCodeError(with: response) ??
+                let error: Error = NSError.invalidPhoneVerificationCodeError(with: response) ??
                     NSError(code: .unknownError, userInfo: nil)
                 self.userProfileUpdateStatus.didFailChangingPhone(error: error)
             }
-            
+
         case self.passwordUpdateSync:
             if response.result == .success {
                 self.userProfileUpdateStatus.didUpdatePasswordSuccessfully()
@@ -204,27 +204,27 @@ public class UserProfileUpdateRequestStrategy : AbstractRequestStrategy, ZMSingl
             } else {
                 self.userProfileUpdateStatus.didFailPasswordUpdate()
             }
-            
+
         case self.emailUpdateSync:
             if response.result == .success {
                 self.userProfileUpdateStatus.didUpdateEmailSuccessfully()
             } else {
-                let error : Error = NSError.invalidEmail(with: response) ??
+                let error: Error = NSError.invalidEmail(with: response) ??
                     NSError.keyExistsError(with: response) ??
                     NSError(code: .unknownError, userInfo: nil)
                 self.userProfileUpdateStatus.didFailEmailUpdate(error: error)
             }
-            
+
         case self.phoneNumberDeleteSync:
             if response.result == .success {
                 ZMUser.selfUser(in: managedObjectContext).setValue(nil, forKey: #keyPath(ZMUser.phoneNumber)) // This is a horrible hack for Swift 3.1 not seeing Obj-c private headers
                 self.userProfileUpdateStatus.didRemovePhoneNumberSuccessfully()
             } else {
-                let error : Error = NSError.lastUserIdentityCantBeRemoved(with: response) ??
+                let error: Error = NSError.lastUserIdentityCantBeRemoved(with: response) ??
                     NSError(code: .unknownError, userInfo: nil)
                 self.userProfileUpdateStatus.didFailPhoneNumberRemoval(error: error)
             }
-            
+
         case self.handleCheckSync:
             let handle = response.rawResponse?.url?.lastPathComponent ?? ""
             if response.result == .success {
@@ -237,7 +237,7 @@ public class UserProfileUpdateRequestStrategy : AbstractRequestStrategy, ZMSingl
                 }
             }
             break
-            
+
         case self.handleSetSync:
             if response.result == .success {
                 self.userProfileUpdateStatus.didSetHandle()
@@ -248,7 +248,7 @@ public class UserProfileUpdateRequestStrategy : AbstractRequestStrategy, ZMSingl
                     self.userProfileUpdateStatus.didFailToSetHandle()
                 }
             }
-            
+
         case self.handleSuggestionSearchSync:
             if response.result == .success {
                 if let availableHandle = (response.payload as? [String])?.first {
@@ -259,12 +259,12 @@ public class UserProfileUpdateRequestStrategy : AbstractRequestStrategy, ZMSingl
             } else {
                 self.userProfileUpdateStatus.didFailToFindHandleSuggestion()
             }
-            
+
         default:
             break
         }
     }
-    
+
     /// Finds the handle that was searched for suggestion that is not in the given response
     private func findMissingHandleInResponse(response: ZMTransportResponse) -> String? {
         guard let usersPayload = response.payload as? [[String: AnyObject]] else {
@@ -274,7 +274,7 @@ public class UserProfileUpdateRequestStrategy : AbstractRequestStrategy, ZMSingl
             // this should not happen
             return nil
         }
-        
+
         let existingHandles = Set(usersPayload.compactMap { $0["handle"] as? String })
         for handle in possibleHandles {
             if !existingHandles.contains(handle) {
@@ -283,5 +283,5 @@ public class UserProfileUpdateRequestStrategy : AbstractRequestStrategy, ZMSingl
         }
         return nil
     }
-    
+
 }

@@ -24,9 +24,9 @@ public protocol JailbreakDetectorProtocol {
 }
 
 public final class JailbreakDetector: NSObject, JailbreakDetectorProtocol {
-    
+
     private let fm = FileManager.default
-    
+
     public func isJailbroken() -> Bool {
         #if targetEnvironment(simulator)
         return false
@@ -38,7 +38,7 @@ public final class JailbreakDetector: NSObject, JailbreakDetectorProtocol {
             canOpenJailbrokenStores
         #endif
     }
-    
+
     private var hasJailbrokenFiles: Bool {
         let paths: [String] = [
             "/private/var/stash",
@@ -75,30 +75,30 @@ public final class JailbreakDetector: NSObject, JailbreakDetectorProtocol {
             "/Applications/FakeCarrier.app",
             "/Applications/blackra1n.app"
         ]
-        
+
         for path in paths {
             if fm.fileExists(atPath: path) {
                 return true
             }
         }
-        
+
         return false
     }
-    
+
     private var hasWriteablePaths: Bool {
         if fm.isWritableFile(atPath: "/") {
             return true
         }
-        
+
         if fm.isWritableFile(atPath: "/private") {
             return true
         }
-        
+
         return false
     }
-    
+
     private var hasSymlinks: Bool {
-        let symlinks : [String] = [
+        let symlinks: [String] = [
             "/Library/Ringtones",
             "/Library/Wallpaper",
             "/usr/arm-apple-darwin9",
@@ -107,7 +107,7 @@ public final class JailbreakDetector: NSObject, JailbreakDetectorProtocol {
             "/usr/share",
             "/Applications"
         ]
-        
+
         for link in symlinks {
             if fm.fileExists(atPath: link),
                 let attributes = try? fm.attributesOfItem(atPath: link),
@@ -115,10 +115,10 @@ public final class JailbreakDetector: NSObject, JailbreakDetectorProtocol {
                 return true
             }
         }
-        
+
         return false
     }
-    
+
     private var callsFork: Bool {
         let RTLD_DEFAULT = UnsafeMutableRawPointer(bitPattern: -2)
         let forkPtr = dlsym(RTLD_DEFAULT, "fork")
@@ -126,13 +126,13 @@ public final class JailbreakDetector: NSObject, JailbreakDetectorProtocol {
         let fork = unsafeBitCast(forkPtr, to: ForkType.self)
         return fork() != -1
     }
-    
+
     private var canOpenJailbrokenStores: Bool {
-        
+
         let jailbrokenStoresURLs: [String] = ["cydia://app",
                                               "sileo://package",
                                               "sileo://source"]
-        
+
         for url in jailbrokenStoresURLs {
             if UIApplication.shared.canOpenURL(URL(string: url)!) {
                 return true
@@ -140,18 +140,18 @@ public final class JailbreakDetector: NSObject, JailbreakDetectorProtocol {
         }
         return false
     }
-    
+
 }
 
 @objcMembers public class MockJailbreakDetector: NSObject, JailbreakDetectorProtocol {
-    
+
     public var jailbroken: Bool = false
-    
+
     @objc(initAsJailbroken:)
     public init(jailbroken: Bool = false) {
         self.jailbroken = jailbroken
     }
-    
+
     public func isJailbroken() -> Bool {
         return jailbroken
     }

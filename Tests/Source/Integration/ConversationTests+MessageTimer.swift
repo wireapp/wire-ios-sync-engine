@@ -19,14 +19,14 @@
 import Foundation
 
 class ConversationMessageTimerTests: IntegrationTest {
-    
+
     override func setUp() {
         super.setUp()
         createSelfUserAndConversation()
         createExtraUsersAndConversations()
         createTeamAndConversations()
     }
-    
+
     private func responsePayload(for conversation: ZMConversation, timeout: MessageDestructionTimeoutValue) -> ZMTransportData {
         var payload: [String: Any] = [
             "from": user1.identifier,
@@ -34,7 +34,7 @@ class ConversationMessageTimerTests: IntegrationTest {
             "time": NSDate().transportString(),
             "type": "conversation.message-timer-update"
         ]
-        
+
         switch timeout {
         case .none:
             payload["data"] = ["message_timer": NSNull()]
@@ -42,7 +42,7 @@ class ConversationMessageTimerTests: IntegrationTest {
             let timeoutInMiliseconds = timeout.rawValue * 1000
             payload["data"] = ["message_timer": Int(timeoutInMiliseconds)]
         }
-        
+
         return payload as ZMTransportData
     }
 
@@ -51,10 +51,10 @@ class ConversationMessageTimerTests: IntegrationTest {
         XCTAssert(login())
         let sut = conversation(for: groupConversation)!
         XCTAssertNil(sut.activeMessageDestructionTimeoutValue)
-        
+
         // when
         setGlobalTimeout(for: sut, timeout: .oneDay)
-        
+
         // then
         XCTAssertEqual(sut.activeMessageDestructionTimeoutValue, .oneDay)
         XCTAssertEqual(sut.activeMessageDestructionTimeoutType, .groupConversation)
@@ -64,7 +64,7 @@ class ConversationMessageTimerTests: IntegrationTest {
         // given
         XCTAssert(login())
         let sut = conversation(for: groupConversation)!
-        
+
         // given
         userSession?.enqueue {
             sut.setMessageDestructionTimeoutValue(.oneDay, for: .groupConversation)
@@ -72,7 +72,7 @@ class ConversationMessageTimerTests: IntegrationTest {
 
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
         XCTAssertNotNil(sut.activeMessageDestructionTimeoutValue)
-        
+
         setGlobalTimeout(for: sut, timeout: .none)
 
         // then
@@ -83,7 +83,7 @@ class ConversationMessageTimerTests: IntegrationTest {
         XCTAssertNotNil(request.payload?.asDictionary()?["message_timer"] as? NSNull)
         XCTAssertNil(sut.activeMessageDestructionTimeoutValue)
     }
-    
+
     func testThatItCanSetASyncedTimerWithExistingLocalOneAndFallsBackToTheLocalAfterRemovingSyncedTimer() {
         // given
         XCTAssert(login())
@@ -96,24 +96,24 @@ class ConversationMessageTimerTests: IntegrationTest {
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
         XCTAssertEqual(sut.activeMessageDestructionTimeoutValue, .oneDay)
         XCTAssertEqual(sut.activeMessageDestructionTimeoutType, .selfUser)
-        
+
         // when
         setGlobalTimeout(for: sut, timeout: .tenSeconds)
-        
+
         // then
         XCTAssertEqual(sut.activeMessageDestructionTimeoutValue, .tenSeconds)
         XCTAssertEqual(sut.activeMessageDestructionTimeoutType, .groupConversation)
-        
+
         // when
         setGlobalTimeout(for: sut, timeout: .none)
-        
+
         // then
         XCTAssertEqual(sut.activeMessageDestructionTimeoutValue, .oneDay)
         XCTAssertEqual(sut.activeMessageDestructionTimeoutType, .selfUser)
     }
-    
+
     // MARK: - Helper
-    
+
     private func setGlobalTimeout(
         for conversation: ZMConversation,
         timeout: MessageDestructionTimeoutValue,
@@ -126,7 +126,7 @@ class ConversationMessageTimerTests: IntegrationTest {
             guard request.path == "/conversations/\(identifier)/message-timer" else { return nil }
             return ZMTransportResponse(payload: self.responsePayload(for: conversation, timeout: timeout), httpStatus: 200, transportSessionError: nil)
         }
-        
+
         // when
         conversation.setMessageDestructionTimeout(timeout, in: userSession!) { result in
             switch result {
@@ -134,9 +134,9 @@ class ConversationMessageTimerTests: IntegrationTest {
             case .failure(let error): XCTFail("failed to update timeout \(error)", file: file, line: line)
             }
         }
-        
+
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1), file: file, line: line)
-        
+
         // then
         XCTAssertEqual(mockTransportSession.receivedRequests().count, 1, "wrong request count", file: file, line: line)
         guard let request = mockTransportSession.receivedRequests().first else { return }

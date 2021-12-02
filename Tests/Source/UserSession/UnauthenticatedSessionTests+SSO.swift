@@ -21,13 +21,13 @@ import WireTesting
 @testable import WireSyncEngine
 
 public final class UnauthenticatedSessionTests_SSO: ZMTBaseTest {
-    
+
     var transportSession: TestUnauthenticatedTransportSession!
     var sut: UnauthenticatedSession!
     var mockDelegate: MockUnauthenticatedSessionDelegate!
     var reachability: MockReachability!
     var mockAuthenticationStatusDelegate: MockAuthenticationStatusDelegate!
-    
+
     public override func setUp() {
         super.setUp()
         transportSession = TestUnauthenticatedTransportSession()
@@ -39,7 +39,7 @@ public final class UnauthenticatedSessionTests_SSO: ZMTBaseTest {
                                      authenticationStatusDelegate: mockAuthenticationStatusDelegate)
         sut.groupQueue.add(dispatchGroup)
     }
-    
+
     public override func tearDown() {
         sut.tearDown()
         sut = nil
@@ -48,70 +48,70 @@ public final class UnauthenticatedSessionTests_SSO: ZMTBaseTest {
         reachability = nil
         super.tearDown()
     }
-    
+
     // MARK: Request generation
-    
+
     func testThatItGeneratesCorrectRequest() {
         // when
         sut.fetchSSOSettings(completion: {_ in })
-        
+
         // then
         XCTAssertNotNil(transportSession.lastEnqueuedRequest)
         XCTAssertEqual(transportSession.lastEnqueuedRequest?.path, "/sso/settings")
         XCTAssertEqual(transportSession.lastEnqueuedRequest?.method, ZMTransportRequestMethod.methodGET)
     }
-    
+
     // MARK: Response handling
-    
+
     func testThat404ResponseIsError() {
         checkThat(statusCode: 404,
                   isProcessedAs: .failure(SSOSettingsError.unknown),
                   payload: nil)
     }
-    
+
     func testThat500ResponseIsError() {
         checkThat(statusCode: 500,
                   isProcessedAs: .failure(SSOSettingsError.networkFailure),
                   payload: nil)
     }
-    
+
     func testThat200ResponseIsProcessedAsValid() {
         let ssoCode = UUID()
         let payload = ["default_sso_code": ssoCode.transportString()]
-        
+
         checkThat(statusCode: 200,
                   isProcessedAs: .success(SSOSettings(ssoCode: ssoCode)),
                   payload: payload as ZMTransportData)
     }
-    
+
     func testThat200ResponseWithoutDefaultSSOCodeIsProcessedAsValid() {
         let payload: [String: Any] = [:]
-        
+
         checkThat(statusCode: 200,
                   isProcessedAs: .success(SSOSettings(ssoCode: nil)),
                   payload: payload as ZMTransportData)
     }
-    
+
     func testThat200ResponseWithMalformedPayloadGeneratesParseError() {
         checkThat(statusCode: 200,
                   isProcessedAs: .failure(SSOSettingsError.malformedData),
                   payload: ["default_sso_code": "invalid-uuid"] as ZMTransportData)
     }
-    
+
     func testThat200ResponseWithMissingPayloadGeneratesParseError() {
         checkThat(statusCode: 200,
                   isProcessedAs: .failure(SSOSettingsError.malformedData),
                   payload: nil)
     }
-    
+
     // MARK: - Helpers
-    
+
     func checkThat(statusCode: Int, isProcessedAs expectedResult: Result<SSOSettings>, payload: ZMTransportData?) {
         let resultExpectation = expectation(description: "Expected result: \(expectedResult)")
-        
+
         // given
         sut.fetchSSOSettings { result in
-            
+
             switch (result, expectedResult) {
             case (.success(let lhsSSOSettings), .success(let rhsSSOSettings)):
                 if lhsSSOSettings == rhsSSOSettings {
@@ -125,10 +125,10 @@ public final class UnauthenticatedSessionTests_SSO: ZMTBaseTest {
                 break
             }
         }
-        
+
         // when
         transportSession.lastEnqueuedRequest?.complete(with: ZMTransportResponse(payload: payload, httpStatus: statusCode, transportSessionError: nil))
-        
+
         // then
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
     }

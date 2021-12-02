@@ -21,17 +21,17 @@ import XCTest
 import WireTesting
 @testable import WireSyncEngine
 
-public class ZMConversationAccessModeTests : MessagingTest {
+public class ZMConversationAccessModeTests: MessagingTest {
     override public func setUp() {
         super.setUp()
-        
+
         teamA = {
                 let team = Team.insertNewObject(in: self.uiMOC)
                 team.name = "Team A"
                 team.remoteIdentifier = UUID()
                 return team
         }()
-        
+
         teamB = {
             let team = Team.insertNewObject(in: self.uiMOC)
             team.name = "Team B"
@@ -39,13 +39,13 @@ public class ZMConversationAccessModeTests : MessagingTest {
             return team
         }()
     }
-    
+
     override public func tearDown() {
         teamA = nil
         teamB = nil
         super.tearDown()
     }
-    
+
     func testThatItGeneratesCorrectSetAccessModeRequest() {
         // given
         selfUser(options: SelfUserOptions(team: .teamA))
@@ -62,7 +62,7 @@ public class ZMConversationAccessModeTests : MessagingTest {
         XCTAssertNotNil(payload["access_role"])
         XCTAssertEqual(payload["access_role"], "non_activated")
     }
-    
+
     func testThatItGeneratesCorrectFetchLinkRequest() {
         // given
         selfUser(options: SelfUserOptions(team: .teamA))
@@ -74,7 +74,7 @@ public class ZMConversationAccessModeTests : MessagingTest {
         XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/code")
         XCTAssertNil(request.payload)
     }
-    
+
     func testThatItGeneratesCorrectCreateLinkRequest() {
         // given
         selfUser(options: SelfUserOptions(team: .teamA))
@@ -86,7 +86,7 @@ public class ZMConversationAccessModeTests : MessagingTest {
         XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/code")
         XCTAssertNil(request.payload)
     }
-    
+
     func testThatItGeneratesCorrectDeleteLinkRequest() {
         // given
         selfUser(options: SelfUserOptions(team: .teamA))
@@ -98,22 +98,22 @@ public class ZMConversationAccessModeTests : MessagingTest {
         XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/code")
         XCTAssertNil(request.payload)
     }
-    
+
     enum ConversationOptionsTeam {
         case none
         case teamA
         case teamB
     }
-    
+
     struct ConversationOptions {
         let hasRemoteId: Bool
         let team: ConversationOptionsTeam
         let isGroup: Bool
     }
-    
+
     var teamA: Team!
     var teamB: Team!
-    
+
     @discardableResult func createMembership(user: ZMUser, team: Team) -> Member {
         let member = Member.insertNewObject(in: self.uiMOC)
         member.user = user
@@ -121,7 +121,7 @@ public class ZMConversationAccessModeTests : MessagingTest {
         member.permissions = .member
         return member
     }
-    
+
     func conversation(options: ConversationOptions) -> ZMConversation {
         let conversation = ZMConversation.insertGroupConversation(moc: self.uiMOC, participants: [], name: "Test Conversation")!
         if options.hasRemoteId {
@@ -136,7 +136,7 @@ public class ZMConversationAccessModeTests : MessagingTest {
         else {
             conversation.conversationType = .invalid
         }
-        
+
         switch options.team {
         case .none: conversation.team = nil
         case .teamA:
@@ -146,27 +146,26 @@ public class ZMConversationAccessModeTests : MessagingTest {
             conversation.team = teamB
             conversation.teamRemoteIdentifier = teamB.remoteIdentifier
         }
-        
+
         return conversation
     }
-    
+
     struct SelfUserOptions {
         let team: ConversationOptionsTeam
     }
-    
+
     @discardableResult func selfUser(options: SelfUserOptions) -> ZMUser {
         let selfUser = ZMUser.selfUser(in: self.uiMOC)
         switch options.team {
         case .none:
             selfUser.membership?.team = nil
             selfUser.membership?.user = nil
-            
+
         case .teamA: createMembership(user: selfUser, team: teamA)
         case .teamB: createMembership(user: selfUser, team: teamB)
         }
-        
+
         return selfUser
     }
 
 }
-

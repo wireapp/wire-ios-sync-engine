@@ -19,41 +19,40 @@
 import Foundation
 
 extension ZMLocalNotification {
-    
+
     convenience init?(availability: AvailabilityKind, managedObjectContext moc: NSManagedObjectContext) {
         let builder = AvailabilityNotificationBuilder(availability: availability, managedObjectContext: moc)
         self.init(builder: builder, moc: moc)
     }
-    
+
 }
 
 private class AvailabilityNotificationBuilder: NotificationBuilder {
-    
+
     let managedObjectContext: NSManagedObjectContext
     let availability: AvailabilityKind
-    
-    
+
     init(availability: AvailabilityKind, managedObjectContext: NSManagedObjectContext) {
         self.availability = availability
         self.managedObjectContext = managedObjectContext
     }
-    
+
     var notificationType: LocalNotificationType {
         return .availabilityBehaviourChangeAlert(availability)
     }
-    
+
     func shouldCreateNotification() -> Bool {
         return availability.isOne(of: .away, .busy)
     }
-    
+
     func titleText() -> String? {
         return notificationType.alertTitleText(team: ZMUser.selfUser(in: managedObjectContext).team)
     }
-    
+
     func bodyText() -> String {
         return notificationType.alertMessageBodyText()
     }
-    
+
     func userInfo() -> NotificationUserInfo? {
         return nil
     }

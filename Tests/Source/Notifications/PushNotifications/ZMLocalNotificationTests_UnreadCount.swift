@@ -20,7 +20,7 @@ import Foundation
 @testable import WireSyncEngine
 
 class ZMLocalNotificationTests_UnreadCount: ZMLocalNotificationTests {
-    
+
     func testThatUnreadCountIsIncreased_ForContentTypes() {
         let contentTypes: [LocalNotificationContentType] = [.image,
                                                             .audio,
@@ -31,39 +31,39 @@ class ZMLocalNotificationTests_UnreadCount: ZMLocalNotificationTests {
                                                             .knock,
                                                             .location,
                                                             .text("Hello World", isMention: false, isReply: false)]
-        
+
         contentTypes.forEach { contentType in
             XCTAssertTrue(LocalNotificationType.message(contentType).shouldIncreaseUnreadCount)
         }
     }
-    
+
     func testThatUnreadMentionCountIsIncreased_WhenSelfUserIsMentioned() {
         let contentTypes: [LocalNotificationContentType] = [.ephemeral(isMention: true, isReply: false),
                                                             .text("Hello World", isMention: true, isReply: false)]
-        
+
         contentTypes.forEach { contentType in
             XCTAssertTrue(LocalNotificationType.message(contentType).shouldIncreaseUnreadMentionCount)
         }
     }
-    
+
     func testThatUnreadSelfReplyCountIsIncreased_WhenSelfUserIsReplied() {
         let contentTypes: [LocalNotificationContentType] = [.ephemeral(isMention: false, isReply: true),
                                                             .text("Hello World", isMention: false, isReply: true)]
-        
+
         contentTypes.forEach { contentType in
             XCTAssertTrue(LocalNotificationType.message(contentType).shouldIncreaseUnreadReplyCount)
         }
     }
-    
+
     func testThatUnreadCountIsntIncreased_ForContentTypesWithoutUserGeneratedContent() {
         let contentTypes: [LocalNotificationContentType] = [.messageTimerUpdate(nil),
                                                             .participantsAdded,
                                                             .participantsRemoved(reason: .none),
                                                             .reaction(emoji: "❤️")]
-        
+
         contentTypes.forEach { contentType in
             XCTAssertFalse(LocalNotificationType.message(contentType).shouldIncreaseUnreadCount)
         }
     }
-    
+
 }

@@ -87,7 +87,7 @@ class CompanyLoginActionTests: XCTestCase {
             XCTAssertEqual(error as? CompanyLoginError, .unknownLabel)
         }
     }
-    
+
     // MARK: - Utilities
 
     private var testCookie: String {

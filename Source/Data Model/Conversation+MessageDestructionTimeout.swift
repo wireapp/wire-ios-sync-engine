@@ -25,7 +25,7 @@ public enum MessageDestructionTimerError: Error {
     case accessDenied
     case noConversation
     case unknown
-    
+
     init?(response: ZMTransportResponse) {
         switch (response.httpStatus, response.payloadLabel()) {
         case (403, "invalid-op"?): self = .invalidOperation
@@ -54,7 +54,7 @@ extension ZMConversation {
 
         let request = MessageDestructionTimeoutRequestFactory.set(timeout: Int(timeout.rawValue), for: self)
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
-            if response.httpStatus.isOne(of: 200, 204),  let event = response.updateEvent {
+            if response.httpStatus.isOne(of: 200, 204), let event = response.updateEvent {
                 // Process `conversation.message-timer-update` event
                 userSession.syncManagedObjectContext.performGroupedBlock {
                     // TODO jacob maybe skip the event decoder since we know these events will never be encrypted.
@@ -67,17 +67,17 @@ extension ZMConversation {
                 completion(.failure(error))
             }
         })
-        
+
         userSession.transportSession.enqueueOneTime(request)
     }
-    
+
 }
 
-fileprivate struct MessageDestructionTimeoutRequestFactory {
-    
+private struct MessageDestructionTimeoutRequestFactory {
+
     static func set(timeout: Int, for conversation: ZMConversation) -> ZMTransportRequest {
         guard let identifier = conversation.remoteIdentifier?.transportString() else { fatal("conversation inserted on backend") }
-        
+
         let payload: [AnyHashable: Any?]
         if timeout == 0 {
             payload = ["message_timer": nil]

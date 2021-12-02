@@ -18,49 +18,48 @@
 
 import Foundation
 
-
 extension ZMUserSession {
-    
+
     public func application(_ application: ZMApplication, didFinishLaunching launchOptions: [UIApplication.LaunchOptionsKey: Any?]) {
         startEphemeralTimers()
     }
-    
+
     public func application(_ application: ZMApplication, performFetchWithCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void ) {
         BackgroundActivityFactory.shared.resume()
-        
+
         syncManagedObjectContext.performGroupedBlock {
             self.applicationStatusDirectory?.operationStatus.startBackgroundFetch(withCompletionHandler: completionHandler)
         }
     }
-    
+
     public func application(_ application: ZMApplication, handleEventsForBackgroundURLSession identifier: String, completionHandler: @escaping () -> Void) {
         completionHandler()
     }
-    
+
     @objc
     public func applicationDidEnterBackground(_ note: Notification?) {
         notifyThirdPartyServices()
         stopEphemeralTimers()
         lockDatabase()
     }
-    
+
     @objc
     public func applicationWillEnterForeground(_ note: Notification?) {
-        
+
         hasNotifiedThirdPartyServices = false
-        
+
         mergeChangesFromStoredSaveNotificationsIfNeeded()
         startEphemeralTimers()
         deleteOldEphemeralMessages()
         processPendingEvents()
     }
-    
+
     func processPendingEvents() {
         syncManagedObjectContext.performGroupedBlock {
             self.processEvents()
         }
     }
-    
+
     func deleteOldEphemeralMessages() {
         // In the case that an ephemeral was sent via the share extension, we need
         // to ensure that they have timers running or are deleted/obfuscated if
@@ -70,29 +69,28 @@ extension ZMUserSession {
             ZMMessage.deleteOldEphemeralMessages(self.syncManagedObjectContext)
         }
     }
-    
+
     func mergeChangesFromStoredSaveNotificationsIfNeeded() {
         let storedNotifications = storedDidSaveNotifications.storedNotifications
         storedDidSaveNotifications.clear()
-        
+
         guard !storedNotifications.isEmpty else { return }
-        
+
         for changes in storedNotifications {
             NSManagedObjectContext.mergeChanges(fromRemoteContextSave: changes, into: [managedObjectContext])
-            
+
             syncManagedObjectContext.performGroupedBlock {
                 NSManagedObjectContext.mergeChanges(fromRemoteContextSave: changes, into: [self.syncManagedObjectContext])
             }
         }
-        
+
         // we only process pending changes on sync context bc changes on the
         // ui context will be processed when we do the save.
         syncManagedObjectContext.performGroupedBlock {
             self.syncManagedObjectContext.processPendingChanges()
         }
-        
+
         self.managedObjectContext.saveOrRollback()
     }
-    
-}
 
+}

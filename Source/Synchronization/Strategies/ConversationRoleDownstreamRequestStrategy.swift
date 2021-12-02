@@ -16,15 +16,14 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import Foundation
 
 fileprivate extension ZMConversation {
-    
+
     static var predicateForObjectsNeedingToDownloadRoles: NSPredicate = {
         NSPredicate(format: "%K == YES AND %K != NULL", #keyPath(ZMConversation.needsToDownloadRoles), ZMConversation.remoteIdentifierDataKey()!)
     }()
-    
+
     func updateRoles(with response: ZMTransportResponse) {
         guard let rolesPayload = response.payload?.asDictionary()?["conversation_roles"] as? [[String: Any]] else { return }
         let existingRoles = nonTeamRoles
@@ -33,7 +32,7 @@ fileprivate extension ZMConversation {
         let newRoles = rolesPayload.compactMap {
             Role.createOrUpdate(with: $0, teamOrConversation: .conversation(self), context: managedObjectContext!)
         }
-        
+
         // Delete removed roles
         let rolesToDelete = existingRoles.subtracting(newRoles)
         rolesToDelete.forEach {
@@ -49,12 +48,12 @@ public final class ConversationRoleDownstreamRequestStrategy: AbstractRequestStr
 
     @objc
     public override init(withManagedObjectContext managedObjectContext: NSManagedObjectContext, applicationStatus: ApplicationStatus) {
-        
+
         super.init(withManagedObjectContext: managedObjectContext,
                    applicationStatus: applicationStatus)
-        
+
         configuration = [.allowsRequestsWhileOnline]
-        
+
         downstreamSync = ZMDownstreamObjectSync(
             transcoder: self,
             entityName: ZMConversation.entityName(),
@@ -64,15 +63,15 @@ public final class ConversationRoleDownstreamRequestStrategy: AbstractRequestStr
         )
 
     }
-    
+
     public override func nextRequestIfAllowed() -> ZMTransportRequest? {
         return downstreamSync.nextRequest()
     }
-    
+
     public var contextChangeTrackers: [ZMContextChangeTracker] {
         return [downstreamSync]
     }
-    
+
     public var requestGenerators: [ZMRequestGenerator] {
         return [downstreamSync]
     }
@@ -89,17 +88,17 @@ public final class ConversationRoleDownstreamRequestStrategy: AbstractRequestStr
               let conversation = object as? ZMConversation else { fatal("Wrong sync or object for: \(object.safeForLoggingDescription)") }
         return conversation.remoteIdentifier.map(ConversationRoleDownstreamRequestStrategy.getRolesRequest)
     }
-    
+
     public func delete(_ object: ZMManagedObject!, with response: ZMTransportResponse!, downstreamSync: ZMObjectSync!) {
         // do not delete conversation
     }
-    
+
     public func update(_ object: ZMManagedObject!, with response: ZMTransportResponse!, downstreamSync: ZMObjectSync!) {
         guard downstreamSync as? ZMDownstreamObjectSync == self.downstreamSync,
               let conversation = object as? ZMConversation else { return }
-        
+
         conversation.needsToDownloadRoles = false
         conversation.updateRoles(with: response)
     }
-    
+
 }

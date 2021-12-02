@@ -20,17 +20,16 @@ import XCTest
 @testable import WireSyncEngine
 
 final class ZMUserSessionTests_NetworkState: ZMUserSessionTestsBase {
-    
+
     func testThatItSetsItselfAsADelegateOfTheTransportSessionAndForwardsUserClientID() {
         // given
         let selfClient = createSelfClient()
         let userId = NSUUID.create()!
-        
+
         mockPushChannel = MockPushChannel()
         cookieStorage = ZMPersistentCookieStorage(forServerName: "usersessiontest.example.com", userIdentifier: userId)
         let transportSession = RecordingMockTransportSession(cookieStorage: cookieStorage, pushChannel: mockPushChannel)
-        
-        
+
         // when
         let testSession = ZMUserSession(
             userId: userId,
@@ -47,13 +46,12 @@ final class ZMUserSessionTests_NetworkState: ZMUserSessionTestsBase {
             coreDataStack: coreDataStack,
             configuration: .init())
         _ = waitForAllGroupsToBeEmpty(withTimeout: 0.5)
-        
+
         // then
         XCTAssertTrue(self.transportSession.didCallSetNetworkStateDelegate)
         XCTAssertEqual(mockPushChannel.keepOpen, true)
         XCTAssertEqual(mockPushChannel.clientID, selfClient.remoteIdentifier)
-        
-        
+
         testSession.tearDown()
     }
 }

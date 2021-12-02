@@ -39,7 +39,7 @@ import WireDataModel
     private let isolationQueue = DispatchQueue(label: "NotificationsProcessing")
 
     weak var analytics: AnalyticsType?
-    @objc public init(analytics: AnalyticsType) {
+    public init(analytics: AnalyticsType) {
         self.analytics = analytics
     }
 
@@ -62,7 +62,7 @@ import WireDataModel
     public func registerProcessingExpired() {
         increment(attribute: .processingExpired)
     }
-    
+
     public func registerProcessingAborted() {
         increment(attribute: .abortedProcessing)
     }

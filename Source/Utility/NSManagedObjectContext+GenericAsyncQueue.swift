@@ -20,20 +20,20 @@ import Foundation
 
 /// Abstraction of queue
 public protocol GenericAsyncQueue {
-    
-    func performAsync(_ block: @escaping () -> ())
+
+    func performAsync(_ block: @escaping () -> Void)
 }
 
 extension DispatchQueue: GenericAsyncQueue {
-    
-    public func performAsync(_ block: @escaping () -> ()) {
+
+    public func performAsync(_ block: @escaping () -> Void) {
         self.async(execute: block)
     }
 }
 
 extension NSManagedObjectContext: GenericAsyncQueue {
-    
-    public func performAsync(_ block: @escaping () -> ()) {
+
+    public func performAsync(_ block: @escaping () -> Void) {
         self.performGroupedBlock(block)
     }
 }

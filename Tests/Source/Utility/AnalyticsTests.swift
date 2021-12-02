@@ -16,14 +16,13 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 // 
 
-
 import Foundation
 import XCTest
 import WireTesting
 @testable import WireSyncEngine
 
 class AnalyticsTests: DatabaseTest {
-    
+
     var analytics: MockAnalytics!
 
     override func setUp() {
@@ -31,16 +30,16 @@ class AnalyticsTests: DatabaseTest {
 
         analytics = MockAnalytics()
     }
-    
+
     override func tearDown() {
         analytics = nil
         super.tearDown()
     }
-    
+
     func testThatItSetsAnalyticsOnManagedObjectContext() {
         // when
         syncMOC.analytics = analytics
-        
+
         // then
         XCTAssertNotNil(syncMOC.analytics)
         XCTAssertEqual(syncMOC.analytics as? MockAnalytics, analytics)

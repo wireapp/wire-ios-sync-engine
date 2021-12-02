@@ -21,25 +21,25 @@ import CoreData
 import WireRequestStrategy
 
 @objcMembers
-public final class ApplicationStatusDirectory : NSObject, ApplicationStatus {
+public final class ApplicationStatusDirectory: NSObject, ApplicationStatus {
 
-    public let userProfileImageUpdateStatus : UserProfileImageUpdateStatus
-    public let userProfileUpdateStatus : UserProfileUpdateStatus
-    public let clientRegistrationStatus : ZMClientRegistrationStatus
-    public let clientUpdateStatus : ClientUpdateStatus
-    public let pushNotificationStatus : PushNotificationStatus
-    public let proxiedRequestStatus : ProxiedRequestsStatus
-    public let syncStatus : SyncStatus
-    public let operationStatus : OperationStatus
+    public let userProfileImageUpdateStatus: UserProfileImageUpdateStatus
+    public let userProfileUpdateStatus: UserProfileUpdateStatus
+    public let clientRegistrationStatus: ZMClientRegistrationStatus
+    public let clientUpdateStatus: ClientUpdateStatus
+    public let pushNotificationStatus: PushNotificationStatus
+    public let proxiedRequestStatus: ProxiedRequestsStatus
+    public let syncStatus: SyncStatus
+    public let operationStatus: OperationStatus
     public let requestCancellation: ZMRequestCancellation
     public let analytics: AnalyticsType?
     public let teamInvitationStatus: TeamInvitationStatus
     public let assetDeletionStatus: AssetDeletionStatus
     public let callEventStatus: CallEventStatus
-    
-    fileprivate var callInProgressObserverToken : Any? = nil
-    
-    public init(withManagedObjectContext managedObjectContext : NSManagedObjectContext, cookieStorage : ZMPersistentCookieStorage, requestCancellation: ZMRequestCancellation, application : ZMApplication, syncStateDelegate: ZMSyncStateDelegate, analytics: AnalyticsType? = nil) {
+
+    fileprivate var callInProgressObserverToken: Any?
+
+    public init(withManagedObjectContext managedObjectContext: NSManagedObjectContext, cookieStorage: ZMPersistentCookieStorage, requestCancellation: ZMRequestCancellation, application: ZMApplication, syncStateDelegate: ZMSyncStateDelegate, analytics: AnalyticsType? = nil) {
         self.requestCancellation = requestCancellation
         self.operationStatus = OperationStatus()
         self.callEventStatus = CallEventStatus()
@@ -57,7 +57,7 @@ public final class ApplicationStatusDirectory : NSObject, ApplicationStatus {
         self.userProfileImageUpdateStatus = UserProfileImageUpdateStatus(managedObjectContext: managedObjectContext)
         self.assetDeletionStatus = AssetDeletionStatus(provider: managedObjectContext, queue: managedObjectContext)
         super.init()
-        
+
         callInProgressObserverToken = NotificationInContext.addObserver(name: CallStateObserver.CallInProgressNotification, context: managedObjectContext.notificationContext) { [weak self] (note) in
             managedObjectContext.performGroupedBlock {
                 if let callInProgress = note.userInfo[CallStateObserver.CallInProgressKey] as? Bool {
@@ -66,15 +66,15 @@ public final class ApplicationStatusDirectory : NSObject, ApplicationStatus {
             }
         }
     }
-    
+
     deinit {
         clientRegistrationStatus.tearDown()
     }
-    
+
     public var clientRegistrationDelegate: ClientRegistrationDelegate {
         return clientRegistrationStatus
     }
-    
+
     public var operationState: OperationState {
         switch operationStatus.operationState {
         case .foreground:
@@ -83,7 +83,7 @@ public final class ApplicationStatusDirectory : NSObject, ApplicationStatus {
             return .background
         }
     }
-    
+
     public var synchronizationState: SynchronizationState {
         if !clientRegistrationStatus.clientIsReadyForRequests() {
             return .unauthenticated
@@ -97,9 +97,9 @@ public final class ApplicationStatusDirectory : NSObject, ApplicationStatus {
             return .online
         }
     }
-        
+
     public func requestSlowSync() {
         syncStatus.forceSlowSync()
     }
-    
+
 }
