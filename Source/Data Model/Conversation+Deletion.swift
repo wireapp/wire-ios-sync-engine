@@ -20,7 +20,7 @@ import Foundation
 
 public enum ConversationDeletionError: Error {
     case unknown, invalidOperation, conversationNotFound
-    
+
     init?(response: ZMTransportResponse) {
         switch (response.httpStatus, response.payloadLabel()) {
         case (403, "invalid-op"?): self = .invalidOperation
@@ -32,34 +32,34 @@ public enum ConversationDeletionError: Error {
 }
 
 extension ZMConversation {
-    
+
     /// Delete a conversation remotely and locally for everyone
     ///
     /// Only team conversations can be deleted.
     public func delete(in userSession: ZMUserSession, completion: @escaping (VoidResult) -> Void) {
         delete(in: userSession.coreDataStack, transportSession: userSession.transportSession, completion: completion)
     }
-        
+
     func delete(in contextProvider: ContextProvider, transportSession: TransportSessionType, completion: @escaping (VoidResult) -> Void) {
-        
+
         guard ZMUser.selfUser(in: contextProvider.viewContext).canDeleteConversation(self),
               let conversationId = remoteIdentifier,
               let request = ConversationDeletionRequestFactory.requestForDeletingTeamConversation(self)
         else {
             return completion(.failure(ConversationDeletionError.invalidOperation))
         }
-        
+
         request.add(ZMCompletionHandler(on: managedObjectContext!) { [weak contextProvider] response in
             guard let contextProvider = contextProvider else { return completion(.failure(ConversationDeletionError.unknown)) }
-            
+
             if response.httpStatus == 200 {
-                
+
                 contextProvider.syncContext.performGroupedBlock {
                     guard let conversation = ZMConversation.fetch(with: conversationId, domain: nil, in: contextProvider.syncContext) else { return }
                     contextProvider.syncContext.delete(conversation)
                     contextProvider.syncContext.saveOrRollback()
                 }
-                
+
                 completion(.success)
             } else {
                 let error = ConversationDeletionError(response: response) ?? .unknown
@@ -67,21 +67,21 @@ extension ZMConversation {
                 completion(.failure(error))
             }
         })
-        
+
         transportSession.enqueueOneTime(request)
-        
+
     }
-    
+
 }
 
 struct ConversationDeletionRequestFactory {
-    
+
     static func requestForDeletingTeamConversation(_ conversation: ZMConversation) -> ZMTransportRequest? {
         guard let conversationId = conversation.remoteIdentifier, let teamRemoteIdentifier = conversation.teamRemoteIdentifier else { return nil }
-        
+
         let path = "/teams/\(teamRemoteIdentifier.transportString())/conversations/\(conversationId.transportString())"
-        
+
         return ZMTransportRequest(path: path, method: .methodDELETE, payload: nil)
     }
-    
+
 }

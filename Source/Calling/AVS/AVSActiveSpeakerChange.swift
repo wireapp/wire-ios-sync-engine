@@ -21,17 +21,17 @@ import avs
 
 struct AVSActiveSpeakersChange: Codable {
     let activeSpeakers: [ActiveSpeaker]
-    
+
     struct ActiveSpeaker: Codable, Equatable {
         let userId: UUID
         let clientId: String
-        
+
         /// Audio level smoothed over time
         let audioLevel: Int
-        
+
         /// Instantaneous audio level
         let audioLevelNow: Int
-        
+
         enum CodingKeys: String, CodingKey {
             case userId = "userid"
             case clientId = "clientid"
@@ -39,7 +39,7 @@ struct AVSActiveSpeakersChange: Codable {
             case audioLevelNow = "audio_level_now"
         }
     }
-    
+
     enum CodingKeys: String, CodingKey {
         case activeSpeakers = "audio_levels"
     }
