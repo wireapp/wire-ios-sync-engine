@@ -109,7 +109,6 @@ public final class ConversationRoleDownstreamRequestStrategy: AbstractRequestStr
         else {
             return
         }
-        
         conversation.needsToDownloadRoles = false
         conversation.updateRoles(with: response)
     }
