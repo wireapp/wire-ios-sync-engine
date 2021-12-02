@@ -98,7 +98,6 @@ public final class ConversationRoleDownstreamRequestStrategy: AbstractRequestStr
         else {
             return
         }
-        
         conversation.needsToDownloadRoles = false
     }
 
