@@ -19,11 +19,11 @@
 import Foundation
 
 extension InviteResult {
-    
-    init(response : ZMTransportResponse, email : String) {
+
+    init(response: ZMTransportResponse, email: String) {
         let payload = response.payload?.asDictionary()
         let label = payload?["label"] as? String
-        
+
         switch response.httpStatus {
         case 201:
             self = InviteResult.success(email: email)
@@ -43,47 +43,46 @@ extension InviteResult {
             self = InviteResult.failure(email: email, error: .unknown)
         }
     }
-    
+
 }
 
-public final class TeamInvitationRequestStrategy : AbstractRequestStrategy {
-    
-    fileprivate weak var teamInvitationStatus : TeamInvitationStatus?
-    
-    public init(withManagedObjectContext managedObjectContext: NSManagedObjectContext, applicationStatus: ApplicationStatus, teamInvitationStatus : TeamInvitationStatus) {
+public final class TeamInvitationRequestStrategy: AbstractRequestStrategy {
+
+    fileprivate weak var teamInvitationStatus: TeamInvitationStatus?
+
+    public init(withManagedObjectContext managedObjectContext: NSManagedObjectContext, applicationStatus: ApplicationStatus, teamInvitationStatus: TeamInvitationStatus) {
         super.init(withManagedObjectContext: managedObjectContext, applicationStatus: applicationStatus)
-        
+
         self.teamInvitationStatus = teamInvitationStatus
     }
-    
+
     override public func nextRequestIfAllowed() -> ZMTransportRequest? {
         guard let teamId = ZMUser.selfUser(in: managedObjectContext).team?.remoteIdentifier,
               let email = teamInvitationStatus?.nextEmail() else { return nil }
-        
+
         let payload = [
-            "email" : email,
-            "inviter_name" : ZMUser.selfUser(in: managedObjectContext).name
+            "email": email,
+            "inviter_name": ZMUser.selfUser(in: managedObjectContext).name
         ]
-        
+
         let request = ZMTransportRequest(path: "/teams/\(teamId.transportString())/invitations", method: .methodPOST, payload: payload as ZMTransportData)
-        
+
         request.add(ZMCompletionHandler(on: managedObjectContext, block: { [weak self] (response) in
             self?.processResponse(response, for: email)
         }))
-        
+
         return request
     }
-    
-    func processResponse(_ response : ZMTransportResponse, for email : String) {
+
+    func processResponse(_ response: ZMTransportResponse, for email: String) {
         switch response.result {
         case .success, .permanentError:
-            teamInvitationStatus?.handle(result: InviteResult(response: response, email:email), email: email)
+            teamInvitationStatus?.handle(result: InviteResult(response: response, email: email), email: email)
         case .temporaryError, .tryAgainLater, .expired:
             teamInvitationStatus?.retry(email)
         @unknown default:
             fatal("unknown case")
         }
     }
-    
-    
+
 }

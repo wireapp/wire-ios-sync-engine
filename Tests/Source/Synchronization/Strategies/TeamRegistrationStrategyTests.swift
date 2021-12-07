@@ -20,8 +20,8 @@ import Foundation
 @testable import WireSyncEngine
 
 class RegistrationStrategyTests: MessagingTest {
-    var registrationStatus : TestRegistrationStatus!
-    var sut : WireSyncEngine.RegistrationStrategy!
+    var registrationStatus: TestRegistrationStatus!
+    var sut: WireSyncEngine.RegistrationStrategy!
     var userInfoParser: MockUserInfoParser!
     var team: UnregisteredTeam!
     var user: UnregisteredUser!
@@ -55,41 +55,41 @@ class RegistrationStrategyTests: MessagingTest {
 
     func testThatItDoesNotGenerateRequestWhenPhaseIsNone() {
         let request = sut.nextRequest()
-        XCTAssertNil(request);
+        XCTAssertNil(request)
     }
 
     // MARK: - Sending request
 
     func testThatItMakesARequestWhenStateIsCreateTeam() {
-        //given
+        // given
         let path = "/register"
         let payload = team.payload
 
         let transportRequest = ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData)
         registrationStatus.phase = .createTeam(team: team)
 
-        //when
+        // when
 
         let request = sut.nextRequest()
 
-        //then
-        XCTAssertNotNil(request);
+        // then
+        XCTAssertNotNil(request)
         XCTAssertEqual(request, transportRequest)
     }
 
     func testThatItMakesARequestWhenStateIsCreateUser() {
-        //given
+        // given
         let path = "/register"
         let payload = user.payload
 
         let transportRequest = ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData)
         registrationStatus.phase = .createUser(user: user)
 
-        //when
+        // when
         let request = sut.nextRequest()
 
-        //then
-        XCTAssertNotNil(request);
+        // then
+        XCTAssertNotNil(request)
         XCTAssertEqual(request, transportRequest)
     }
 
@@ -126,7 +126,7 @@ class RegistrationStrategyTests: MessagingTest {
         registrationStatus.phase = .createTeam(team: team)
         let cookie = "zuid=wjCWn1Y1pBgYrFCwuU7WK2eHpAVY8Ocu-rUAWIpSzOcvDVmYVc9Xd6Ovyy-PktFkamLushbfKgBlIWJh6ZtbAA==.1721442805.u.7eaaa023.08326f5e-3c0f-4247-a235-2b4d93f921a4; Expires=Sun, 21-Jul-2024 09:06:45 GMT; Domain=wire.com; HttpOnly; Secure"
         let response = ZMTransportResponse(payload: ["user": UUID.create().transportString()] as ZMTransportData, httpStatus: 200, transportSessionError: nil, headers: ["Set-Cookie": cookie])
-        
+
         // when
         XCTAssertEqual(userInfoParser.upgradeToAuthenticatedSessionCallCount, 0)
         sut.didReceive(response, forSingleRequest: sut.registrationSync)
@@ -136,7 +136,7 @@ class RegistrationStrategyTests: MessagingTest {
     }
 }
 
-// MARK:- error tests for team creation
+// MARK: - error tests for team creation
 
 extension RegistrationStrategyTests: RegistrationStatusStrategyTestHelper {
 

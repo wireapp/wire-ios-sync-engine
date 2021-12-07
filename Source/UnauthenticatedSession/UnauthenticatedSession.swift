@@ -19,16 +19,16 @@
 import Foundation
 import WireUtilities
 
-public protocol UnauthenticatedSessionDelegate: class {
+public protocol UnauthenticatedSessionDelegate: AnyObject {
     /// Update credentials for the corresponding user session. Returns true if the credentials were accepted.
-    func session(session: UnauthenticatedSession, updatedCredentials credentials: ZMCredentials)  -> Bool
+    func session(session: UnauthenticatedSession, updatedCredentials credentials: ZMCredentials) -> Bool
     func session(session: UnauthenticatedSession, updatedProfileImage imageData: Data)
     func session(session: UnauthenticatedSession, createdAccount account: Account)
     func session(session: UnauthenticatedSession, isExistingAccount account: Account) -> Bool
     func sessionIsAllowedToCreateNewAccount(_ session: UnauthenticatedSession) -> Bool
 }
 
-@objc public protocol UserInfoParser: class {
+@objc public protocol UserInfoParser: AnyObject {
     @objc(accountExistsLocallyFromUserInfo:)
     func accountExistsLocally(from userInfo: UserInfo) -> Bool
     @objc(upgradeToAuthenticatedSessionWithUserInfo:)
@@ -37,10 +37,9 @@ public protocol UnauthenticatedSessionDelegate: class {
 
 private let log = ZMSLog(tag: "UnauthenticatedSession")
 
-
 @objcMembers
 public class UnauthenticatedSession: NSObject {
-    
+
     /// **accountId** will be set if the unauthenticated session is associated with an existing account
     public internal(set) var accountId: UUID?
     public let groupQueue: DispatchGroupQueue
@@ -69,7 +68,10 @@ public class UnauthenticatedSession: NSObject {
                                                            groupQueue: groupQueue,
                                                            userInfoParser: self)
         self.urlActionProcessors = [CompanyLoginURLActionProcessor(delegate: self,
-                                                                   authenticationStatus: authenticationStatus)]
+                                                                   authenticationStatus: authenticationStatus),
+                                    StartLoginURLActionProcessor(delegate: self,
+                                                                 authenticationStatus: authenticationStatus)
+        ]
         self.operationLoop = UnauthenticatedOperationLoop(
             transportSession: transportSession,
             operationQueue: groupQueue,
@@ -86,7 +88,7 @@ public class UnauthenticatedSession: NSObject {
         precondition(tornDown, "Need to call tearDown before deinit")
     }
 
-    func authenticationErrorIfNotReachable(_ block: () -> ()) {
+    func authenticationErrorIfNotReachable(_ block: () -> Void) {
         if self.reachability.mayBeReachable {
             block()
         } else {
@@ -96,20 +98,20 @@ public class UnauthenticatedSession: NSObject {
     }
 }
 
-extension UnauthenticatedSession: CompanyLoginURLActionProcessorDelegate {
-    
+extension UnauthenticatedSession: UnauthenticatedSessionStatusDelegate {
+
     var isAllowedToCreateNewAccount: Bool {
         return delegate?.sessionIsAllowedToCreateNewAccount(self) ?? false
     }
-    
+
 }
 
 extension UnauthenticatedSession: URLActionProcessor {
-    
+
     func process(urlAction: URLAction, delegate: PresentationDelegate?) {
         urlActionProcessors.forEach({ $0.process(urlAction: urlAction, delegate: delegate) })
     }
-    
+
 }
 
 extension UnauthenticatedSession: TearDownCapable {

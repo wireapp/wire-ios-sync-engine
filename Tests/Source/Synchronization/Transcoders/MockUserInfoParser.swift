@@ -16,9 +16,8 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 @objcMembers public class MockUserInfoParser: NSObject, UserInfoParser {
-    
+
     public var accountExistsLocallyCalled = 0
     public var existingAccounts = [UserInfo]()
 
@@ -29,7 +28,7 @@
 
     public var upgradeToAuthenticatedSessionCallCount = 0
     public var upgradeToAuthenticatedSessionUserInfos = [UserInfo]()
-    
+
     public func upgradeToAuthenticatedSession(with userInfo: UserInfo) {
         upgradeToAuthenticatedSessionCallCount += 1
     }

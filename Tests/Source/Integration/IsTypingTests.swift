@@ -111,8 +111,7 @@ class IsTypingTests: IntegrationTest, ZMTypingChangeObserver {
             } catch {
                 XCTFail()
             }
-            
-            
+
         }
 
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))

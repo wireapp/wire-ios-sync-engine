@@ -16,27 +16,26 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 // 
 
-
 import XCTest
 @testable import WireSyncEngine
 
 class UserSessionGiphyRequestStateTests: ZMUserSessionTestsBase {
 
     func testThatMakingRequestAddsPendingRequest() {
-        
-        //given
+
+        // given
         let path = "foo/bar"
         let url = URL(string: path, relativeTo: nil)!
-        
+
         let exp = self.expectation(description: "expected callback")
         let callback: (Data?, HTTPURLResponse?, Error?) -> Void = { (_, _, _) -> Void in
             exp.fulfill()
         }
-        
-        //when
+
+        // when
         self.sut.proxiedRequest(path: url.absoluteString, method: .methodGET, type: .giphy, callback: callback)
-        
-        //then
+
+        // then
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         let request = self.sut.applicationStatusDirectory?.proxiedRequestStatus.pendingRequests.first
         XCTAssert(request != nil)
@@ -47,53 +46,53 @@ class UserSessionGiphyRequestStateTests: ZMUserSessionTestsBase {
     }
 
     func testThatAddingRequestStartsOperationLoop() {
-        
-        //given
+
+        // given
         let exp = self.expectation(description: "new operation loop started")
-        let token = NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: "RequestAvailableNotification"), object: nil, queue: nil) { (note) -> Void in
+        let token = NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: "RequestAvailableNotification"), object: nil, queue: nil) { (_) -> Void in
             exp.fulfill()
         }
-        
+
         let url = URL(string: "foo/bar", relativeTo: nil)!
         let callback: (Data?, URLResponse?, Error?) -> Void = { (_, _, _) -> Void in }
-        
-        //when
+
+        // when
         self.sut.proxiedRequest(path: url.absoluteString, method: .methodGET, type: .giphy, callback: callback)
-        
-        //then
+
+        // then
         XCTAssertTrue(self.waitForCustomExpectations(withTimeout: 0.5))
-        
+
         NotificationCenter.default.removeObserver(token)
     }
 
     func testThatAddingRequestIsMadeOnSyncThread() {
-        
-        //given
+
+        // given
         let url = URL(string: "foo/bar", relativeTo: nil)!
         let callback: (Data?, URLResponse?, Error?) -> Void = { (_, _, _) -> Void in }
 
-        //here we block sync thread and check that right after giphyRequestWithURL call no request is created
-        //after we signal semaphore sync thread should be unblocked and pending request should be created
+        // here we block sync thread and check that right after giphyRequestWithURL call no request is created
+        // after we signal semaphore sync thread should be unblocked and pending request should be created
         let sem = DispatchSemaphore(value: 0)
         self.syncMOC.performGroupedBlock {
             _ = sem.wait(timeout: DispatchTime.distantFuture)
         }
 
-        //when
+        // when
         self.sut.proxiedRequest(path: url.absoluteString, method: .methodGET, type: .giphy, callback: callback)
-        
-        //then
+
+        // then
         var request = self.sut.applicationStatusDirectory?.proxiedRequestStatus.pendingRequests.first
         XCTAssertTrue(request == nil)
 
-        //when
+        // when
         sem.signal()
-        
+
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
-        //then
+        // then
         request = self.sut.applicationStatusDirectory?.proxiedRequestStatus.pendingRequests.first
         XCTAssert(request != nil)
     }
-    
+
 }

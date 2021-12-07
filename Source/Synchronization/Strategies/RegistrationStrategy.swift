@@ -18,12 +18,12 @@
 
 import Foundation
 
-final class RegistrationStrategy : NSObject {
+final class RegistrationStrategy: NSObject {
     let registrationStatus: RegistrationStatusProtocol
     weak var userInfoParser: UserInfoParser?
     var registrationSync: ZMSingleRequestSync!
 
-    init(groupQueue: ZMSGroupQueue, status : RegistrationStatusProtocol, userInfoParser: UserInfoParser) {
+    init(groupQueue: ZMSGroupQueue, status: RegistrationStatusProtocol, userInfoParser: UserInfoParser) {
         registrationStatus = status
         self.userInfoParser = userInfoParser
         super.init()
@@ -31,9 +31,9 @@ final class RegistrationStrategy : NSObject {
     }
 }
 
-extension RegistrationStrategy : ZMSingleRequestTranscoder {
+extension RegistrationStrategy: ZMSingleRequestTranscoder {
     func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
-        switch (registrationStatus.phase) {
+        switch registrationStatus.phase {
         case let .createUser(user):
             return ZMTransportRequest(path: "/register", method: .methodPOST, payload: user.payload)
         case let .createTeam(team):
@@ -63,9 +63,9 @@ extension RegistrationStrategy : ZMSingleRequestTranscoder {
     }
 }
 
-extension RegistrationStrategy : RequestStrategy {
+extension RegistrationStrategy: RequestStrategy {
     func nextRequest() -> ZMTransportRequest? {
-        switch (registrationStatus.phase) {
+        switch registrationStatus.phase {
         case .createTeam, .createUser:
             registrationSync.readyForNextRequestIfNotBusy()
             return registrationSync.nextRequest()

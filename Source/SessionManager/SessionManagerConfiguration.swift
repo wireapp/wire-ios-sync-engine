@@ -25,65 +25,63 @@ import UIKit
 public class SessionManagerConfiguration: NSObject, NSCopying, Codable {
 
     // MARK: - Properties
-    
+
     /// If set to true then the session manager will delete account data instead of just asking the user to re-authenticate when the cookie or client gets invalidated.
     ///
     /// The default value of this property is `false`.
     public var wipeOnCookieInvalid: Bool
-    
+
     /// The `blacklistDownloadInterval` configures at which rate we update the client blacklist
     ///
     /// The default value of this property is `6 hours`
     public var blacklistDownloadInterval: TimeInterval
-    
+
     /// The `blockOnJailbreakOrRoot` configures if app should lock when the device is jailbroken
     ///
     /// The default value of this property is `false`
     public var blockOnJailbreakOrRoot: Bool
-    
+
     /// If set to true then the session manager will delete account data on a jailbroken device.
     ///
     /// The default value of this property is `false`
     public var wipeOnJailbreakOrRoot: Bool
-    
+
     /// `The messageRetentionInterval` if specified will limit how long messages are retained. Messages older than
     /// the the `messageRetentionInterval` will be deleted.
     ///
     /// The default value of this property is `nil`, i.e. messages are kept forever.
     public var messageRetentionInterval: TimeInterval?
-    
+
     /// If set to true then the session manager will ask to re-authenticate after device reboot.
     ///
     /// The default value of this property is `false`
     public var authenticateAfterReboot: Bool
-    
+
     /// The `failedPasswordThresholdBeforeWipe` configures the limit of failed password attempts before
     /// which the session manager will delete account data.
     ///
     /// The default value of this property is `nil`, i.e. threshold is ignored
     public var failedPasswordThresholdBeforeWipe: Int?
-    
+
     /// The `encryptionAtRestEnabledByDefault` configures if the encryption at rest will be enabled by default for all sessions.
     ///
     /// The default value of this property is `false`
     public var encryptionAtRestEnabledByDefault: Bool
 
-    /// If set to true, then the app lock feature will use biometric authentication if available,
-    /// or fallback on the custom passcode.
+    /// Configuration for the app lock feature.
+    ///
+    /// This is a legacy config, the preferred way is to use the feature config fetched
+    /// from the backend. If this is present, only this config will be used.
 
-    public var useBiometricsOrCustomPasscode: Bool
+    public var legacyAppLockConfig: AppLockController.LegacyConfig?
 
-    /// If set to true, the the app lock feature will be mandatory and can not be disabled by the
-    /// user.
-
-    public var forceAppLock: Bool
-
-    /// The amount of seconds in the background before the app will relock.
-
-    public var appLockTimeout: UInt
+    /// If set to true federation will be supported if the backend also supports it.
+    ///
+    /// The default value of this property is `false`
+    public var supportFederation: Bool
 
     // MARK: - Init
-    
+
     public init(
         wipeOnCookieInvalid: Bool = false,
         blacklistDownloadInterval: TimeInterval = 6 * 60 * 60,
@@ -93,9 +91,8 @@ public class SessionManagerConfiguration: NSObject, NSCopying, Codable {
         authenticateAfterReboot: Bool = false,
         failedPasswordThresholdBeforeWipe: Int? = nil,
         encryptionAtRestIsEnabledByDefault: Bool = false,
-        useBiometricsOrCustomPasscode: Bool = false,
-        forceAppLock: Bool = false,
-        appLockTimeout: UInt = 10) {
+        legacyAppLockConfig: AppLockController.LegacyConfig? = nil,
+        supportFederation: Bool = false) {
 
         self.wipeOnCookieInvalid = wipeOnCookieInvalid
         self.blacklistDownloadInterval = blacklistDownloadInterval
@@ -105,9 +102,8 @@ public class SessionManagerConfiguration: NSObject, NSCopying, Codable {
         self.authenticateAfterReboot = authenticateAfterReboot
         self.failedPasswordThresholdBeforeWipe = failedPasswordThresholdBeforeWipe
         self.encryptionAtRestEnabledByDefault = encryptionAtRestIsEnabledByDefault
-        self.useBiometricsOrCustomPasscode = useBiometricsOrCustomPasscode
-        self.forceAppLock = forceAppLock
-        self.appLockTimeout = appLockTimeout
+        self.legacyAppLockConfig = legacyAppLockConfig
+        self.supportFederation = supportFederation
     }
 
     required public init(from decoder: Decoder) throws {
@@ -120,13 +116,12 @@ public class SessionManagerConfiguration: NSObject, NSCopying, Codable {
         authenticateAfterReboot = try container.decode(Bool.self, forKey: .authenticateAfterReboot)
         failedPasswordThresholdBeforeWipe = try container.decodeIfPresent(Int.self, forKey: .failedPasswordThresholdBeforeWipe)
         encryptionAtRestEnabledByDefault = try container.decode(Bool.self, forKey: .encryptionAtRestEnabledByDefault)
-        useBiometricsOrCustomPasscode = try container.decode(Bool.self, forKey: .useBiometricsOrCustomPasscode)
-        forceAppLock = try container.decode(Bool.self, forKey: .forceAppLock)
-        appLockTimeout = try container.decode(UInt.self, forKey: .appLockTimeout)
+        legacyAppLockConfig = try container.decodeIfPresent(AppLockController.LegacyConfig.self, forKey: .legacyAppLockConfig)
+        supportFederation = try container.decodeIfPresent(Bool.self, forKey: .supportFederation) ?? false
     }
 
     // MARK: - Methods
-    
+
     public func copy(with zone: NSZone? = nil) -> Any {
         let copy = SessionManagerConfiguration(
             wipeOnCookieInvalid: wipeOnCookieInvalid,
@@ -137,23 +132,22 @@ public class SessionManagerConfiguration: NSObject, NSCopying, Codable {
             authenticateAfterReboot: authenticateAfterReboot,
             failedPasswordThresholdBeforeWipe: failedPasswordThresholdBeforeWipe,
             encryptionAtRestIsEnabledByDefault: encryptionAtRestEnabledByDefault,
-            useBiometricsOrCustomPasscode: useBiometricsOrCustomPasscode,
-            forceAppLock: forceAppLock,
-            appLockTimeout: appLockTimeout
+            legacyAppLockConfig: legacyAppLockConfig,
+            supportFederation: supportFederation
         )
-        
+
         return copy
     }
-    
+
     public static var defaultConfiguration: SessionManagerConfiguration {
         return SessionManagerConfiguration()
     }
-    
+
     public static func load(from URL: URL) -> SessionManagerConfiguration? {
         guard let data = try? Data(contentsOf: URL) else { return nil }
-        
+
         let decoder = JSONDecoder()
-        
+
         return  try? decoder.decode(SessionManagerConfiguration.self, from: data)
     }
 }
@@ -172,24 +166,8 @@ extension SessionManagerConfiguration {
         case authenticateAfterReboot
         case failedPasswordThresholdBeforeWipe
         case encryptionAtRestEnabledByDefault
-        case useBiometricsOrCustomPasscode
-        case forceAppLock
-        case appLockTimeout
-    }
-
-}
-
-// MARK: - Helpers
-
-extension SessionManagerConfiguration {
-
-    var appLockConfig: AppLockController.Config {
-        return .init(
-            isAvailable: true,
-            isForced: forceAppLock,
-            timeout: appLockTimeout,
-            requireCustomPasscode: useBiometricsOrCustomPasscode
-        )
+        case legacyAppLockConfig
+        case supportFederation
     }
 
 }

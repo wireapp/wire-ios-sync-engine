@@ -16,13 +16,11 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import Foundation
 import avs
 @testable import WireSyncEngine
 
-
-class FlowManagerTests : MessagingTest {
+class FlowManagerTests: MessagingTest {
     func testThatItSendsNotificationWhenFlowManagerIsCreated() {
         // GIVEN
         let expectation = self.expectation(description: "Notification is sent")

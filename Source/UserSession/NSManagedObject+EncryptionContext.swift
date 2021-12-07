@@ -20,7 +20,7 @@ import Foundation
 import WireDataModel
 
 extension NSManagedObjectContext {
-    
+
     @objc
     public func deleteAndCreateNewEncryptionContext() {
         zm_cryptKeyStore.deleteAndCreateNewBox()

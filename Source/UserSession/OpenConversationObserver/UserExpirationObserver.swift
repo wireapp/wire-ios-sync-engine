@@ -35,7 +35,7 @@ import Foundation
     public func check(usersIn conversation: ZMConversation) {
         check(users: conversation.localParticipants)
     }
-    
+
     func check(users: Set<ZMUser>) {
         let allWireless = Set(users.filter { $0.isWirelessUser }).subtracting(expiringUsers)
         let expired = Set(allWireless.filter { $0.isExpired })

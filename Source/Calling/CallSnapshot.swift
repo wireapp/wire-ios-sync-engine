@@ -35,12 +35,12 @@ struct CallSnapshot {
     let degradedUser: ZMUser?
     let activeSpeakers: [AVSActiveSpeakersChange.ActiveSpeaker]
     let videoGridPresentationMode: VideoGridPresentationMode
-    var conversationObserverToken : NSObjectProtocol?
+    var conversationObserverToken: NSObjectProtocol?
 
     var isDegradedCall: Bool {
         return degradedUser != nil
     }
-    
+
     /**
      * Updates the snapshot with the new state of the call.
      * - parameter callState: The new state of the call computed from AVS.
@@ -149,12 +149,12 @@ struct CallSnapshot {
                             videoGridPresentationMode: videoGridPresentationMode,
                             conversationObserverToken: conversationObserverToken)
     }
-    
+
     /**
      * Updates the snapshot with the new audio levels of the call.
      * - parameter activeSpeakers: The new active speakers of the call computed from AVS.
      */
-    
+
     func updateActiveSpeakers(_ activeSpeakers: [AVSActiveSpeakersChange.ActiveSpeaker]) -> CallSnapshot {
         return CallSnapshot(callParticipants: callParticipants,
                             callState: callState,
@@ -170,12 +170,12 @@ struct CallSnapshot {
                             videoGridPresentationMode: videoGridPresentationMode,
                             conversationObserverToken: conversationObserverToken)
     }
-    
+
     /**
      * Updates the snapshot with the new presentation mode of the video grid.
      * - parameter presentationMode: The new mode of presentation in video grid
      */
-    
+
     func updateVideoGridPresentationMode(_ presentationMode: VideoGridPresentationMode) -> CallSnapshot {
         return CallSnapshot(callParticipants: callParticipants,
                             callState: callState,

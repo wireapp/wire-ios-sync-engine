@@ -27,22 +27,22 @@ extension ZMUserSession {
 
     @objc(proxiedRequestWithPath:method:type:callback:) @discardableResult
     public func proxiedRequest(path: String, method: ZMTransportRequestMethod, type: ProxiedRequestType, callback: ProxyRequestCallback?) -> ProxyRequest {
-        
+
         let request = ProxyRequest(type: type, path: path, method: method, callback: callback)
-        
+
         syncManagedObjectContext.performGroupedBlock {
             self.applicationStatusDirectory?.proxiedRequestStatus.add(request: request)
             RequestAvailableNotification.notifyNewRequestsAvailable(self)
         }
-        
+
         return request
     }
-    
+
     @objc
     public func cancelProxiedRequest(_ request: ProxyRequest) {
         syncManagedObjectContext.performGroupedBlock {
             self.applicationStatusDirectory?.proxiedRequestStatus.cancel(request: request)
         }
     }
-    
+
 }

@@ -24,25 +24,25 @@ import Foundation
 
 @objcMembers
 public class UserClientEventConsumer: NSObject, ZMEventConsumer {
-    
+
     let managedObjectContext: NSManagedObjectContext
     let clientRegistrationStatus: ZMClientRegistrationStatus
     let clientUpdateStatus: ClientUpdateStatus
-    
+
     public init (managedObjectContext: NSManagedObjectContext,
                  clientRegistrationStatus: ZMClientRegistrationStatus,
                  clientUpdateStatus: ClientUpdateStatus) {
         self.managedObjectContext = managedObjectContext
         self.clientRegistrationStatus = clientRegistrationStatus
         self.clientUpdateStatus = clientUpdateStatus
-        
+
         super.init()
     }
-    
+
     public func processEvents(_ events: [ZMUpdateEvent], liveEvents: Bool, prefetchResult: ZMFetchRequestBatchResult?) {
         events.forEach(processUpdateEvent)
     }
-    
+
     fileprivate func processUpdateEvent(_ event: ZMUpdateEvent) {
         switch event.type {
         case .userClientAdd, .userClientRemove:
@@ -51,15 +51,15 @@ public class UserClientEventConsumer: NSObject, ZMEventConsumer {
             break
         }
     }
-    
+
     fileprivate func processClientListUpdateEvent(_ event: ZMUpdateEvent) {
         guard let clientInfo = event.payload["client"] as? [String: AnyObject] else {
             Logging.eventProcessing.error("Client info has unexpected payload")
             return
         }
-        
+
         let selfUser = ZMUser.selfUser(in: managedObjectContext)
-        
+
         switch event.type {
         case .userClientAdd:
             if let client = UserClient.createOrUpdateSelfUserClient(clientInfo, context: managedObjectContext) {
@@ -69,7 +69,7 @@ public class UserClientEventConsumer: NSObject, ZMEventConsumer {
         case .userClientRemove:
             let selfClientId = selfUser.selfClient()?.remoteIdentifier
             guard let clientId = clientInfo["id"] as? String else { return }
-            
+
             if selfClientId != clientId {
                 if let clientToDelete = selfUser.clients.filter({ $0.remoteIdentifier == clientId }).first {
                     clientToDelete.deleteClientAndEndSession()
@@ -81,5 +81,5 @@ public class UserClientEventConsumer: NSObject, ZMEventConsumer {
         default: break
         }
     }
-    
+
 }

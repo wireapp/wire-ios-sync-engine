@@ -87,7 +87,7 @@ class CallParticipantsSnapshot {
     // MARK: - Updates
 
     func callParticipantsChanged(participants: [AVSCallMember]) {
-        members = type(of:self).removeDuplicateMembers(participants)
+        members = type(of: self).removeDuplicateMembers(participants)
     }
 
     func callParticipantNetworkQualityChanged(client: AVSClient, networkQuality: NetworkQuality) {

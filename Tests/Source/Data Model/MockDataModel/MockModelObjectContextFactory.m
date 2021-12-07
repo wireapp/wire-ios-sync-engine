@@ -1,6 +1,6 @@
 // 
 // Wire
-// Copyright (C) 2016 Wire Swiss GmbH
+// Copyright (C) 2021 Wire Swiss GmbH
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -87,8 +87,6 @@
     [testUUIDDataAttribute setName:@"testUUID_data"];
     [testUUIDDataAttribute setAttributeType:NSBinaryDataAttributeType];
     [testUUIDDataAttribute setOptional:YES];
-    [testUUIDDataAttribute setIndexed:YES];
-    
     
     NSAttributeDescription *needsToBeUpdatedFromBackendAttribute = [[NSAttributeDescription alloc] init];
     [needsToBeUpdatedFromBackendAttribute setName:@"needsToBeUpdatedFromBackend"];
@@ -104,6 +102,7 @@
     NSEntityDescription *mockEntity2 = [[NSEntityDescription alloc] init];
     [mockEntity2 setName:@"MockEntity2"];
     [mockEntity2 setManagedObjectClassName:NSStringFromClass([MockEntity2 class])];
+    mockEntity2.indexes = @[testUUIDDataAttribute];
 
     [mockEntity2 setProperties:@[fieldAttribute, modifiedDataFieldsAttribute, needsToBeUpdatedFromBackendAttribute, testUUIDAttribute, testUUIDDataAttribute]];
     return mockEntity2;
@@ -146,7 +145,8 @@
     [remoteIdentifierDataAttribute setName:@"remoteIdentifier_data"];
     [remoteIdentifierDataAttribute setAttributeType:NSBinaryDataAttributeType];
     [remoteIdentifierDataAttribute setOptional:YES];
-    [remoteIdentifierDataAttribute setIndexed:YES];
+    mockEntity.indexes = @[remoteIdentifierDataAttribute];
+
     
     NSAttributeDescription *testUUIDAttribute = [[NSAttributeDescription alloc] init];
     [testUUIDAttribute setName:@"testUUID"];
@@ -158,8 +158,9 @@
     [testUUIDDataAttribute setName:@"testUUID_data"];
     [testUUIDDataAttribute setAttributeType:NSBinaryDataAttributeType];
     [testUUIDDataAttribute setOptional:YES];
-    [testUUIDDataAttribute setIndexed:YES];
+    mockEntity.indexes = @[testUUIDDataAttribute];
 
+    
     NSAttributeDescription *needsToBeUpdatedFromBackendAttribute = [[NSAttributeDescription alloc] init];
     [needsToBeUpdatedFromBackendAttribute setName:@"needsToBeUpdatedFromBackend"];
     [needsToBeUpdatedFromBackendAttribute setAttributeType:NSBooleanAttributeType];

@@ -21,15 +21,15 @@ import WireDataModel
 
 /// Directory of various conversation lists
 /// This object is expected to be used on the UI context only
-@objcMembers public class TopConversationsDirectory : NSObject {
+@objcMembers public class TopConversationsDirectory: NSObject {
 
-    fileprivate let uiMOC : NSManagedObjectContext
-    fileprivate let syncMOC : NSManagedObjectContext
+    fileprivate let uiMOC: NSManagedObjectContext
+    fileprivate let syncMOC: NSManagedObjectContext
     fileprivate static let topConversationSize = 25
 
     /// Cached top conversations
     /// - warning: Might include deleted or blocked conversations
-    fileprivate var topConversationsCache : [ZMConversation] = []
+    fileprivate var topConversationsCache: [ZMConversation] = []
 
     public init(managedObjectContext: NSManagedObjectContext) {
         uiMOC = managedObjectContext
@@ -67,12 +67,12 @@ private let topConversationsObjectIDKey = "WireTopConversationsObjectIDKey"
 
     private func fetchOneOnOneConversations() -> [ZMConversation] {
         let request = ZMConversation.sortedFetchRequest(with: ZMConversation.predicateForActiveOneOnOneConversations)
-        
+
         return syncMOC.fetchOrAssert(request: request) as! [ZMConversation]
     }
 
     /// Top conversations
-    public var topConversations : [ZMConversation] {
+    public var topConversations: [ZMConversation] {
         return self.topConversationsCache.filter { !$0.isZombieObject && $0.connection?.status == .accepted }
     }
 
@@ -100,15 +100,15 @@ private let topConversationsObjectIDKey = "WireTopConversationsObjectIDKey"
 
 }
 
-struct TopConversationsDirectoryNotification : SelfPostingNotification {
-    
+struct TopConversationsDirectoryNotification: SelfPostingNotification {
+
     static let notificationName = NSNotification.Name(rawValue: "TopConversationsDirectoryNotification")
 }
 
 extension TopConversationsDirectory {
 
     @objc(addObserver:) public func add(observer: TopConversationsDirectoryObserver) -> Any {
-        return NotificationInContext.addObserver(name: TopConversationsDirectoryNotification.notificationName, context: uiMOC.notificationContext) { [weak observer] note in
+        return NotificationInContext.addObserver(name: TopConversationsDirectoryNotification.notificationName, context: uiMOC.notificationContext) { [weak observer] _ in
             observer?.topConversationsDidChange()
         }
     }
@@ -133,8 +133,8 @@ fileprivate extension ZMConversation {
             guard timestamp >= oneMonthAgo else { return count }
             count += 1
         }
-        
+
         return count
     }
-    
+
 }

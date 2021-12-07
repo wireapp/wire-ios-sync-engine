@@ -52,37 +52,37 @@ public func ==(lhs: InviteResult, rhs: InviteResult) -> Bool {
         return false
     }
 }
-    
+
 public typealias InviteCompletionHandler = (InviteResult) -> Void
 
-public class TeamInvitationStatus : NSObject {
-    
-    fileprivate var pendingInvitations : [String : InviteCompletionHandler] = [:]
-    fileprivate var processedInvitations : [String : InviteCompletionHandler] = [:]
-    
-    func invite(_ email : String, completionHandler : @escaping InviteCompletionHandler) {
+public class TeamInvitationStatus: NSObject {
+
+    fileprivate var pendingInvitations: [String: InviteCompletionHandler] = [:]
+    fileprivate var processedInvitations: [String: InviteCompletionHandler] = [:]
+
+    func invite(_ email: String, completionHandler : @escaping InviteCompletionHandler) {
         pendingInvitations[email] = completionHandler
         RequestAvailableNotification.notifyNewRequestsAvailable(nil)
     }
-    
-    func retry(_ email : String) {
+
+    func retry(_ email: String) {
         if let completionHandler = processedInvitations.removeValue(forKey: email) {
             pendingInvitations[email] = completionHandler
         }
     }
-    
+
     func nextEmail() -> String? {
         if let next = pendingInvitations.popFirst() {
             processedInvitations[next.key] = next.value
             return next.key
         }
-        
+
         return nil
     }
-    
-    func handle(result : InviteResult, email: String) {
+
+    func handle(result: InviteResult, email: String) {
         processedInvitations[email]?(result)
         processedInvitations.removeValue(forKey: email)
     }
-    
+
 }

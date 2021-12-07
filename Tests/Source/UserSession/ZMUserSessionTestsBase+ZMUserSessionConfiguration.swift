@@ -34,6 +34,6 @@ extension ZMUserSessionTestsBase {
             application: application,
             appVersion: "00000",
             coreDataStack: coreDataStack,
-            configuration: ZMUserSession.Configuration.defaultConfig)
+            configuration: .init())
     }
 }
