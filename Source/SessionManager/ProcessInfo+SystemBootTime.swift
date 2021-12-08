@@ -16,11 +16,11 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-public extension ProcessInfo {    
+public extension ProcessInfo {
     func bootTime() -> Date? {
         var tv = timeval()
         var tvSize = MemoryLayout<timeval>.size
-        let err = sysctlbyname("kern.boottime", &tv, &tvSize, nil, 0);
+        let err = sysctlbyname("kern.boottime", &tv, &tvSize, nil, 0)
         guard err == 0, tvSize == MemoryLayout<timeval>.size else {
             return nil
         }

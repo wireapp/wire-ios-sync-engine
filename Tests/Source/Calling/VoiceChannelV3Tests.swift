@@ -19,54 +19,54 @@
 import Foundation
 @testable import WireSyncEngine
 
-class VoiceChannelV3Tests : MessagingTest {
-    
-    var wireCallCenterMock : WireCallCenterV3Mock? = nil
-    var conversation : ZMConversation?
-    var sut : VoiceChannelV3!
-    
+class VoiceChannelV3Tests: MessagingTest {
+
+    var wireCallCenterMock: WireCallCenterV3Mock?
+    var conversation: ZMConversation?
+    var sut: VoiceChannelV3!
+
     override func setUp() {
         super.setUp()
-        
+
         let selfUser = ZMUser.selfUser(in: uiMOC)
         selfUser.remoteIdentifier = UUID.create()
-        
+
         let selfClient = createSelfClient()
-        
+
         conversation = ZMConversation.insertNewObject(in: uiMOC)
         conversation?.remoteIdentifier = UUID.create()
-        
+
         wireCallCenterMock = WireCallCenterV3Mock(userId: selfUser.remoteIdentifier!, clientId: selfClient.remoteIdentifier!, uiMOC: uiMOC, flowManager: FlowManagerMock(), transport: WireCallCenterTransportMock())
-        
+
         uiMOC.zm_callCenter = wireCallCenterMock
-        
+
         sut = VoiceChannelV3(conversation: conversation!)
     }
-    
+
     override func tearDown() {
         super.tearDown()
-        
+
         wireCallCenterMock = nil
     }
-    
+
     func testThatItStartsACall_whenTheresNotAnIncomingCall() {
         // given
         wireCallCenterMock?.removeMockActiveCalls()
-        
+
         // when
         _ = sut.join(video: false)
-        
+
         // then
         XCTAssertTrue(wireCallCenterMock!.didCallStartCall)
     }
-    
+
     func testThatItAnswers_whenTheresAnIncomingCall() {
         // given
         wireCallCenterMock?.setMockCallState(.incoming(video: false, shouldRing: false, degraded: false), conversationId: conversation!.remoteIdentifier!, callerId: UUID(), isVideo: false)
 
         // when
         _ = sut.join(video: false)
-        
+
         // then
         XCTAssertTrue(wireCallCenterMock!.didCallAnswerCall)
     }
@@ -82,7 +82,7 @@ class VoiceChannelV3Tests : MessagingTest {
 
         wireCallCenterMock?.handleNetworkQualityChange(conversationId: conversation!.remoteIdentifier!, client: caller, quality: quality)
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         XCTAssertEqual(sut.networkQuality, quality)
     }
@@ -92,40 +92,40 @@ class VoiceChannelV3Tests : MessagingTest {
         let conversationId = conversation!.remoteIdentifier!
         let user = ZMUser.insertNewObject(in: uiMOC)
         user.remoteIdentifier = UUID()
-        
+
         wireCallCenterMock?.callSnapshots = [
-            conversationId : CallSnapshotTestFixture.degradedCallSnapshot(
+            conversationId: CallSnapshotTestFixture.degradedCallSnapshot(
                 conversationId: conversationId,
                 user: user,
                 callCenter: wireCallCenterMock!
             )
         ]
-        
+
         // When / Then
         XCTAssert(sut.firstDegradedUser as? ZMUser == user)
     }
-    
+
     func testThatItUpdatesVideoGridPresentationMode() {
         // Given
         let conversationId = conversation!.remoteIdentifier!
         let user = ZMUser.insertNewObject(in: uiMOC)
         user.remoteIdentifier = UUID()
-        
+
         wireCallCenterMock?.callSnapshots = [
-            conversationId : CallSnapshotTestFixture.callSnapshot(
+            conversationId: CallSnapshotTestFixture.callSnapshot(
                 conversationId: conversationId,
                 callCenter: wireCallCenterMock!,
                 clients: [])
         ]
-        
+
         // When
         sut.videoGridPresentationMode = .activeSpeakers
-        
+
         // Then
         let callSnapshot = wireCallCenterMock?.callSnapshots[conversationId]
         XCTAssert(sut.videoGridPresentationMode == callSnapshot?.videoGridPresentationMode)
     }
-    
+
     func testThatItReturnsNil_IfNoDegradedUser() {
         XCTAssert(sut.firstDegradedUser == nil)
     }

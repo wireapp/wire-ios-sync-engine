@@ -22,7 +22,6 @@ import Foundation
 
 public typealias WireCallMessageToken = UnsafeMutableRawPointer
 
-
 /// The possible types of call.
 
 public enum AVSCallType: Int32 {
@@ -64,7 +63,7 @@ public typealias CallConfigRequestCompletion = (String?, Int) -> Void
 
 /// An object that can perform requests on behalf of the call center.
 
-public protocol WireCallCenterTransport: class {
+public protocol WireCallCenterTransport: AnyObject {
 
     /// Sends a calling message.
     ///

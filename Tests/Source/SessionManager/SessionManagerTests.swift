@@ -124,9 +124,9 @@ final class SessionManagerTests: IntegrationTest {
         let sessionManagerExpectation = self.expectation(description: "Session manager and session is loaded")
 
         let observer = SessionManagerObserverMock()
-        var createToken: Any? = nil
-        var destroyToken: Any? = nil
-        
+        var createToken: Any?
+        var destroyToken: Any?
+
         let testSessionManager = SessionManager(appVersion: "0.0.0",
                                                 mediaManager: mockMediaManager,
                                                 analytics: nil,
@@ -208,9 +208,9 @@ final class SessionManagerTests: IntegrationTest {
         
         let sessionManagerExpectation = self.expectation(description: "Session manager and sessions are loaded")
         let observer = SessionManagerObserverMock()
-        
-        var destroyToken: Any? = nil
-        
+
+        var destroyToken: Any?
+
         let testSessionManager = SessionManager(appVersion: "0.0.0",
                                                 mediaManager: mockMediaManager,
                                                 analytics: nil,
@@ -260,14 +260,13 @@ final class SessionManagerTests: IntegrationTest {
     }
     
     func testThatJailbrokenDeviceCallsDelegateMethod() {
-        
-        //GIVEN
+        // GIVEN
         guard let application = application else { return XCTFail() }
         let jailbreakDetector = MockJailbreakDetector(jailbroken: true)
         let configuration = SessionManagerConfiguration(blockOnJailbreakOrRoot: true)
-        
-        //WHEN
-        let _ = SessionManager(appVersion: "0.0.0",
+
+        // WHEN
+        _ = SessionManager(appVersion: "0.0.0",
                                mediaManager: mockMediaManager,
                                analytics: nil,
                                delegate: self.delegate,
@@ -283,16 +282,16 @@ final class SessionManagerTests: IntegrationTest {
     }
     
     func testThatJailbrokenDeviceDeletesAccount() {
-        //GIVEN
+        // GIVEN
         sut = createManager()
         (sut?.jailbreakDetector as! MockJailbreakDetector).jailbroken = true
         sut?.configuration.wipeOnJailbreakOrRoot = true
-        
-        //WHEN
+
+        // WHEN
         sut?.accountManager.addAndSelect(createAccount())
         XCTAssertEqual(sut?.accountManager.accounts.count, 1)
-        
-        //THEN
+
+        // THEN
         performIgnoringZMLogError {
             self.sut!.checkJailbreakIfNeeded()
         }
@@ -300,14 +299,14 @@ final class SessionManagerTests: IntegrationTest {
     }
     
     func testAuthenticationAfterReboot() {
-        //GIVEN
+        // GIVEN
         sut = createManager()
 
-        //WHEN
+        // WHEN
         sut?.accountManager.addAndSelect(createAccount())
         XCTAssertEqual(sut?.accountManager.accounts.count, 1)
-        
-        //THEN
+
+        // THEN
         let logoutExpectation = expectation(description: "Authentication after reboot")
         
         delegate.onLogout = { error in
@@ -324,7 +323,7 @@ final class SessionManagerTests: IntegrationTest {
     }
     
     func testThatShouldPerformPostRebootLogoutReturnsFalseIfNotRebooted() {
-        //GIVEN
+        // GIVEN
         sut = createManager()
         sut?.configuration.authenticateAfterReboot = true
         sut?.accountManager.addAndSelect(createAccount())
@@ -332,23 +331,22 @@ final class SessionManagerTests: IntegrationTest {
         XCTAssertEqual(sut?.accountManager.accounts.count, 1)
         SessionManager.previousSystemBootTime = ProcessInfo.processInfo.bootTime()
 
-        //WHEN/THEN
+        // WHEN/THEN
         performIgnoringZMLogError {
             XCTAssertFalse(self.sut!.shouldPerformPostRebootLogout())
         }
     }
     
     func testThatShouldPerformPostRebootLogoutReturnsFalseIfNoPreviousBootTimeExists() {
-        
-        //GIVEN
+        // GIVEN
         sut = createManager()
         sut?.configuration.authenticateAfterReboot = true
         sut?.accountManager.addAndSelect(createAccount())
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         XCTAssertEqual(sut?.accountManager.accounts.count, 1)
         ZMKeychain.deleteAllKeychainItems(withAccountName: SessionManager.previousSystemBootTimeContainer)
-        
-        //WHEN/THEN
+
+        // WHEN/THEN
         performIgnoringZMLogError {
             XCTAssertFalse(self.sut!.shouldPerformPostRebootLogout())
         }
@@ -512,7 +510,8 @@ class SessionManagerTests_EncryptionAtRestMigration: IntegrationTest {
         createSelfUserAndConversation()
         createExtraUsersAndConversations()
     }
-    
+
+    // @SF.Storage @TSFI.UserInterface
     func testThatDatabaseIsMigrated_WhenEncryptionAtRestIsEnabled() throws {
         // given
         XCTAssertTrue(login())
@@ -535,7 +534,8 @@ class SessionManagerTests_EncryptionAtRestMigration: IntegrationTest {
         let clientMessage = groupConversation?.lastMessage as? ZMClientMessage
         XCTAssertEqual(clientMessage?.messageText, expectedText)
     }
-    
+
+    // @SF.Storage @TSFI.UserInterface
     func testThatDatabaseIsMigrated_WhenEncryptionAtRestIsDisabled() throws {
         // given
         XCTAssertTrue(login())
@@ -575,7 +575,8 @@ class SessionManagerTests_EncryptionAtRestIsEnabledByDefault_Option: Integration
     override var sessionManagerConfiguration: SessionManagerConfiguration {
         return SessionManagerConfiguration(encryptionAtRestIsEnabledByDefault: true)
     }
-    
+
+    // @SF.Storage @TSFI.UserInterface
     func testThatEncryptionAtRestIsEnabled_OnActiveUserSession() {
         // given
         XCTAssertTrue(login())
@@ -707,8 +708,7 @@ class SessionManagerTests_Teams: IntegrationTest {
         super.setUp()
         createSelfUserAndConversation()
     }
-    
-    
+
     func testThatItUpdatesAccountAfterLoginWithTeamName() {
         // given
         let teamName = "Wire"
@@ -723,8 +723,8 @@ class SessionManagerTests_Teams: IntegrationTest {
         XCTAssert(login())
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
-        let _ = MockAsset(in: mockTransportSession.managedObjectContext, forID: selfUser.previewProfileAssetIdentifier!)
-        
+        _ = MockAsset(in: mockTransportSession.managedObjectContext, forID: selfUser.previewProfileAssetIdentifier!)
+
         // then
         guard let sharedContainer = Bundle.main.appGroupIdentifier.map(FileManager.sharedContainerDirectory) else { return XCTFail() }
         let manager = AccountManager(sharedDirectory: sharedContainer)
@@ -749,7 +749,7 @@ class SessionManagerTests_Teams: IntegrationTest {
         XCTAssert(login())
         
         let newTeamName = "Not Wire"
-        self.mockTransportSession.performRemoteChanges { session in
+        self.mockTransportSession.performRemoteChanges { _ in
             team.name = newTeamName
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
@@ -774,7 +774,7 @@ class SessionManagerTests_Teams: IntegrationTest {
         XCTAssert(login())
         
         // when
-        self.mockTransportSession.performRemoteChanges { session in
+        self.mockTransportSession.performRemoteChanges { _ in
             team.pictureAssetId = asset.identifier
         }
         user(for: selfUser)?.team?.requestImage()
@@ -831,7 +831,7 @@ class SessionManagerTests_Teams: IntegrationTest {
         XCTAssert(login())
         
         let newName = "BOB"
-        self.mockTransportSession.performRemoteChanges { session in
+        self.mockTransportSession.performRemoteChanges { _ in
             self.selfUser.name = newName
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
@@ -904,7 +904,7 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
         let account2 = Account(userName: "Test Account 2", userIdentifier: UUID())
         manager.addOrUpdate(account2)
         // WHEN
-        weak var sessionForAccount1Reference: ZMUserSession? = nil
+        weak var sessionForAccount1Reference: ZMUserSession?
         let session1LoadedExpectation = self.expectation(description: "Session for account 1 loaded")
         self.sessionManager!.withSession(for: account1, perform: { sessionForAccount1 in
             // THEN
@@ -913,7 +913,7 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
             sessionForAccount1Reference = sessionForAccount1
         })
         // WHEN
-        weak var sessionForAccount2Reference: ZMUserSession? = nil
+        weak var sessionForAccount2Reference: ZMUserSession?
         let session2LoadedExpectation = self.expectation(description: "Session for account 2 loaded")
         self.sessionManager!.withSession(for: account1, perform: { sessionForAccount2 in
             // THEN
@@ -990,8 +990,7 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
             XCTAssertNotNil(userSession)
             sessionManagerExpectation.fulfill()
         }
-        
-        
+
         // THEN
         XCTAssertTrue(self.waitForCustomExpectations(withTimeout: 0.5))
         
@@ -1044,7 +1043,6 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
             sessionManagerExpectation.fulfill()
         }
 
-        
         // THEN
         XCTAssertTrue(self.waitForCustomExpectations(withTimeout: 0.5))
         
@@ -1061,8 +1059,8 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
     }
     
     func prepareSession(for account: Account) {
-        weak var weakSession: ZMUserSession? = nil
-        
+        weak var weakSession: ZMUserSession?
+
         autoreleasepool {
             var session: ZMUserSession! = nil
             self.sessionManager?.withSession(for: account, perform: { createdSession in
@@ -1172,7 +1170,7 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
         _ = createSelfClient(session.managedObjectContext)
         
         session.syncManagedObjectContext.performGroupedBlock {
-            let _ = ZMConversation(remoteID: self.currentUserIdentifier, createIfNeeded: true, in: session.syncManagedObjectContext)
+            _ = ZMConversation.fetchOrCreate(with: self.currentUserIdentifier, domain: nil, in: session.syncManagedObjectContext)
             session.syncManagedObjectContext.saveOrRollback()
         }
         
@@ -1212,12 +1210,12 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
     
     func testThatItActivatesTheAccountForPushReaction() {
         // GIVEN
-        let session = self.setupSession()///TODO: crash at RequireString([NSOperationQueue mainQueue] == [NSOperationQueue currentQueue],
+        let session = self.setupSession()/// TODO: crash at RequireString([NSOperationQueue mainQueue] == [NSOperationQueue currentQueue],
 //        "Must call be called on the main queue.");
         session.isPerformingSync = false
         application?.applicationState = .background
-        
-        let selfConversation = ZMConversation(remoteID: currentUserIdentifier, createIfNeeded: false, in: session.managedObjectContext)
+
+        let selfConversation = ZMConversation.fetch(with: currentUserIdentifier, domain: nil, in: session.managedObjectContext)
 
         let userInfo = NotificationUserInfo()
         userInfo.conversationID = selfConversation?.remoteIdentifier
@@ -1251,8 +1249,8 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
         session.isPerformingSync = false
         application?.applicationState = .inactive
 
-        let selfConversation = ZMConversation(remoteID: currentUserIdentifier, createIfNeeded: false, in: session.managedObjectContext)
-        
+        let selfConversation = ZMConversation.fetch(with: currentUserIdentifier, domain: nil, in: session.managedObjectContext)
+
         let userInfo = NotificationUserInfo()
         userInfo.conversationID = selfConversation?.remoteIdentifier
         userInfo.selfUserID = currentUserIdentifier
@@ -1287,9 +1285,9 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
         
         let responder = MockForegroundNotificationResponder()
         self.sessionManager?.foregroundNotificationResponder = responder
-        
-        let selfConversation = ZMConversation(remoteID: currentUserIdentifier, createIfNeeded: false, in: session.managedObjectContext)
-        
+
+        let selfConversation = ZMConversation.fetch(with: currentUserIdentifier, domain: nil, in: session.managedObjectContext)
+
         let userInfo = NotificationUserInfo()
         userInfo.conversationID = selfConversation?.remoteIdentifier
         userInfo.selfUserID = currentUserIdentifier
@@ -1329,7 +1327,7 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
         manager.addOrUpdate(account2)
         
         // Make account 1 the active session
-        weak var session1: ZMUserSession? = nil
+        weak var session1: ZMUserSession?
         sessionManager?.loadSession(for: account1, completion: { (session) in
             session1 = session
         })
@@ -1337,9 +1335,9 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
         XCTAssertEqual(sessionManager!.activeUserSession, session1)
         
         // Load session for account 2 in the background
-        weak var session2: ZMUserSession? = nil
-        weak var conversation: ZMConversation? = nil
-        weak var caller: ZMUser? = nil
+        weak var session2: ZMUserSession?
+        weak var conversation: ZMConversation?
+        weak var caller: ZMUser?
         self.sessionManager!.withSession(for: account2, perform: { session in
             session2 = session
             conversation = ZMConversation.insertNewObject(in: session.managedObjectContext)
@@ -1537,6 +1535,13 @@ extension SessionManagerTests {
 // MARK: - Mocks
 class SessionManagerTestDelegate: SessionManagerDelegate {
     var onLogout: ((NSError?) -> Void)?
+    var appState = "authenticated"
+    var isInAuthenticatedAppState: Bool {
+        return appState == "authenticated"
+    }
+    var isInUnathenticatedAppState: Bool {
+        return appState == "unauthenticated"
+    }
     func sessionManagerWillLogout(error: Error?, userSessionCanBeTornDown: (() -> Void)?) {
         onLogout?(error as NSError?)
         userSessionCanBeTornDown?()
@@ -1565,8 +1570,8 @@ class SessionManagerTestDelegate: SessionManagerDelegate {
     func sessionManagerDidBlacklistJailbrokenDevice() {
         jailbroken = true
     }
-    
-    var userSession : ZMUserSession?
+
+    var userSession: ZMUserSession?
     func sessionManagerDidChangeActiveUserSession(userSession: ZMUserSession) {
         self.userSession = userSession
     }

@@ -22,23 +22,23 @@ import XCTest
 class TeamMembersDownloadRequestStrategyTests: MessagingTest {
 
     var sut: TeamMembersDownloadRequestStrategy!
-    var mockApplicationStatus : MockApplicationStatus!
-    var mockSyncStatus : MockSyncStatus!
+    var mockApplicationStatus: MockApplicationStatus!
+    var mockSyncStatus: MockSyncStatus!
     var mockSyncStateDelegate: MockSyncStateDelegate!
-    
+
     override func setUp() {
         super.setUp()
         mockApplicationStatus = MockApplicationStatus()
         mockSyncStateDelegate = MockSyncStateDelegate()
         mockSyncStatus = MockSyncStatus(managedObjectContext: syncMOC, syncStateDelegate: mockSyncStateDelegate)
         sut = TeamMembersDownloadRequestStrategy(withManagedObjectContext: syncMOC, applicationStatus: mockApplicationStatus, syncStatus: mockSyncStatus)
-        
-        syncMOC.performGroupedBlockAndWait{
+
+        syncMOC.performGroupedBlockAndWait {
             let user = ZMUser.selfUser(in: self.syncMOC)
             user.remoteIdentifier = UUID()
         }
     }
-    
+
     override func tearDown() {
         mockApplicationStatus = nil
         mockSyncStateDelegate = nil
@@ -46,7 +46,7 @@ class TeamMembersDownloadRequestStrategyTests: MessagingTest {
         sut = nil
         super.tearDown()
     }
-    
+
     let sampleResponseForSmallTeam: [String: Any] = [
         "hasMore": false,
         "members": [
@@ -59,7 +59,7 @@ class TeamMembersDownloadRequestStrategyTests: MessagingTest {
             ]
         ]
     ]
-    
+
     let sampleResponseForLargeTeam: [String: Any] = [
         "hasMore": true,
         "members": [
@@ -72,7 +72,7 @@ class TeamMembersDownloadRequestStrategyTests: MessagingTest {
             ]
         ]
     ]
-    
+
     func createTeam() -> Team {
         let selfUser = ZMUser.selfUser(in: syncMOC)
         let teamID = UUID()
@@ -80,16 +80,16 @@ class TeamMembersDownloadRequestStrategyTests: MessagingTest {
         let team = Team.insertNewObject(in: syncMOC)
         team.remoteIdentifier = teamID
         _ = Member.getOrCreateMember(for: selfUser, in: team, context: syncMOC)
-        
+
         return team
     }
-    
+
     func testThatItDoesNotGenerateARequestInitially() {
         XCTAssertNil(sut.nextRequest())
     }
-    
+
     func testThatItCreatesRequestToFetchTeamMembers() {
-        
+
         syncMOC.performGroupedBlockAndWait {
             // given
             self.mockApplicationStatus.mockSynchronizationState = .slowSyncing
@@ -97,103 +97,103 @@ class TeamMembersDownloadRequestStrategyTests: MessagingTest {
             let selfUser = ZMUser.selfUser(in: self.syncMOC)
             let teamID = UUID()
             selfUser.teamIdentifier = teamID
-            
+
             // when
             let request = self.sut.nextRequest()
-            
+
             // then
             XCTAssertNotNil(request)
             XCTAssertEqual(request?.path, "/teams/\(teamID.transportString())/members")
         }
     }
-    
+
     func testThatItFinishSyncStep_IfSelfUserDoesntBelongToTeam() {
-        
+
         syncMOC.performGroupedBlockAndWait {
             // given
             self.mockApplicationStatus.mockSynchronizationState = .slowSyncing
             self.mockSyncStatus.mockPhase = .fetchingTeamMembers
-            
+
             // when
             let request = self.sut.nextRequest()
-            
+
             // then
             XCTAssertNil(request)
             XCTAssertTrue(self.mockSyncStatus.didCallFinishCurrentSyncPhase)
         }
     }
-    
+
     func testThatItFinishSyncStep_OnSuccessfulResponse() {
 //        var team: Team!
-        
+
         syncMOC.performGroupedBlockAndWait {
             // given
             self.mockApplicationStatus.mockSynchronizationState = .slowSyncing
             self.mockSyncStatus.mockPhase = .fetchingTeamMembers
             _ = self.createTeam()
-            
+
             guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
-            
+
             // when
             let response = ZMTransportResponse(payload: self.sampleResponseForSmallTeam as ZMTransportData, httpStatus: 200, transportSessionError: nil)
             request.complete(with: response)
         }
-        
+
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.2))
-        
+
         syncMOC.performGroupedBlockAndWait {
             // then
             XCTAssertNil(self.sut.nextRequest())
             XCTAssertTrue(self.mockSyncStatus.didCallFinishCurrentSyncPhase)
         }
     }
-    
+
     func testThatItCreatesTeamMembers_WhenHasMoreIsFalse() {
         var team: Team!
-        
+
         syncMOC.performGroupedBlockAndWait {
             // given
             self.mockApplicationStatus.mockSynchronizationState = .slowSyncing
             self.mockSyncStatus.mockPhase = .fetchingTeamMembers
             team = self.createTeam()
-            
+
             guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
-            
+
             // when
             let response = ZMTransportResponse(payload: self.sampleResponseForSmallTeam as ZMTransportData, httpStatus: 200, transportSessionError: nil)
             request.complete(with: response)
         }
-        
+
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.2))
-        
+
         syncMOC.performGroupedBlockAndWait {
             // then
             XCTAssertEqual(team.members.count, 2)
         }
     }
-    
+
     func testThatItDoesNotCreateTeamMembers_WhenHasMoreIsTrue() {
         var team: Team!
-        
+
         syncMOC.performGroupedBlockAndWait {
             // given
             self.mockApplicationStatus.mockSynchronizationState = .slowSyncing
             self.mockSyncStatus.mockPhase = .fetchingTeamMembers
             team = self.createTeam()
-            
+
             guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
-            
+
             // when
             let response = ZMTransportResponse(payload: self.sampleResponseForLargeTeam as ZMTransportData, httpStatus: 200, transportSessionError: nil)
             request.complete(with: response)
         }
-        
+
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.2))
-        
+
         syncMOC.performGroupedBlockAndWait {
             // then
             XCTAssertEqual(team.members.count, 1)
         }
     }
-    
+
 }

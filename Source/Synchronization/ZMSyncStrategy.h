@@ -51,7 +51,7 @@
 
 @property (nonatomic, readonly, nonnull) NSManagedObjectContext *syncMOC;
 @property (nonatomic, weak, readonly, nullable) ApplicationStatusDirectory *applicationStatusDirectory;
-@property (nonatomic, readonly, nonnull) CallingRequestStrategy *callingRequestStrategy;
 @property (nonatomic, nullable) id<EventProcessingTrackerProtocol> eventProcessingTracker;
+@property (nonatomic, readonly, nullable) id<StrategyDirectoryProtocol> strategyDirectory;
 @end
 

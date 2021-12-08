@@ -20,25 +20,25 @@ import Foundation
 import XCTest
 @testable import WireSyncEngine
 
-final class TeamImageAssetUpdateStrategyTests : MessagingTest {
+final class TeamImageAssetUpdateStrategyTests: MessagingTest {
 
     var sut: TeamImageAssetUpdateStrategy!
-    var mockApplicationStatus : MockApplicationStatus!
+    var mockApplicationStatus: MockApplicationStatus!
     let pictureAssetId = "blah"
 
     override func setUp() {
         super.setUp()
-        
+
         self.mockApplicationStatus = MockApplicationStatus()
         self.mockApplicationStatus.mockSynchronizationState = .online
-        
+
         sut = TeamImageAssetUpdateStrategy(withManagedObjectContext: uiMOC, applicationStatus: mockApplicationStatus)
     }
 
     override func tearDown() {
         mockApplicationStatus = nil
         sut = nil
-        
+
         super.tearDown()
     }
 
@@ -50,11 +50,11 @@ final class TeamImageAssetUpdateStrategyTests : MessagingTest {
 
         return team
     }
-    
+
     func testThatItDoesNotCreateRequestForTeamImageAsset_BeforeRequestingImage() {
         // GIVEN
         _ = createTeamWithImage()
-        
+
         // THEN
         let request = sut.nextRequest()
         XCTAssertNil(request)
@@ -79,11 +79,11 @@ final class TeamImageAssetUpdateStrategyTests : MessagingTest {
         // GIVEN
         let team = createTeamWithImage()
         let imageData = "image".data(using: .utf8)!
-        
+
         team.requestImage()
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         guard let request = sut.nextRequest() else { return XCTFail("nil request generated") }
-        
+
         // WHEN
         request.complete(with: ZMTransportResponse(imageData: imageData, httpStatus: 200, transportSessionError: nil, headers: nil))
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))

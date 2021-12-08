@@ -19,7 +19,7 @@
 import Foundation
 
 class MockPresentationDelegate: PresentationDelegate {
-    
+
     var showConversationCalls: [ZMConversation] = []
     var showConversationListCalls: Int = 0
     var showUserProfileCalls: [UserType] = []
@@ -28,34 +28,39 @@ class MockPresentationDelegate: PresentationDelegate {
     var shouldPerformActionCalls: [URLAction] = []
     var completedURLActionCalls: [URLAction] = []
     var isPerformingActions = true
-    
+
     func failedToPerformAction(_ action: URLAction, error: Error) {
         failedToPerformActionCalls.append((action, error))
     }
-    
+
     func shouldPerformAction(_ action: URLAction, decisionHandler: @escaping (Bool) -> Void) {
         shouldPerformActionCalls.append(action)
         decisionHandler(isPerformingActions)
     }
-    
+
+    func shouldPerformActionWithMessage(_ message: String, action: URLAction, decisionHandler: @escaping (Bool) -> Void) {
+        shouldPerformActionCalls.append(action)
+        decisionHandler(isPerformingActions)
+    }
+
     func completedURLAction(_ action: URLAction) {
         completedURLActionCalls.append(action)
     }
-    
+
     func showConversation(_ conversation: ZMConversation, at message: ZMConversationMessage?) {
         showConversationCalls.append(conversation)
     }
-    
+
     func showConversationList() {
         showConversationListCalls += 1
     }
-    
+
     func showUserProfile(user: UserType) {
         showUserProfileCalls.append(user)
     }
-    
+
     func showConnectionRequest(userId: UUID) {
         showConnectionRequestCalls.append(userId)
     }
-    
+
 }

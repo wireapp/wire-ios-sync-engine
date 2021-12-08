@@ -34,14 +34,14 @@ extension UnauthenticatedSession {
     public func continueAfterBackupImportStep() {
         authenticationStatus.continueAfterBackupImportStep()
     }
-        
+
     /// Attempt to log in with the given credentials
     @objc(loginWithCredentials:)
     public func login(with credentials: ZMCredentials) {
         let updatedCredentialsInUserSession = delegate?.session(session: self, updatedCredentials: credentials) ?? false
-        
+
         guard !updatedCredentialsInUserSession else { return }
-        
+
         if credentials.isInvalid {
             let error = NSError(code: .needsCredentials, userInfo: nil)
             authenticationStatus.notifyAuthenticationDidFail(error)
@@ -52,7 +52,7 @@ extension UnauthenticatedSession {
             }
         }
     }
-    
+
     /// Requires a phone verification code for login. Returns NO if the phone number was invalid
     @objc(requestPhoneVerificationCodeForLogin:)
     @discardableResult public func requestPhoneVerificationCodeForLogin(phoneNumber: String) -> Bool {

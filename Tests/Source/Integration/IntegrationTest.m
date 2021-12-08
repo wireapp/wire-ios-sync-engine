@@ -35,6 +35,7 @@
     self.mockMediaManager = [[MockMediaManager alloc] init];
     self.mockEnvironment = [[MockEnvironment alloc] init];
     self.mockLoginDelegete = [[MockLoginDelegate alloc] init];
+    self.appState = @"authenticated";
     
     self.currentUserIdentifier = [NSUUID createUUID];
     [self _setUp];
@@ -52,11 +53,6 @@
     [NSFileManager.defaultManager removeItemAtURL:[MockUserClient mockEncryptionSessionDirectory] error:nil];
     
     [super tearDown];
-}
-
-
-- (SessionManagerConfiguration *)sessionManagerConfiguration {
-    return [SessionManagerConfiguration defaultConfiguration];
 }
 
 - (BOOL)useInMemoryStore

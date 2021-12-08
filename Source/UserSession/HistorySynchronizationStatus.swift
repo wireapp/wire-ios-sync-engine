@@ -16,30 +16,27 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 // 
 
-
 import Foundation
 
-@objc public protocol HistorySynchronizationStatus : NSObjectProtocol
-{
+@objc public protocol HistorySynchronizationStatus: NSObjectProtocol {
     /// Should be called when the sync is completed
     func didCompleteSync()
-    
+
     /// Should be called when the sync is started
     func didStartSync()
-    
+
     /// Whether the history can now be downloaded
-    var shouldDownloadFullHistory : Bool { get }
+    var shouldDownloadFullHistory: Bool { get }
 }
 
-@objc public final class ForegroundOnlyHistorySynchronizationStatus : NSObject, HistorySynchronizationStatus
-{
+@objc public final class ForegroundOnlyHistorySynchronizationStatus: NSObject, HistorySynchronizationStatus {
     fileprivate var isSyncing = false
     fileprivate var isInBackground = false
-    fileprivate let application : ZMApplication
-    
+    fileprivate let application: ZMApplication
+
     /// Managed object context used to execute on the right thread
-    fileprivate var moc : NSManagedObjectContext
-    
+    fileprivate var moc: NSManagedObjectContext
+
     public init(managedObjectContext: NSManagedObjectContext,
                 application: ZMApplication) {
         self.moc = managedObjectContext
@@ -50,11 +47,11 @@ import Foundation
         application.registerObserverForDidBecomeActive(self, selector: #selector(didBecomeActive(_:)))
         application.registerObserverForWillResignActive(self, selector: #selector(willResignActive(_:)))
     }
-    
+
     deinit {
         self.application.unregisterObserverForStateChange(self)
     }
-    
+
     @objc
     public func didBecomeActive(_ note: Notification) {
         self.moc.performGroupedBlock { () -> Void in
@@ -69,20 +66,18 @@ import Foundation
         }
     }
 
-    
     /// Should be called when the initial synchronization is done
     public func didCompleteSync() {
         self.isSyncing = false
     }
-    
+
     /// Should be called when some synchronization (slow or quick) is started
     public func didStartSync() {
         self.isSyncing = true
     }
-    
+
     /// Returns whether history should be downloaded now
-    public var shouldDownloadFullHistory : Bool {
-        return !self.isSyncing && !self.isInBackground;
+    public var shouldDownloadFullHistory: Bool {
+        return !self.isSyncing && !self.isInBackground
     }
 }
-

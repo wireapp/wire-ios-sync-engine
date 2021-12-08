@@ -16,30 +16,29 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import Foundation
 import WireCryptobox
 
 extension ZMUserSession {
-    
+
     /// Parses and execute a debug command, which is expected to be
     /// tokenized already (e.g. "print", "foobar")
     public func executeDebugCommand(
         _ command: [String],
-        onComplete: @escaping (DebugCommandResult) -> ()
+        onComplete: @escaping (DebugCommandResult) -> Void
     ) {
         guard let keyword = command.first else {
             onComplete(.unknownCommand)
             return
         }
-        
+
         let arguments = Array(command.dropFirst())
-        
+
         guard let command = debugCommands[keyword] else {
             onComplete(.unknownCommand)
             return
         }
-        
+
         let state = self.savedDebugState[keyword] ?? [:]
         command.execute(
             arguments: arguments,
@@ -48,7 +47,7 @@ extension ZMUserSession {
             onComplete: onComplete
         )
     }
-    
+
     static func initDebugCommands() -> [String: DebugCommand] {
         return [
             DebugCommandLogEncryption(),
@@ -57,7 +56,7 @@ extension ZMUserSession {
             DebugCommandVariables()
         ].dictionary { (key: $0.keyword, value: $0) }
     }
-    
+
     func restoreDebugCommandsState() {
         self.debugCommands.values.forEach {
             let state = self.savedDebugState[$0.keyword] ?? [:]
@@ -71,7 +70,7 @@ extension ZMUserSession {
         else { return nil }
         return "Wire-debugCommandsState-\(identifier)"
     }
-    
+
     /// The debug state persisted for this user
     fileprivate var savedDebugState: [String: [String: Any]] {
         get {
@@ -88,18 +87,18 @@ extension ZMUserSession {
 
 /// A debug command that can be invoked with arguments
 protocol DebugCommand {
-    
+
     /// This is the keyword used to invoke the command
     var keyword: String { get }
-        
+
     /// This will be called to execute the command
     func execute(
         arguments: [String],
         userSession: ZMUserSession,
         state: [String: Any],
-        onComplete: @escaping ((DebugCommandResult) -> ())
+        onComplete: @escaping ((DebugCommandResult) -> Void)
     )
-    
+
     /// Restore any state from the persistent state, e.g. re-enable logging
     /// of a certain kind based on whether it was enabled before.
     /// This is called once in the lifetime of a DebugCommand.
@@ -107,7 +106,7 @@ protocol DebugCommand {
 }
 
 extension DebugCommand {
-    
+
     /// Save any "state" that needs to be persisted. The state should
     /// only contain types can serialized in user defaults.
     func saveState(userSession: ZMUserSession, state: [String: Any]) {
@@ -118,22 +117,22 @@ extension DebugCommand {
 /// This is a mixin (implementation of a protocol that can be
 /// inherited to avoid having to rewrite all protocol methods and vars)
 private class DebugCommandMixin: DebugCommand {
-        
+
     let keyword: String
-    
+
     init(keyword: String) {
         self.keyword = keyword
     }
-    
+
     func execute(
         arguments: [String],
         userSession: ZMUserSession,
         state: [String: Any],
-        onComplete: @escaping ((DebugCommandResult) -> ())
+        onComplete: @escaping ((DebugCommandResult) -> Void)
     ) {
         onComplete(.failure(error: "Not implemented"))
     }
-    
+
     func restoreFromState(userSession: ZMUserSession, state: [String: Any]) {
         return
     }
@@ -151,11 +150,10 @@ public enum DebugCommandResult {
     case unknownCommand
 }
 
-
 // MARK: - Command execution
 
 extension EncryptionSessionIdentifier {
-    
+
     fileprivate init?(string: String) {
         let split = string.split(separator: "_")
         guard split.count == 2 else { return nil }
@@ -166,28 +164,27 @@ extension EncryptionSessionIdentifier {
 }
 
 private class DebugCommandLogEncryption: DebugCommandMixin {
-    
+
     var currentlyEnabledLogs: Set<EncryptionSessionIdentifier> = Set()
-    
+
     private var usage: String {
         "\(keyword) <add|remove|list> <sessionId|all>"
     }
-    
+
     init() {
         super.init(keyword: "logEncryption")
     }
-    
+
     override func execute(
         arguments: [String],
         userSession: ZMUserSession,
         state: [String: Any],
-        onComplete: @escaping ((DebugCommandResult) -> ()))
-    {
+        onComplete: @escaping ((DebugCommandResult) -> Void)) {
         defer {
             saveEnabledLogs(userSession: userSession)
         }
-        
-        if (arguments.first == "list") {
+
+        if arguments.first == "list" {
             return onComplete(.success(info:
                 "Enabled:\n" +
                 self.currentlyEnabledLogs
@@ -195,16 +192,16 @@ private class DebugCommandLogEncryption: DebugCommandMixin {
                     .joined(separator: "\n")
                 ))
         }
-        
+
         guard arguments.count == 2,
         arguments[0] == "add" || arguments[0] == "remove"
         else {
             return onComplete(.failure(error: "usage: \(self.usage)"))
         }
-        
+
         let isAdding = arguments[0] == "add"
         let subject = arguments[1]
-        
+
         userSession.syncManagedObjectContext.perform {
             guard let context = ZMUser
                 .selfUser(in: userSession.syncManagedObjectContext)
@@ -216,11 +213,11 @@ private class DebugCommandLogEncryption: DebugCommandMixin {
                 self.currentlyEnabledLogs = Set()
                 return onComplete(.success(info: "all removed"))
             }
-            
+
             guard let identifier = EncryptionSessionIdentifier(string: subject) else {
                 return onComplete(.failure(error: "Invalid id \(subject)"))
             }
-            
+
             if isAdding {
                 self.currentlyEnabledLogs.insert(identifier)
             } else {
@@ -230,16 +227,16 @@ private class DebugCommandLogEncryption: DebugCommandMixin {
             return onComplete(.success(info: "Added logging for identifier \(identifier)"))
         }
     }
-    
+
     private let logsKey = "enabledLogs"
-    
+
     private func saveEnabledLogs(userSession: ZMUserSession) {
         let idsToSave = self.currentlyEnabledLogs.map {
             $0.rawValue
         }
         self.saveState(userSession: userSession, state: [logsKey: idsToSave])
     }
-    
+
     override func restoreFromState(
         userSession: ZMUserSession,
         state: [String: Any]
@@ -266,21 +263,20 @@ private class DebugCommandShowIdentifiers: DebugCommandMixin {
     init() {
         super.init(keyword: "showIdentifier")
     }
-    
+
     override func execute(
         arguments: [String],
         userSession: ZMUserSession,
         state: [String: Any],
-        onComplete: @escaping ((DebugCommandResult) -> ()))
-    {
-        guard 
+        onComplete: @escaping ((DebugCommandResult) -> Void)) {
+        guard
             let client = userSession.selfUserClient,
             let user = userSession.selfUser as? ZMUser
         else {
             onComplete(.failure(error: "No user"))
             return
         }
-        
+
         onComplete(.success(info:
             "User: \(user.remoteIdentifier.uuidString)\n" +
             "Client: \(client.remoteIdentifier ?? "-")\n" +
@@ -295,13 +291,12 @@ private class DebugCommandHelp: DebugCommandMixin {
     init() {
         super.init(keyword: "help")
     }
-    
+
     override func execute(
         arguments: [String],
         userSession: ZMUserSession,
         state: [String: Any],
-        onComplete: @escaping ((DebugCommandResult) -> ()))
-    {
+        onComplete: @escaping ((DebugCommandResult) -> Void)) {
         let output = userSession.debugCommands.keys.sorted().joined(separator: "\n")
         onComplete(.success(info: output))
     }
@@ -309,17 +304,16 @@ private class DebugCommandHelp: DebugCommandMixin {
 
 /// Debug variables
 private class DebugCommandVariables: DebugCommandMixin {
-    
+
     init() {
         super.init(keyword: "variables")
     }
-        
+
     override func execute(
         arguments: [String],
         userSession: ZMUserSession,
         state: [String: Any],
-        onComplete: @escaping ((DebugCommandResult) -> ()))
-    {
+        onComplete: @escaping ((DebugCommandResult) -> Void)) {
         var newState = state
         switch arguments.first {
         case "list":
@@ -351,5 +345,5 @@ private class DebugCommandVariables: DebugCommandMixin {
             return onComplete(.unknownCommand)
         }
     }
-    
+
 }

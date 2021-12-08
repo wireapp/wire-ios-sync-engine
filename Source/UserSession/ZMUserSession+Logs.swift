@@ -16,13 +16,12 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 // 
 
-
 import Foundation
 import WireDataModel
 
 // MARK: - Error on context save debugging
 
-public enum ContextType : String {
+public enum ContextType: String {
     case UI = "UI"
     case Sync = "Sync"
     case Search = "Search"
@@ -30,8 +29,8 @@ public enum ContextType : String {
 }
 
 extension NSManagedObjectContext {
-    
-    var type : ContextType {
+
+    var type: ContextType {
         if self.zm_isSyncContext {
             return .Sync
         }
@@ -46,23 +45,23 @@ extension NSManagedObjectContext {
 }
 
 extension ZMUserSession {
-    
-    public typealias SaveFailureCallback = (_ metadata: [String: Any], _ type: ContextType, _ error: NSError, _ userInfo: [String: Any]) -> ()
-    
+
+    public typealias SaveFailureCallback = (_ metadata: [String: Any], _ type: ContextType, _ error: NSError, _ userInfo: [String: Any]) -> Void
+
     /// Register a handle for monitoring when one of the manage object contexts fails
     /// to save and is rolled back. The call is invoked on the context queue, so it might not be on the main thread
     public func registerForSaveFailure(handler: @escaping SaveFailureCallback) {
         self.managedObjectContext.errorOnSaveCallback = { (context, error) in
-            let metadata : [String: Any] = context.persistentStoreCoordinator!.persistentStores[0].metadata as [String: Any]
+            let metadata: [String: Any] = context.persistentStoreCoordinator!.persistentStores[0].metadata as [String: Any]
             let type = context.type
-            let userInfo : [String: Any] = context.userInfo.asDictionary() as! [String: Any]
+            let userInfo: [String: Any] = context.userInfo.asDictionary() as! [String: Any]
             handler(metadata, type, error, userInfo)
         }
         self.syncManagedObjectContext.performGroupedBlock {
             self.syncManagedObjectContext.errorOnSaveCallback = { (context, error) in
-                let metadata : [String: Any] = context.persistentStoreCoordinator!.persistentStores[0].metadata as [String: Any]
+                let metadata: [String: Any] = context.persistentStoreCoordinator!.persistentStores[0].metadata as [String: Any]
                 let type = context.type
-                let userInfo : [String: Any] = context.userInfo.asDictionary() as! [String: Any]
+                let userInfo: [String: Any] = context.userInfo.asDictionary() as! [String: Any]
                 handler(metadata, type, error, userInfo)
             }
         }

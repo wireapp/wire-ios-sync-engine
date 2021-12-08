@@ -16,7 +16,6 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import avs
 import WireDataModel
 
@@ -65,7 +64,7 @@ open class AuthenticatedSessionFactory {
             userId: account.userIdentifier,
             transportSession: transportSession,
             mediaManager: mediaManager,
-            flowManager:flowManager,
+            flowManager: flowManager,
             analytics: analytics,
             application: application,
             appVersion: appVersion,
@@ -79,7 +78,6 @@ open class AuthenticatedSessionFactory {
     }
 
 }
-
 
 open class UnauthenticatedSessionFactory {
 

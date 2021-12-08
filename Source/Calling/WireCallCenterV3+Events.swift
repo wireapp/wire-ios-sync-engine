@@ -23,7 +23,7 @@ private let zmLog = ZMSLog(tag: "calling")
 
 // MARK: Conversation Changes
 
-extension WireCallCenterV3 : ZMConversationObserver {
+extension WireCallCenterV3: ZMConversationObserver {
 
     public func conversationDidChange(_ changeInfo: ConversationChangeInfo) {
         handleSecurityLevelChange(changeInfo)
@@ -81,7 +81,7 @@ extension WireCallCenterV3 {
 
     private func handleEvent(_ description: String, _ handlerBlock: @escaping () -> Void) {
         zmLog.debug("Handle AVS event: \(description)")
-        
+
         guard let context = self.uiMOC else {
             zmLog.error("Cannot handle event '\(description)' because the UI context is not available.")
             return
@@ -230,7 +230,7 @@ extension WireCallCenterV3 {
             self.isReady = true
         }
     }
-    
+
     func handleParticipantChange(conversationId: UUID, data: String) {
         handleEvent("participant-change") {
             guard let data = data.data(using: .utf8) else {
@@ -250,10 +250,10 @@ extension WireCallCenterV3 {
             //              "muted": 0 // 0 = false, 1 = true
             //          }
             //      ]
-            //}
+            // }
 
             do {
-                let change = try JSONDecoder().decode(AVSParticipantsChange.self, from: data)
+                let change = try self.decoder.decode(AVSParticipantsChange.self, from: data)
                 let members = change.members.map(AVSCallMember.init)
                 self.callParticipantsChanged(conversationId: change.convid, participants: members)
             } catch {
@@ -298,7 +298,7 @@ extension WireCallCenterV3 {
             }
         }
     }
-    
+
     func handleMuteChange(muted: Bool) {
         handleEventInContext("mute-change") {
             WireCallCenterMutedNotification(muted: muted).post(in: $0.notificationContext)
@@ -306,10 +306,10 @@ extension WireCallCenterV3 {
     }
 
     func handleClientsRequest(conversationId: UUID, completion: @escaping (_ clients: String) -> Void) {
-        handleEventInContext("request-clients") { context in
+        handleEventInContext("request-clients") { [encoder] _ in
             self.transport?.requestClientsList(conversationId: conversationId) { clients in
 
-                guard let json = AVSClientList(clients: clients).json else {
+                guard let json = AVSClientList(clients: clients).jsonString(encoder) else {
                     zmLog.error("Could not encode client list to JSON")
                     return
                 }
@@ -324,14 +324,14 @@ extension WireCallCenterV3 {
             self.sendSFT(token: token, url: url, data: data)
         }
     }
-    
+
     func handleActiveSpeakersChange(conversationId: UUID, data: String) {
         handleEventInContext("active-speakers-change") {
             guard let data = data.data(using: .utf8) else {
                 zmLog.safePublic("Invalid active speakers data")
                 return
             }
-            
+
             // Example of `data`
             //  {
             //      "audio_levels": [
@@ -342,10 +342,10 @@ extension WireCallCenterV3 {
             //              "audio_level_now": 100
             //          }
             //      ]
-            //}
-            
+            // }
+
             do {
-                let change = try JSONDecoder().decode(AVSActiveSpeakersChange.self, from: data)
+                let change = try self.decoder.decode(AVSActiveSpeakersChange.self, from: data)
                 if let call = self.callSnapshots[conversationId] {
                     self.callSnapshots[conversationId] = call.updateActiveSpeakers(change.activeSpeakers)
                     WireCallCenterActiveSpeakersNotification().post(in: $0.notificationContext)
@@ -366,4 +366,3 @@ private extension Set where Element == ZMUser {
         }
     }
 }
-

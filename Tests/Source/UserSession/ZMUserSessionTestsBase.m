@@ -53,23 +53,8 @@
     NSUUID *userId = [NSUUID createUUID];
     [ZMUser selfUserInContext:self.syncMOC].remoteIdentifier = userId;
     
-    MockStrategyDirectory *mockStrategyDirectory = [[MockStrategyDirectory alloc] init];
-    MockUpdateEventProcessor *mockUpdateEventProcessor = [[MockUpdateEventProcessor alloc] init];
-    
-    self.sut = [[ZMUserSession alloc] initWithUserId:userId
-                                    transportSession:self.transportSession
-                                        mediaManager:self.mediaManager
-                                         flowManager:self.flowManagerMock
-                                           analytics:nil
-                                      eventProcessor:mockUpdateEventProcessor
-                                   strategyDirectory:mockStrategyDirectory
-                                        syncStrategy:nil
-                                       operationLoop:nil
-                                         application:self.application
-                                          appVersion:@"00000"
-                                       coreDataStack:self.coreDataStack
-                                       configuration:ZMUserSessionConfiguration.defaultConfig];
-        
+    [self createSutWithUserId:userId];
+
     self.sut.thirdPartyServicesDelegate = self.thirdPartyServices;
     self.sut.sessionManager = (id<SessionManagerType>)self.mockSessionManager;
     

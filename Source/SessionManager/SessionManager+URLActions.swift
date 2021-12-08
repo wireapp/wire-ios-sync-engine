@@ -27,12 +27,11 @@ protocol URLActionProcessor {
     /// - parameter urlAction: URLAction to process.
     /// - parameter delegate: Delegate which observes the attempt of processing the action.
     func process(urlAction: URLAction, delegate: PresentationDelegate?)
-    
+
 }
 
 extension SessionManager {
-    
-    
+
     /// React to the application being opened via a URL
     ///
     /// - parameter url: URL the application was launched with
@@ -42,7 +41,12 @@ extension SessionManager {
         guard let action = try URLAction(url: url) else { return false }
 
         guard action.requiresAuthentication else {
-            process(urlAction: action, on: activeUnauthenticatedSession)
+            if canProcessUrlAction {
+                process(urlAction: action, on: activeUnauthenticatedSession)
+            } else {
+                pendingURLAction = action
+            }
+
             return true
         }
 
@@ -58,20 +62,34 @@ extension SessionManager {
         process(urlAction: action, on: userSession)
         return true
     }
-    
+
     func process(urlAction action: URLAction, on processor: URLActionProcessor) {
         presentationDelegate?.shouldPerformAction(action, decisionHandler: { [weak self] (shouldPerformAction) in
             guard shouldPerformAction, let strongSelf = self else { return }
             processor.process(urlAction: action, delegate: strongSelf.presentationDelegate)
         })
     }
-    
-    func processPendingURLAction() {
-        if let action = pendingURLAction, let userSession = activeUserSession {
+
+    public func processPendingURLActionRequiresAuthentication() {
+        if let action = pendingURLAction, action.requiresAuthentication,
+           let userSession = activeUserSession {
             process(urlAction: action, on: userSession)
+            pendingURLAction = nil
         }
-        
-        pendingURLAction = nil
     }
-    
+
+    public func processPendingURLActionDoesNotRequireAuthentication() {
+        if let action = pendingURLAction, !action.requiresAuthentication {
+            process(urlAction: action, on: activeUnauthenticatedSession)
+            pendingURLAction = nil
+        }
+    }
+
+    var canProcessUrlAction: Bool {
+        guard let delegate = delegate else {
+            return false
+        }
+        return delegate.isInAuthenticatedAppState || delegate.isInUnathenticatedAppState
+    }
+
 }

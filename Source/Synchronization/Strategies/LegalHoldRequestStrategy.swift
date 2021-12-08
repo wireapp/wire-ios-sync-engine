@@ -18,51 +18,46 @@
 
 import Foundation
 
-@objc
-public class LegalHoldRequestStrategy: AbstractRequestStrategy {
-    
+public class LegalHoldRequestStrategy: AbstractRequestStrategy, ZMSingleRequestTranscoder, ZMEventConsumer {
+
     fileprivate let syncStatus: SyncStatus
     fileprivate var singleRequstSync: ZMSingleRequestSync!
-    
+
     @objc
     public init(withManagedObjectContext managedObjectContext: NSManagedObjectContext, applicationStatus: ApplicationStatus, syncStatus: SyncStatus) {
         self.syncStatus = syncStatus
-        
+
         super.init(withManagedObjectContext: managedObjectContext, applicationStatus: applicationStatus)
-        
+
         configuration = [.allowsRequestsDuringSlowSync]
         singleRequstSync = ZMSingleRequestSync(singleRequestTranscoder: self, groupQueue: managedObjectContext)
     }
-    
+
     public override func nextRequestIfAllowed() -> ZMTransportRequest? {
         guard syncStatus.currentSyncPhase == .fetchingLegalHoldStatus else { return nil }
-        
+
         singleRequstSync.readyForNextRequestIfNotBusy()
-        
+
         return singleRequstSync.nextRequest()
     }
-    
-}
 
-extension LegalHoldRequestStrategy: ZMSingleRequestTranscoder {
-        
     public func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
         let selfUser = ZMUser.selfUser(in: managedObjectContext)
-        
+
         guard let teamID = selfUser.team?.remoteIdentifier else {
                 // Skip sync phase if the user doesn't belong to a team
                 syncStatus.finishCurrentSyncPhase(phase: .fetchingLegalHoldStatus)
                 return nil
         }
-        
+
         guard let userID = selfUser.remoteIdentifier else { return nil }
-        
+
         return ZMTransportRequest(getFromPath: "teams/\(teamID.transportString())/legalhold/\(userID.transportString())")
     }
-    
+
     public func didReceive(_ response: ZMTransportResponse, forSingleRequest sync: ZMSingleRequestSync) {
         guard response.result == .permanentError || response.result == .success else { return }
-        
+
         if response.result == .success, let payload = response.payload as? [AnyHashable: Any] {
             switch payload["status"] as? String {
             case "pending":
@@ -73,21 +68,21 @@ extension LegalHoldRequestStrategy: ZMSingleRequestTranscoder {
                 break
             }
         }
-        
+
         syncStatus.finishCurrentSyncPhase(phase: .fetchingLegalHoldStatus)
         singleRequstSync.readyForNextRequestIfNotBusy()
     }
-    
+
     func deleteLegalHoldRequest() {
         let selfUser = ZMUser.selfUser(in: managedObjectContext)
         selfUser.legalHoldRequestWasCancelled()
     }
-    
+
     func insertLegalHoldRequest(from payload: [AnyHashable: Any]) {
         let selfUser = ZMUser.selfUser(in: managedObjectContext)
         let decoder = JSONDecoder()
         decoder.dataDecodingStrategy = .base64
-        
+
         do {
             let jsonPayload = try JSONSerialization.data(withJSONObject: payload, options: [])
             let request = try decoder.decode(LegalHoldRequest.self, from: jsonPayload)
@@ -96,15 +91,13 @@ extension LegalHoldRequestStrategy: ZMSingleRequestTranscoder {
             Logging.eventProcessing.error("Invalid legal hold request payload: \(error)")
         }
     }
-    
-}
 
-extension LegalHoldRequestStrategy: ZMEventConsumer {
-    
+    // MARK: - ZMEventConsumer
+
     public func processEvents(_ events: [ZMUpdateEvent], liveEvents: Bool, prefetchResult: ZMFetchRequestBatchResult?) {
         events.forEach(processUpdateEvent)
     }
-    
+
     fileprivate func processUpdateEvent(_ event: ZMUpdateEvent) {
         switch event.type {
         case .userLegalHoldRequest:
@@ -115,9 +108,9 @@ extension LegalHoldRequestStrategy: ZMEventConsumer {
             break
         }
     }
-    
+
     fileprivate func processLegalHoldRequestEvent(_ event: ZMUpdateEvent) {
         insertLegalHoldRequest(from: event.payload)
     }
-    
+
 }

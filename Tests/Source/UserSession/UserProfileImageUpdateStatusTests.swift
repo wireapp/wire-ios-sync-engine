@@ -41,12 +41,12 @@ var sampleFailedState: UserProfileImageUpdateStatus.ProfileUpdateState {
 }
 
 class MockPreprocessor: NSObject, ZMAssetsPreprocessorProtocol {
-    weak var delegate: ZMAssetsPreprocessorDelegate? = nil
+    weak var delegate: ZMAssetsPreprocessorDelegate?
     var operations = [Operation]()
 
-    var imageOwner: ZMImageOwner? = nil
+    var imageOwner: ZMImageOwner?
     var operationsCalled: Bool = false
-    
+
     func operations(forPreprocessingImageOwner imageOwner: ZMImageOwner) -> [Operation]? {
         operationsCalled = true
         self.imageOwner = imageOwner
@@ -57,8 +57,8 @@ class MockPreprocessor: NSObject, ZMAssetsPreprocessorProtocol {
 class MockOperation: NSObject, ZMImageDownsampleOperationProtocol {
     let downsampleImageData: Data
     let format: ZMImageFormat
-    let properties : ZMIImageProperties
-    
+    let properties: ZMIImageProperties
+
     init(downsampleImageData: Data = Data(), format: ZMImageFormat = .original, properties: ZMIImageProperties = ZMIImageProperties(size: .zero, length: 0, mimeType: "foo")) {
         self.downsampleImageData = downsampleImageData
         self.format = format
@@ -74,14 +74,14 @@ class MockChangeDelegate: WireSyncEngine.UserProfileImageUploadStateChangeDelega
     func didTransition(from oldState: ProfileUpdateState, to currentState: ProfileUpdateState) {
         states.append(currentState)
     }
-    
+
     func check(lastStates: [ProfileUpdateState], file: StaticString = #file, line: UInt = #line) {
         XCTAssert(states.count >= lastStates.count, "Not enough transitions happened. States: \(states)", file: file, line: line)
         let suffix = Array(states.suffix(lastStates.count))
         XCTAssertEqual(suffix, lastStates, "Expected last transitions: \(lastStates) have \(suffix)", file: file, line: line)
     }
-    
-    var imageStates = [ProfileImageSize : [ImageState]]()
+
+    var imageStates = [ProfileImageSize: [ImageState]]()
 
     func didTransition(from oldState: ImageState, to currentState: ImageState, for size: ProfileImageSize) {
         var states = imageStates[size] ?? [ImageState]()
@@ -120,7 +120,7 @@ extension StateTransition {
             XCTAssertFalse(result, "Should not transition: [\(self)] -> [\(newState)]", file: file, line: line)
         }
     }
-    
+
     static func canTransition(from oldState: Self, onlyTo newStates: [Self], file: StaticString = #file, line: UInt = #line) {
         for state in Self.allStates {
             let isValid = newStates.contains(state)
@@ -156,12 +156,12 @@ extension ProfileUpdateState: StateTransition {
 }
 
 class UserProfileImageUpdateStatusTests: MessagingTest {
-    var sut : UserProfileImageUpdateStatus!
-    var preprocessor : MockPreprocessor!
+    var sut: UserProfileImageUpdateStatus!
+    var preprocessor: MockPreprocessor!
     var tinyImage: Data!
     var imageOwner: ZMImageOwner!
     var changeDelegate: MockChangeDelegate!
-    
+
     override func setUp() {
         super.setUp()
         preprocessor = MockPreprocessor()
@@ -172,7 +172,7 @@ class UserProfileImageUpdateStatusTests: MessagingTest {
         changeDelegate = MockChangeDelegate()
         self.sut.changeDelegate = changeDelegate
     }
-    
+
     override func tearDown() {
         preprocessor = nil
         sut = nil
@@ -181,7 +181,7 @@ class UserProfileImageUpdateStatusTests: MessagingTest {
         changeDelegate = nil
         super.tearDown()
     }
-    
+
     func operationWithExpectation(description: String) -> Operation {
         let expectation = self.expectation(description: description)
         return BlockOperation {
@@ -198,7 +198,7 @@ extension UserProfileImageUpdateStatusTests {
             XCTAssertEqual(self.sut.imageState(for: .complete), .ready)
         }
     }
-    
+
     func testImageStateTransitions() {
         ImageState.canTransition(from: .ready, onlyTo: [sampleFailedImageState, .preprocessing, sampleUploadState])
         ImageState.canTransition(from: .preprocessing, onlyTo: [sampleFailedImageState, sampleUploadState])
@@ -207,7 +207,7 @@ extension UserProfileImageUpdateStatusTests {
         ImageState.canTransition(from: sampleUploadedState, onlyTo: [sampleFailedImageState, .ready])
         ImageState.canTransition(from: sampleFailedImageState, onlyTo: [.ready])
     }
-    
+
     func testThatImageStateCanTransitionToValidState() {
         syncMOC.performGroupedBlockAndWait {
             // WHEN
@@ -218,7 +218,7 @@ extension UserProfileImageUpdateStatusTests {
             XCTAssertEqual(self.sut.imageState(for: .preview), .ready)
         }
     }
-    
+
     func testThatImageStateDoesntTransitionToInvalidState() {
         syncMOC.performGroupedBlockAndWait {
             // WHEN
@@ -229,7 +229,7 @@ extension UserProfileImageUpdateStatusTests {
             XCTAssertEqual(self.sut.imageState(for: .complete), .ready)
         }
     }
-    
+
     func testThatImageStateMaintainsSeparateStatesForDifferentSizes() {
         syncMOC.performGroupedBlockAndWait {
             // WHEN
@@ -240,7 +240,7 @@ extension UserProfileImageUpdateStatusTests {
             XCTAssertEqual(self.sut.imageState(for: .complete), .ready)
         }
     }
-    
+
     func testThatProfileUpdateStateIsSetToUpdateAfterAllImageStatesAreUploaded() {
         syncMOC.performGroupedBlockAndWait {
             // GIVEN
@@ -258,7 +258,7 @@ extension UserProfileImageUpdateStatusTests {
             // WHEN
             let previewAssetId = "asset_preview"
             let completeAssetId = "asset_complete"
-            
+
             self.sut.setState(state: .uploaded(assetId: previewAssetId), for: .preview)
             self.sut.setState(state: .uploaded(assetId: completeAssetId), for: .complete)
 
@@ -268,7 +268,7 @@ extension UserProfileImageUpdateStatusTests {
             XCTAssertEqual(self.sut.imageState(for: .complete), .ready)
         }
     }
-    
+
     func testThatProfileUpdateStateIsSetToFailedAfterAnyImageStatesIsFailed() {
         syncMOC.performGroupedBlockAndWait {
             // WHEN
@@ -290,14 +290,14 @@ extension UserProfileImageUpdateStatusTests {
             XCTAssertEqual(self.sut.state, .ready)
         }
     }
-    
+
     func testProfileUpdateStateTransitions() {
         ProfileUpdateState.canTransition(from: .ready, onlyTo: [sampleFailedState, samplePreprocessState, sampleUpdateState])
         ProfileUpdateState.canTransition(from: samplePreprocessState, onlyTo: [sampleFailedState, sampleUpdateState])
         ProfileUpdateState.canTransition(from: sampleUpdateState, onlyTo: [sampleFailedState, .ready])
         ProfileUpdateState.canTransition(from: sampleFailedState, onlyTo: [.ready])
     }
-    
+
     func testThatProfileUpdateStateCanTransitionToValidState() {
         syncMOC.performGroupedBlockAndWait {
             // WHEN
@@ -307,17 +307,17 @@ extension UserProfileImageUpdateStatusTests {
             XCTAssertEqual(self.sut.state, samplePreprocessState)
         }
     }
-    
+
     func testThatProfileUpdateStateDoesntTransitionToInvalidState() {
         syncMOC.performGroupedBlockAndWait {
             // WHEN
             self.sut.setState(state: .ready)
-            
+
             // THEN
             XCTAssertEqual(self.changeDelegate.states, [])
         }
     }
-    
+
     func testThatWhenProfileUpdateStateIsFailedImageStatesAreBackToReady() {
         syncMOC.performGroupedBlockAndWait {
             // GIVEN
@@ -345,7 +345,7 @@ extension UserProfileImageUpdateStatusTests {
         // THEN
         XCTAssertNotNil(preprocessor.delegate)
     }
-    
+
     func testThatItAsksPreprocessorForOperationsWithCorrectImageOwner() {
         // WHEN
         self.sut.updateImage(imageData: tinyImage)
@@ -357,11 +357,11 @@ extension UserProfileImageUpdateStatusTests {
         XCTAssertNotNil(imageOwner)
         XCTAssertEqual(imageOwner?.originalImageData(), tinyImage)
     }
-    
+
     func testThatPreprocessingFailsWhenNoOperationsAreReturned() {
         // GIVEN
         preprocessor.operations = []
-        
+
         // WHEN
         self.sut.updateImage(imageData: tinyImage)
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
@@ -371,27 +371,27 @@ extension UserProfileImageUpdateStatusTests {
         XCTAssertEqual(self.sut.imageState(for: .preview), .ready)
         XCTAssertEqual(self.sut.imageState(for: .complete), .ready)
     }
-    
+
     func testThatResizeOperationsAreEnqueued() {
         // GIVEN
         let e1 = self.operationWithExpectation(description: "#1 Image processing done")
         let e2 = self.operationWithExpectation(description: "#2 Image processing done")
         preprocessor.operations = [e1, e2]
-        
+
         // WHEN
         self.sut.updateImage(imageData: tinyImage)
 
         // THEN 
         XCTAssertTrue(self.waitForCustomExpectations(withTimeout: 0.5))
     }
-    
+
     func testThatAfterDownsamplingImageItSetsCorrectState() {
         // GIVEN
         syncMOC.performGroupedBlockAndWait {
             self.sut.setState(state: .preprocessing, for: .complete)
             self.sut.setState(state: .preprocessing, for: .preview)
         }
-        
+
         let previewOperation = MockOperation(downsampleImageData: "preview".data(using: .utf8)!, format: ProfileImageSize.preview.imageFormat)
         let completeOperation = MockOperation(downsampleImageData: "complete".data(using: .utf8)!, format: ProfileImageSize.complete.imageFormat)
 
@@ -411,14 +411,14 @@ extension UserProfileImageUpdateStatusTests {
         XCTAssertEqual(self.sut.imageState(for: .preview), .upload(image: previewOperation.downsampleImageData))
         XCTAssertEqual(self.sut.imageState(for: .complete), .upload(image: completeOperation.downsampleImageData))
     }
-    
+
     func testThatIfDownsamplingFailsStateForAllSizesIsSetToFail() {
         // GIVEN
         syncMOC.performGroupedBlockAndWait {
             self.sut.setState(state: .preprocessing, for: .complete)
             self.sut.setState(state: .preprocessing, for: .preview)
         }
-        
+
         // WHEN
         self.sut.failedPreprocessingImageOwner(imageOwner)
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
@@ -428,7 +428,7 @@ extension UserProfileImageUpdateStatusTests {
         XCTAssertEqual(self.sut.imageState(for: .preview), .ready)
         XCTAssertEqual(self.sut.imageState(for: .complete), .ready)
     }
-    
+
     func testThatItIsPossibleToStartPreprocessingAgainIfProfileUpdateFails() {
         // GIVEN
         self.sut.updateImage(imageData: Data())
@@ -455,7 +455,7 @@ extension UserProfileImageUpdateStatusTests {
 
 // MARK: - Image upload status
 extension UserProfileImageUpdateStatusTests {
-    
+
     func testThatItReturnsImageToUploadOnlyWhenInUploadState() {
         syncMOC.performGroupedBlockAndWait {
             // GIVEN
@@ -468,7 +468,7 @@ extension UserProfileImageUpdateStatusTests {
             XCTAssertFalse(self.sut.hasImageToUpload(for: .complete))
         }
     }
-    
+
     func testThatItAdvancesStateAfterConsumingImage() {
         syncMOC.performGroupedBlockAndWait {
             // GIVEN
@@ -485,14 +485,14 @@ extension UserProfileImageUpdateStatusTests {
             XCTAssertEqual(self.sut.imageState(for: .preview), .uploading)
         }
     }
-    
+
     func testThatItAdvancesStateAfterUploadIsDone() {
         syncMOC.performGroupedBlockAndWait {
             // GIVEN
             self.sut.setState(state: .preprocessing, for: .preview)
             self.sut.setState(state: .upload(image: Data()), for: .preview)
             self.sut.setState(state: .uploading, for: .preview)
-            
+
             // WHEN
             let assetId = "1234"
             self.sut.uploadingDone(imageSize: .preview, assetId: assetId)
@@ -501,14 +501,14 @@ extension UserProfileImageUpdateStatusTests {
             XCTAssertEqual(self.sut.imageState(for: .preview), .uploaded(assetId: assetId))
         }
     }
- 
+
     func testThatItAdvancesStateAndPropogatesErrorWhenUploadFails() {
         syncMOC.performGroupedBlockAndWait {
             // GIVEN
             self.sut.setState(state: .preprocessing, for: .preview)
             self.sut.setState(state: .upload(image: Data()), for: .preview)
             self.sut.setState(state: .uploading, for: .preview)
-            
+
             // WHEN
             self.sut.uploadingFailed(imageSize: .preview, error: MockUploadError.failed)
 
@@ -517,20 +517,20 @@ extension UserProfileImageUpdateStatusTests {
             self.changeDelegate.check(lastStates: [.failed(.uploadFailed(MockUploadError.failed)), .ready])
         }
     }
-    
+
     func testThatItSignalsThereIsRequestAvailableAfterPreprocessingCompletes() {
         expectation(forNotification: NSNotification.Name(rawValue: "RequestAvailableNotification"), object: nil)
 
         syncMOC.performGroupedBlock {
             // GIVEN
             self.sut.setState(state: .preprocessing, for: .preview)
-            
+
             // WHEN
             self.sut.setState(state: .upload(image: Data()), for: .preview)
         }
-        
+
         // THEN
-        XCTAssert(waitForCustomExpectations(withTimeout:0.1))
+        XCTAssert(waitForCustomExpectations(withTimeout: 0.1))
     }
 
 }
@@ -544,7 +544,7 @@ extension UserProfileImageUpdateStatusTests {
             let previewId = "foo"
             let completeId = "bar"
             self.sut.setState(state: .preprocess(image: Data()))
-            
+
             // WHEN
             self.sut.setState(state: .update(previewAssetId: previewId, completeAssetId: completeId))
 
@@ -556,14 +556,14 @@ extension UserProfileImageUpdateStatusTests {
             XCTAssert(selfUser.hasLocalModifications(forKey: #keyPath(ZMUser.completeProfileAssetIdentifier)))
         }
     }
-    
+
     func testThatItSetsResizedImagesToSelfUserAfterCompletion() {
         // GIVEN
         let previewData = "small".data(using: .utf8)!
         let completeData = "laaaarge".data(using: .utf8)!
         let previewId = "foo"
         let completeId = "bar"
-        
+
         let selfUser = ZMUser.selfUser(in: uiMOC)
         selfUser.remoteIdentifier = UUID()
         uiMOC.saveOrRollback()
@@ -576,7 +576,7 @@ extension UserProfileImageUpdateStatusTests {
             _ = self.self.sut.consumeImage(for: .complete)
             self.self.sut.uploadingDone(imageSize: .preview, assetId: previewId)
             self.self.sut.uploadingDone(imageSize: .complete, assetId: completeId)
-            
+
             // THEN
             let selfUser = ZMUser.selfUser(in: self.syncMOC)
             XCTAssertEqual(selfUser.imageSmallProfileData, previewData)
@@ -589,4 +589,3 @@ extension UserProfileImageUpdateStatusTests {
         }
     }
 }
-

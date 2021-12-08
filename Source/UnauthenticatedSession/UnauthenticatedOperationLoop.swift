@@ -16,20 +16,17 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import Foundation
 import WireTransport
 import WireRequestStrategy
 
-
 private let log = ZMSLog(tag: "Network")
-
 
 class UnauthenticatedOperationLoop: NSObject {
 
     let transportSession: UnauthenticatedTransportSessionProtocol
     let requestStrategies: [RequestStrategy]
-    weak var operationQueue : ZMSGroupQueue?
+    weak var operationQueue: ZMSGroupQueue?
     fileprivate var tornDown = false
     fileprivate var shouldEnqueue = true
 
@@ -40,7 +37,7 @@ class UnauthenticatedOperationLoop: NSObject {
         super.init()
         RequestAvailableNotification.addObserver(self)
     }
-    
+
     deinit {
         precondition(tornDown, "Need to call tearDown before deinit")
     }
@@ -54,7 +51,6 @@ extension UnauthenticatedOperationLoop: TearDownCapable {
         tornDown = true
     }
 }
-
 
 extension UnauthenticatedOperationLoop: RequestAvailableObserver {
 

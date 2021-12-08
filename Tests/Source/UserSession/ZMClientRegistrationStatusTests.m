@@ -55,16 +55,6 @@
 @end
 
 
-@interface ZMClientRegistrationStatusTests : MessagingTest
-
-@property (nonatomic) ZMClientRegistrationStatus *sut;
-@property (nonatomic) id mockCookieStorage;
-@property (nonatomic) id mockClientRegistrationDelegate;
-@property (nonatomic) id sessionToken;
-@end
-
-
-
 @implementation ZMClientRegistrationStatusTests
 
 - (void)setUp {
@@ -155,19 +145,6 @@
     
     // then
     XCTAssertEqual(self.sut.currentPhase, ZMClientRegistrationPhaseRegistered);
-}
-
-- (void)testThatItReturns_FetchingClients_WhenReceivingAnErrorWithTooManyClients
-{
-    // given
-    ZMUser *selfUser = [ZMUser selfUserInContext:self.syncMOC];
-    selfUser.remoteIdentifier = [NSUUID UUID];
-    
-    // when
-    [self.sut didFailToRegisterClient:[self tooManyClientsError]];
-    
-    // then
-    XCTAssertEqual(self.sut.currentPhase, ZMClientRegistrationPhaseFetchingClients);
 }
 
 - (void)testThatItReturns_WaitingForDeletion_AfterUserSelectedClientToDelete

@@ -32,14 +32,10 @@ static NSString *ZMLogTag ZM_UNUSED = @"Authentication";
 
 @interface ZMClientRegistrationStatus ()
 
-@property (nonatomic) NSManagedObjectContext *managedObjectContext;
 @property (nonatomic) BOOL isWaitingForClientsToBeDeleted;
-@property (nonatomic) BOOL isWaitingForUserClients;
 @property (nonatomic) BOOL isWaitingForCredentials;
-@property (nonatomic) BOOL needsToCheckCredentials;
 @property (nonatomic) BOOL needsToVerifySelfClient;
 
-@property (nonatomic, weak) id <ZMClientRegistrationStatusDelegate> registrationStatusDelegate;
 @property (nonatomic) ZMPersistentCookieStorage *cookieStorage;
 
 @property (nonatomic) id clientUpdateToken;
@@ -305,39 +301,6 @@ static NSString *ZMLogTag ZM_UNUSED = @"Authentication";
     }
 }
 
-- (void)didFailToRegisterClient:(NSError *)error
-{
-    ZMLogDebug(@"%@", NSStringFromSelector(_cmd));
-    //we should not reset login state for client registration errors
-    if (error.code != ZMUserSessionNeedsPasswordToRegisterClient &&
-        error.code != ZMUserSessionNeedsToRegisterEmailToRegisterClient &&
-        error.code != ZMUserSessionCanNotRegisterMoreClients)
-    {
-        self.emailCredentials = nil;
-    }
-    
-    if (error.code == ZMUserSessionNeedsPasswordToRegisterClient) {
-        // help the user by providing the email associated with this account
-        error = [NSError errorWithDomain:error.domain code:error.code userInfo:[ZMUser selfUserInContext:self.managedObjectContext].loginCredentials.dictionaryRepresentation];
-    }
-    
-    if (error.code == ZMUserSessionNeedsPasswordToRegisterClient ||
-        error.code == ZMUserSessionInvalidCredentials)
-    {
-        // set this label to block additional requests while we are waiting for the user to (re-)enter the password
-        self.needsToCheckCredentials = YES;
-    }
-    
-    if (error.code == ZMUserSessionCanNotRegisterMoreClients) {
-        // Wait and fetch the clients before sending the error
-        self.isWaitingForUserClients = YES;
-        [ZMRequestAvailableNotification notifyNewRequestsAvailable:self];
-    }
-    else {
-        [self.registrationStatusDelegate didFailToRegisterSelfUserClient:error];
-    }
-}
-
 - (void)notifyEmailIsNecessary
 {
     NSError *emailMissingError = [[NSError alloc] initWithDomain:NSError.ZMUserSessionErrorDomain
@@ -412,16 +375,6 @@ static NSString *ZMLogTag ZM_UNUSED = @"Authentication";
     [selfClient resetLocallyModifiedKeys:selfClient.keysThatHaveLocalModifications];
     [self.managedObjectContext setPersistentStoreMetadata:nil forKey:ZMPersistedClientIdKey];
     [self.managedObjectContext saveOrRollback];
-}
-
-- (void)invalidateCookieAndNotify
-{
-    self.emailCredentials = nil;
-    [self.cookieStorage deleteKeychainItems];
-
-    ZMUser *selfUser = [ZMUser selfUserInContext:self.managedObjectContext];
-    NSError *outError = [NSError userSessionErrorWithErrorCode:ZMUserSessionClientDeletedRemotely userInfo:selfUser.loginCredentials.dictionaryRepresentation];
-    [self.registrationStatusDelegate didDeleteSelfUserClient:outError];
 }
 
 - (void)didDeleteClient

@@ -42,8 +42,6 @@
 @property (nonatomic) ZMChangeTrackerBootstrap *changeTrackerBootStrap;
 @property (nonatomic) id<StrategyDirectoryProtocol> strategyDirectory;
 
-@property (nonatomic, readwrite) CallingRequestStrategy *callingRequestStrategy;
-
 @property (nonatomic, weak) ApplicationStatusDirectory *applicationStatusDirectory;
 
 @property (atomic) BOOL tornDown;
@@ -141,7 +139,6 @@ ZM_EMPTY_ASSERTING_INIT()
     self.tornDown = YES;
     self.applicationStatusDirectory = nil;
     self.changeTrackerBootStrap = nil;
-    self.callingRequestStrategy = nil;
     self.strategyDirectory = nil;
     [self appTerminated:nil];
     [self.notificationDispatcher tearDown];
@@ -153,16 +150,6 @@ ZM_EMPTY_ASSERTING_INIT()
     RequireString(self.tornDown, "Did not tear down %p", (__bridge void *) self);
 }
 #endif
-
-- (CallingRequestStrategy *)callingRequestStrategy{
-    return [self.strategyDirectory.requestStrategies firstObjectMatchingWithBlock:^BOOL(id obj) {
-        if ([obj isKindOfClass:CallingRequestStrategy.self]) {
-            return YES;
-        }
-        
-        return NO;
-    }];
-}
 
 - (ZMTransportRequest *)nextRequest
 {

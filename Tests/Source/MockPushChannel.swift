@@ -20,9 +20,9 @@ import Foundation
 
 @objcMembers
 class MockPushChannel: NSObject, ZMPushChannel {
-    
+
     var clientID: String?
-    
+
     var keepOpen: Bool = false
-    
+
 }

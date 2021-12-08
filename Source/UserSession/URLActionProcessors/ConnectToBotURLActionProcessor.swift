@@ -19,11 +19,11 @@
 import Foundation
 
 class ConnectToBotURLActionProcessor: NSObject, URLActionProcessor {
-    
+
     var transportSession: TransportSessionType
     var eventProcessor: UpdateEventProcessor
     var contextProvider: ContextProvider
-    
+
     init(contextprovider: ContextProvider,
          transportSession: TransportSessionType,
          eventProcessor: UpdateEventProcessor) {
@@ -31,7 +31,7 @@ class ConnectToBotURLActionProcessor: NSObject, URLActionProcessor {
         self.transportSession = transportSession
         self.eventProcessor = eventProcessor
     }
-    
+
     func process(urlAction: URLAction, delegate: PresentationDelegate?) {
         if case .connectBot(let serviceUserData) = urlAction {
             let serviceUser = ZMSearchUser(contextProvider: contextProvider,
@@ -46,7 +46,7 @@ class ConnectToBotURLActionProcessor: NSObject, URLActionProcessor {
             serviceUser.createConversation(transportSession: transportSession,
                                            eventProcessor: eventProcessor,
                                            contextProvider: contextProvider) { [weak delegate] (result) in
-                                            
+
                                             if let error = result.error {
                                                 delegate?.failedToPerformAction(urlAction, error: error)
                                             } else {
@@ -55,5 +55,5 @@ class ConnectToBotURLActionProcessor: NSObject, URLActionProcessor {
             }
         }
     }
-    
+
 }

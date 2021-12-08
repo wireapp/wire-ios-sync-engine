@@ -61,7 +61,8 @@ NSString * const ZMSkipHotfix = @"ZMSkipHotfix";
         return;
     }
     
-    NSString * currentVersionString = [[[NSBundle bundleForClass:ZMUserSession.class] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
+   /// Normally we fetch the short version from the framework bundle, but it's not working so we hardcode the version.
+    NSString * currentVersionString = @"402.0.0";
     [self applyPatchesForCurrentVersion:currentVersionString];
 }
 

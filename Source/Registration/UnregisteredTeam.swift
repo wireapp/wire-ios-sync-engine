@@ -46,17 +46,17 @@ public struct UnregisteredTeam: Equatable {
 
     var payload: ZMTransportData {
         return [
-            "email" : email,
-            "email_code" : emailCode,
-            "team" : [
-                "name" : teamName,
-                "icon" : "abc"
+            "email": email,
+            "email_code": emailCode,
+            "team": [
+                "name": teamName,
+                "icon": "abc"
             ],
-            "accent_id" : accentColor.rawValue,
-            "locale" : locale,
-            "name" : fullName,
-            "password" : password,
-            "label" : label?.uuidString ?? UUID().uuidString
+            "accent_id": accentColor.rawValue,
+            "locale": locale,
+            "name": fullName,
+            "password": password,
+            "label": label?.uuidString ?? UUID().uuidString
             ] as ZMTransportData
     }
 }
