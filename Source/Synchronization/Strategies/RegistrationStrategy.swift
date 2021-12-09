@@ -49,17 +49,24 @@ extension RegistrationStrategy: ZMSingleRequestTranscoder {
                 userInfoParser?.upgradeToAuthenticatedSession(with: $0)
             }
             registrationStatus.success()
-        } else {
-            let error = NSError.blacklistedEmail(with: response) ??
-                NSError.invalidActivationCode(with: response) ??
-                NSError.emailAddressInUse(with: response) ??
-                NSError.phoneNumberIsAlreadyRegisteredError(with: response) ??
-                NSError.invalidEmail(with: response) ??
-                NSError.invalidPhoneNumber(withReponse: response) ??
-                NSError.unauthorizedEmailError(with: response) ??
-                NSError.domainBlocked(with: response) ??
-                NSError(code: .unknownError, userInfo: [:])
+        } else if let error = NSError.blacklistedEmail(with: response) {
             registrationStatus.handleError(error)
+        } else if let error = NSError.invalidActivationCode(with: response) {
+            registrationStatus.handleError(error)
+        } else if let error = NSError.emailAddressInUse(with: response) {
+            registrationStatus.handleError(error)
+        } else if let error = NSError.phoneNumberIsAlreadyRegisteredError(with: response) {
+            registrationStatus.handleError(error)
+        } else if let error = NSError.invalidEmail(with: response) {
+            registrationStatus.handleError(error)
+        } else if let error = NSError.invalidPhoneNumber(withReponse: response) {
+            registrationStatus.handleError(error)
+        } else if let error = NSError.unauthorizedEmailError(with: response) {
+            registrationStatus.handleError(error)
+        } else if let error = NSError.domainBlocked(with: response) {
+            registrationStatus.handleError(error)
+        } else {
+            registrationStatus.handleError(NSError(code: .unknownError, userInfo: [:]))
         }
     }
 }
