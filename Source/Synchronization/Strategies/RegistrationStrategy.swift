@@ -57,6 +57,7 @@ extension RegistrationStrategy: ZMSingleRequestTranscoder {
                 NSError.invalidEmail(with: response) ??
                 NSError.invalidPhoneNumber(withReponse: response) ??
                 NSError.unauthorizedEmailError(with: response) ??
+                NSError.domainBlocked(with: response) ??
                 NSError(code: .unknownError, userInfo: [:])
             registrationStatus.handleError(error)
         }
