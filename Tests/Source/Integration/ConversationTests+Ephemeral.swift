@@ -182,8 +182,7 @@ extension ConversationTests_Ephemeral {
         XCTAssertEqual(ephemeral.hiddenInConversation, conversation)
         XCTAssertNil(ephemeral.sender)
 
-        // Unused Optional Binding Violation: Prefer `!= nil` over `let _ =` (unused_optional_binding)
-        guard let _ = conversation.hiddenMessages.first(where: {
+        guard (conversation.hiddenMessages.first(where: {
             if let message = $0 as? ZMClientMessage,
                     let deleteMessage = message.underlyingMessage, deleteMessage.hasDeleted,
                 deleteMessage.deleted.messageID == ephemeral.nonce!.transportString() {
@@ -192,7 +191,7 @@ extension ConversationTests_Ephemeral {
             else {
                 return false
             }
-        })
+        })) != nil
         else {
             return XCTFail()
         }
