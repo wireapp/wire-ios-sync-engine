@@ -10,7 +10,6 @@
 		0601900B2678750D0043F8F8 /* DeepLinkURLActionProcessorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 161ACB3E23F6E4C200ABFF33 /* DeepLinkURLActionProcessorTests.swift */; };
 		06025664248E5BC700E060E1 /* (null) in Sources */ = {isa = PBXBuildFile; };
 		06239126274DB73A0065A72D /* StartLoginURLActionProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06239125274DB73A0065A72D /* StartLoginURLActionProcessor.swift */; };
-		062DD2D4275FAB5200E27FD9 /* UUID+SafeLogging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 062DD2D3275FAB5200E27FD9 /* UUID+SafeLogging.swift */; };
 		062DD2D6275FC2BA00E27FD9 /* Conversation+Join.swift in Sources */ = {isa = PBXBuildFile; fileRef = 062DD2D5275FC2BA00E27FD9 /* Conversation+Join.swift */; };
 		063AF985264B2DF800DCBCED /* CallClosedReason.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0625690E264AE6560041C17B /* CallClosedReason.swift */; };
 		063AF9DE264B2FDA00DCBCED /* Logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 063AF9DD264B2FDA00DCBCED /* Logging.swift */; };
@@ -648,7 +647,6 @@
 /* Begin PBXFileReference section */
 		06239125274DB73A0065A72D /* StartLoginURLActionProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartLoginURLActionProcessor.swift; sourceTree = "<group>"; };
 		0625690E264AE6560041C17B /* CallClosedReason.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CallClosedReason.swift; sourceTree = "<group>"; };
-		062DD2D3275FAB5200E27FD9 /* UUID+SafeLogging.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UUID+SafeLogging.swift"; sourceTree = "<group>"; };
 		062DD2D5275FC2BA00E27FD9 /* Conversation+Join.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Conversation+Join.swift"; sourceTree = "<group>"; };
 		063AF9DD264B2FDA00DCBCED /* Logging.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logging.swift; sourceTree = "<group>"; };
 		063AFA3E264B30C400DCBCED /* BuildType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BuildType.swift; sourceTree = "<group>"; };
@@ -2334,7 +2332,6 @@
 		A9EADFFF19DBF20A00FD386C /* Utility */ = {
 			isa = PBXGroup;
 			children = (
-				062DD2D3275FAB5200E27FD9 /* UUID+SafeLogging.swift */,
 				063AF9DD264B2FDA00DCBCED /* Logging.swift */,
 				5430E9231BAA0D9F00395E05 /* WireSyncEngineLogs.h */,
 				874F142C1C16FD9700C15118 /* Device.swift */,
@@ -3250,7 +3247,6 @@
 				54FF64291F73D00C00787EF2 /* NSManagedObjectContext+AuthenticationStatus.swift in Sources */,
 				A9C02605266F5B4B002E542B /* ZMClientRegistrationStatus.swift in Sources */,
 				BF735CFA1E70003D003BC61F /* SystemMessageCallObserver.swift in Sources */,
-				062DD2D4275FAB5200E27FD9 /* UUID+SafeLogging.swift in Sources */,
 				1645ECF82448A0A3007A82D6 /* Decodable+JSON.swift in Sources */,
 				165D3A211E1D43870052E654 /* VoiceChannelV3.swift in Sources */,
 				F19F4F3A1E5F1AE400F4D8FF /* UserProfileImageUpdateStatus.swift in Sources */,
