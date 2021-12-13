@@ -90,13 +90,24 @@ public final class ConversationRoleDownstreamRequestStrategy: AbstractRequestStr
     }
 
     public func delete(_ object: ZMManagedObject!, with response: ZMTransportResponse!, downstreamSync: ZMObjectSync!) {
-        // do not delete conversation
+        // Do not delete conversation and set needsToDownloadRoles to false to avoid request loop
+        guard
+            downstreamSync as? ZMDownstreamObjectSync == self.downstreamSync,
+            let conversation = object as? ZMConversation,
+            response.httpStatus == 404
+        else {
+            return
+        }
+        conversation.needsToDownloadRoles = false
     }
 
     public func update(_ object: ZMManagedObject!, with response: ZMTransportResponse!, downstreamSync: ZMObjectSync!) {
-        guard downstreamSync as? ZMDownstreamObjectSync == self.downstreamSync,
-              let conversation = object as? ZMConversation else { return }
-
+        guard
+            downstreamSync as? ZMDownstreamObjectSync == self.downstreamSync,
+            let conversation = object as? ZMConversation
+        else {
+            return
+        }
         conversation.needsToDownloadRoles = false
         conversation.updateRoles(with: response)
     }

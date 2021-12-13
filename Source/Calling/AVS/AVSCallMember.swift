@@ -36,7 +36,7 @@ public struct AVSCallMember: Hashable {
 
     /// The state of microphone
     public let microphoneState: MicrophoneState
-    
+
     /// Netwok quality of this leg
     public let networkQuality: NetworkQuality
 
@@ -55,8 +55,7 @@ public struct AVSCallMember: Hashable {
                 audioState: AudioState = .connecting,
                 videoState: VideoState = .stopped,
                 microphoneState: MicrophoneState = .unmuted,
-                networkQuality: NetworkQuality = .normal)
-    {
+                networkQuality: NetworkQuality = .normal) {
         self.client = client
         self.audioState = audioState
         self.videoState = videoState
@@ -79,11 +78,11 @@ public struct AVSCallMember: Hashable {
     }
 
     // MARK: - Hashable
-    
+
     public func hash(into hasher: inout Hasher) {
         hasher.combine(client)
     }
-    
+
     public static func == (lhs: AVSCallMember, rhs: AVSCallMember) -> Bool {
         return lhs.hashValue == rhs.hashValue
     }

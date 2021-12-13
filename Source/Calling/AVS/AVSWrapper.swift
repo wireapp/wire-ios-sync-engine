@@ -42,7 +42,6 @@ public protocol AVSWrapperType {
     var muted: Bool { get set }
 }
 
-
 /**
  * An object that provides an interface to the AVS APIs.
  */
@@ -75,7 +74,7 @@ public class AVSWrapper: AVSWrapperType {
 
     required public init(userId: UUID, clientId: String, observer: UnsafeMutableRawPointer?) {
         AVSWrapper.initialize()
-        
+
         handle = wcall_create(userId.transportString(),
                               clientId,
                               readyHandler,
@@ -103,7 +102,7 @@ public class AVSWrapper: AVSWrapperType {
     }
 
     // MARK: - Convenience Methods
-    
+
     public var muted: Bool {
         get {
             return wcall_get_mute(handle) != 0
@@ -170,7 +169,7 @@ public class AVSWrapper: AVSWrapperType {
 
     /// Notifies AVS that we received a remote event.
     public func received(callEvent: CallEvent) -> CallError? {
-        var result: CallError? = nil
+        var result: CallError?
 
         callEvent.data.withUnsafeBytes { (pointer: UnsafeRawBufferPointer) in
             guard let bytes = pointer.baseAddress?.assumingMemoryBound(to: UInt8.self) else { return }
@@ -198,13 +197,13 @@ public class AVSWrapper: AVSWrapperType {
 
     // MARK: - C Callback Handlers
 
-    private let constantBitRateChangeHandler: Handler.ConstantBitRateChange = { userId, clientId, enabledFlag, contextRef in
+    private let constantBitRateChangeHandler: Handler.ConstantBitRateChange = { _, _, enabledFlag, contextRef in
         AVSWrapper.withCallCenter(contextRef, enabledFlag) {
             $0.handleConstantBitRateChange(enabled: $1)
         }
     }
 
-    private let videoStateChangeHandler: Handler.VideoStateChange = { conversationId, userId, clientId, state, contextRef in
+    private let videoStateChangeHandler: Handler.VideoStateChange = { _, _, _, _, _ in
         // Video state changes are now communicated through the json payload of the call participant handler.
     }
 
@@ -220,7 +219,7 @@ public class AVSWrapper: AVSWrapperType {
         }
     }
 
-    private let missedCallHandler: Handler.MissedCall = { conversationId, messageTime, userId, clientId, isVideoCall, contextRef in
+    private let missedCallHandler: Handler.MissedCall = { conversationId, messageTime, userId, _, isVideoCall, contextRef in
         zmLog.debug("missedCallHandler: messageTime = \(messageTime)")
         let nonZeroMessageTime: UInt32 = messageTime != 0 ? messageTime : UInt32(Date().timeIntervalSince1970)
 
@@ -235,19 +234,19 @@ public class AVSWrapper: AVSWrapperType {
         }
     }
 
-    private let dataChannelEstablishedHandler: Handler.DataChannelEstablished = { conversationId, userId, clientId, contextRef in
+    private let dataChannelEstablishedHandler: Handler.DataChannelEstablished = { conversationId, _, _, contextRef in
         AVSWrapper.withCallCenter(contextRef, conversationId) {
             $0.handleDataChannelEstablishement(conversationId: $1)
         }
     }
 
-    private let establishedCallHandler: Handler.CallEstablished = { conversationId, userId, clientId, contextRef in
+    private let establishedCallHandler: Handler.CallEstablished = { conversationId, _, _, contextRef in
         AVSWrapper.withCallCenter(contextRef, conversationId) {
             $0.handleEstablishedCall(conversationId: $1)
         }
     }
 
-    private let closedCallHandler: Handler.CloseCall = { reason, conversationId, messageTime, userId, clientId, contextRef in
+    private let closedCallHandler: Handler.CloseCall = { reason, conversationId, messageTime, userId, _, contextRef in
         zmLog.debug("closedCallHandler: messageTime = \(messageTime)")
         let nonZeroMessageTime: UInt32 = messageTime != 0 ? messageTime : UInt32(Date().timeIntervalSince1970)
 
@@ -287,12 +286,11 @@ public class AVSWrapper: AVSWrapperType {
             .flatMap { String(cString: $0)?.data(using: .utf8) }
             .flatMap { AVSClientList($0) }
 
-
         return AVSWrapper.withCallCenter(contextRef, conversationId, senderUserId, senderClientId) {
             $0.handleCallMessageRequest(token: token, conversationId: $1, senderUserId: $2, senderClientId: $3, targets: targets, data: transformedData)
         }
     }
-    
+
     private let callParticipantHandler: Handler.CallParticipantChange = { conversationIdRef, json, contextRef in
         AVSWrapper.withCallCenter(contextRef, json, conversationIdRef) {
             $0.handleParticipantChange(conversationId: $2, data: $1)
@@ -305,7 +303,7 @@ public class AVSWrapper: AVSWrapperType {
         }
     }
 
-    private let networkQualityHandler: Handler.NetworkQualityChange = { conversationIdRef, userIdRef, clientIdRef, quality, rtt, uplinkLoss, downlinkLoss, contextRef in
+    private let networkQualityHandler: Handler.NetworkQualityChange = { conversationIdRef, userIdRef, clientIdRef, quality, _, _, _, contextRef in
         AVSWrapper.withCallCenter(contextRef, conversationIdRef, userIdRef, clientIdRef, quality) {
             $0.handleNetworkQualityChange(conversationId: $1,
                                                   client: AVSClient(userId: $2, clientId: $3),
@@ -343,8 +341,8 @@ public class AVSWrapper: AVSWrapperType {
             $0.handleSFTCallMessageRequest(token: token, url: $1, data: transformedData)
         }
     }
-    
-    private let activeSpeakersHandler: Handler.ActiveSpeakersChange = { handle, conversationIdRef, json, contextRef in
+
+    private let activeSpeakersHandler: Handler.ActiveSpeakersChange = { _, conversationIdRef, json, contextRef in
         AVSWrapper.withCallCenter(contextRef, conversationIdRef, json) {
             $0.handleActiveSpeakersChange(conversationId: $1, data: $2)
         }
