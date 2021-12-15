@@ -511,7 +511,7 @@ class SessionManagerTests_EncryptionAtRestMigration: IntegrationTest {
         createExtraUsersAndConversations()
     }
 
-    // @SF.Storage @TSFI.UserInterface
+    // @SF.Storage @TSFI.UserInterface @S0.1 @S0.2
     func testThatDatabaseIsMigrated_WhenEncryptionAtRestIsEnabled() throws {
         // given
         XCTAssertTrue(login())
@@ -535,7 +535,7 @@ class SessionManagerTests_EncryptionAtRestMigration: IntegrationTest {
         XCTAssertEqual(clientMessage?.messageText, expectedText)
     }
 
-    // @SF.Storage @TSFI.UserInterface
+    // @SF.Storage @TSFI.UserInterface @S0.1 @S0.2 
     func testThatDatabaseIsMigrated_WhenEncryptionAtRestIsDisabled() throws {
         // given
         XCTAssertTrue(login())
@@ -576,7 +576,7 @@ class SessionManagerTests_EncryptionAtRestIsEnabledByDefault_Option: Integration
         return SessionManagerConfiguration(encryptionAtRestIsEnabledByDefault: true)
     }
 
-    // @SF.Storage @TSFI.UserInterface
+    // @SF.Storage @TSFI.UserInterface @S0.1 @S0.2
     func testThatEncryptionAtRestIsEnabled_OnActiveUserSession() {
         // given
         XCTAssertTrue(login())
@@ -1210,7 +1210,7 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
     
     func testThatItActivatesTheAccountForPushReaction() {
         // GIVEN
-        let session = self.setupSession()/// TODO: crash at RequireString([NSOperationQueue mainQueue] == [NSOperationQueue currentQueue],
+        let session = self.setupSession() // TODO: crash at RequireString([NSOperationQueue mainQueue] == [NSOperationQueue currentQueue],
 //        "Must call be called on the main queue.");
         session.isPerformingSync = false
         application?.applicationState = .background

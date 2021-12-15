@@ -52,13 +52,11 @@ extension ZMUserSession {
                 zmLog.debug("Moving non-assigned Cache folder from \(oldLocation) to \(newLocation)")
                 do {
                     try fm.moveItem(at: oldLocation, to: newLocation)
-                }
-                catch let error {
+                } catch let error {
                     zmLog.error("Failed to move non-assigned Cache folder from \(oldLocation) to \(newLocation) - \(error)")
                     do {
                         try fm.removeItem(at: oldLocation)
-                    }
-                    catch let anError {
+                    } catch let anError {
                         fatal("Could not remove unassigned cache folder at \(oldLocation) - \(anError)")
                     }
                 }

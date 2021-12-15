@@ -114,8 +114,7 @@ public final class UserClientRequestFactory {
                 ["key": $0.prekey, "id": NSNumber(value: $0.id)]
             }
             return (preKeysPayloadData, preKeys.last!.id)
-        }
-        catch {
+        } catch {
             throw UserClientRequestError.noPreKeys
         }
     }
@@ -194,8 +193,7 @@ public final class UserClientRequestFactory {
                 "email": email,
                 "password": password
             ]
-        }
-        else {
+        } else {
             payload = [:]
         }
 

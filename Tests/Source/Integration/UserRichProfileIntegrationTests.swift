@@ -17,8 +17,6 @@
 //
 
 import Foundation
-
-import Foundation
 @testable import WireSyncEngine
 
 class UserRichProfileIntegrationTests: IntegrationTest {

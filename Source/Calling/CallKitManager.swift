@@ -174,8 +174,7 @@ extension CallKitManager {
         if let audioCallIntent = intent as? INStartAudioCallIntent {
             contacts = audioCallIntent.contacts
             video = false
-        }
-        else if let videoCallIntent = intent as? INStartVideoCallIntent {
+        } else if let videoCallIntent = intent as? INStartVideoCallIntent {
             contacts = videoCallIntent.contacts
             video = true
         }
@@ -265,7 +264,7 @@ extension CallKitManager {
         }
     }
 
-    func requestEndCall(in conversation: ZMConversation, completion: (()->Void)? = nil) {
+    func requestEndCall(in conversation: ZMConversation, completion: (() -> Void)? = nil) {
         guard let callUUID = callUUID(for: conversation) else { return }
 
         let action = CXEndCallAction(call: callUUID)
@@ -320,10 +319,8 @@ extension CallKitManager {
     func reportCall(in conversation: ZMConversation, endedAt timestamp: Date?, reason: CXCallEndedReason) {
 
         var associatedCallUUIDs: [UUID] = []
-        for call in calls {
-            if call.value.conversation == conversation {
+        for call in calls where call.value.conversation == conversation {
                 associatedCallUUIDs.append(call.key)
-            }
         }
 
         associatedCallUUIDs.forEach { (callUUID) in
@@ -344,11 +341,9 @@ fileprivate extension Date {
     func clamp(between fromDate: Date, and toDate: Date) -> Date {
         if timeIntervalSinceReferenceDate < fromDate.timeIntervalSinceReferenceDate {
             return fromDate
-        }
-        else if timeIntervalSinceReferenceDate > toDate.timeIntervalSinceReferenceDate {
+        } else if timeIntervalSinceReferenceDate > toDate.timeIntervalSinceReferenceDate {
             return toDate
-        }
-        else {
+        } else {
             return self
         }
     }
