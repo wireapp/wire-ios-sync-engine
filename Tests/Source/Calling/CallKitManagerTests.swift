@@ -599,8 +599,7 @@ class CallKitManagerTest: DatabaseTest {
 
         if isVideo {
             intent = INStartVideoCallIntent(contacts: contacts)
-        }
-        else {
+        } else {
             intent = INStartAudioCallIntent(contacts: contacts)
         }
 

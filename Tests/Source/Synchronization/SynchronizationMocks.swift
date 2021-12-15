@@ -175,8 +175,7 @@ class SpyUserClientKeyStore: UserClientKeysStore {
         if self.failToGeneratePreKeys {
             let error = NSError(domain: "cryptobox.error", code: 0, userInfo: ["reason": "using fake store with simulated fail"])
             throw error
-        }
-        else {
+        } else {
             let keys = try! super.generateMoreKeys(count, start: start)
             lastGeneratedKeys = keys
             return keys
@@ -187,8 +186,7 @@ class SpyUserClientKeyStore: UserClientKeysStore {
         if self.failToGenerateLastPreKey {
             let error = NSError(domain: "cryptobox.error", code: 0, userInfo: ["reason": "using fake store with simulated fail"])
             throw error
-        }
-        else {
+        } else {
             lastGeneratedLastPrekey = try! super.lastPreKey()
             return lastGeneratedLastPrekey!
         }

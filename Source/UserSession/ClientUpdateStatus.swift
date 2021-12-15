@@ -100,12 +100,10 @@ public enum ClientUpdateError: NSInteger {
                 do {
                     excludingSelfClient = try filterSelfClientIfValid(excludingSelfClient)
                     ZMClientUpdateNotification.notifyFetchingClientsCompleted(userClients: excludingSelfClient, context: syncManagedObjectContext)
-                }
-                catch let error as NSError {
+                } catch let error as NSError {
                     ZMClientUpdateNotification.notifyFetchingClientsDidFail(error: error, context: syncManagedObjectContext)
                 }
-            }
-            else {
+            } else {
                 ZMClientUpdateNotification.notifyFetchingClientsCompleted(userClients: clients, context: syncManagedObjectContext)
             }
         }
@@ -162,8 +160,7 @@ public enum ClientUpdateError: NSInteger {
                 // however if it happens and there is no other client to delete we should notify that all clients where deleted
                 internalCredentials = nil
                 ZMClientUpdateNotification.notifyDeletionCompleted(remainingClients: selfUserClientsExcludingSelfClient, context: syncManagedObjectContext)
-            }
-            else if  errorCode == .invalidCredentials {
+            } else if  errorCode == .invalidCredentials {
                 isWaitingToDeleteClients = false
                 internalCredentials = nil
                 ZMClientUpdateNotification.notifyDeletionFailed(error: error, context: syncManagedObjectContext)
