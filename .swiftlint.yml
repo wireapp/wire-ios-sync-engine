@@ -25,7 +25,6 @@ disabled_rules:
     - function_parameter_count
     - xctfail_message
     - compiler_protocol_init
-    - reduce_boolean
     
 included:
     - Source
