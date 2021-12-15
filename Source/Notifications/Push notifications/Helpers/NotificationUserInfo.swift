@@ -141,7 +141,7 @@ extension NotificationUserInfo {
         return self == other
     }
 
-    static func ==(lhs: NotificationUserInfo, rhs: NotificationUserInfo) -> Bool {
+    static func == (lhs: NotificationUserInfo, rhs: NotificationUserInfo) -> Bool {
         return  lhs.requestID == rhs.requestID &&
                 lhs.conversationID == rhs.conversationID &&
                 lhs.conversationName == rhs.conversationName &&

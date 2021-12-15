@@ -50,7 +50,7 @@ public struct CompanyLoginVerificationToken: Codable, Equatable {
     }
 }
 
-public func ==(lhs: CompanyLoginVerificationToken, rhs: CompanyLoginVerificationToken) -> Bool {
+public func == (lhs: CompanyLoginVerificationToken, rhs: CompanyLoginVerificationToken) -> Bool {
     return lhs.uuid == rhs.uuid
 }
 

@@ -326,15 +326,15 @@ public class MockRequestStrategy: NSObject, RequestStrategy {
 
     public var mockRequestQueue: [ZMTransportRequest] = []
     public var mockRequest: ZMTransportRequest? {
+        get {
+            mockRequestQueue.last
+        }
         set {
             if let request = newValue {
                 mockRequestQueue = [request]
             } else {
                 mockRequestQueue = []
             }
-        }
-        get {
-            mockRequestQueue.last
         }
     }
     public var nextRequestCalled = false

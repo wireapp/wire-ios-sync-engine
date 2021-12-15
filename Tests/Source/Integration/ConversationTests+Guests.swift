@@ -76,7 +76,6 @@ class ConversationTests_Guests: IntegrationTest {
             switch result {
             case .success(let link):
                 XCTAssertEqual(link, self.groupConversationWithWholeTeam.link)
-                break
             case .failure:
                 XCTFail()
             }
@@ -110,7 +109,6 @@ class ConversationTests_Guests: IntegrationTest {
             switch result {
             case .success(let link):
                 XCTAssertEqual(link, self.groupConversationWithWholeTeam.link)
-                break
             case .failure:
                 XCTFail()
             }
@@ -146,7 +144,6 @@ class ConversationTests_Guests: IntegrationTest {
             switch result {
             case .success(let link):
                 XCTAssertNil(link)
-                break
             case .failure:
                 XCTFail()
             }
@@ -183,7 +180,6 @@ class ConversationTests_Guests: IntegrationTest {
             switch result {
             case .success(let link):
                 XCTAssertEqual(link, existingLink)
-                break
             case .failure:
                 XCTFail()
             }

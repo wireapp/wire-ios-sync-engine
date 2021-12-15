@@ -287,13 +287,11 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
                 switch errorLabel {
                 case "client-not-found":
                     errorCode = .clientToDeleteNotFound
-                    break
                 case "invalid-credentials",
                      "missing-auth",
                      // in case the password not matching password format requirement
                      "bad-request":
                     errorCode = .invalidCredentials
-                    break
                 default:
                     break
                 }
@@ -315,13 +313,10 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
                     else {
                         errorCode = .invalidCredentials
                     }
-                    break
                 case "too-many-clients":
                     errorCode = .canNotRegisterMoreClients
-                    break
                 case "invalid-credentials":
                     errorCode = .invalidCredentials
-                    break
                 default:
                     break
                 }

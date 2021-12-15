@@ -31,7 +31,7 @@ class ConversationTests_Join: ConversationTestsBase {
         let selfUser_zmUser = user(for: self.selfUser)!
 
         // WHEN
-        /// Key value doesn't affect the test result
+        // Key value doesn't affect the test result
         ZMConversation.join(key: "test-key",
                             code: "test-code",
                             transportSession: userSession!.transportSession,
@@ -55,7 +55,7 @@ class ConversationTests_Join: ConversationTestsBase {
 
         // WHEN
         let conversationJoiningFailed = expectation(description: "Failed to join the conversation")
-        /// Key value doesn't affect the test result
+        // Key value doesn't affect the test result
         ZMConversation.join(key: "test-key",
                             code: "wrong-code",
                             transportSession: userSession!.transportSession,
@@ -79,7 +79,7 @@ class ConversationTests_Join: ConversationTestsBase {
 
         // WHEN
         let userIsParticipant = expectation(description: "The user was already a participant in the conversation")
-        /// Key value doesn't affect the test result
+        // Key value doesn't affect the test result
         ZMConversation.join(key: "test-key",
                             code: "existing-conversation-code",
                             transportSession: userSession!.transportSession,
@@ -105,7 +105,7 @@ class ConversationTests_Join: ConversationTestsBase {
         let viewContext = userSession!.coreDataStack.viewContext
 
         // WHEN
-        /// Key value doesn't affect the test result
+        // Key value doesn't affect the test result
         ZMConversation.fetchIdAndName(key: "test-key",
                                       code: "existing-conversation-code",
                                       transportSession: userSession!.transportSession,
@@ -130,7 +130,7 @@ class ConversationTests_Join: ConversationTestsBase {
         let viewContext = userSession!.coreDataStack.viewContext
 
         // WHEN
-        /// Key value doesn't affect the test result
+        // Key value doesn't affect the test result
         ZMConversation.fetchIdAndName(key: "test-key",
                                       code: "test-code",
                                       transportSession: userSession!.transportSession,
@@ -155,7 +155,7 @@ class ConversationTests_Join: ConversationTestsBase {
 
         // WHEN
         let conversationFetchingFailed = expectation(description: "Failed to fetch the conversation")
-        /// Key value doesn't affect the test result
+        // Key value doesn't affect the test result
         ZMConversation.fetchIdAndName(key: "test-key",
                                       code: "wrong-code",
                                       transportSession: userSession!.transportSession,

@@ -93,7 +93,7 @@ class WireCallCenterV3Tests: MessagingTest {
         mockAVSWrapper = MockAVSWrapper(userId: selfUserID, clientId: clientID, observer: nil)
         mockTransport = WireCallCenterTransportMock()
         sut = WireCallCenterV3(userId: selfUserID, clientId: clientID, avsWrapper: mockAVSWrapper, uiMOC: uiMOC, flowManager: flowManager, transport: mockTransport)
-        /// set conferenceCalling feature flag
+        // set conferenceCalling feature flag
         conferenceCalling = Feature.fetch(name: .conferenceCalling, context: uiMOC)
         conferenceCalling?.status = .enabled
         sut.usePackagingFeatureConfig = true
