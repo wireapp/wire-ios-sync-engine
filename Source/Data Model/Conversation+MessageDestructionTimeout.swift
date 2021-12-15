@@ -81,8 +81,7 @@ private struct MessageDestructionTimeoutRequestFactory {
         let payload: [AnyHashable: Any?]
         if timeout == 0 {
             payload = ["message_timer": nil]
-        }
-        else {
+        } else {
             // Backend expects the timer to be in miliseconds, we store it in seconds.
             let timeoutInMS: Int64 = Int64(timeout) * 1000
             payload = ["message_timer": timeoutInMS]

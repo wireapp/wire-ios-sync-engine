@@ -22,10 +22,10 @@ import WireDataModel
 // MARK: - Error on context save debugging
 
 public enum ContextType: String {
-    case UI = "UI"
-    case Sync = "Sync"
-    case Search = "Search"
-    case Other = "Other"
+    case UI
+    case Sync
+    case Search
+    case Other
 }
 
 extension NSManagedObjectContext {

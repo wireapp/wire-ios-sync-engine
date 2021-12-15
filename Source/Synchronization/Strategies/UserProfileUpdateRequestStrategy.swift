@@ -236,7 +236,6 @@ public class UserProfileUpdateRequestStrategy: AbstractRequestStrategy, ZMSingle
                     self.userProfileUpdateStatus.didFailRequestToFetchHandle(handle: handle)
                 }
             }
-            break
 
         case self.handleSetSync:
             if response.result == .success {

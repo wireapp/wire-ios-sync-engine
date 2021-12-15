@@ -238,8 +238,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         // when
         do {
             _ = try sut.updateClientPreKeysRequest(client)
-        }
-        catch let error {
+        } catch let error {
             XCTAssertNotNil(error, "Should not return request if client does not have remoteIdentifier")
         }
 

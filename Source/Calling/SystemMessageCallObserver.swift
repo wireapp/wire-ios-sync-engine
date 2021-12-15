@@ -51,8 +51,7 @@ final class CallSystemMessageGenerator: NSObject {
             let duration = -connectDate.timeIntervalSinceNow
             log.info("Appending performed call message: \(duration), \(caller.name ?? ""), \"\(conversation.displayName)\"")
             systemMessage =  conversation.appendPerformedCallMessage(with: duration, caller: caller)
-        }
-        else {
+        } else {
             if caller.isSelfUser {
                 log.info("Appending performed call message: \(caller.name ?? ""), \"\(conversation.displayName)\"")
                 systemMessage =  conversation.appendPerformedCallMessage(with: 0, caller: caller)

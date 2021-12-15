@@ -259,7 +259,6 @@ extension ZMUserSession: UNUserNotificationCenterDelegate {
         default:
             showContent(for: userInfo)
             completionHandler()
-            break
         }
     }
 

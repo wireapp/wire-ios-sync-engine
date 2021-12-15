@@ -100,10 +100,8 @@ extension CallStateObserver: WireCallCenterCallStateObserver, WireCallCenterMiss
 
             if let systemMessage = self.systemMessageGenerator.appendSystemMessageIfNeeded(callState: callState, conversation: conversation, caller: caller, timestamp: timestamp, previousCallState: previousCallState) {
                 switch (systemMessage.systemMessageType, callState, conversation.conversationType) {
-                case (.missedCall, .terminating(reason: .canceled), _ ):
-                    // the caller canceled the call
-                    fallthrough
-                case (.missedCall, .terminating(reason: .normal), .group):
+                case (.missedCall, .terminating(reason: .normal), .group),
+                    (.missedCall, .terminating(reason: .canceled), _ ):
                     // group calls we didn't join, end with reason .normal. We should still insert a missed call in this case.
                     // since the systemMessageGenerator keeps track whether we joined or not, we can use it to decide whether we should show a missed call APNS
                     self.localNotificationDispatcher.processMissedCall(in: conversation, caller: caller)
