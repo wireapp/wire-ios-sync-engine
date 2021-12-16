@@ -11,6 +11,8 @@ on:
 jobs:
   Run_Tests_Xcode_12_4_iOS_14_4:
     runs-on: macos-11
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
     - uses: actions/checkout@v1
     - name: Select Xcode
