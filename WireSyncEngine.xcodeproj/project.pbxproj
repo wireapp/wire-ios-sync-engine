@@ -10,6 +10,7 @@
 		0601900B2678750D0043F8F8 /* DeepLinkURLActionProcessorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 161ACB3E23F6E4C200ABFF33 /* DeepLinkURLActionProcessorTests.swift */; };
 		06239126274DB73A0065A72D /* StartLoginURLActionProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06239125274DB73A0065A72D /* StartLoginURLActionProcessor.swift */; };
 		0640C26D26EA0B5C0057AF80 /* NSManagedObjectContext+Packaging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0640C26C26EA0B5C0057AF80 /* NSManagedObjectContext+Packaging.swift */; };
+		06894D92276BA7FA00DA4E33 /* StartLoginURLActionProcessorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06894D91276BA7FA00DA4E33 /* StartLoginURLActionProcessorTests.swift */; };
 		068E655A24C8223400403926 /* LocalNotificationContentTypeTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 068E655924C8223400403926 /* LocalNotificationContentTypeTest.swift */; };
 		06B99C7B242B51A300FEAFDE /* SignatureRequestStrategy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06B99C7A242B51A300FEAFDE /* SignatureRequestStrategy.swift */; };
 		06BBF7012473D51D00A26626 /* MessagingTest+Swift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06BBF7002473D51D00A26626 /* MessagingTest+Swift.swift */; };
@@ -678,6 +679,7 @@
 /* Begin PBXFileReference section */
 		06239125274DB73A0065A72D /* StartLoginURLActionProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartLoginURLActionProcessor.swift; sourceTree = "<group>"; };
 		0640C26C26EA0B5C0057AF80 /* NSManagedObjectContext+Packaging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSManagedObjectContext+Packaging.swift"; sourceTree = "<group>"; };
+		06894D91276BA7FA00DA4E33 /* StartLoginURLActionProcessorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartLoginURLActionProcessorTests.swift; sourceTree = "<group>"; };
 		068E655924C8223400403926 /* LocalNotificationContentTypeTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalNotificationContentTypeTest.swift; sourceTree = "<group>"; };
 		06B99C7A242B51A300FEAFDE /* SignatureRequestStrategy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignatureRequestStrategy.swift; sourceTree = "<group>"; };
 		06BBF6EC246EB56B00A26626 /* ConversationTests+List.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ConversationTests+List.swift"; sourceTree = "<group>"; };
@@ -1521,6 +1523,7 @@
 			isa = PBXGroup;
 			children = (
 				161ACB4223F6EE4800ABFF33 /* CompanyLoginURLActionProcessorTests.swift */,
+				06894D91276BA7FA00DA4E33 /* StartLoginURLActionProcessorTests.swift */,
 			);
 			path = URLActionProcessors;
 			sourceTree = "<group>";
@@ -3219,6 +3222,7 @@
 				5E8EE1FE20FDCD1300DB1F9B /* MockPasteboard.swift in Sources */,
 				16D3FCDF1E365ABC0052A535 /* CallStateObserverTests.swift in Sources */,
 				85D85EEDD5DD19FB747ED4A5 /* MockModelObjectContextFactory.m in Sources */,
+				06894D92276BA7FA00DA4E33 /* StartLoginURLActionProcessorTests.swift in Sources */,
 				BF80542B2102175800E97053 /* CompanyLoginVerificationTokenTests.swift in Sources */,
 				F11E35D62040172200D4D5DB /* ZMHotFixTests.swift in Sources */,
 				163FB9952056D5BA00E74F83 /* PushNotificationStatusTests.swift in Sources */,
