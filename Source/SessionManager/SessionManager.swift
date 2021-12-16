@@ -385,8 +385,7 @@ public final class SessionManager: NSObject, SessionManagerType {
             if let selectedAccount = accountManager.selectedAccount {
                 log.debug("Default account: \(selectedAccount.userIdentifier)")
             }
-        }
-        else {
+        } else {
             log.debug("No known accounts.")
         }
 
@@ -644,8 +643,7 @@ public final class SessionManager: NSObject, SessionManagerType {
                 completion(session)
                 onWorkDone()
                 group?.leave()
-            }
-            else {
+            } else {
                 let coreDataStack = CoreDataStack(account: account,
                                                   applicationContainer: self.sharedContainerURL,
                                                   dispatchGroup: self.dispatchGroup)
@@ -680,8 +678,7 @@ public final class SessionManager: NSObject, SessionManagerType {
 
         do {
             try FileManager.default.removeItem(at: CoreDataStack.accountDataFolder(accountIdentifier: accountID, applicationContainer: sharedContainerURL))
-        }
-        catch let error {
+        } catch let error {
             log.error("Impossible to delete the acccount \(account): \(error)")
         }
     }

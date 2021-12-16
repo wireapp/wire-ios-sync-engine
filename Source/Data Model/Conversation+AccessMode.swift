@@ -61,11 +61,9 @@ extension ZMConversation {
             if response.httpStatus == 200,
                 let uri = response.payload?.asDictionary()?[ZMConversation.TransportKey.uri] as? String {
                 completion(.success(uri))
-            }
-            else if response.httpStatus == 404 {
+            } else if response.httpStatus == 404 {
                 completion(.success(nil))
-            }
-            else {
+            } else {
                 let error = WirelessLinkError(response: response) ?? .unknown
                 zmLog.debug("Error fetching wireless link: \(error)")
                 completion(.failure(error))
@@ -91,8 +89,7 @@ extension ZMConversation {
                     self.createWirelessLink(in: userSession, completion)
                 }
             }
-        }
-        else {
+        } else {
             createWirelessLink(in: userSession, completion)
         }
     }
@@ -117,13 +114,11 @@ extension ZMConversation {
                         userSession.updateEventProcessor?.storeAndProcessUpdateEvents([event], ignoreBuffer: true)
                     }
                 }
-            }
-            else if response.httpStatus == 200,
+            } else if response.httpStatus == 200,
                 let payload = response.payload?.asDictionary(),
                 let uri = payload[ZMConversation.TransportKey.uri] as? String {
                 completion(.success(uri))
-            }
-            else {
+            } else {
                 let error = WirelessLinkError(response: response) ?? .unknown
                 zmLog.error("Error creating wireless link: \(error)")
                 completion(.failure(error))

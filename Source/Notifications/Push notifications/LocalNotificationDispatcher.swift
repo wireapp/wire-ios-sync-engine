@@ -191,8 +191,7 @@ extension LocalNotificationDispatcher {
         if genericMessage.hasDeleted {
             let deleted = genericMessage.deleted.messageID
             idToDelete = UUID(uuidString: deleted)
-        }
-        else if genericMessage.hasHidden {
+        } else if genericMessage.hasHidden {
             let hidden = genericMessage.hidden.messageID
             idToDelete = UUID(uuidString: hidden)
         }

@@ -174,8 +174,7 @@ extension CallKitManager {
         if let audioCallIntent = intent as? INStartAudioCallIntent {
             contacts = audioCallIntent.contacts
             video = false
-        }
-        else if let videoCallIntent = intent as? INStartVideoCallIntent {
+        } else if let videoCallIntent = intent as? INStartVideoCallIntent {
             contacts = videoCallIntent.contacts
             video = true
         }
@@ -342,11 +341,9 @@ fileprivate extension Date {
     func clamp(between fromDate: Date, and toDate: Date) -> Date {
         if timeIntervalSinceReferenceDate < fromDate.timeIntervalSinceReferenceDate {
             return fromDate
-        }
-        else if timeIntervalSinceReferenceDate > toDate.timeIntervalSinceReferenceDate {
+        } else if timeIntervalSinceReferenceDate > toDate.timeIntervalSinceReferenceDate {
             return toDate
-        }
-        else {
+        } else {
             return self
         }
     }

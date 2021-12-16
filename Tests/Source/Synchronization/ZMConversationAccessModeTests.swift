@@ -126,14 +126,12 @@ public class ZMConversationAccessModeTests: MessagingTest {
         let conversation = ZMConversation.insertGroupConversation(moc: self.uiMOC, participants: [], name: "Test Conversation")!
         if options.hasRemoteId {
             conversation.remoteIdentifier = UUID()
-        }
-        else {
+        } else {
             conversation.remoteIdentifier = nil
         }
         if options.isGroup {
             conversation.conversationType = .group
-        }
-        else {
+        } else {
             conversation.conversationType = .invalid
         }
 

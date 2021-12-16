@@ -169,8 +169,7 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
             case _ where keys.contains(ZMUserClientMarkedToDeleteKey):
                 if clientUpdateStatus.currentPhase == ClientUpdatePhase.deletingClients {
                     request = requestsFactory.deleteClientRequest(managedObject, credentials: clientUpdateStatus.credentials)
-                }
-                else {
+                } else {
                     fatal("No email credentials in memory")
                 }
             case _ where keys.contains(ZMUserClientNeedsToUpdateSignalingKeysKey):
@@ -189,8 +188,7 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
             }
 
             return request
-        }
-        else {
+        } else {
             fatal("Called requestForUpdatingObject() on \(managedObject) to sync keys: \(keys)")
         }
     }
@@ -236,8 +234,7 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
             }
             (managedObject as? UserClient)?.needsToUpdateCapabilities = false
             return false
-        }
-        else if keysToParse.contains(ZMUserClientMarkedToDeleteKey) {
+        } else if keysToParse.contains(ZMUserClientMarkedToDeleteKey) {
             let error = self.errorFromFailedDeleteResponse(response)
             if error.code == ClientUpdateError.clientToDeleteNotFound.rawValue {
                 self.managedObjectContext?.delete(managedObject)
@@ -245,8 +242,7 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
             }
             clientUpdateStatus?.failedToDeleteClient(managedObject as! UserClient, error: error)
             return false
-        }
-        else {
+        } else {
             // first we try to register without password (credentials can be there, but they can not contain password)
             // if there is no password in credentials but it's required, we will recieve error from backend and only then will ask for password
             let error = errorFromFailedInsertResponse(response)
@@ -274,8 +270,7 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
             guard let moc = self.managedObjectContext else { return }
             _ = UserClient.createOrUpdateSelfUserClient(payload, context: moc)
             clientRegistrationStatus?.didRegister(client)
-        }
-        else {
+        } else {
             fatal("Called updateInsertedObject() on \(managedObject.safeForLoggingDescription)")
         }
     }
@@ -309,8 +304,7 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
                 case "missing-auth":
                     if let emailAddress = ZMUser.selfUser(in: moc).emailAddress, !emailAddress.isEmpty {
                         errorCode = .needsPasswordToRegisterClient
-                    }
-                    else {
+                    } else {
                         errorCode = .invalidCredentials
                     }
                 case "too-many-clients":
@@ -377,14 +371,11 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
 
         if keysToParse.contains(ZMUserClientMarkedToDeleteKey) {
             return processResponseForDeletingClients(managedObject, requestUserInfo: requestUserInfo, responsePayload: response.payload)
-        }
-        else if keysToParse.contains(ZMUserClientNumberOfKeysRemainingKey) {
+        } else if keysToParse.contains(ZMUserClientNumberOfKeysRemainingKey) {
             (managedObject as! UserClient).numberOfKeysRemaining += Int32(requestsFactory.keyCount)
-        }
-        else if keysToParse.contains(ZMUserClientNeedsToUpdateSignalingKeysKey) {
+        } else if keysToParse.contains(ZMUserClientNeedsToUpdateSignalingKeysKey) {
             didRetryRegisteringSignalingKeys = false
-        }
-        else if keysToParse.contains(ZMUserClientNeedsToUpdateCapabilitiesKey) {
+        } else if keysToParse.contains(ZMUserClientNeedsToUpdateCapabilitiesKey) {
             didRetryUpdatingCapabilities = false
         }
 

@@ -74,7 +74,7 @@ class ZMUserSessionTests_EncryptionAtRest: ZMUserSessionTestsBase {
     }
 
     // MARK: - Database migration
- 
+
     // @SF.Storage @TSFI.UserInterface @S0.1 @S0.2
     func testThatDelegateIsCalled_WhenEncryptionAtRestIsEnabled() throws {
         // given

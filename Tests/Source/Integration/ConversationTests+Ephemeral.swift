@@ -187,8 +187,7 @@ extension ConversationTests_Ephemeral {
                     let deleteMessage = message.underlyingMessage, deleteMessage.hasDeleted,
                 deleteMessage.deleted.messageID == ephemeral.nonce!.transportString() {
                 return true
-            }
-            else {
+            } else {
                 return false
             }
         })) != nil
