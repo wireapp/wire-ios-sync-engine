@@ -9,14 +9,14 @@ on:
     branches:
       - develop
 jobs:
-  Run_Tests_Xcode_12_4_iOS_14_4:
+  Run_Tests_Xcode_13_1_iOS_14_4:
     runs-on: macos-11
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
     - uses: actions/checkout@v1
     - name: Select Xcode
-      run: sudo xcode-select -switch /Applications/Xcode_12.4.app && /usr/bin/xcodebuild -version
+      run: sudo xcode-select -switch /Applications/Xcode_13.1.app && /usr/bin/xcodebuild -version
 
     - name: Carthage
       env:
