@@ -90,10 +90,10 @@ class MockCallKitCallController: CXCallController {
     public let mockCallObserver = MockCallObserver()
 
     public override func request(_ transaction: CXTransaction, completion: @escaping (Error?) -> Void) {
-        timesRequestTransactionCalled = timesRequestTransactionCalled + 1
+        timesRequestTransactionCalled += 1
         requestedTransactions.append(transaction)
         if mockErrorCount >= 1 {
-            mockErrorCount = mockErrorCount-1
+            mockErrorCount -= 1
             completion(mockTransactionErrorCode)
         } else {
             completion(.none)
@@ -599,8 +599,7 @@ class CallKitManagerTest: DatabaseTest {
 
         if isVideo {
             intent = INStartVideoCallIntent(contacts: contacts)
-        }
-        else {
+        } else {
             intent = INStartAudioCallIntent(contacts: contacts)
         }
 

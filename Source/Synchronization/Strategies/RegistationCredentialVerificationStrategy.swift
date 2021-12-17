@@ -55,8 +55,7 @@ extension RegistationCredentialVerificationStrategy: ZMSingleRequestTranscoder {
     func didReceive(_ response: ZMTransportResponse, forSingleRequest sync: ZMSingleRequestSync) {
         if response.result == .success {
             registrationStatus.success()
-        }
-        else {
+        } else {
             let error: NSError
 
             switch registrationStatus.phase {

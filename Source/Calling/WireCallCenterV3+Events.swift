@@ -350,8 +350,7 @@ extension WireCallCenterV3 {
                     self.callSnapshots[conversationId] = call.updateActiveSpeakers(change.activeSpeakers)
                     WireCallCenterActiveSpeakersNotification().post(in: $0.notificationContext)
                 }
-            }
-            catch {
+            } catch {
                 zmLog.safePublic("Cannot decode active speakers change JSON")
             }
         }

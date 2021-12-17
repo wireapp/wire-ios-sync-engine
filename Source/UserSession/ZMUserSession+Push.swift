@@ -74,8 +74,7 @@ struct PushTokenMetadata {
     var transportType: String {
         if isSandbox {
             return "APNS_VOIP_SANDBOX"
-        }
-        else {
+        } else {
             return "APNS_VOIP"
         }
     }
@@ -265,7 +264,6 @@ extension ZMUserSession: UNUserNotificationCenterDelegate {
         default:
             showContent(for: userInfo)
             completionHandler()
-            break
         }
     }
 
