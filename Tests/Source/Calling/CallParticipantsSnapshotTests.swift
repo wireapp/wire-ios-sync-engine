@@ -30,7 +30,7 @@ class CallParticipantsSnapshotTests: MessagingTest {
     private var aliceDesktop: AVSClient!
     private var bobIphone: AVSClient!
     private var bobDesktop: AVSClient!
-    private var conversationId = UUID()
+    private var conversationId = AVSIdentifier.stub
     private var selfUser: ZMUser!
     private var user2: ZMUser!
     private var selfClient: UserClient!
@@ -40,14 +40,14 @@ class CallParticipantsSnapshotTests: MessagingTest {
     override func setUp() {
         super.setUp()
         mockFlowManager = FlowManagerMock()
-        mockWireCallCenterV3 = WireCallCenterV3Mock(userId: UUID(),
+        mockWireCallCenterV3 = WireCallCenterV3Mock(userId: AVSIdentifier.stub,
                                                     clientId: UUID().transportString(),
                                                     uiMOC: uiMOC,
                                                     flowManager: mockFlowManager,
                                                     transport: WireCallCenterTransportMock())
 
-        let aliceId = UUID()
-        let bobId = UUID()
+        let aliceId = AVSIdentifier.stub
+        let bobId = AVSIdentifier.stub
 
         aliceIphone = AVSClient(userId: aliceId, clientId: "iphone")
         aliceDesktop = AVSClient(userId: aliceId, clientId: "desktop")
@@ -255,7 +255,7 @@ class CallParticipantsSnapshotTests: MessagingTest {
         mockWireCallCenterV3.callSnapshots[conversationId] = CallSnapshot(
             callParticipants: CallParticipantsSnapshot(conversationId: conversationId, members: [], callCenter: mockWireCallCenterV3),
             callState: .established,
-            callStarter: aliceIphone.userId,
+            callStarter: aliceIphone.avsIdentifier,
             isVideo: false,
             isGroup: true,
             isConstantBitRate: false,
@@ -272,7 +272,7 @@ class CallParticipantsSnapshotTests: MessagingTest {
     private func setupUsersAndClients() {
         performPretendingUiMocIsSyncMoc {
             self.selfUser = ZMUser.selfUser(in: self.uiMOC)
-            self.selfUser.remoteIdentifier = self.aliceIphone.userId
+            self.selfUser.remoteIdentifier = self.aliceIphone.avsIdentifier.identifier
 
             self.selfClient = UserClient.insertNewObject(in: self.uiMOC)
             self.selfClient.user = self.selfUser
@@ -283,7 +283,7 @@ class CallParticipantsSnapshotTests: MessagingTest {
             self.client1.user = self.selfUser
             self.client1.remoteIdentifier = self.aliceDesktop.clientId
 
-            self.user2 = ZMUser.fetchOrCreate(with: self.bobIphone.userId, domain: nil, in: self.uiMOC)
+            self.user2 = ZMUser.fetchOrCreate(with: self.bobIphone.avsIdentifier.identifier, domain: nil, in: self.uiMOC)
 
             self.client2 = UserClient.insertNewObject(in: self.uiMOC)
             self.client2.user = self.user2

@@ -17,31 +17,10 @@
 //
 
 import Foundation
-import XCTest
 @testable import WireSyncEngine
 
-class AVSVideoStreamsTest: XCTestCase {
-    func testThatJSONStringValue_ConformsToAVSAPI() {
-        // given
-        let conversationId = UUID()
-        let userId = AVSIdentifier.stub
-        let clientId = UUID()
-
-        let client = AVSClient(userId: userId, clientId: clientId.transportString())
-
-        let expectedJson = """
-        {\
-        "convid":"\(conversationId.transportString())",\
-        "clients":[\
-        \(client.jsonString()!)\
-        ]\
-        }
-        """
-
-        // when
-        let sut = AVSVideoStreams(conversationId: conversationId.transportString(), clients: [client])
-
-        // then
-        XCTAssertEqual(sut.jsonString(), expectedJson)
+extension AVSIdentifier {
+    static var stub: AVSIdentifier {
+        AVSIdentifier(identifier: UUID(), domain: nil)
     }
 }

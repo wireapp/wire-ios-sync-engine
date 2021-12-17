@@ -25,7 +25,7 @@ class WireCallCenterTransportMock: WireCallCenterTransport {
     var mockCallConfigResponse: (String, Int)?
     var mockClientsRequestResponse: [AVSClient]?
 
-    func send(data: Data, conversationId: UUID, targets: [AVSClient]?, completionHandler: @escaping ((Int) -> Void)) {
+    func send(data: Data, conversationId: AVSIdentifier, targets: [AVSClient]?, completionHandler: @escaping ((Int) -> Void)) {
 
     }
 
@@ -53,13 +53,13 @@ class WireCallCenterV3Tests: MessagingTest {
     var mockAVSWrapper: MockAVSWrapper!
     var sut: WireCallCenterV3!
     var otherUser: ZMUser!
-    let otherUserID: UUID = UUID()
+    let otherUserID: AVSIdentifier = AVSIdentifier.stub
     let otherUserClientID = UUID().transportString()
-    var selfUserID: UUID!
+    var selfUserID: AVSIdentifier!
     var oneOnOneConversation: ZMConversation!
     var groupConversation: ZMConversation!
-    var oneOnOneConversationID: UUID!
-    var groupConversationID: UUID!
+    var oneOnOneConversationID: AVSIdentifier!
+    var groupConversationID: AVSIdentifier!
     var clientID: String!
     var mockTransport: WireCallCenterTransportMock!
     var conferenceCalling: Feature!
@@ -69,23 +69,25 @@ class WireCallCenterV3Tests: MessagingTest {
 
         let selfUser = ZMUser.selfUser(in: uiMOC)
         selfUser.remoteIdentifier = UUID.create()
-        selfUserID = selfUser.remoteIdentifier!
+        selfUser.domain = "wire.com"
+        selfUserID = selfUser.avsIdentifier
 
         let otherUser = ZMUser.insertNewObject(in: uiMOC)
-        otherUser.remoteIdentifier = otherUserID
+        otherUser.remoteIdentifier = otherUserID.identifier
+        otherUser.domain = "wire.com"
         self.otherUser = otherUser
 
         let oneOnOneConversation = ZMConversation.insertNewObject(in: self.uiMOC)
         oneOnOneConversation.remoteIdentifier = UUID.create()
         oneOnOneConversation.conversationType = .oneOnOne
-        oneOnOneConversationID = oneOnOneConversation.remoteIdentifier!
+        oneOnOneConversationID = oneOnOneConversation.avsIdentifier!
         self.oneOnOneConversation = oneOnOneConversation
 
         let groupConversation = ZMConversation.insertNewObject(in: self.uiMOC)
         groupConversation.remoteIdentifier = UUID.create()
         groupConversation.conversationType = .group
         groupConversation.addParticipantAndUpdateConversationState(user: selfUser, role: nil)
-        groupConversationID = groupConversation.remoteIdentifier!
+        groupConversationID = groupConversation.avsIdentifier!
         self.groupConversation = groupConversation
 
         clientID = "foo"
@@ -93,7 +95,7 @@ class WireCallCenterV3Tests: MessagingTest {
         mockAVSWrapper = MockAVSWrapper(userId: selfUserID, clientId: clientID, observer: nil)
         mockTransport = WireCallCenterTransportMock()
         sut = WireCallCenterV3(userId: selfUserID, clientId: clientID, avsWrapper: mockAVSWrapper, uiMOC: uiMOC, flowManager: flowManager, transport: mockTransport)
-        /// set conferenceCalling feature flag
+        // set conferenceCalling feature flag
         conferenceCalling = Feature.fetch(name: .conferenceCalling, context: uiMOC)
         conferenceCalling?.status = .enabled
         sut.usePackagingFeatureConfig = true
@@ -118,7 +120,7 @@ class WireCallCenterV3Tests: MessagingTest {
         super.tearDown()
     }
 
-    func checkThatItPostsNotification(expectedCallState: CallState, expectedCallerId: UUID, expectedConversationId: UUID, line: UInt = #line, file: StaticString = #file, actionBlock: () -> Void) {
+    func checkThatItPostsNotification(expectedCallState: CallState, expectedCallerId: AVSIdentifier, expectedConversationId: AVSIdentifier, line: UInt = #line, file: StaticString = #file, actionBlock: () -> Void) {
         // expect
         expectation(forNotification: WireCallCenterCallStateNotification.notificationName, object: nil) { wrappedNote in
             guard let note = wrappedNote.userInfo?[WireCallCenterCallStateNotification.userInfoKey] as? WireCallCenterCallStateNotification else { return false }
@@ -183,8 +185,8 @@ class WireCallCenterV3Tests: MessagingTest {
 
     func testThatTheMissedCallHandlerPostANotification() {
         // given
-        let conversationId = UUID()
-        let userId = UUID()
+        let conversationId = AVSIdentifier.stub
+        let userId = AVSIdentifier.stub
         let isVideo = false
         let timestamp = Date()
 
@@ -700,7 +702,7 @@ class WireCallCenterV3Tests: MessagingTest {
 
     func testThatItBuffersEventsUntilAVSIsReady() {
         // given
-        let userId = UUID()
+        let userId = AVSIdentifier.stub
         let clientId = "foo"
         let data = self.verySmallJPEGData()
         let callEvent = CallEvent(data: data, currentTimestamp: Date(), serverTimestamp: Date(), conversationId: oneOnOneConversationID, userId: userId, clientId: clientId)
@@ -725,7 +727,7 @@ class WireCallCenterV3Tests: MessagingTest {
 
     func testThatItCallProcessCallEventCompletionHandler() {
         // given
-        let userId = UUID()
+        let userId = AVSIdentifier.stub
         let clientId = "foo"
         let data = self.verySmallJPEGData()
         let callEvent = CallEvent(data: data, currentTimestamp: Date(), serverTimestamp: Date(), conversationId: oneOnOneConversationID, userId: userId, clientId: clientId)
@@ -745,7 +747,7 @@ class WireCallCenterV3Tests: MessagingTest {
 
     func testThatItCallProcessCallEventCompletionHandlerWhenEmptyingBuffer() {
         // given
-        let userId = UUID()
+        let userId = AVSIdentifier.stub
         let clientId = "foo"
         let data = self.verySmallJPEGData()
         let callEvent = CallEvent(data: data, currentTimestamp: Date(), serverTimestamp: Date(), conversationId: oneOnOneConversationID, userId: userId, clientId: clientId)
@@ -769,7 +771,7 @@ class WireCallCenterV3Tests: MessagingTest {
 
     func testThatTheReceivedCallHandlerPostsTheRightNotification_WithErrorUnknownProtocol() {
 
-        let userId = UUID()
+        let userId = AVSIdentifier.stub
         let clientId = "foo"
         let data = self.verySmallJPEGData()
         let callEvent = CallEvent(data: data, currentTimestamp: Date(), serverTimestamp: Date(), conversationId: oneOnOneConversationID, userId: userId, clientId: clientId)
@@ -800,7 +802,7 @@ class WireCallCenterV3Tests: MessagingTest {
 
     func testThatTheReceivedCallHandlerDoesntPostNotifications_WithNoError() {
 
-        let userId = UUID()
+        let userId = AVSIdentifier.stub
         let clientId = "foo"
         let data = self.verySmallJPEGData()
         let callEvent = CallEvent(data: data, currentTimestamp: Date(), serverTimestamp: Date(), conversationId: oneOnOneConversationID, userId: userId, clientId: clientId)
@@ -820,6 +822,7 @@ class WireCallCenterV3Tests: MessagingTest {
 
     func testThatActiveCallsOnlyIncludeExpectedCallStates() {
         // given
+        let callStarter = AVSIdentifier.stub
         let activeCallStates: [CallState] = [CallState.established,
                                              CallState.establishedDataChannel]
 
@@ -832,19 +835,19 @@ class WireCallCenterV3Tests: MessagingTest {
 
         // then
         for callState in nonActiveCallStates {
-            sut.createSnapshot(callState: callState, members: [], callStarter: nil, video: false, for: groupConversation.remoteIdentifier!, isConferenceCall: false)
+            sut.createSnapshot(callState: callState, members: [], callStarter: callStarter, video: false, for: groupConversation.avsIdentifier!, isConferenceCall: false)
             XCTAssertEqual(sut.activeCalls.count, 0)
         }
 
         for callState in activeCallStates {
-            sut.createSnapshot(callState: callState, members: [], callStarter: nil, video: false, for: groupConversation.remoteIdentifier!, isConferenceCall: false)
+            sut.createSnapshot(callState: callState, members: [], callStarter: callStarter, video: false, for: groupConversation.avsIdentifier!, isConferenceCall: false)
             XCTAssertEqual(sut.activeCalls.count, 1)
         }
     }
 
     func testThatItMutesMicrophone_WhenHandlingIncomingGroupCall() {
         // given
-        let conversationID = UUID()
+        let conversationID = AVSIdentifier.stub
         sut.callSnapshots = callSnapshot(conversationId: conversationID, clients: [])
         sut.muted = false
 
@@ -1183,12 +1186,12 @@ extension WireCallCenterV3Tests {
         XCTAssertEqual(actual, expected)
     }
 
-    func callBackMemberHandler(conversationId: UUID, userId: UUID, clientId: String, audioEstablished: Bool) {
+    func callBackMemberHandler(conversationId: AVSIdentifier, userId: AVSIdentifier, clientId: String, audioEstablished: Bool) {
         let audioState = audioEstablished ? AudioState.established : .connecting
         let videoState = VideoState.stopped
         let microphoneState = MicrophoneState.unmuted
-        let member = AVSParticipantsChange.Member(userid: userId, clientid: clientId, aestab: audioState, vrecv: videoState, muted: microphoneState)
-        let change = AVSParticipantsChange(convid: conversationId, members: [member])
+        let member = AVSParticipantsChange.Member(userid: userId.serialized, clientid: clientId, aestab: audioState, vrecv: videoState, muted: microphoneState)
+        let change = AVSParticipantsChange(convid: conversationId.serialized, members: [member])
 
         let encoded = try! JSONEncoder().encode(change)
         let string = String(data: encoded, encoding: .utf8)!
@@ -1271,8 +1274,8 @@ extension WireCallCenterV3Tests {
 
     func testThatClientsRequestHandlerSuccessfullyReturnsClientList() {
         // given
-        let userId1 = UUID.create()
-        let userId2 = UUID.create()
+        let userId1 = AVSIdentifier.stub
+        let userId2 = AVSIdentifier.stub
 
         mockTransport.mockClientsRequestResponse = [
             AVSClient(userId: userId1, clientId: "client1"),
@@ -1282,7 +1285,7 @@ extension WireCallCenterV3Tests {
         ]
 
         // when
-        sut.handleClientsRequest(conversationId: groupConversation.remoteIdentifier!) { json in
+        sut.handleClientsRequest(conversationId: groupConversation.avsIdentifier!) { json in
             do {
                 // then
                 let data = json.data(using: .utf8)!
@@ -1318,7 +1321,8 @@ extension WireCallCenterV3Tests {
 extension WireCallCenterV3Tests {
     func testThatCallDidDegradeEndsCall() {
         // When
-        sut.callDidDegrade(conversationId: UUID(), degradedUser: ZMUser.insertNewObject(in: uiMOC))
+        sut.callDidDegrade(conversationId: AVSIdentifier.stub,
+                           degradedUser: ZMUser.insertNewObject(in: uiMOC))
 
         // Then
         XCTAssertTrue(mockAVSWrapper.didCallEndCall)
@@ -1326,7 +1330,7 @@ extension WireCallCenterV3Tests {
 
     func testThatCallDidDegradeUpdatesDegradedUser() {
         // Given
-        let conversationId = groupConversation.remoteIdentifier!
+        let conversationId = groupConversation.avsIdentifier!
 
         sut.callSnapshots = [
             conversationId: CallSnapshotTestFixture.degradedCallSnapshot(
@@ -1353,7 +1357,7 @@ extension WireCallCenterV3Tests {
         case realTime
     }
 
-    private func activeSpeakersChange(for conversationId: UUID,
+    private func activeSpeakersChange(for conversationId: AVSIdentifier,
                                       clients: [AVSClient],
                                       activeSpeakerKind kind: ActiveSpeakerKind = .realTime) -> AVSActiveSpeakersChange {
         var activeSpeakers = [AVSActiveSpeakersChange.ActiveSpeaker]()
@@ -1370,7 +1374,7 @@ extension WireCallCenterV3Tests {
         return AVSActiveSpeakersChange(activeSpeakers: activeSpeakers)
     }
 
-    private func callSnapshot(conversationId: UUID, clients: [AVSClient]) -> [UUID: CallSnapshot] {
+    private func callSnapshot(conversationId: AVSIdentifier, clients: [AVSClient]) -> [AVSIdentifier: CallSnapshot] {
         return [
             conversationId: CallSnapshotTestFixture.callSnapshot(
                 conversationId: conversationId,
@@ -1504,7 +1508,7 @@ extension WireCallCenterV3Tests {
             AVSClient(userId: otherUserID, clientId: clientId2)
         ]
 
-        let expectedResult = AVSVideoStreams(conversationId: conversationId.transportString(), clients: clients)
+        let expectedResult = AVSVideoStreams(conversationId: conversationId.serialized, clients: clients)
 
         // when
         sut.requestVideoStreams(conversationId: conversationId, clients: clients)
@@ -1518,7 +1522,8 @@ extension WireCallCenterV3Tests {
 
 private extension AVSClient {
     static var mockClient: AVSClient {
-        return AVSClient(userId: UUID(), clientId: UUID().transportString())
+        return AVSClient(userId: AVSIdentifier(identifier: UUID(), domain: "wire.com"),
+                         clientId: UUID().transportString())
     }
 }
 
