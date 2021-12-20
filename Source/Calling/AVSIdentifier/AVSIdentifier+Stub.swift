@@ -17,10 +17,9 @@
 //
 
 import Foundation
-@testable import WireSyncEngine
 
-extension AVSIdentifier {
+public extension AVSIdentifier {
     static var stub: AVSIdentifier {
-        AVSIdentifier(identifier: UUID(), domain: nil)
+        AVSIdentifier(identifier: UUID(), domain: "domain.com")
     }
 }

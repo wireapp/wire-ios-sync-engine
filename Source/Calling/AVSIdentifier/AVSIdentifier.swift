@@ -19,8 +19,13 @@
 import Foundation
 
 public struct AVSIdentifier: Hashable, Equatable {
-    let identifier: UUID
-    let domain: String?
+    public let identifier: UUID
+    public let domain: String?
+
+    public init(identifier: UUID, domain: String?) {
+        self.identifier = identifier
+        self.domain = domain
+    }
 }
 
 extension AVSIdentifier {
