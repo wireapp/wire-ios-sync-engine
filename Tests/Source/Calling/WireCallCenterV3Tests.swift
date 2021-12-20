@@ -53,7 +53,7 @@ class WireCallCenterV3Tests: MessagingTest {
     var mockAVSWrapper: MockAVSWrapper!
     var sut: WireCallCenterV3!
     var otherUser: ZMUser!
-    let otherUserID: AVSIdentifier = AVSIdentifier.stub
+    var otherUserID: AVSIdentifier!
     let otherUserClientID = UUID().transportString()
     var selfUserID: AVSIdentifier!
     var oneOnOneConversation: ZMConversation!
@@ -73,9 +73,10 @@ class WireCallCenterV3Tests: MessagingTest {
         selfUserID = selfUser.avsIdentifier
 
         let otherUser = ZMUser.insertNewObject(in: uiMOC)
-        otherUser.remoteIdentifier = otherUserID.identifier
+        otherUser.remoteIdentifier = UUID()
         otherUser.domain = "wire.com"
         self.otherUser = otherUser
+        otherUserID = otherUser.avsIdentifier
 
         let oneOnOneConversation = ZMConversation.insertNewObject(in: self.uiMOC)
         oneOnOneConversation.remoteIdentifier = UUID.create()

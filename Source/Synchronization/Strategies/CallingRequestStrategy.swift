@@ -169,7 +169,7 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
                 let payload = try decoder.decode(ClientDiscoveryResponsePayload.self, from: jsonData)
 
                 let clients = payload.clients.flatMap { client -> [AVSClient] in
-                    let userId = AVSIdentifier.from(string: client.userId.transportString())
+                    let userId = AVSIdentifier.from(string: client.userId)
 
                     return client.clientIds.map { clientID -> AVSClient in
                         return AVSClient(userId: userId, clientId: clientID)
@@ -407,7 +407,7 @@ extension CallingRequestStrategy {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             let nestedContainer = try container.nestedContainer(keyedBy: Clients.CodingKeys.self, forKey: .missing)
 
-            let userIds = nestedContainer.allKeys.compactMap { UUID(uuidString: $0.stringValue) }
+            let userIds = nestedContainer.allKeys.compactMap { $0.stringValue }
 
             clients = try userIds.map { userId in
                 let userIdKey = Clients.CodingKeys.userId(userId)
@@ -424,23 +424,22 @@ extension CallingRequestStrategy {
 
         struct Clients {
 
-            let userId: UUID
+            let userId: String
             let clientIds: [String]
 
             enum CodingKeys: CodingKey {
 
-                case userId(UUID)
+                case userId(String)
 
                 var stringValue: String {
                     switch self {
-                    case .userId(let uuid):
-                        return uuid.transportString()
+                    case .userId(let id):
+                        return id
                     }
                 }
 
-                init?(stringValue: String) {
-                    guard let uuid = UUID(uuidString: stringValue) else { return nil }
-                    self = .userId(uuid)
+                init(stringValue: String) {
+                    self = .userId(stringValue)
                 }
 
                 var intValue: Int? {
