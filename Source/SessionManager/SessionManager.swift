@@ -187,6 +187,9 @@ public final class SessionManager: NSObject, SessionManagerType {
     /// Maximum number of accounts which can be logged in simultanously
     public let maxNumberAccounts: Int
 
+    /// Default Maximum number of accounts which can be logged in simultanously
+    public static let defaultMaxNumberAccounts: Int = 3
+
     public let appVersion: String
     var isAppVersionBlacklisted = false
     public weak var delegate: SessionManagerDelegate?
@@ -270,7 +273,7 @@ public final class SessionManager: NSObject, SessionManagerType {
     }
 
     public convenience init(
-        maxNumberAccounts: Int = 3,
+        maxNumberAccounts: Int = defaultMaxNumberAccounts,
         appVersion: String,
         mediaManager: MediaManagerType,
         analytics: AnalyticsType?,
@@ -347,7 +350,7 @@ public final class SessionManager: NSObject, SessionManagerType {
         NotificationCenter.default.addObserver(self, selector: #selector(applicationDidBecomeActive(_:)), name: UIApplication.didBecomeActiveNotification, object: nil)
     }
 
-    init(maxNumberAccounts: Int = 3,
+    init(maxNumberAccounts: Int = defaultMaxNumberAccounts,
          appVersion: String,
          authenticatedSessionFactory: AuthenticatedSessionFactory,
          unauthenticatedSessionFactory: UnauthenticatedSessionFactory,

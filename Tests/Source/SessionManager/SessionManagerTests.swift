@@ -33,7 +33,7 @@ final class SessionManagerTests: IntegrationTest {
         createSelfUserAndConversation()
     }
 
-    func createManager(launchOptions: LaunchOptions = [:], maxNumberAccounts: Int = 3) -> SessionManager? {
+    func createManager(launchOptions: LaunchOptions = [:], maxNumberAccounts: Int = SessionManager.defaultMaxNumberAccounts) -> SessionManager? {
         guard let application = application else { return nil }
         let environment = MockEnvironment()
         let reachability = MockReachability()
