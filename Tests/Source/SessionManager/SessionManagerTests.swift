@@ -75,14 +75,18 @@ final class SessionManagerTests: IntegrationTest {
 
     // MARK: max account number
     func testThatDefaultMaxAccountNumberIs3_whenDefaultValueIsUsed() {
+        //given and when
         let sut = createManager()!
 
+        //then
         XCTAssertEqual(sut.maxNumberAccounts, 3)
     }
 
     func testThatMaxAccountNumberIs2_whenInitWithMaxAccountNumberAs2() {
+        //given and when
         let sut = createManager(maxNumberAccounts: 2)!
 
+        //then
         XCTAssertEqual(sut.maxNumberAccounts, 2)
     }
 
