@@ -33,7 +33,7 @@ final class SessionManagerTests: IntegrationTest {
         createSelfUserAndConversation()
     }
 
-    func createManager(launchOptions: LaunchOptions = [:]) -> SessionManager? {
+    func createManager(launchOptions: LaunchOptions = [:], maxNumberAccounts: Int = 3) -> SessionManager? {
         guard let application = application else { return nil }
         let environment = MockEnvironment()
         let reachability = MockReachability()
@@ -48,6 +48,7 @@ final class SessionManagerTests: IntegrationTest {
         )
 
         let sessionManager = SessionManager(
+            maxNumberAccounts: maxNumberAccounts,
             appVersion: "0.0.0",
             authenticatedSessionFactory: authenticatedSessionFactory,
             unauthenticatedSessionFactory: unauthenticatedSessionFactory,
@@ -70,6 +71,19 @@ final class SessionManagerTests: IntegrationTest {
         delegate = nil
         sut = nil
         super.tearDown()
+    }
+
+    // MARK: max account number
+    func testThatDefaultMaxAccountNumberIs3_whenDefaultValueIsUsed() {
+        let sut = createManager()!
+
+        XCTAssertEqual(sut.maxNumberAccounts, 3)
+    }
+
+    func testThatMaxAccountNumberIs2_whenInitWithMaxAccountNumberAs2() {
+        let sut = createManager(maxNumberAccounts: 2)!
+
+        XCTAssertEqual(sut.maxNumberAccounts, 2)
     }
 
     func testThatItCreatesUnauthenticatedSessionAndNotifiesDelegateIfStoreIsNotAvailable() {
