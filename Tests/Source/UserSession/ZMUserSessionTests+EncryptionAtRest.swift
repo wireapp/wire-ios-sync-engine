@@ -43,7 +43,7 @@ class MockUserSessionDelegate: NSObject, UserSessionDelegate {
     func authenticationInvalidated(_ error: NSError, accountId: UUID) { }
 }
 
-class ZMUserSessionTests_EncryptionAtRest: ZMUserSessionTestsBase {
+final class ZMUserSessionTests_EncryptionAtRest: ZMUserSessionTestsBase {
 
     private var activityManager: MockBackgroundActivityManager!
     private var factory: BackgroundActivityFactory!
@@ -69,7 +69,7 @@ class ZMUserSessionTests_EncryptionAtRest: ZMUserSessionTestsBase {
     }
 
     private func setEncryptionAtRest(enabled: Bool, file: StaticString = #file, line: UInt = #line) {
-        try! sut.setEncryptionAtRest(enabled: true, skipMigration: true)
+        try? sut.setEncryptionAtRest(enabled: true, skipMigration: true)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5), file: file, line: line)
     }
 
