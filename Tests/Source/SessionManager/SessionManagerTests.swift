@@ -259,6 +259,7 @@ final class SessionManagerTests: IntegrationTest {
     }
 
     func testThatJailbrokenDeviceCallsDelegateMethod() {
+
         // GIVEN
         guard let application = application else { return XCTFail() }
         let jailbreakDetector = MockJailbreakDetector(jailbroken: true)
@@ -337,6 +338,7 @@ final class SessionManagerTests: IntegrationTest {
     }
 
     func testThatShouldPerformPostRebootLogoutReturnsFalseIfNoPreviousBootTimeExists() {
+
         // GIVEN
         sut = createManager()
         sut?.configuration.authenticateAfterReboot = true
@@ -654,7 +656,7 @@ class SessionManagerTests_AuthenticationFailure_With_DeleteAccountOnAuthentictio
 
         XCTAssertFalse(FileManager.default.fileExists(atPath: accountFolder.path))
     }
-    
+
     func testThatItDeletesTheAccount_OnAuthentictionFailure() {
         // given
         XCTAssert(login())
@@ -690,7 +692,7 @@ class SessionManagerTests_AuthenticationFailure_With_DeleteAccountOnAuthentictio
 
         // when
         sessionManager?.authenticationInvalidated(NSError(code: .accessTokenExpired, userInfo: nil), accountId: additionalAccount.userIdentifier)
-        XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))  
+        XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
         guard let sharedContainer = Bundle.main.appGroupIdentifier.map(FileManager.sharedContainerDirectory) else { return XCTFail() }
@@ -802,7 +804,7 @@ class SessionManagerTests_Teams: IntegrationTest {
         XCTAssertEqual(account.imageData, image?.data)
     }
 
-    func testThatItUpdatesAccountWithUserDetailsAfterLoginIntoExistingAccount() {        
+    func testThatItUpdatesAccountWithUserDetailsAfterLoginIntoExistingAccount() {
         // given
         XCTAssert(login())
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
@@ -1447,7 +1449,7 @@ extension NSManagedObjectContext {
     func createSelfUserAndSelfConversation() {
         let selfUser = ZMUser.selfUser(in: self)
         selfUser.remoteIdentifier = UUID()
-        
+
         let selfConversation = ZMConversation.insertNewObject(in: self)
         selfConversation.remoteIdentifier = ZMConversation.selfConversationIdentifier(in: self)
     }
