@@ -636,11 +636,18 @@ extension WireCallCenterV3 {
     /// Sends the config request when requested by AVS through `wcall_config_req_h`.
     func requestCallConfig() {
         zmLog.debug("\(self): requestCallConfig(), transport = \(String(describing: transport))")
-        transport?.requestCallConfig(completionHandler: { [weak self] (config, httpStatusCode) in
-            guard let `self` = self else { return }
-            zmLog.debug("\(self): self.avsWrapper.update with \(String(describing: config))")
-            self.avsWrapper.update(callConfig: config, httpStatusCode: httpStatusCode)
-        })
+//        transport?.requestCallConfig(completionHandler: { [weak self] (config, httpStatusCode) in
+//            guard let `self` = self else { return }
+//            zmLog.debug("\(self): self.avsWrapper.update with \(String(describing: config))")
+//            self.avsWrapper.update(callConfig: config, httpStatusCode: httpStatusCode)
+//        })
+
+        // DO NOT COMMIT
+        let config = """
+{"ttl":3600,"ice_servers":[{"urls":["turn:49.12.79.190:9999?transport=udp"],"credential":"L4uI+YpMnIeWZljrKG4sDsCupUrimPNXtyU8bm2ra6mLSi2keXgWgOZm2lVo7P1Difo5lCCNQazEGO4vHUSkmQ==","username":"sft-d=1638626894.v=1.k=0.t=s.r=Wa4rYaqQQG0NPVh8cyA7F7Z8uuhrnPhqJ32xLdpf9"}]}
+"""
+        self.avsWrapper.update(callConfig: config, httpStatusCode: 200)
+
     }
 
     /// Tags a call as missing when requested by AVS through `wcall_missed_h`.
