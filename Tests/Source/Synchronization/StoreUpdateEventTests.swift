@@ -221,20 +221,13 @@ extension StoreUpdateEventTests {
             XCTAssertEqual(storedEvent.uuidString, event.uuid?.transportString())
 
             XCTAssertNotNil(storedEvent.payload)
-            XCTAssertTrue(storedEvent.isEncrypted)
-            guard let privateKey = encryptionKeys?.privateKey else {
-                #if targetEnvironment(simulator)
-                    if #available(iOS 15, *) {
-                        XCTExpectFailure("Expect to fail on iOS 15 simulator. ref: https://wearezeta.atlassian.net/browse/SQCORE-1188")
-                    } else {
-                        XCTFail()
-                    }
-                #else
-                    XCTFail()
-                #endif
-
-                return
+            #if targetEnvironment(simulator)
+            if #available(iOS 15, *) {
+                XCTExpectFailure("Expect to fail on iOS 15 simulator. ref: https://wearezeta.atlassian.net/browse/SQCORE-1188")
             }
+            #endif
+            XCTAssertTrue(storedEvent.isEncrypted)
+            let privateKey = try XCTUnwrap( encryptionKeys?.privateKey)
             let decryptedData = SecKeyCreateDecryptedData(privateKey,
                                                  .eciesEncryptionCofactorX963SHA256AESGCM,
                                                  storedEvent.payload![StoredUpdateEvent.encryptedPayloadKey] as! CFData,
@@ -287,6 +280,11 @@ extension StoreUpdateEventTests {
             XCTAssertEqual(storedEvent.sortIndex, 2)
             XCTAssertEqual(storedEvent.uuidString, event.uuid?.transportString())
             XCTAssertNotNil(storedEvent.payload)
+            #if targetEnvironment(simulator)
+            if #available(iOS 15, *) {
+                XCTExpectFailure("Expect to fail on iOS 15 simulator. ref: https://wearezeta.atlassian.net/browse/SQCORE-1188")
+            }
+            #endif
             XCTAssertTrue(storedEvent.isEncrypted)
 
             // when
@@ -352,6 +350,11 @@ extension StoreUpdateEventTests {
             XCTAssertEqual(storedEvent.sortIndex, 2)
             XCTAssertEqual(storedEvent.uuidString, event.uuid?.transportString())
             XCTAssertNotNil(storedEvent.payload)
+            #if targetEnvironment(simulator)
+            if #available(iOS 15, *) {
+                XCTExpectFailure("Expect to fail on iOS 15 simulator. ref: https://wearezeta.atlassian.net/browse/SQCORE-1188")
+            }
+            #endif
             XCTAssertTrue(storedEvent.isEncrypted)
 
             // when
