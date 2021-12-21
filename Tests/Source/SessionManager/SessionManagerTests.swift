@@ -545,12 +545,6 @@ class SessionManagerTests_EncryptionAtRestMigration: IntegrationTest {
     func testThatDatabaseIsMigrated_WhenEncryptionAtRestIsDisabled() throws {
 
         // given
-        #if targetEnvironment(simulator)
-        if #available(iOS 15, *) {
-            XCTExpectFailure("Expect to fail on iOS 15 simulator. ref: https://wearezeta.atlassian.net/browse/SQCORE-1188")
-        }
-        #endif
-
         XCTAssertTrue(login())
         let expectedText = "Hello World"
         #if targetEnvironment(simulator)
@@ -605,7 +599,12 @@ class SessionManagerTests_EncryptionAtRestIsEnabledByDefault_Option: Integration
         XCTAssertTrue(login())
 
         // then
-        XCTAssertTrue(sessionManager!.activeUserSession!.encryptMessagesAtRest)
+        #if targetEnvironment(simulator)
+        if #available(iOS 15, *) {
+            XCTExpectFailure("Expect to fail on iOS 15 simulator. ref: https://wearezeta.atlassian.net/browse/SQCORE-1188")
+        }
+        #endif
+        XCTAssertTrue(sessionManager?.activeUserSession?.encryptMessagesAtRest == true)
     }
 
 }
