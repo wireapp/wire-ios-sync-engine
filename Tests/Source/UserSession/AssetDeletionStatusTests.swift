@@ -17,7 +17,6 @@
 //
 
 import WireDataModel
-import WireRequestStrategy
 @testable import WireSyncEngine
 
 class AssetDeletionStatusTests: MessagingTest {
