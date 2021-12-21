@@ -29,8 +29,9 @@ class StoreUpdateEventTests: MessagingTest {
     override func setUp() {
         super.setUp()
         account = Account(userName: "John Doe", userIdentifier: UUID())
-        encryptionKeys = try! EncryptionKeys.createKeys(for: account)
-        publicKey = try! EncryptionKeys.publicKey(for: account)
+        //Notice: keys are nil when test with iOS 15 simulator. ref:https://wearezeta.atlassian.net/browse/SQCORE-1188
+        encryptionKeys = try? EncryptionKeys.createKeys(for: account)
+        publicKey = try? EncryptionKeys.publicKey(for: account)
     }
 
     override func tearDown() {
@@ -221,7 +222,20 @@ extension StoreUpdateEventTests {
 
             XCTAssertNotNil(storedEvent.payload)
             XCTAssertTrue(storedEvent.isEncrypted)
-            let decryptedData = SecKeyCreateDecryptedData(encryptionKeys!.privateKey,
+            guard let privateKey = encryptionKeys?.privateKey else {
+                #if targetEnvironment(simulator)
+                    if #available(iOS 15, *) {
+                        XCTExpectFailure("Expect to fail on iOS 15 simulator. ref: https://wearezeta.atlassian.net/browse/SQCORE-1188")
+                    } else {
+                        XCTFail()
+                    }
+                #else
+                    XCTFail()
+                #endif
+
+                return
+            }
+            let decryptedData = SecKeyCreateDecryptedData(privateKey,
                                                  .eciesEncryptionCofactorX963SHA256AESGCM,
                                                  storedEvent.payload![StoredUpdateEvent.encryptedPayloadKey] as! CFData,
                                                  nil)
