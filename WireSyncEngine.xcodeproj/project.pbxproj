@@ -18,7 +18,6 @@
 		067BB08125074EA200946EC8 /* (null) in Sources */ = {isa = PBXBuildFile; };
 		067BB08F250789D500946EC8 /* (null) in Sources */ = {isa = PBXBuildFile; };
 		06894D92276BA7FA00DA4E33 /* StartLoginURLActionProcessorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06894D91276BA7FA00DA4E33 /* StartLoginURLActionProcessorTests.swift */; };
-		068E655A24C8223400403926 /* LocalNotificationContentTypeTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 068E655924C8223400403926 /* LocalNotificationContentTypeTest.swift */; };
 		06B99C7B242B51A300FEAFDE /* SignatureRequestStrategy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06B99C7A242B51A300FEAFDE /* SignatureRequestStrategy.swift */; };
 		06BBF7012473D51D00A26626 /* MessagingTest+Swift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06BBF7002473D51D00A26626 /* MessagingTest+Swift.swift */; };
 		06DE14CD24B85B06006CB6B3 /* SyncStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06DE14CC24B85B06006CB6B3 /* SyncStatus.swift */; };
@@ -656,7 +655,6 @@
 		063AFA3E264B30C400DCBCED /* BuildType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BuildType.swift; sourceTree = "<group>"; };
 		0640C26C26EA0B5C0057AF80 /* NSManagedObjectContext+Packaging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSManagedObjectContext+Packaging.swift"; sourceTree = "<group>"; };
 		06894D91276BA7FA00DA4E33 /* StartLoginURLActionProcessorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartLoginURLActionProcessorTests.swift; sourceTree = "<group>"; };
-		068E655924C8223400403926 /* LocalNotificationContentTypeTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalNotificationContentTypeTest.swift; sourceTree = "<group>"; };
 		06B99C7A242B51A300FEAFDE /* SignatureRequestStrategy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignatureRequestStrategy.swift; sourceTree = "<group>"; };
 		06BBF6EC246EB56B00A26626 /* ConversationTests+List.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ConversationTests+List.swift"; sourceTree = "<group>"; };
 		06BBF6EF246ECB2400A26626 /* ConversationTests+Archiving.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ConversationTests+Archiving.swift"; sourceTree = "<group>"; };

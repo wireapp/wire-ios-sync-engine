@@ -18,7 +18,6 @@
 
 @import WireDataModel;
 @import WireSyncEngine;
-@import WireRequestStrategy;
 
 #import "ZMOperationLoop+Private.h"
 #import "ZMSyncStrategy.h"
