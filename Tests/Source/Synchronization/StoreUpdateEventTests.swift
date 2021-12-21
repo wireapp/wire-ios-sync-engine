@@ -29,7 +29,7 @@ class StoreUpdateEventTests: MessagingTest {
     override func setUp() {
         super.setUp()
         account = Account(userName: "John Doe", userIdentifier: UUID())
-        //Notice: keys are nil when test with iOS 15 simulator. ref:https://wearezeta.atlassian.net/browse/SQCORE-1188
+        // Notice: keys are nil when test with iOS 15 simulator. ref:https://wearezeta.atlassian.net/browse/SQCORE-1188
         encryptionKeys = try? EncryptionKeys.createKeys(for: account)
         publicKey = try? EncryptionKeys.publicKey(for: account)
     }
