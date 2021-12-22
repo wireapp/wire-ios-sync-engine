@@ -97,6 +97,6 @@ public protocol WireCallCenterTransport: AnyObject {
     ///     - conversationId: A conversation from which the client list is queried.
     ///     - completionHandler: A handler when the network request completes with the list of clients.
 
-    func requestClientsList(conversationId: UUID, completionHandler: @escaping ([AVSClient]) -> Void)
+    func requestClientsList(conversationId: AVSIdentifier, completionHandler: @escaping ([AVSClient]) -> Void)
 
 }
