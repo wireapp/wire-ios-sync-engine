@@ -493,13 +493,6 @@ extension CallingRequestStrategy {
             case missing
 
         }
-
-        struct Clients {
-
-            let userId: String
-            let clientIds: [String]
-
-        }
     }
 
     struct DynamicKey: CodingKey {
