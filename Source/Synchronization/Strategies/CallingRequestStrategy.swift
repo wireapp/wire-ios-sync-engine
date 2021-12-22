@@ -199,13 +199,7 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
     private func decodeClientDiscovery(jsonData: Data) throws -> [AVSClient] {
         let payload = try decoder.decode(ClientDiscoveryResponsePayload.self, from: jsonData)
 
-        return payload.clients.flatMap { client -> [AVSClient] in
-            let userId = AVSIdentifier.from(string: client.userId)
-
-            return client.clientIds.map { clientID -> AVSClient in
-                return AVSClient(userId: userId, clientId: clientID)
-            }
-        }
+        return payload.clients
     }
 
     private func decodeFederatedClientDiscovery(jsonData: Data) throws -> [AVSClient] {
