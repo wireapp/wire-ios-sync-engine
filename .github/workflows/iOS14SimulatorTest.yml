@@ -20,7 +20,7 @@ jobs:
 
     - name: Carthage
       env:
-        GITHUB_TOKEN: ${{ secrets.DISPATCH_SECRET }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: carthage bootstrap --platform ios --use-xcframeworks
 
     - name: Link to 14.4 Simulators
