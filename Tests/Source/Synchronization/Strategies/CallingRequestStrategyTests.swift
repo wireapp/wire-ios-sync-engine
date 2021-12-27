@@ -215,7 +215,7 @@ class CallingRequestStrategyTests: MessagingTest {
         // A conversation with both users and self
         let conversation = ZMConversation.insertNewObject(in: syncMOC)
         conversation.remoteIdentifier = .create()
-        conversation.addParticipantsAndUpdateConversationState(users: Set(arrayLiteral: ZMUser.selfUser(in: syncMOC), user1, user2), role: nil)
+        conversation.addParticipantsAndUpdateConversationState(users: [ZMUser.selfUser(in: syncMOC), user1, user2], role: nil)
         conversation.needsToBeUpdatedFromBackend = false
 
         syncMOC.saveOrRollback()
@@ -289,7 +289,7 @@ class CallingRequestStrategyTests: MessagingTest {
         // A conversation with both users and self
         let conversation = ZMConversation.insertNewObject(in: syncMOC)
         conversation.remoteIdentifier = .create()
-        conversation.addParticipantsAndUpdateConversationState(users: Set(arrayLiteral: ZMUser.selfUser(in: syncMOC), user1, user2), role: nil)
+        conversation.addParticipantsAndUpdateConversationState(users: [ZMUser.selfUser(in: syncMOC), user1, user2], role: nil)
         conversation.needsToBeUpdatedFromBackend = false
 
         syncMOC.saveOrRollback()
