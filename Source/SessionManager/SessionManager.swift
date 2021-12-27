@@ -185,7 +185,10 @@ public final class SessionManager: NSObject, SessionManagerType {
     }
 
     /// Maximum number of accounts which can be logged in simultanously
-    public static let maxNumberAccounts = 3
+    public let maxNumberAccounts: Int
+
+    /// Default Maximum number of accounts which can be logged in simultanously
+    public static let defaultMaxNumberAccounts: Int = 3
 
     public let appVersion: String
     var isAppVersionBlacklisted = false
@@ -270,6 +273,7 @@ public final class SessionManager: NSObject, SessionManagerType {
     }
 
     public convenience init(
+        maxNumberAccounts: Int = defaultMaxNumberAccounts,
         appVersion: String,
         mediaManager: MediaManagerType,
         analytics: AnalyticsType?,
@@ -297,7 +301,8 @@ public final class SessionManager: NSObject, SessionManagerType {
             reachability: reachability,
             analytics: analytics)
 
-        self.init(appVersion: appVersion,
+            self.init(maxNumberAccounts: maxNumberAccounts,
+                      appVersion: appVersion,
                   authenticatedSessionFactory: authenticatedSessionFactory,
                   unauthenticatedSessionFactory: unauthenticatedSessionFactory,
                   analytics: analytics,
@@ -345,7 +350,8 @@ public final class SessionManager: NSObject, SessionManagerType {
         NotificationCenter.default.addObserver(self, selector: #selector(applicationDidBecomeActive(_:)), name: UIApplication.didBecomeActiveNotification, object: nil)
     }
 
-    init(appVersion: String,
+    init(maxNumberAccounts: Int = defaultMaxNumberAccounts,
+         appVersion: String,
          authenticatedSessionFactory: AuthenticatedSessionFactory,
          unauthenticatedSessionFactory: UnauthenticatedSessionFactory,
          analytics: AnalyticsType? = nil,
@@ -393,6 +399,7 @@ public final class SessionManager: NSObject, SessionManagerType {
         self.unauthenticatedSessionFactory = unauthenticatedSessionFactory
         self.reachability = reachability
         self.pushRegistry = pushRegistry
+        self.maxNumberAccounts = maxNumberAccounts
 
         // we must set these before initializing the PushDispatcher b/c if the app
         // received a push from terminated state, it requires these properties to be
@@ -970,7 +977,7 @@ extension SessionManager {
 extension SessionManager: UnauthenticatedSessionDelegate {
 
     public func sessionIsAllowedToCreateNewAccount(_ session: UnauthenticatedSession) -> Bool {
-        return accountManager.accounts.count < SessionManager.maxNumberAccounts
+        return accountManager.accounts.count < maxNumberAccounts
     }
 
     public func session(session: UnauthenticatedSession, isExistingAccount account: Account) -> Bool {
@@ -986,7 +993,7 @@ extension SessionManager: UnauthenticatedSessionDelegate {
     }
 
     public func session(session: UnauthenticatedSession, createdAccount account: Account) {
-        guard !(accountManager.accounts.count == SessionManager.maxNumberAccounts && accountManager.account(with: account.userIdentifier) == nil) else {
+        guard !(accountManager.accounts.count == maxNumberAccounts && accountManager.account(with: account.userIdentifier) == nil) else {
             let error = NSError(code: .accountLimitReached, userInfo: nil)
             loginDelegate?.authenticationDidFail(error)
             return
