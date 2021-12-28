@@ -475,7 +475,7 @@ extension FileTransferTests_Swift {
         let sha256 = Data.zmRandomSHA256Key()
 
         var uploaded = GenericMessage(content: WireProtos.Asset(withUploadedOTRKey: otrKey, sha256: sha256), nonce: nonce)
-        uploaded.updateUploaded(assetId: assetID.transportString(), token: nil)
+        uploaded.updateUploaded(assetId: assetID.transportString(), token: nil, domain: nil)
 
         // when
         let message = self.remotelyInsertAssetOriginalAndUpdate(updateMessage: uploaded, insertBlock: { (data, conversation, from, to) in
@@ -508,7 +508,7 @@ extension FileTransferTests_Swift {
         let sha256 = encryptedAsset.zmSHA256Digest()
 
         var uploaded = GenericMessage(content: WireProtos.Asset(withUploadedOTRKey: otrKey, sha256: sha256), nonce: nonce)
-        uploaded.updateUploaded(assetId: assetID.transportString(), token: nil)
+        uploaded.updateUploaded(assetId: assetID.transportString(), token: nil, domain: nil)
 
         // when
         let message = self.remotelyInsertAssetOriginalAndUpdate(updateMessage: uploaded, insertBlock: { (data, conversation, from, to) in
@@ -563,7 +563,7 @@ extension FileTransferTests_Swift {
         let sha256 = encryptedAsset.zmSHA256Digest()
 
         var uploaded = GenericMessage(content: WireProtos.Asset(withUploadedOTRKey: otrKey, sha256: sha256), nonce: nonce)
-        uploaded.updateUploaded(assetId: assetID.transportString(), token: nil)
+        uploaded.updateUploaded(assetId: assetID.transportString(), token: nil, domain: nil)
 
         // when
         let message = self.remotelyInsertAssetOriginalAndUpdate(updateMessage: uploaded, insertBlock: { (data, conversation, from, to) in
