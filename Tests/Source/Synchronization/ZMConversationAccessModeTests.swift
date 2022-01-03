@@ -124,7 +124,6 @@ public class ZMConversationAccessModeTests: MessagingTest {
         }
     }
 
-
     enum ConversationOptionsTeam {
         case none
         case teamA
