@@ -132,7 +132,7 @@ extension StateTransition {
 public typealias UserProfileImageUpdateStatus = WireSyncEngine.UserProfileImageUpdateStatus
 
 extension UserProfileImageUpdateStatus.ImageState: Equatable {
-    public static func ==(lhs: UserProfileImageUpdateStatus.ImageState, rhs: UserProfileImageUpdateStatus.ImageState) -> Bool {
+    public static func == (lhs: UserProfileImageUpdateStatus.ImageState, rhs: UserProfileImageUpdateStatus.ImageState) -> Bool {
         return String(describing: lhs) == String(describing: rhs)
     }
 }
@@ -144,7 +144,7 @@ extension UserProfileImageUpdateStatus.ImageState: StateTransition {
 }
 
 extension ProfileUpdateState: Equatable {
-    public static func ==(lhs: ProfileUpdateState, rhs: ProfileUpdateState) -> Bool {
+    public static func == (lhs: ProfileUpdateState, rhs: ProfileUpdateState) -> Bool {
         return String(describing: lhs) == String(describing: rhs)
     }
 }

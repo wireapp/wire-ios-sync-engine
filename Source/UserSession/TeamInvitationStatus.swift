@@ -42,7 +42,7 @@ public enum InviteError: Int, Error {
 
 extension InviteResult: Equatable {}
 
-public func ==(lhs: InviteResult, rhs: InviteResult) -> Bool {
+public func == (lhs: InviteResult, rhs: InviteResult) -> Bool {
     switch (lhs, rhs) {
     case (InviteResult.success(email: let lhsEmail), InviteResult.success(email: let rhsEmail)):
         return lhsEmail == rhsEmail

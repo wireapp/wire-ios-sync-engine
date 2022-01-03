@@ -141,7 +141,7 @@ final class ConversationRoleDownstreamRequestStrategyTests: MessagingTest {
 
         }
     }
-    
+
     func testThatItSetsNeedsToDownloadRolesToFalse_WhenTheResponseIs404() {
         var convo1: ZMConversation?
         syncMOC.performGroupedBlockAndWait {

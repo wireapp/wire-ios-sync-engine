@@ -59,6 +59,6 @@ struct EventWithAttributes: Equatable {
     let attributes: [String: NSObject]
 }
 
-func ==(lhs: EventWithAttributes, rhs: EventWithAttributes) -> Bool {
+func == (lhs: EventWithAttributes, rhs: EventWithAttributes) -> Bool {
     return lhs.event == rhs.event && lhs.attributes == rhs.attributes
 }

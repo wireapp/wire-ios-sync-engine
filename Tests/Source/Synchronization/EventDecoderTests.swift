@@ -71,7 +71,7 @@ extension EventDecoderTest {
 
         var didCallBlock = false
         let account = Account(userName: "John Doe", userIdentifier: UUID())
-        let encryptionKeys = try! EncryptionKeys.createKeys(for: account)
+        let encryptionKeys = try? EncryptionKeys.createKeys(for: account)
 
         syncMOC.performGroupedBlock {
             // given
@@ -145,8 +145,7 @@ extension EventDecoderTest {
                 } else if callCount == 1 {
                     XCTAssertTrue(events.contains(event3))
                     XCTAssertTrue(events.contains(event4))
-                }
-                else {
+                } else {
                     XCTFail("called too often")
                 }
                 callCount += 1

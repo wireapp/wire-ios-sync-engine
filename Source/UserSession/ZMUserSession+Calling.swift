@@ -46,24 +46,24 @@ public protocol CallNotificationStyleProvider: AnyObject {
     }
 
     var useConstantBitRateAudio: Bool {
+        get {
+            return managedObjectContext.zm_useConstantBitRateAudio
+        }
         set {
             managedObjectContext.zm_useConstantBitRateAudio = newValue
             callCenter?.useConstantBitRateAudio = newValue
         }
 
-        get {
-            return managedObjectContext.zm_useConstantBitRateAudio
-        }
     }
 
     var usePackagingFeatureConfig: Bool {
+        get {
+            return managedObjectContext.zm_usePackagingFeatureConfig
+        }
         set {
             managedObjectContext.zm_usePackagingFeatureConfig = newValue
             callCenter?.usePackagingFeatureConfig = newValue
         }
 
-        get {
-            return managedObjectContext.zm_usePackagingFeatureConfig
-        }
     }
 }

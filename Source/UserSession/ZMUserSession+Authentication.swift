@@ -123,15 +123,12 @@ extension ZMUserSession {
                 switch response.payload?.asDictionary()?["label"] as? String {
                 case "client-not-found":
                     errorCode = .clientDeletedRemotely
-                    break
                 case "invalid-credentials",
                      "missing-auth",
                      "bad-request": // in case the password not matching password format requirement
                     errorCode = .invalidCredentials
-                    break
                 default:
                     errorCode = .unknownError
-                    break
                 }
         case .temporaryError, .tryAgainLater, .expired:
             errorCode = .networkError

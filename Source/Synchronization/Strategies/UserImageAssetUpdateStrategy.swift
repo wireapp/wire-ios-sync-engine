@@ -95,19 +95,15 @@ public final class UserImageAssetUpdateStrategy: AbstractRequestStrategy, ZMCont
     }
 
     internal func size(for requestSync: ZMDownstreamObjectSyncWithWhitelist) -> ProfileImageSize? {
-        for (size, sync) in downstreamRequestSyncs {
-            if sync === requestSync {
-                return size
-            }
+        for (size, sync) in downstreamRequestSyncs where sync === requestSync {
+            return size
         }
         return nil
     }
 
     internal func size(for requestSync: ZMSingleRequestSync) -> ProfileImageSize? {
-        for (size, sync) in upstreamRequestSyncs {
-            if sync === requestSync {
-                return size
-            }
+        for (size, sync) in upstreamRequestSyncs where sync === requestSync {
+            return size
         }
         return nil
     }

@@ -46,8 +46,7 @@ public final class APSSignalingKeysStore: NSObject {
             self.verificationKey = verificationKey
             self.decryptionKey = decryptionKey
             self.apsDecoder = ZMAPSMessageDecoder(encryptionKey: decryptionKey, macKey: verificationKey)
-        }
-        else {
+        } else {
             return nil
         }
     }
