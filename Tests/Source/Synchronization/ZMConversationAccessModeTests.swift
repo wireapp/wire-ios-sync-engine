@@ -99,6 +99,32 @@ public class ZMConversationAccessModeTests: MessagingTest {
         XCTAssertNil(request.payload)
     }
 
+    func testThatItParsesAllKnownErrorResponses() {
+        // given
+        let errorResponses: [(WirelessLinkError, ZMTransportResponse)] = [
+            (WirelessLinkError.invalidOperation,
+             ZMTransportResponse(payload: ["label": "invalid-op"] as ZMTransportData,
+                                 httpStatus: 403, transportSessionError: nil)),
+            (WirelessLinkError.noCode,
+             ZMTransportResponse(payload: ["label": "no-conversation-code"] as ZMTransportData,
+                                 httpStatus: 404, transportSessionError: nil)),
+            (WirelessLinkError.guestLinksDisabled,
+             ZMTransportResponse(payload: ["label": "guest-links-disabled"] as ZMTransportData,
+                                 httpStatus: 409, transportSessionError: nil))
+        ]
+        // when, then
+        for (expectedError, response) in errorResponses {
+            guard let error = WirelessLinkError(response: response) else { return XCTFail() }
+
+            if case error = expectedError {
+                // success
+            } else {
+                XCTFail()
+            }
+        }
+    }
+
+
     enum ConversationOptionsTeam {
         case none
         case teamA
