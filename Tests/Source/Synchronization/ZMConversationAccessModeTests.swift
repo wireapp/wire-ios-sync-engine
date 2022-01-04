@@ -99,29 +99,40 @@ public class ZMConversationAccessModeTests: MessagingTest {
         XCTAssertNil(request.payload)
     }
 
-    func testThatItParsesAllKnownErrorResponses() {
+    func testThatItParsesInvalidOperationErrorResponse() {
         // given
-        let errorResponses: [(WirelessLinkError, ZMTransportResponse)] = [
-            (WirelessLinkError.invalidOperation,
-             ZMTransportResponse(payload: ["label": "invalid-op"] as ZMTransportData,
-                                 httpStatus: 403, transportSessionError: nil)),
-            (WirelessLinkError.noCode,
-             ZMTransportResponse(payload: ["label": "no-conversation-code"] as ZMTransportData,
-                                 httpStatus: 404, transportSessionError: nil)),
-            (WirelessLinkError.guestLinksDisabled,
-             ZMTransportResponse(payload: ["label": "guest-links-disabled"] as ZMTransportData,
-                                 httpStatus: 409, transportSessionError: nil))
-        ]
-        // when, then
-        for (expectedError, response) in errorResponses {
-            guard let error = WirelessLinkError(response: response) else { return XCTFail() }
+        let response = ZMTransportResponse(payload: ["label": "invalid-op"] as ZMTransportData,
+                            httpStatus: 403, transportSessionError: nil)
 
-            if case error = expectedError {
-                // success
-            } else {
-                XCTFail()
-            }
-        }
+        // when
+        let error = WirelessLinkError(response: response)
+
+        // then
+        XCTAssertEqual(error, .invalidOperation)
+    }
+
+    func testThatItParsesNoConversationCodeErrorResponse() {
+        // given
+        let response = ZMTransportResponse(payload: ["label": "no-conversation-code"] as ZMTransportData,
+                            httpStatus: 404, transportSessionError: nil)
+
+        // when
+        let error = WirelessLinkError(response: response)
+
+        // then
+        XCTAssertEqual(error, .noCode)
+    }
+
+    func testThatItParsesGuestLinksDisabledErrorResponse(){
+        // given
+        let response = ZMTransportResponse(payload: ["label": "guest-links-disabled"] as ZMTransportData,
+                            httpStatus: 409, transportSessionError: nil)
+
+        // when
+        let error = WirelessLinkError(response: response)
+
+        // then
+        XCTAssertEqual(error, .guestLinksDisabled)
     }
 
     enum ConversationOptionsTeam {
