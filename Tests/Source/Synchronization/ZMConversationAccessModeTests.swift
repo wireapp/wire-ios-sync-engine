@@ -125,7 +125,7 @@ public class ZMConversationAccessModeTests: MessagingTest {
         XCTAssertEqual(error, .noCode)
     }
 
-    func testThatItParsesGuestLinksDisabledErrorResponse(){
+    func testThatItParsesGuestLinksDisabledErrorResponse() {
         // given
         let response = ZMTransportResponse(payload: ["label": "guest-links-disabled"] as ZMTransportData,
                                            httpStatus: 409,
