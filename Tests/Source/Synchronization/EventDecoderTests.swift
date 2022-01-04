@@ -71,7 +71,7 @@ extension EventDecoderTest {
 
         var didCallBlock = false
         let account = Account(userName: "John Doe", userIdentifier: UUID())
-        let encryptionKeys = try! EncryptionKeys.createKeys(for: account)
+        let encryptionKeys = try? EncryptionKeys.createKeys(for: account)
 
         syncMOC.performGroupedBlock {
             // given
