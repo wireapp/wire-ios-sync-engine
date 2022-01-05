@@ -595,7 +595,7 @@ extension UserClientRequestStrategyTests {
 
             existingClient = self.createSelfClient()
             let existingClientSet: Set<NSManagedObject> = [existingClient]
-            let userClientNeedsToUpdateSignalingKeysKeySet: Set<AnyHashable> = [ ZMUserClientNeedsToUpdateSignalingKeysKey]
+            let userClientNeedsToUpdateSignalingKeysKeySet: Set<AnyHashable> = [ZMUserClientNeedsToUpdateSignalingKeysKey]
 
             XCTAssertNil(existingClient.apsVerificationKey)
             XCTAssertNil(existingClient.apsDecryptionKey)
@@ -604,7 +604,8 @@ extension UserClientRequestStrategyTests {
             existingClient.needsToUploadSignalingKeys = true
             existingClient.setLocallyModifiedKeys(userClientNeedsToUpdateSignalingKeysKeySet)
             self.sut.contextChangeTrackers.forEach {
-                $0.objectsDidChange(existingClientSet)}
+                $0.objectsDidChange(existingClientSet)
+            }
             let request = self.sut.nextRequest()
 
             // then
@@ -640,7 +641,8 @@ extension UserClientRequestStrategyTests {
             existingClient.needsToUploadSignalingKeys = true
             existingClient.setLocallyModifiedKeys(userClientNeedsToUpdateSignalingKeysKeySet)
             self.sut.contextChangeTrackers.forEach {
-                $0.objectsDidChange(existingClientSet)}
+                $0.objectsDidChange(existingClientSet)
+            }
 
             // when
             let request = self.sut.nextRequest()
@@ -684,7 +686,8 @@ extension UserClientRequestStrategyTests {
             existingClient.needsToUpdateCapabilities = true
             existingClient.setLocallyModifiedKeys(userClientNeedsToUpdateCapabilitiesKeySet)
             self.sut.contextChangeTrackers.forEach {
-                $0.objectsDidChange(existingClientSet)}
+                $0.objectsDidChange(existingClientSet)
+            }
             let request = self.sut.nextRequest()
 
             // then
@@ -717,7 +720,8 @@ extension UserClientRequestStrategyTests {
 
             existingClient.setLocallyModifiedKeys(userClientNeedsToUpdateCapabilitiesKeySet)
             self.sut.contextChangeTrackers.forEach {
-                $0.objectsDidChange(existingClientSet)}
+                $0.objectsDidChange(existingClientSet)
+            }
 
             // when
             let request = self.sut.nextRequest()
