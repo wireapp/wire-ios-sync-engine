@@ -39,7 +39,7 @@ class WireCallCenterTransportMock: WireCallCenterTransport {
         }
     }
 
-    func requestClientsList(conversationId: UUID, completionHandler: @escaping ([AVSClient]) -> Void) {
+    func requestClientsList(conversationId: AVSIdentifier, completionHandler: @escaping ([AVSClient]) -> Void) {
         if let mockClientsRequestResponse = mockClientsRequestResponse {
             completionHandler(mockClientsRequestResponse)
         }

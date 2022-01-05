@@ -137,17 +137,17 @@ class CallingRequestStrategyTests: MessagingTest {
         // Given
         createSelfClient()
 
-        let conversationId = UUID.create()
-        let userId1 = AVSIdentifier.stub
-        let userId2 = AVSIdentifier.stub
+        let conversationId = AVSIdentifier(identifier: UUID(), domain: nil)
+        let userId1 = AVSIdentifier(identifier: UUID(), domain: nil)
+        let userId2 = AVSIdentifier(identifier: UUID(), domain: nil)
         let clientId1 = "client1"
         let clientId2 = "client2"
 
         let payload = """
         {
             "missing": {
-                "\(userId1.serialized)": ["\(clientId1)", "\(clientId2)"],
-                "\(userId2.serialized)": ["\(clientId1)"]
+                "\(userId1.identifier.transportString())": ["\(clientId1)", "\(clientId2)"],
+                "\(userId2.identifier.transportString())": ["\(clientId1)"]
             }
         }
         """
@@ -168,7 +168,7 @@ class CallingRequestStrategyTests: MessagingTest {
 
         let request = sut.nextRequest()
         XCTAssertNotNil(request)
-        XCTAssertEqual(request?.path, "/conversations/\(conversationId.transportString())/otr/messages")
+        XCTAssertEqual(request?.path, "/conversations/\(conversationId.identifier.transportString())/otr/messages")
 
         // When
         request?.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 412, transportSessionError: nil))
@@ -182,7 +182,7 @@ class CallingRequestStrategyTests: MessagingTest {
         createSelfClient()
 
         // When
-        sut.requestClientsList(conversationId: .create()) { _ in }
+        sut.requestClientsList(conversationId: AVSIdentifier.stub) { _ in }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // Then
