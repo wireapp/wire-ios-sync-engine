@@ -133,7 +133,7 @@ class CallingRequestStrategyTests: MessagingTest {
 
     // MARK: - Client List
 
-    func testThatItGenerateClientListRequestAndCallsTheCompletionHandler() {
+    func testThatItGeneratesClientListRequestAndCallsTheCompletionHandler_NotFederated() {
         // Given
         createSelfClient()
 
@@ -175,6 +175,62 @@ class CallingRequestStrategyTests: MessagingTest {
 
         // Then
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
+    }
+
+    func testThatItGeneratesClientListRequestAndCallsTheCompletionHandler_Federated() {
+        // Given
+        sut.useFederationEndpoint = true
+
+        createSelfClient()
+
+        let domain1 = "domain1.test.com"
+        let domain2 = "domain2.test.com"
+        let conversationId = AVSIdentifier(identifier: UUID(), domain: domain1)
+        let userId1 = AVSIdentifier(identifier: UUID(), domain: domain1)
+        let userId2 = AVSIdentifier(identifier: UUID(), domain: domain1)
+        let userId3 = AVSIdentifier(identifier: UUID(), domain: domain2)
+        let clientId1 = "client1"
+        let clientId2 = "client2"
+
+        let payload = """
+        {
+            "missing": {
+                "\(domain1)": {
+                    "\(userId1.identifier.transportString())": ["\(clientId1)", "\(clientId2)"],
+                    "\(userId2.identifier.transportString())": ["\(clientId1)"]
+                },
+                "\(domain2)": {
+                    "\(userId3.identifier.transportString())": ["\(clientId1)"]
+                }
+            }
+        }
+        """
+
+        let receivedClientList = expectation(description: "Received client list")
+
+        // When
+        sut.requestClientsList(conversationId: conversationId) { clients in
+            // Then
+            XCTAssertEqual(clients.count, 4)
+            XCTAssertTrue(clients.contains(AVSClient(userId: userId1, clientId: clientId1)))
+            XCTAssertTrue(clients.contains(AVSClient(userId: userId1, clientId: clientId2)))
+            XCTAssertTrue(clients.contains(AVSClient(userId: userId2, clientId: clientId1)))
+            XCTAssertTrue(clients.contains(AVSClient(userId: userId3, clientId: clientId1)))
+            receivedClientList.fulfill()
+        }
+
+        XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+
+        let request = sut.nextRequest()
+        XCTAssertNotNil(request)
+        XCTAssertEqual(request?.path, "/conversations/\(domain1)/\(conversationId.identifier.transportString())/proteus/messages")
+
+        // When
+        request?.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 412, transportSessionError: nil))
+
+        // Then
+        XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
+
     }
 
     func testThatItGeneratesOnlyOneClientListRequest() {
