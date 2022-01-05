@@ -42,14 +42,16 @@ class ConversationStatusStrategyTests: MessagingTest {
         self.syncMOC.performGroupedBlockAndWait {
             // given
             let conversation = ZMConversation.insertNewObject(in: self.syncMOC)
+            let lastReadServerTimeStamp: Set<AnyHashable> = ["lastReadServerTimeStamp"]
             conversation.lastReadServerTimeStamp = Date()
             conversation.remoteIdentifier = UUID.create()
-            conversation.setLocallyModifiedKeys(Set(arrayLiteral: "lastReadServerTimeStamp"))
+            conversation.setLocallyModifiedKeys(lastReadServerTimeStamp)
 
             XCTAssertEqual(self.selfConversation.allMessages.count, 0)
 
             // when
-            self.sut.objectsDidChange(Set(arrayLiteral: conversation))
+            let conversationSet: Set<NSManagedObject> = [conversation]
+            self.sut.objectsDidChange(conversationSet)
 
             // then
             XCTAssertEqual(self.selfConversation.allMessages.count, 1)
@@ -66,14 +68,16 @@ class ConversationStatusStrategyTests: MessagingTest {
         self.syncMOC.performGroupedBlockAndWait {
             // given
             let conversation = ZMConversation.insertNewObject(in: self.syncMOC)
+            let clearedTimeStamp: Set<AnyHashable> = ["clearedTimeStamp"]
             conversation.clearedTimeStamp = Date()
             conversation.remoteIdentifier = UUID.create()
-            conversation.setLocallyModifiedKeys(Set(arrayLiteral: "clearedTimeStamp"))
+            conversation.setLocallyModifiedKeys(clearedTimeStamp)
 
             XCTAssertEqual(self.selfConversation.allMessages.count, 0)
 
             // when
-            self.sut.objectsDidChange(Set(arrayLiteral: conversation))
+            let conversationSet: Set<NSManagedObject> = [conversation]
+            self.sut.objectsDidChange(conversationSet)
 
             // then
             XCTAssertEqual(self.selfConversation.allMessages.count, 1)
@@ -90,9 +94,10 @@ class ConversationStatusStrategyTests: MessagingTest {
         self.syncMOC.performGroupedBlockAndWait {
             // given
             let conversation = ZMConversation.insertNewObject(in: self.syncMOC)
+            let clearedTimeStamp: Set<AnyHashable> = ["clearedTimeStamp"]
             conversation.clearedTimeStamp = Date()
             conversation.remoteIdentifier = UUID.create()
-            conversation.setLocallyModifiedKeys(Set(arrayLiteral: "clearedTimeStamp"))
+            conversation.setLocallyModifiedKeys(clearedTimeStamp)
 
             let message = ZMMessage(nonce: UUID(), managedObjectContext: self.syncMOC)
             message.serverTimestamp = conversation.clearedTimeStamp
@@ -101,7 +106,8 @@ class ConversationStatusStrategyTests: MessagingTest {
             XCTAssertFalse((conversation.lastMessage as! ZMMessage).isDeleted)
 
             // when
-            self.sut.objectsDidChange(Set(arrayLiteral: conversation))
+            let conversationSet: Set<NSManagedObject> = [conversation]
+            self.sut.objectsDidChange(conversationSet)
 
             // then
             XCTAssertTrue(message.isZombieObject)
@@ -112,9 +118,10 @@ class ConversationStatusStrategyTests: MessagingTest {
         self.syncMOC.performGroupedBlockAndWait {
             // given
             let conversation = ZMConversation.insertNewObject(in: self.syncMOC)
+            let lastReadServerTimeStamp: Set<AnyHashable> = ["lastReadServerTimeStamp"]
             conversation.lastReadServerTimeStamp = Date()
             conversation.remoteIdentifier = UUID.create()
-            conversation.setLocallyModifiedKeys(Set(arrayLiteral: "lastReadServerTimeStamp"))
+            conversation.setLocallyModifiedKeys(lastReadServerTimeStamp)
 
             XCTAssertEqual(self.selfConversation.allMessages.count, 0)
 
