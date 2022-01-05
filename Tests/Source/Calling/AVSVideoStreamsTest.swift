@@ -24,7 +24,7 @@ class AVSVideoStreamsTest: XCTestCase {
     func testThatJSONStringValue_ConformsToAVSAPI() {
         // given
         let conversationId = UUID()
-        let userId = UUID()
+        let userId = AVSIdentifier.stub
         let clientId = UUID()
 
         let client = AVSClient(userId: userId, clientId: clientId.transportString())

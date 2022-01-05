@@ -54,63 +54,78 @@ public class VoiceChannelV3: NSObject, VoiceChannel {
     public func participants(ofKind kind: CallParticipantsListKind, activeSpeakersLimit limit: Int?) -> [CallParticipant] {
         guard
             let callCenter = callCenter,
-            let conversationId = conversation?.remoteIdentifier
+            let conversationId = conversation?.avsIdentifier
         else { return [] }
 
         return callCenter.callParticipants(conversationId: conversationId, kind: kind, activeSpeakersLimit: limit)
     }
 
     public var state: CallState {
-        if let conversation = conversation, let remoteIdentifier = conversation.remoteIdentifier, let callCenter = self.callCenter {
-            return callCenter.callState(conversationId: remoteIdentifier)
-        } else {
-            return .none
-        }
+        guard
+            let conversationId = conversation?.avsIdentifier,
+            let callCenter = callCenter
+        else { return .none }
+
+        return callCenter.callState(conversationId: conversationId)
     }
 
     public var isVideoCall: Bool {
-        guard let remoteIdentifier = conversation?.remoteIdentifier else { return false }
+        guard
+            let conversationId = conversation?.avsIdentifier,
+            let callCenter = callCenter
+        else { return false }
 
-        return self.callCenter?.isVideoCall(conversationId: remoteIdentifier) ?? false
+        return callCenter.isVideoCall(conversationId: conversationId)
     }
 
     public var isConstantBitRateAudioActive: Bool {
-        guard let remoteIdentifier = conversation?.remoteIdentifier else { return false }
+        guard
+            let conversationId = conversation?.avsIdentifier,
+            let callCenter = callCenter
+        else { return false }
 
-        return self.callCenter?.isContantBitRate(conversationId: remoteIdentifier) ?? false
+        return callCenter.isContantBitRate(conversationId: conversationId)
     }
 
     public var networkQuality: NetworkQuality {
-        guard let remoteIdentifier = conversation?.remoteIdentifier, let callCenter = self.callCenter else { return .normal }
+        guard
+            let conversationId = conversation?.avsIdentifier,
+            let callCenter = self.callCenter
+        else { return .normal }
 
-        return callCenter.networkQuality(conversationId: remoteIdentifier)
+        return callCenter.networkQuality(conversationId: conversationId)
     }
 
     public var initiator: UserType? {
         guard let context = conversation?.managedObjectContext,
-              let convId = conversation?.remoteIdentifier,
-              let userId = self.callCenter?.initiatorForCall(conversationId: convId)
+              let convId = conversation?.avsIdentifier,
+              let userId = callCenter?.initiatorForCall(conversationId: convId)
         else {
             return nil
         }
-        return ZMUser.fetch(with: userId, in: context)
+        return ZMUser.fetch(with: userId.identifier, domain: userId.domain, in: context)
     }
 
     public var videoState: VideoState {
         get {
-            guard let remoteIdentifier = conversation?.remoteIdentifier else { return .stopped }
+            guard
+                let conversationId = conversation?.avsIdentifier,
+                let callCenter = callCenter
+            else { return .stopped }
 
-            return self.callCenter?.videoState(conversationId: remoteIdentifier) ?? .stopped
+            return callCenter.videoState(conversationId: conversationId)
         }
         set {
-            guard let remoteIdentifier = conversation?.remoteIdentifier else { return }
+            guard let conversationId = conversation?.avsIdentifier else { return }
 
-            callCenter?.setVideoState(conversationId: remoteIdentifier, videoState: newValue)
+            callCenter?.setVideoState(conversationId: conversationId, videoState: newValue)
         }
     }
 
     public func setVideoCaptureDevice(_ device: CaptureDevice) throws {
-        guard let conversationId = conversation?.remoteIdentifier else { throw VoiceChannelV3Error.switchToVideoNotAllowed }
+        guard let conversationId = conversation?.avsIdentifier else {
+            throw VoiceChannelV3Error.switchToVideoNotAllowed
+        }
 
         self.callCenter?.setVideoCaptureDevice(device, for: conversationId)
     }
@@ -125,14 +140,17 @@ public class VoiceChannelV3: NSObject, VoiceChannel {
     }
 
     public var isConferenceCall: Bool {
-        guard let remoteIdentifier = conversation?.remoteIdentifier, let callCenter = self.callCenter else { return false }
+        guard
+            let conversationId = conversation?.avsIdentifier,
+            let callCenter = self.callCenter
+        else { return false }
 
-        return callCenter.isConferenceCall(conversationId: remoteIdentifier)
+        return callCenter.isConferenceCall(conversationId: conversationId)
     }
 
     public var firstDegradedUser: UserType? {
         guard
-            let conversationId = conversation?.remoteIdentifier,
+            let conversationId = conversation?.avsIdentifier,
             let degradedUser = callCenter?.degradedUser(conversationId: conversationId)
         else {
             return conversation?.localParticipants.first(where: {
@@ -146,16 +164,16 @@ public class VoiceChannelV3: NSObject, VoiceChannel {
     public var videoGridPresentationMode: VideoGridPresentationMode {
         get {
             guard
-                let remoteIdentifier = conversation?.remoteIdentifier,
+                let conversationId = conversation?.avsIdentifier,
                 let callCenter = callCenter
             else {
                 return .allVideoStreams
             }
-            return callCenter.videoGridPresentationMode(conversationId: remoteIdentifier)
+            return callCenter.videoGridPresentationMode(conversationId: conversationId)
         }
         set {
-            guard let remoteIdentifier = conversation?.remoteIdentifier else { return }
-            callCenter?.setVideoGridPresentationMode(newValue, for: remoteIdentifier)
+            guard let conversationId = conversation?.avsIdentifier else { return }
+            callCenter?.setVideoGridPresentationMode(newValue, for: conversationId)
         }
     }
 }
@@ -206,9 +224,9 @@ extension VoiceChannelV3: CallActions {
     }
 
     public func request(videoStreams: [AVSClient]) {
-        guard let remoteIdentifier = conversation?.remoteIdentifier else { return }
+        guard let conversationId = conversation?.avsIdentifier else { return }
 
-        callCenter?.requestVideoStreams(conversationId: remoteIdentifier, clients: videoStreams)
+        callCenter?.requestVideoStreams(conversationId: conversationId, clients: videoStreams)
     }
 }
 
@@ -230,15 +248,13 @@ extension VoiceChannelV3: CallActionsInternal {
     }
 
     public func leave() {
-        guard let conv = conversation,
-              let remoteID = conv.remoteIdentifier
-        else { return }
+        guard let conversationId = conversation?.avsIdentifier else { return }
 
         switch state {
         case .incoming:
-            callCenter?.rejectCall(conversationId: remoteID)
+            callCenter?.rejectCall(conversationId: conversationId)
         default:
-            callCenter?.closeCall(conversationId: remoteID)
+            callCenter?.closeCall(conversationId: conversationId)
         }
     }
 

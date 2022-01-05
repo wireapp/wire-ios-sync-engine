@@ -18,6 +18,7 @@
 
 import Foundation
 import WireRequestStrategy
+import WireSyncEngine
 
 class CallingRequestStrategyTests: MessagingTest {
 
@@ -137,16 +138,16 @@ class CallingRequestStrategyTests: MessagingTest {
         createSelfClient()
 
         let conversationId = UUID.create()
-        let userId1 = UUID.create()
-        let userId2 = UUID.create()
+        let userId1 = AVSIdentifier.stub
+        let userId2 = AVSIdentifier.stub
         let clientId1 = "client1"
         let clientId2 = "client2"
 
         let payload = """
         {
             "missing": {
-                "\(userId1.transportString())": ["\(clientId1)", "\(clientId2)"],
-                "\(userId2.transportString())": ["\(clientId1)"]
+                "\(userId1.serialized)": ["\(clientId1)", "\(clientId2)"],
+                "\(userId2.serialized)": ["\(clientId1)"]
             }
         }
         """
@@ -221,15 +222,15 @@ class CallingRequestStrategyTests: MessagingTest {
         syncMOC.saveOrRollback()
 
         // Targeting two specific clients
-        let avsClient1 = AVSClient(userId: user1.remoteIdentifier, clientId: client1.remoteIdentifier!)
-        let avsClient2 = AVSClient(userId: user2.remoteIdentifier, clientId: client2.remoteIdentifier!)
+        let avsClient1 = AVSClient(userId: user1.avsIdentifier, clientId: client1.remoteIdentifier!)
+        let avsClient2 = AVSClient(userId: user2.avsIdentifier, clientId: client2.remoteIdentifier!)
         let targets = [avsClient1, avsClient2]
 
         var nextRequest: ZMTransportRequest?
 
         // When we schedule the targeted message
         syncMOC.performGroupedBlock {
-            self.sut.send(data: Data(), conversationId: conversation.remoteIdentifier!, targets: targets) { _ in }
+            self.sut.send(data: Data(), conversationId: conversation.avsIdentifier!, targets: targets) { _ in }
         }
 
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
@@ -298,7 +299,7 @@ class CallingRequestStrategyTests: MessagingTest {
 
         // When we schedule the message with no targets
         syncMOC.performGroupedBlock {
-            self.sut.send(data: Data(), conversationId: conversation.remoteIdentifier!, targets: nil) { _ in }
+            self.sut.send(data: Data(), conversationId: conversation.avsIdentifier!, targets: nil) { _ in }
         }
 
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
