@@ -274,7 +274,7 @@ extension PushToken {
         self.init(deviceToken: deviceToken,
                   appIdentifier: metadata.appIdentifier,
                   transportType: metadata.transportType,
-                  type: pushTokenType,
+                  tokenType: pushTokenType,
                   isRegistered: isRegistered)
     }
     
