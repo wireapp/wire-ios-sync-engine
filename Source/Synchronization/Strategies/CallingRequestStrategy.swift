@@ -148,7 +148,6 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
     }
 
-    // TODO: David - Update the Client Discovery strategy to use federation endpoint when federated
     public func didReceive(_ response: ZMTransportResponse, forSingleRequest sync: ZMSingleRequestSync) {
         switch sync {
         case callConfigRequestSync:
