@@ -29,6 +29,7 @@
 @property (nonatomic) NSUUID *lastUpdateEventID;
 
 @property (nonatomic, readonly) BOOL isFetchingStreamForAPNS;
+@property (nonatomic, readonly) BOOL isLegacyPushNotification;
 @property (nonatomic, readonly) BOOL isFetchingStreamInBackground;
 
 @end

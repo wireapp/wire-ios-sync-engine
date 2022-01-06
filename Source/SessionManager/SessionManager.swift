@@ -748,7 +748,8 @@ public final class SessionManager: NSObject, SessionManagerType {
     /// For iOS 13 or above we should use Non voIP push notifications. We should migrate (remove voip token and register APNS token ) the push token when upgrading the client OS or app version.
     private func updateOrMigratePushToken(session userSession: ZMUserSession) {
         if #available(iOS 13.0, *),
-            userSession.selfUserClient?.pushToken?.tokenType == .voip {
+            userSession.selfUserClient?.pushToken?.tokenType == .voip,
+            !userSession.isLegacyPushNotification {
             userSession.deletePushKitToken() // delete voip token and register APNS token for remote notifications
         } else {
             updatePushToken(for: userSession)
