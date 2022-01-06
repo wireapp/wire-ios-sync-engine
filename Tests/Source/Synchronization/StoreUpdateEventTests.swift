@@ -221,7 +221,6 @@ extension StoreUpdateEventTests {
             XCTAssertEqual(storedEvent.uuidString, event.uuid?.transportString())
 
             XCTAssertNotNil(storedEvent.payload)
-        // GIVEN
 #if targetEnvironment(simulator) && swift(>=5.4)
         if #available(iOS 15, *) {
             XCTExpectFailure("Expect to fail on iOS 15 simulator. ref: https://wearezeta.atlassian.net/browse/SQCORE-1188")
@@ -281,7 +280,6 @@ extension StoreUpdateEventTests {
             XCTAssertEqual(storedEvent.sortIndex, 2)
             XCTAssertEqual(storedEvent.uuidString, event.uuid?.transportString())
             XCTAssertNotNil(storedEvent.payload)
-        // GIVEN
 #if targetEnvironment(simulator) && swift(>=5.4)
         if #available(iOS 15, *) {
             XCTExpectFailure("Expect to fail on iOS 15 simulator. ref: https://wearezeta.atlassian.net/browse/SQCORE-1188")
@@ -352,7 +350,6 @@ extension StoreUpdateEventTests {
             XCTAssertEqual(storedEvent.sortIndex, 2)
             XCTAssertEqual(storedEvent.uuidString, event.uuid?.transportString())
             XCTAssertNotNil(storedEvent.payload)
-        // GIVEN
 #if targetEnvironment(simulator) && swift(>=5.4)
         if #available(iOS 15, *) {
             XCTExpectFailure("Expect to fail on iOS 15 simulator. ref: https://wearezeta.atlassian.net/browse/SQCORE-1188")

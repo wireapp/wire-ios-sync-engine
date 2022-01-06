@@ -84,7 +84,6 @@ final class ZMUserSessionTests_EncryptionAtRest: ZMUserSessionTestsBase {
         sut.delegate = userSessionDelegate
 
         // when
-        // GIVEN
 #if targetEnvironment(simulator) && swift(>=5.4)
         if #available(iOS 15, *) {
             XCTExpectFailure("Expect to fail on iOS 15 simulator. ref: https://wearezeta.atlassian.net/browse/SQCORE-1188")
@@ -110,7 +109,6 @@ final class ZMUserSessionTests_EncryptionAtRest: ZMUserSessionTestsBase {
         try sut.setEncryptionAtRest(enabled: false)
 
         // then
-        // GIVEN
 #if targetEnvironment(simulator) && swift(>=5.4)
         if #available(iOS 15, *) {
             XCTExpectFailure("Expect to fail on iOS 15 simulator. ref: https://wearezeta.atlassian.net/browse/SQCORE-1188")
@@ -169,7 +167,6 @@ final class ZMUserSessionTests_EncryptionAtRest: ZMUserSessionTestsBase {
 
         // when
         let context = LAContext()
-        // GIVEN
 #if targetEnvironment(simulator) && swift(>=5.4)
         if #available(iOS 15, *) {
             XCTExpectFailure("Expect to fail on iOS 15 simulator. ref: https://wearezeta.atlassian.net/browse/SQCORE-1188")
@@ -194,7 +191,6 @@ final class ZMUserSessionTests_EncryptionAtRest: ZMUserSessionTestsBase {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
-        // GIVEN
 #if targetEnvironment(simulator) && swift(>=5.4)
         if #available(iOS 15, *) {
             XCTExpectFailure("Expect to fail on iOS 15 simulator. ref: https://wearezeta.atlassian.net/browse/SQCORE-1188")
@@ -216,7 +212,6 @@ final class ZMUserSessionTests_EncryptionAtRest: ZMUserSessionTestsBase {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
-        // GIVEN
 #if targetEnvironment(simulator) && swift(>=5.4)
         if #available(iOS 15, *) {
             XCTExpectFailure("Expect to fail on iOS 15 simulator. ref: https://wearezeta.atlassian.net/browse/SQCORE-1188")
@@ -253,7 +248,6 @@ final class ZMUserSessionTests_EncryptionAtRest: ZMUserSessionTestsBase {
         // when
         _ = factory.startBackgroundActivity(withName: "Activity 1")!
         application.simulateApplicationDidEnterBackground()
-        // GIVEN
 #if targetEnvironment(simulator) && swift(>=5.4)
         if #available(iOS 15, *) {
             XCTExpectFailure("Expect to fail on iOS 15 simulator. ref: https://wearezeta.atlassian.net/browse/SQCORE-1188")
@@ -288,7 +282,6 @@ final class ZMUserSessionTests_EncryptionAtRest: ZMUserSessionTestsBase {
 
         // when
         sut.applicationDidEnterBackground(nil)
-        // GIVEN
 #if targetEnvironment(simulator) && swift(>=5.4)
         if #available(iOS 15, *) {
             XCTExpectFailure("Expect to fail on iOS 15 simulator. ref: https://wearezeta.atlassian.net/browse/SQCORE-1188")
@@ -320,7 +313,6 @@ final class ZMUserSessionTests_EncryptionAtRest: ZMUserSessionTestsBase {
 
         // when
         let context = LAContext()
-        // GIVEN
 #if targetEnvironment(simulator) && swift(>=5.4)
         if #available(iOS 15, *) {
             XCTExpectFailure("Expect to fail on iOS 15 simulator. ref: https://wearezeta.atlassian.net/browse/SQCORE-1188")
@@ -342,7 +334,6 @@ final class ZMUserSessionTests_EncryptionAtRest: ZMUserSessionTestsBase {
         simulateLoggedInUser()
         syncMOC.saveOrRollback()
 
-        // GIVEN
 #if targetEnvironment(simulator) && swift(>=5.4)
         if #available(iOS 15, *) {
             XCTExpectFailure("Expect to fail on iOS 15 simulator. ref: https://wearezeta.atlassian.net/browse/SQCORE-1188")
@@ -370,7 +361,6 @@ final class ZMUserSessionTests_EncryptionAtRest: ZMUserSessionTestsBase {
         sut.applicationDidEnterBackground(nil)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
-        // GIVEN
 #if targetEnvironment(simulator) && swift(>=5.4)
         if #available(iOS 15, *) {
             XCTExpectFailure("Expect to fail on iOS 15 simulator. ref: https://wearezeta.atlassian.net/browse/SQCORE-1188")
