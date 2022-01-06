@@ -39,8 +39,7 @@ extension ZMUserSession {
     }
 
     @objc public static func addInitialSyncCompletionObserver(_ observer: ZMInitialSyncCompletionObserver, context: NSManagedObjectContext) -> Any {
-        return NotificationInContext.addObserver(name: initialSyncCompletionNotificationName, context: context.notificationContext) {
-            [weak observer] _ in
+        return NotificationInContext.addObserver(name: initialSyncCompletionNotificationName, context: context.notificationContext) { [weak observer] _ in
             context.performGroupedBlock {
                 observer?.initialSyncCompleted()
             }
@@ -62,8 +61,7 @@ extension ZMUserSession {
 
     public static func addNetworkAvailabilityObserver(_ observer: ZMNetworkAvailabilityObserver, userSession: ZMUserSession) -> Any {
         return NotificationInContext.addObserver(name: name,
-                                                 context: userSession) {
-            [weak observer] note in
+                                                 context: userSession) { [weak observer] note in
             observer?.didChangeAvailability(newState: note.userInfo[stateKey] as! ZMNetworkState)
         }
     }
@@ -88,8 +86,7 @@ extension ZMConversation {
     public func addTypingObserver(_ observer: ZMTypingChangeObserver) -> Any {
         return NotificationInContext.addObserver(name: ZMConversation.typingNotificationName,
                                                  context: self.managedObjectContext!.notificationContext,
-                                                 object: self) {
-            [weak observer, weak self] note in
+                                                 object: self) { [weak observer, weak self] note in
             guard let `self` = self else { return }
 
             let users = note.userInfo[typingNotificationUsersKey] as? Set<ZMUser> ?? Set()
