@@ -16,11 +16,10 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import Foundation
 @testable import WireSyncEngine
 
-class RegistrationTests : IntegrationTest {
+class RegistrationTests: IntegrationTest {
 
     var delegate: TestRegistrationStatusDelegate!
     var registrationStatus: WireSyncEngine.RegistrationStatus? {
@@ -30,7 +29,7 @@ class RegistrationTests : IntegrationTest {
     var user: UnregisteredUser!
     var email: String!
     let environment = BackendEnvironment(type: .wire(.staging))
-    
+
     override func setUp() {
         super.setUp()
         delegate = TestRegistrationStatusDelegate()
@@ -87,7 +86,7 @@ class RegistrationTests : IntegrationTest {
         XCTAssertEqual(delegate.activationCodeSendingFailedCalled, 0)
     }
 
-    func testThatIsActivationCodeSendingFailWhenEmailAlreadyRegistered(){
+    func testThatIsActivationCodeSendingFailWhenEmailAlreadyRegistered() {
         // Given
         let email = "john@smith.com"
         XCTAssertEqual(delegate.activationCodeSentCalled, 0)

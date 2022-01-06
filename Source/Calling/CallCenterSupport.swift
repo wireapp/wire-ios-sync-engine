@@ -22,7 +22,6 @@ import Foundation
 
 public typealias WireCallMessageToken = UnsafeMutableRawPointer
 
-
 /// The possible types of call.
 
 public enum AVSCallType: Int32 {
@@ -50,8 +49,8 @@ public struct CallEvent {
     let data: Data
     let currentTimestamp: Date
     let serverTimestamp: Date
-    let conversationId: UUID
-    let userId: UUID
+    let conversationId: AVSIdentifier
+    let userId: AVSIdentifier
     let clientId: String
 
 }
@@ -64,7 +63,7 @@ public typealias CallConfigRequestCompletion = (String?, Int) -> Void
 
 /// An object that can perform requests on behalf of the call center.
 
-public protocol WireCallCenterTransport: class {
+public protocol WireCallCenterTransport: AnyObject {
 
     /// Sends a calling message.
     ///
@@ -74,7 +73,7 @@ public protocol WireCallCenterTransport: class {
     ///     - targets: Exact recipients of the message. If `nil`, all conversation participants are recipients.
     ///     - completionHandler: A handler when the network request completes with http status code.
 
-    func send(data: Data, conversationId: UUID, targets: [AVSClient]?, completionHandler: @escaping ((_ status: Int) -> Void))
+    func send(data: Data, conversationId: AVSIdentifier, targets: [AVSClient]?, completionHandler: @escaping ((_ status: Int) -> Void))
 
     /// Send a calling message to the SFT server (for conference calling).
     ///

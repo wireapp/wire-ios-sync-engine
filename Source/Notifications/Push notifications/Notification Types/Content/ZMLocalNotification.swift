@@ -18,7 +18,6 @@
 
 import UserNotifications
 
-
 /// Defines the various types of local notifications, some of which
 /// have associated subtypes.
 ///
@@ -34,13 +33,12 @@ enum LocalNotificationType {
 /// a local notification. 
 ///
 protocol NotificationBuilder {
-    var notificationType : LocalNotificationType { get }
+    var notificationType: LocalNotificationType { get }
     func shouldCreateNotification() -> Bool
     func titleText() -> String?
     func bodyText() -> String
     func userInfo() -> NotificationUserInfo?
 }
-
 
 /// This class encapsulates all the data necessary to produce a local
 /// notification. It configures and formats the textual content for
@@ -48,11 +46,11 @@ protocol NotificationBuilder {
 /// information regarding the conversation, sender, and team name.
 ///
 class ZMLocalNotification: NSObject {
-    
+
     /// The unique identifier for this notification. Use it to later update
     /// or remove pending or scheduled notification requests.
     let id: UUID
-    
+
     let type: LocalNotificationType
     var title: String?
     var body: String
@@ -73,12 +71,12 @@ class ZMLocalNotification: NSObject {
             hasTeam: hasTeam,
             encryptionAtRestEnabled: encryptionAtRestEnabled
         )
-        
+
         self.sound = builder.notificationType.sound
         self.userInfo = builder.userInfo()
         self.id = userInfo?.messageNonce ?? UUID()
         super.init()
-        
+
         self.userInfo?.requestID = id
     }
 
@@ -102,12 +100,12 @@ class ZMLocalNotification: NSObject {
             switch self.type {
             case .message(.ephemeral): break
             default: content.threadIdentifier = conversationID.transportString()
-            }            
+            }
         }
 
         return content
     }()
-    
+
     /// Returns a configured concrete `UNNotificationRequest`.
     lazy var request: UNNotificationRequest = {
         return UNNotificationRequest(identifier: id.uuidString, content: content, trigger: nil)
@@ -131,7 +129,7 @@ extension ZMLocalNotification {
         default: return false
         }
     }
-    
+
     /// Returns true if it is a ephemeral notification, else false.
     var isEphemeral: Bool {
         guard case .message(.ephemeral) = type else { return false }
@@ -147,7 +145,7 @@ extension ZMLocalNotification {
     func conversation(in moc: NSManagedObjectContext) -> ZMConversation? {
         return userInfo?.conversation(in: moc)
     }
-    
+
     func sender(in moc: NSManagedObjectContext) -> ZMUser? {
         return userInfo?.sender(in: moc)
     }
@@ -156,31 +154,31 @@ extension ZMLocalNotification {
 // MARK: - Unread Count
 
 extension ZMLocalNotification {
-            
+
     func increaseEstimatedUnreadCount(on conversation: ZMConversation?) {
-                
+
         if type.shouldIncreaseUnreadCount {
             conversation?.internalEstimatedUnreadCount += 1
         }
-        
+
         if type.shouldIncreaseUnreadMentionCount {
             conversation?.internalEstimatedUnreadSelfMentionCount += 1
         }
-        
+
         if type.shouldIncreaseUnreadReplyCount {
             conversation?.internalEstimatedUnreadSelfReplyCount += 1
         }
     }
-    
+
 }
 
 extension LocalNotificationType {
-    
+
     var shouldIncreaseUnreadCount: Bool {
         guard case LocalNotificationType.message(let contentType) = self else {
             return false
         }
-        
+
         switch contentType {
         case .messageTimerUpdate, .participantsAdded, .participantsRemoved, .reaction:
             return false
@@ -188,12 +186,12 @@ extension LocalNotificationType {
             return true
         }
     }
-    
+
     var shouldIncreaseUnreadMentionCount: Bool {
         guard case LocalNotificationType.message(let contentType) = self else {
             return false
         }
-        
+
         switch contentType {
         case .text(_, isMention: true, isReply: _),
              .ephemeral(isMention: true, isReply: _):
@@ -202,12 +200,12 @@ extension LocalNotificationType {
             return false
         }
     }
-    
+
     var shouldIncreaseUnreadReplyCount: Bool {
         guard case LocalNotificationType.message(let contentType) = self else {
             return false
         }
-        
+
         switch contentType {
         case .text(_, isMention: _, isReply: true),
              .ephemeral(isMention: _, isReply: true):
@@ -216,10 +214,10 @@ extension LocalNotificationType {
             return false
         }
     }
-    
+
 }
 
 // Helper function inserted by Swift 4.2 migrator.
-fileprivate func convertToUNNotificationSoundName(_ input: String) -> UNNotificationSoundName {
+private func convertToUNNotificationSoundName(_ input: String) -> UNNotificationSoundName {
 	return UNNotificationSoundName(rawValue: input)
 }

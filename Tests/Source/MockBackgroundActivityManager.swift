@@ -25,9 +25,9 @@ import WireTesting
  */
 
 @objc class MockBackgroundActivityManager: NSObject, BackgroundActivityManager {
-    
+
     var backgroundTimeRemaining: TimeInterval = 10
-    
+
     var applicationState: UIApplication.State = .active
 
     /// Whether the activity is expiring.

@@ -28,19 +28,19 @@ class ConversationTests_LegalHold: ConversationTestsBase {
         mockTransportSession.performRemoteChanges { (session) in
             session.registerClient(for: self.user1, label: "Legal Hold", type: "legalhold", deviceClass: "legalhold")
         }
-        
+
         // when
         userSession?.perform {
             try! conversation?.appendText(content: "Hello")
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         let secondToLastMessage = conversation?.lastMessages()[1] as? ZMSystemMessage
         XCTAssertEqual(secondToLastMessage?.systemMessageType, .legalHoldEnabled)
         XCTAssertEqual(conversation?.legalHoldStatus, .pendingApproval)
     }
-    
+
     func testThatItInsertsLegalHoldSystemMessage_WhenLegalHoldClientIsReportedAsDeletedOnSending() {
         // given
         XCTAssertTrue(login())
@@ -49,21 +49,21 @@ class ConversationTests_LegalHold: ConversationTestsBase {
         mockTransportSession.performRemoteChanges { (session) in
             legalHoldClient = session.registerClient(for: self.user1, label: "Legal Hold", type: "legalhold", deviceClass: "legalhold")
         }
-        
+
         userSession?.perform {
             try! conversation?.appendText(content: "Hello")
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         XCTAssertEqual(conversation?.legalHoldStatus, .pendingApproval)
-        
+
         conversation?.acknowledgePrivacyWarning(withResendIntent: true)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         XCTAssertEqual(conversation?.legalHoldStatus, .enabled)
-        
+
         mockTransportSession.performRemoteChanges { (session) in
             session.deleteUserClient(withIdentifier: legalHoldClient.identifier!, for: self.user1)
         }
-        
+
         // when
         userSession?.perform {
             try! conversation?.appendText(content: "Hello")
@@ -75,11 +75,11 @@ class ConversationTests_LegalHold: ConversationTestsBase {
         XCTAssertEqual(lastMessage?.systemMessageType, .legalHoldDisabled)
         XCTAssertEqual(conversation?.legalHoldStatus, .disabled)
     }
-    
+
     func testThatItInsertsLegalHoldSystemMessage_WhenUserUnderLegalHoldIsJoiningConversation() {
         // given
         XCTAssertTrue(login())
-        
+
         let legalHoldUser = self.user(for: user1)!
         let groupConversation = self.conversation(for: self.groupConversation)
         mockTransportSession.performRemoteChanges { (session) in
@@ -87,60 +87,60 @@ class ConversationTests_LegalHold: ConversationTestsBase {
         }
         legalHoldUser.fetchUserClients()
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // when
         groupConversation?.addParticipants([legalHoldUser], completion: { _ in })
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         let lastMessage = groupConversation?.lastMessage as? ZMSystemMessage
         XCTAssertEqual(lastMessage?.systemMessageType, .legalHoldEnabled)
         XCTAssertEqual(groupConversation?.legalHoldStatus, .pendingApproval)
     }
-    
+
     func testThatItInsertsLegalHoldSystemMessage_WhenUserUnderLegalHoldIsLeavingConversation() {
         // given
         XCTAssertTrue(login())
-        
+
         let legalHoldUser = self.user(for: user1)!
         let groupConversation = self.conversation(for: self.groupConversation)
-        
+
         mockTransportSession.performRemoteChanges { (session) in
             session.registerClient(for: self.user1, label: "Legal Hold", type: "legalhold", deviceClass: "legalhold")
         }
         legalHoldUser.fetchUserClients()
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         groupConversation?.addParticipants([legalHoldUser], completion: { _ in })
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         XCTAssertEqual(groupConversation?.legalHoldStatus, .pendingApproval)
-        
+
         // when
         groupConversation?.removeParticipant(legalHoldUser, completion: {_ in })
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         let lastMessage = groupConversation?.lastMessage as? ZMSystemMessage
         XCTAssertEqual(lastMessage?.systemMessageType, .legalHoldDisabled)
         XCTAssertEqual(groupConversation?.legalHoldStatus, .disabled)
     }
-    
+
     // MARK: Legal hold status flag
-    
+
     func testThatItUpdatesLegalHoldStatus_WhenReceivingLegalHoldStatusFlagEnabled() {
         // given
         XCTAssertTrue(login())
-        
+
         let selfUserClient = self.selfUser.clients.anyObject() as! MockUserClient
         let otherUserClient = user1.clients.anyObject() as! MockUserClient
         let conversation = self.conversation(for: selfToUser1Conversation)
-        
+
         mockTransportSession.performRemoteChanges { (session) in
             session.registerClient(for: self.user1, label: "Legal Hold", type: "legalhold", deviceClass: "legalhold")
         }
-        
+
         // when
-        mockTransportSession.performRemoteChanges { (session) in
+        mockTransportSession.performRemoteChanges { (_) in
             var genericMessage = GenericMessage(content: Text(content: "Hello"))
             genericMessage.setLegalHoldStatus(.enabled)
             do {
@@ -148,32 +148,32 @@ class ConversationTests_LegalHold: ConversationTestsBase {
             } catch {
                 XCTFail("Error in adding data: \(error)")
             }
-            
+
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         XCTAssertEqual(conversation?.legalHoldStatus, .pendingApproval)
     }
-    
+
     func testThatItUpdatesLegalHoldStatus_WhenReceivingLegalHoldStatusFlagDisabled() {
         // given
         XCTAssertTrue(login())
-        
+
         let legalHoldUser = self.user(for: user1)!
         let selfUserClient = self.selfUser.clients.anyObject() as! MockUserClient
         let otherUserClient = user1.clients.anyObject() as! MockUserClient
         var legalHoldClient: MockUserClient!
         let conversation = self.conversation(for: selfToUser1Conversation)
-        
+
         mockTransportSession.performRemoteChanges { (session) in
             legalHoldClient = session.registerClient(for: self.user1, label: "Legal Hold", type: "legalhold", deviceClass: "legalhold")
         }
-        
+
         legalHoldUser.fetchUserClients()
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         XCTAssertEqual(conversation?.legalHoldStatus, .pendingApproval)
-        
+
         // when
         mockTransportSession.performRemoteChanges { (session) in
             session.deleteUserClient(withIdentifier: legalHoldClient.identifier!, for: self.user1)
@@ -186,21 +186,21 @@ class ConversationTests_LegalHold: ConversationTestsBase {
             }
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         XCTAssertEqual(conversation?.legalHoldStatus, .disabled)
     }
-    
+
     func testThatItRepairsAnIncorrectLegalHoldStatus_AfterReceivingLegalHoldStatusFlagEnabled() {
         // given
         XCTAssertTrue(login())
-        
+
         let selfUserClient = self.selfUser.clients.anyObject() as! MockUserClient
         let otherUserClient = user1.clients.anyObject() as! MockUserClient
         let conversation = self.conversation(for: selfToUser1Conversation)
-        
+
         // when
-        mockTransportSession.performRemoteChanges { (session) in
+        mockTransportSession.performRemoteChanges { (_) in
             var genericMessage = GenericMessage(content: Text(content: "Hello"))
             genericMessage.setLegalHoldStatus(.enabled)
             do {
@@ -210,19 +210,19 @@ class ConversationTests_LegalHold: ConversationTestsBase {
             }
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
          // then
         XCTAssertEqual(conversation?.legalHoldStatus, .disabled)
     }
-    
+
     func testThatItRepairsAnIncorrectLegalHoldStatus_AfterReceivingLegalHoldStatusFlagDisabled() {
         // given
         XCTAssertTrue(login())
-        
+
         let selfUserClient = self.selfUser.clients.anyObject() as! MockUserClient
         let otherUserClient = user1.clients.anyObject() as! MockUserClient
         let conversation = self.conversation(for: selfToUser1Conversation)
-        
+
         mockTransportSession.performRemoteChanges { (session) in
             session.registerClient(for: self.user1, label: "Legal Hold", type: "legalhold", deviceClass: "legalhold")
         }
@@ -234,7 +234,7 @@ class ConversationTests_LegalHold: ConversationTestsBase {
         XCTAssertEqual(conversation?.legalHoldStatus, .pendingApproval)
 
         // when
-        mockTransportSession.performRemoteChanges { (session) in
+        mockTransportSession.performRemoteChanges { (_) in
             var genericMessage = GenericMessage(content: Text(content: "Hello"))
             genericMessage.setLegalHoldStatus(.disabled)
             do {
@@ -244,9 +244,9 @@ class ConversationTests_LegalHold: ConversationTestsBase {
             }
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         XCTAssertEqual(conversation?.legalHoldStatus, .pendingApproval)
     }
-    
+
 }

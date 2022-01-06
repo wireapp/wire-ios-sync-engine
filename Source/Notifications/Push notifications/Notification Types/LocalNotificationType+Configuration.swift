@@ -18,7 +18,6 @@
 
 import Foundation
 
-
 extension LocalNotificationType {
 
     func category(hasTeam: Bool, encryptionAtRestEnabled: Bool) -> PushNotificationCategory {
@@ -26,7 +25,7 @@ extension LocalNotificationType {
             .addEncryptionAtRestIfNeeded(encryptionAtRestEnabled: encryptionAtRestEnabled)
             .addMuteIfNeeded(hasTeam: hasTeam)
     }
-    
+
     var sound: NotificationSound {
         switch self {
         case .calling(let callState):
@@ -49,7 +48,7 @@ extension LocalNotificationType {
             return .newMessage
         }
     }
-    
+
 }
 
 private extension PushNotificationCategory {
@@ -70,7 +69,7 @@ private extension PushNotificationCategory {
     }
 
     init(callState: CallState) {
-        switch (callState) {
+        switch callState {
         case .incoming:
             self = .incomingCall
         case .terminating(reason: .timeout):

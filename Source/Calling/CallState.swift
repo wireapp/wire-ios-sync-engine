@@ -26,13 +26,13 @@ private let zmLog = ZMSLog(tag: "calling")
  */
 
 public struct CallParticipant: Hashable {
-    
+
     public let user: UserType
     public let clientId: String
-    public let userId: UUID
+    public let userId: AVSIdentifier
     public let state: CallParticipantState
     public let activeSpeakerState: ActiveSpeakerState
-        
+
     /// convenience init method for ZMUser
     /// - Parameters:
     ///   - user: the call participant ZMUser
@@ -44,7 +44,7 @@ public struct CallParticipant: Hashable {
                 activeSpeakerState: ActiveSpeakerState) {
         self.user = user
         self.clientId = clientId
-        self.userId = user.remoteIdentifier
+        self.userId = user.avsIdentifier
         self.state = state
         self.activeSpeakerState = activeSpeakerState
     }
@@ -56,7 +56,7 @@ public struct CallParticipant: Hashable {
     ///   - clientId: the call participant's client
     ///   - state: the call participant's state
     public init(user: UserType,
-                userId: UUID,
+                userId: AVSIdentifier,
                 clientId: String,
                 state: CallParticipantState,
                 activeSpeakerState: ActiveSpeakerState) {
@@ -68,8 +68,17 @@ public struct CallParticipant: Hashable {
     }
 
     init?(member: AVSCallMember, activeSpeakerState: ActiveSpeakerState = .inactive, context: NSManagedObjectContext) {
-        guard let user = ZMUser.fetch(with: member.client.userId, in: context) else { return nil }
-        self.init(user: user, userId: user.remoteIdentifier, clientId: member.client.clientId, state: member.callParticipantState, activeSpeakerState: activeSpeakerState)
+        let userId = member.client.avsIdentifier
+
+        guard let user = ZMUser.fetch(with: userId.identifier, domain: userId.domain, in: context) else {
+            return nil
+        }
+
+        self.init(user: user,
+                  userId: userId,
+                  clientId: member.client.clientId,
+                  state: member.callParticipantState,
+                  activeSpeakerState: activeSpeakerState)
     }
 
     // MARK: - Hashable
@@ -87,7 +96,6 @@ public struct CallParticipant: Hashable {
 
 }
 
-
 /**
  * The state of a participant in a call.
  */
@@ -103,7 +111,6 @@ public enum CallParticipantState: Equatable, Hashable {
     case connected(videoState: VideoState, microphoneState: MicrophoneState)
 }
 
-
 /**
  * The audio state of a participant in a call.
  */
@@ -116,7 +123,6 @@ public enum AudioState: Int32, Codable {
     /// No relay candidate, though audio may still connect.
     case networkProblem = 2
 }
-
 
 /**
  * The state of video in the call.

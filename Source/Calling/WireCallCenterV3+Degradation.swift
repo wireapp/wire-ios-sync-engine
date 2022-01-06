@@ -19,13 +19,13 @@
 import Foundation
 
 extension WireCallCenterV3 {
-    
-    func callDidDegrade(conversationId: UUID, degradedUser: ZMUser) {
+
+    func callDidDegrade(conversationId: AVSIdentifier, degradedUser: ZMUser) {
         closeCall(conversationId: conversationId, reason: .securityDegraded)
-        
+
         if let previousSnapshot = callSnapshots[conversationId] {
             callSnapshots[conversationId] = previousSnapshot.updateDegradedUser(degradedUser)
         }
     }
-    
+
 }

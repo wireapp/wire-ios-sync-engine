@@ -21,13 +21,13 @@ import Foundation
 import WireMockTransport
 
 class UserProfileImageV3Tests: IntegrationTest {
-    
+
     override func setUp() {
         super.setUp()
-        
+
         createSelfUserAndConversation()
     }
-    
+
     func checkProfileImagesMatch(local: ZMUser, remote: MockUser, file: StaticString = #file, line: UInt = #line) {
         XCTAssertNotNil(remote.completeProfileAssetIdentifier, "Complete assetId should bet set on remote user", file: file, line: line)
         XCTAssertNotNil(remote.previewProfileAssetIdentifier, "Preview assetId should bet set on remote user", file: file, line: line)
@@ -39,20 +39,20 @@ class UserProfileImageV3Tests: IntegrationTest {
         let completeAsset = MockAsset(in: mockTransportSession.managedObjectContext, forID: completeId)
         checkProfileImagesMatch(local: local, previewAsset: previewAsset, completeAsset: completeAsset, file: file, line: line)
     }
-    
+
     func checkProfileImagesMatch(local: ZMUser, previewAsset: MockAsset?, completeAsset: MockAsset?, file: StaticString = #file, line: UInt = #line) {
         XCTAssertNotNil(completeAsset, "Complete asset should exist on server", file: file, line: line)
         XCTAssertNotNil(previewAsset, "Complete asset should exist on server", file: file, line: line)
-        
+
         XCTAssertEqual(local.previewProfileAssetIdentifier, previewAsset?.identifier, "Preview assetId should match remote assetId", file: file, line: line)
         XCTAssertEqual(local.completeProfileAssetIdentifier, completeAsset?.identifier, "Complete assetId should match remote assetId", file: file, line: line)
         XCTAssertEqual(local.imageMediumData, completeAsset?.data, "Complete asset should match remote data", file: file, line: line)
         XCTAssertEqual(local.imageSmallProfileData, previewAsset?.data, "Preview asset should match remote data", file: file, line: line)
     }
-        
+
     func testThatSelfUserImagesAreUploadedWhenThereAreNone() {
         // GIVEN
-        mockTransportSession.performRemoteChanges { session in
+        mockTransportSession.performRemoteChanges { _ in
             self.selfUser.pictures = []
             self.selfUser.previewProfileAssetIdentifier = nil
             self.selfUser.completeProfileAssetIdentifier = nil
@@ -64,32 +64,32 @@ class UserProfileImageV3Tests: IntegrationTest {
             self.userSession?.userProfileImage?.updateImage(imageData: self.mediumJPEGData())
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         if let userProfileImageUpdateStatus = self.userSession?.userProfileImage as? UserProfileImageUpdateStatus {
             // wait until image pre-processing is completed
             userProfileImageUpdateStatus.queue.waitUntilAllOperationsAreFinished()
         }
-        
+
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // THEN
         checkProfileImagesMatch(local: ZMUser.selfUser(inUserSession: userSession!), remote: selfUser)
     }
-    
+
     func testThatSelfUserImagesAreChanged() {
         // GIVEN
         XCTAssertTrue(login())
-        
+
         // WHEN
         userSession?.perform {
             self.userSession?.userProfileImage?.updateImage(imageData: self.mediumJPEGData())
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // THEN
         checkProfileImagesMatch(local: ZMUser.selfUser(inUserSession: userSession!), remote: selfUser)
     }
-    
+
     func testThatOldSelfUserImagesAreDeletedAfterChange() {
         // GIVEN
         XCTAssertTrue(login())
@@ -98,19 +98,19 @@ class UserProfileImageV3Tests: IntegrationTest {
         let previewId = currentUser.previewProfileAssetIdentifier
         XCTAssertNotNil(completeId)
         XCTAssertNotNil(previewId)
-        
+
         // WHEN
         userSession?.perform {
             self.userSession?.userProfileImage?.updateImage(imageData: self.mediumJPEGData())
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         if let userProfileImageUpdateStatus = self.userSession?.userProfileImage as? UserProfileImageUpdateStatus {
             // wait until image pre-processing is completed
             userProfileImageUpdateStatus.queue.waitUntilAllOperationsAreFinished()
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // THEN
         let previewAsset = MockAsset(in: mockTransportSession.managedObjectContext, forID: previewId!)
         XCTAssertNil(previewAsset)
@@ -125,7 +125,7 @@ class UserProfileImageV3Tests: IntegrationTest {
             session.addV3ProfilePicture(to: self.selfUser)
         }
         XCTAssertTrue(login())
-        
+
         // THEN
         checkProfileImagesMatch(local: ZMUser.selfUser(inUserSession: userSession!), remote: selfUser)
     }
@@ -135,12 +135,12 @@ class UserProfileImageV3Tests: IntegrationTest {
         XCTAssertTrue(login())
 
         // WHEN
-        var assets: [String : MockAsset]?
+        var assets: [String: MockAsset]?
         mockTransportSession.performRemoteChanges { session in
             assets = session.addV3ProfilePicture(to: self.selfUser)
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // THEN
         let localUser = ZMUser.selfUser(inUserSession: userSession!)
         let completeAsset = assets?["complete"]
@@ -149,4 +149,3 @@ class UserProfileImageV3Tests: IntegrationTest {
     }
 
 }
-

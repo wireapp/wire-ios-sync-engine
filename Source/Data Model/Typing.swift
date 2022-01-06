@@ -65,7 +65,7 @@ class Typing {
         }
 
         if wasTyping != isTyping {
-            if (!isTyping) {
+            if !isTyping {
                 typingUserTimeout.remove(user, for: conversation)
             }
             sendNotification(for: conversation)

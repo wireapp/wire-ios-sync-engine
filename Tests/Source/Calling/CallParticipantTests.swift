@@ -17,32 +17,60 @@
 //
 
 import Foundation
+@testable import WireSyncEngine
 
 final class CallParticipantTests: MessagingTest {
     var otherUser: ZMUser!
-    let otherUserID : UUID = UUID()
+    let otherUserID: UUID = UUID()
     let otherUserClientID = UUID().transportString()
 
     override func setUp() {
         super.setUp()
-        
+
         otherUser = ZMUser.insertNewObject(in: uiMOC)
         otherUser.remoteIdentifier = otherUserID
     }
-    
+
     override func tearDown() {
         otherUser = nil
-        
+
         super.tearDown()
     }
 
     func testThatHashIsSameWithDifferentState() {
-        
-        //GIVEN & WHEN
+
+        // GIVEN & WHEN
         let callParticipant1 = CallParticipant(user: otherUser, clientId: otherUserClientID, state: .connecting, activeSpeakerState: .inactive)
         let callParticipant2 = CallParticipant(user: otherUser, clientId: otherUserClientID, state: .unconnected, activeSpeakerState: .inactive)
 
-        //THEN
+        // THEN
         XCTAssertEqual(callParticipant1.hashValue, callParticipant2.hashValue)
+    }
+
+    func testThatItFetchesUserCorrectly_WhenCreatedFromAVSCallMember() {
+        // GIVEN
+        let user = ZMUser.insertNewObject(in: uiMOC)
+        user.domain = "wire.com"
+        user.remoteIdentifier = UUID()
+
+        let avsIdentifier = AVSIdentifier(
+            identifier: user.remoteIdentifier,
+            domain: user.domain
+        )
+
+        let member = AVSCallMember(member: AVSParticipantsChange.Member(
+            userid: avsIdentifier.serialized,
+            clientid: UUID().uuidString,
+            aestab: .established,
+            vrecv: .started,
+            muted: .muted
+        ))
+
+        // WHEN
+        let participant = CallParticipant(member: member, activeSpeakerState: .inactive, context: uiMOC)
+
+        // THEN
+        XCTAssertEqual(participant?.user as? ZMUser, user)
+        XCTAssertEqual(participant?.userId, avsIdentifier)
     }
 }

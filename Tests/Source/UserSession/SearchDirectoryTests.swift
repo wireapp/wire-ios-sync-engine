@@ -20,7 +20,7 @@ import Foundation
 
 @testable import WireSyncEngine
 
-class SearchDirectoryTests : DatabaseTest {
+class SearchDirectoryTests: DatabaseTest {
 
     func testThatItEmptiesTheSearchUserCacheOnTeardown() {
         // given
@@ -30,7 +30,7 @@ class SearchDirectoryTests : DatabaseTest {
         let sut = SearchDirectory(searchContext: searchMOC, contextProvider: coreDataStack!, transportSession: mockTransport)
         _ = ZMSearchUser(contextProvider: coreDataStack!, name: "John Doe", handle: "john", accentColor: .brightOrange, remoteIdentifier: uuid)
         XCTAssertNotNil(uiMOC.zm_searchUserCache?.object(forKey: uuid as NSUUID))
-    
+
         // when
         sut.tearDown()
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
@@ -38,5 +38,5 @@ class SearchDirectoryTests : DatabaseTest {
         // then
         XCTAssertNil(uiMOC.zm_searchUserCache?.object(forKey: uuid as NSUUID))
     }
-    
+
 }

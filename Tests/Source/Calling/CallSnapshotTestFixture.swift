@@ -20,20 +20,20 @@ import Foundation
 @testable import WireSyncEngine
 
 struct CallSnapshotTestFixture {
-    static func degradedCallSnapshot(conversationId: UUID, user: ZMUser, callCenter: WireCallCenterV3) -> CallSnapshot {
-        
-        let callMember = AVSCallMember(client: AVSClient(userId: user.remoteIdentifier, clientId: UUID().transportString()))
-        
+    static func degradedCallSnapshot(conversationId: AVSIdentifier, user: ZMUser, callCenter: WireCallCenterV3) -> CallSnapshot {
+
+        let callMember = AVSCallMember(client: AVSClient(userId: user.avsIdentifier, clientId: UUID().transportString()))
+
         let callParticipantSnapshot = CallParticipantsSnapshot(
             conversationId: conversationId,
             members: [callMember],
             callCenter: callCenter
         )
-        
+
         return CallSnapshot(
             callParticipants: callParticipantSnapshot,
             callState: .established,
-            callStarter: UUID(),
+            callStarter: AVSIdentifier.stub,
             isVideo: false,
             isGroup: true,
             isConstantBitRate: false,
@@ -46,19 +46,19 @@ struct CallSnapshotTestFixture {
             conversationObserverToken: nil
         )
     }
-    
-    static func callSnapshot(conversationId: UUID, callCenter: WireCallCenterV3, clients: [AVSClient]) -> CallSnapshot {
-              
+
+    static func callSnapshot(conversationId: AVSIdentifier, callCenter: WireCallCenterV3, clients: [AVSClient]) -> CallSnapshot {
+
         let callParticipantsSnapshot = CallParticipantsSnapshot(
             conversationId: conversationId,
             members: clients.map { AVSCallMember(client: $0) },
             callCenter: callCenter
         )
-        
+
         return CallSnapshot(
             callParticipants: callParticipantsSnapshot,
             callState: .established,
-            callStarter: UUID(),
+            callStarter: AVSIdentifier.stub,
             isVideo: false,
             isGroup: true,
             isConstantBitRate: false,

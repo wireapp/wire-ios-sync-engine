@@ -21,29 +21,29 @@ import XCTest
 import WireTesting
 @testable import WireSyncEngine
 
-class TopConversationsDirectoryTests : MessagingTest {
+class TopConversationsDirectoryTests: MessagingTest {
 
-    var sut : TopConversationsDirectory!
+    var sut: TopConversationsDirectory!
     var topConversationsObserver: FakeTopConversationsDirectoryObserver!
     var topConversationsObserverToken: Any?
-    
+
     override func setUp() {
         super.setUp()
         self.sut = TopConversationsDirectory(managedObjectContext: self.uiMOC)
         self.topConversationsObserver = FakeTopConversationsDirectoryObserver()
         self.topConversationsObserverToken = self.sut.add(observer: topConversationsObserver)
     }
-    
+
     override func tearDown() {
         self.topConversationsObserverToken = nil
         self.sut = nil
         super.tearDown()
     }
-    
+
     func testThatItHasNoResultsWhenCreatedAndNeverFetched() {
         XCTAssertEqual(self.sut.topConversations, [])
     }
-    
+
     func testThatItSetsTheFetchedTopConversations() {
         // GIVEN
         let conv1 = createConversation(in: uiMOC, fillWithNew: 5)
@@ -53,7 +53,7 @@ class TopConversationsDirectoryTests : MessagingTest {
         // WHEN
         sut.refreshTopConversations()
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.2))
-        
+
         // THEN
         XCTAssertEqual(sut.topConversations, [conv2, conv1, conv3])
     }
@@ -140,7 +140,7 @@ class TopConversationsDirectoryTests : MessagingTest {
         var changesMerger: ManagedObjectContextChangesMerger! = ManagedObjectContextChangesMerger(managedObjectContexts: Set([uiMOC, syncMOC]))
         // To silence warning that changesMerger is not read anywhere
         _ = changesMerger
-        
+
         // GIVEN
         let conv1 = createConversation(in: uiMOC, fillWithNew: 5, old: 15)
         let conv2 = createConversation(in: uiMOC, fillWithNew: 10, old: 5)
@@ -162,14 +162,14 @@ class TopConversationsDirectoryTests : MessagingTest {
 
         // THEN
         XCTAssertEqual(sut.topConversations, [conv3, conv2, conv1])
-        
+
         changesMerger = nil
     }
-    
+
     func testThatItSetsTopConversationFromTheRightContext() {
         // GIVEN
-        var expectedConversationsIds : [NSManagedObjectID] = []
-        
+        var expectedConversationsIds: [NSManagedObjectID] = []
+
         // WHEN
         let conv1 = self.createConversation(in: self.uiMOC, fillWithNew: 2)
         expectedConversationsIds.append(conv1.objectID)
@@ -179,14 +179,13 @@ class TopConversationsDirectoryTests : MessagingTest {
         sut.refreshTopConversations()
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
-        
         // THEN
         XCTAssertEqual(self.sut.topConversations.map { $0.objectID }, expectedConversationsIds)
         XCTAssertEqual(self.sut.topConversations.compactMap { $0.managedObjectContext }, [self.uiMOC, self.uiMOC])
     }
-    
+
     func testThatItDoesNotReturnConversationsIfTheyAreDeleted() {
-        
+
         // GIVEN
         let conv1 = self.createConversation(in: self.uiMOC, fillWithNew: 1)
         let conv2 = self.createConversation(in: self.uiMOC, fillWithNew: 1)
@@ -197,38 +196,38 @@ class TopConversationsDirectoryTests : MessagingTest {
         self.uiMOC.delete(conv1)
         uiMOC.saveOrRollback()
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
-        
+
         // THEN
         XCTAssertEqual(self.sut.topConversations, [conv2])
     }
-    
+
     func testThatItDoesNotReturnConversationsIfTheyAreBlocked() {
-        
+
         // GIVEN
         let conv1 = self.createConversation(in: self.uiMOC, fillWithNew: 1)
         let conv2 = self.createConversation(in: self.uiMOC, fillWithNew: 1)
-        
+
         // WHEN
         conv1.connection?.status = .blocked
         sut.refreshTopConversations()
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
-        
+
         // THEN
         XCTAssertEqual(self.sut.topConversations, [conv2])
     }
-    
+
     func testThatItDoesPersistsResults() {
-        
+
         // GIVEN
         createConversation(in: uiMOC)
         createConversation(in: uiMOC)
         createConversation(in: uiMOC)
-        
+
         // WHEN
         self.sut.refreshTopConversations()
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
         self.uiMOC.saveOrRollback()
-        
+
         // THEN
         let sut2 = TopConversationsDirectory(managedObjectContext: self.uiMOC)
         XCTAssertEqual(sut2.topConversations, self.sut.topConversations)
@@ -268,7 +267,6 @@ extension TopConversationsDirectoryTests {
 
         // GIVEN
         XCTAssertEqual(topConversationsObserver.topConversationsDidChangeCallCount, 0)
-
 
         // WHEN
                 sut.refreshTopConversations()

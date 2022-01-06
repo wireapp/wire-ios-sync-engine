@@ -20,23 +20,23 @@ import Foundation
 
 @objc
 public protocol LoginDelegate: NSObjectProtocol {
-    
+
     /// Invoked when requesting a login code for the phone failed
     @objc
     func loginCodeRequestDidFail(_ error: NSError)
-    
+
     /// Invoked when requesting a login code succeded
     @objc
     func loginCodeRequestDidSucceed()
-    
+
     /// Invoked when the authentication failed, or when the cookie was revoked
     @objc
     func authenticationDidFail(_ error: NSError)
 
     /// Invoked when the authentication has proven invalid
     @objc
-    func authenticationInvalidated(_ error: NSError, accountId : UUID)
-    
+    func authenticationInvalidated(_ error: NSError, accountId: UUID)
+
     /// Invoked when the authentication succeeded and the user now has a valid
     @objc
     func authenticationDidSucceed()
@@ -44,13 +44,13 @@ public protocol LoginDelegate: NSObjectProtocol {
     /// Invoked when we have provided correct credentials and have an opportunity to import backup
     @objc
     func authenticationReadyToImportBackup(existingAccount: Bool)
-    
+
     /// Invoked when a client is successfully registered
     @objc
-    func clientRegistrationDidSucceed(accountId : UUID)
-    
+    func clientRegistrationDidSucceed(accountId: UUID)
+
     /// Invoked when there was an error registering the client
     @objc
-    func clientRegistrationDidFail(_ error: NSError, accountId : UUID)
+    func clientRegistrationDidFail(_ error: NSError, accountId: UUID)
 
 }

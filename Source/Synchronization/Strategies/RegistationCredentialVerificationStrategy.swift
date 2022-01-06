@@ -18,25 +18,24 @@
 
 import Foundation
 
-
-final class RegistationCredentialVerificationStrategy : NSObject {
+final class RegistationCredentialVerificationStrategy: NSObject {
     let registrationStatus: RegistrationStatusProtocol
     var codeSendingSync: ZMSingleRequestSync!
 
-    init(groupQueue: ZMSGroupQueue, status : RegistrationStatusProtocol) {
+    init(groupQueue: ZMSGroupQueue, status: RegistrationStatusProtocol) {
         registrationStatus = status
         super.init()
         codeSendingSync = ZMSingleRequestSync(singleRequestTranscoder: self, groupQueue: groupQueue)
     }
 }
 
-extension RegistationCredentialVerificationStrategy : ZMSingleRequestTranscoder {
+extension RegistationCredentialVerificationStrategy: ZMSingleRequestTranscoder {
     func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
         let currentStatus = registrationStatus
-        var payload : [String: Any]
-        var path : String
+        var payload: [String: Any]
+        var path: String
 
-        switch (currentStatus.phase) {
+        switch currentStatus.phase {
         case let .sendActivationCode(credentials):
             path = "/activate/send"
             payload = [credentials.type: credentials.rawValue,
@@ -56,11 +55,10 @@ extension RegistationCredentialVerificationStrategy : ZMSingleRequestTranscoder 
     func didReceive(_ response: ZMTransportResponse, forSingleRequest sync: ZMSingleRequestSync) {
         if response.result == .success {
             registrationStatus.success()
-        }
-        else {
-            let error : NSError
+        } else {
+            let error: NSError
 
-            switch (registrationStatus.phase) {
+            switch registrationStatus.phase {
             case .sendActivationCode(let credentials):
                 let decodedError: NSError?
                 switch credentials {
@@ -88,9 +86,9 @@ extension RegistationCredentialVerificationStrategy : ZMSingleRequestTranscoder 
 
 }
 
-extension RegistationCredentialVerificationStrategy : RequestStrategy {
+extension RegistationCredentialVerificationStrategy: RequestStrategy {
     func nextRequest() -> ZMTransportRequest? {
-        switch (registrationStatus.phase) {
+        switch registrationStatus.phase {
         case .sendActivationCode, .checkActivationCode:
             codeSendingSync.readyForNextRequestIfNotBusy()
             return codeSendingSync.nextRequest()

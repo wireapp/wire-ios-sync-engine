@@ -128,7 +128,7 @@ extension ZMConversation {
         request.add(ZMCompletionHandler(on: contextProvider.viewContext, block: { response in
             switch response.httpStatus {
             case 200:
-                guard let payload = response.payload as? [AnyHashable : Any],
+                guard let payload = response.payload as? [AnyHashable: Any],
                       let conversationString = payload["id"] as? String,
                       let conversationId = UUID(uuidString: conversationString),
                       let conversationName = payload["name"] as? String else {

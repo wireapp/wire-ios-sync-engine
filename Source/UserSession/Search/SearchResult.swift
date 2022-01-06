@@ -23,41 +23,41 @@ public enum FederationError: Error {
 }
 
 public struct SearchResult {
-    public var contacts:        [ZMSearchUser]
-    public var teamMembers:     [ZMSearchUser]
-    public var addressBook:     [ZMSearchUser]
-    public var directory:       [ZMSearchUser]
-    public var federation:      Swift.Result<[ZMSearchUser], FederationError>
-    public var conversations:   [ZMConversation]
-    public var services:        [ServiceUser]
+    public var contacts: [ZMSearchUser]
+    public var teamMembers: [ZMSearchUser]
+    public var addressBook: [ZMSearchUser]
+    public var directory: [ZMSearchUser]
+    public var federation: Swift.Result<[ZMSearchUser], FederationError>
+    public var conversations: [ZMConversation]
+    public var services: [ServiceUser]
 }
 
 extension SearchResult {
-    
-    public init?(payload: [AnyHashable : Any], query: String, searchOptions: SearchOptions, contextProvider: ContextProvider) {
-        guard let documents = payload["documents"] as? [[String : Any]] else {
+
+    public init?(payload: [AnyHashable: Any], query: String, searchOptions: SearchOptions, contextProvider: ContextProvider) {
+        guard let documents = payload["documents"] as? [[String: Any]] else {
             return nil
         }
-        
+
         let isHandleQuery = query.hasPrefix("@")
         let queryWithoutAtSymbol = (isHandleQuery ? String(query[query.index(after: query.startIndex)...]) : query).lowercased()
 
         let filteredDocuments = documents.filter { (document) -> Bool in
             let name = document["name"] as? String
             let handle = document["handle"] as? String
-            
+
             return !isHandleQuery || name?.hasPrefix("@") ?? true || handle?.contains(queryWithoutAtSymbol) ?? false
         }
-        
+
         let searchUsers = ZMSearchUser.searchUsers(from: filteredDocuments, contextProvider: contextProvider)
-        
+
         contacts = []
         addressBook = []
         directory = searchUsers.filter({ !$0.isConnected && !$0.isTeamMember })
         federation = .success([])
         conversations = []
         services = []
-        
+
         if searchOptions.contains(.teamMembers) &&
            searchOptions.isDisjoint(with: .excludeNonActiveTeamMembers) {
             teamMembers = searchUsers.filter({ $0.isTeamMember })
@@ -65,14 +65,14 @@ extension SearchResult {
             teamMembers = []
         }
     }
-    
-    public init?(servicesPayload servicesFullPayload: [AnyHashable : Any], query: String, contextProvider: ContextProvider) {
-        guard let servicesPayload = servicesFullPayload["services"] as? [[String : Any]] else {
+
+    public init?(servicesPayload servicesFullPayload: [AnyHashable: Any], query: String, contextProvider: ContextProvider) {
+        guard let servicesPayload = servicesFullPayload["services"] as? [[String: Any]] else {
             return nil
         }
-        
+
         let searchUsersServices = ZMSearchUser.searchUsers(from: servicesPayload, contextProvider: contextProvider)
-        
+
         contacts = []
         teamMembers = []
         addressBook = []
@@ -81,16 +81,16 @@ extension SearchResult {
         conversations = []
         services = searchUsersServices
     }
-    
-    public init?(userLookupPayload: [AnyHashable : Any], contextProvider: ContextProvider
+
+    public init?(userLookupPayload: [AnyHashable: Any], contextProvider: ContextProvider
     ) {
-        guard let userLookupPayload = userLookupPayload as? [String : Any],
+        guard let userLookupPayload = userLookupPayload as? [String: Any],
               let searchUser = ZMSearchUser.searchUser(from: userLookupPayload, contextProvider: contextProvider),
               searchUser.user == nil ||
               searchUser.user?.isTeamMember == false else {
             return nil
         }
-        
+
         contacts = []
         teamMembers = []
         addressBook = []
@@ -126,7 +126,7 @@ extension SearchResult {
         conversations = []
         services = []
     }
-    
+
     mutating func extendWithMembershipPayload(payload: MembershipListPayload) {
         payload.members.forEach { (membershipPayload) in
             let searchUser = teamMembers.first(where: { $0.remoteIdentifier == membershipPayload.userID })
@@ -134,27 +134,27 @@ extension SearchResult {
             searchUser?.updateWithTeamMembership(permissions: permissions, createdBy: membershipPayload.createdBy)
         }
     }
-    
+
     mutating func filterBy(searchOptions: SearchOptions,
                            query: String,
                            contextProvider: ContextProvider) {
         guard searchOptions.contains(.excludeNonActivePartners) else { return }
-        
+
         let selfUser = ZMUser.selfUser(in: contextProvider.viewContext)
         let isHandleQuery = query.hasPrefix("@")
         let queryWithoutAtSymbol = (isHandleQuery ? String(query[query.index(after: query.startIndex)...]) : query).lowercased()
-        
+
         teamMembers = teamMembers.filter({
             $0.teamRole != .partner ||
             $0.teamCreatedBy == selfUser.remoteIdentifier ||
             isHandleQuery && $0.handle == queryWithoutAtSymbol
         })
     }
-    
+
     func copy(on context: NSManagedObjectContext) -> SearchResult {
-        
+
         let copiedConversations = conversations.compactMap { context.object(with: $0.objectID) as? ZMConversation }
-        
+
         return SearchResult(contacts: contacts,
                             teamMembers: teamMembers,
                             addressBook: addressBook,
@@ -163,7 +163,7 @@ extension SearchResult {
                             conversations: copiedConversations,
                             services: services)
     }
-    
+
     func union(withLocalResult result: SearchResult) -> SearchResult {
         return SearchResult(contacts: result.contacts,
                             teamMembers: result.teamMembers,
@@ -173,7 +173,7 @@ extension SearchResult {
                             conversations: result.conversations,
                             services: services)
     }
-    
+
     func union(withServiceResult result: SearchResult) -> SearchResult {
         return SearchResult(contacts: contacts,
                             teamMembers: teamMembers,
@@ -183,7 +183,7 @@ extension SearchResult {
                             conversations: conversations,
                             services: result.services)
     }
-    
+
     func union(withDirectoryResult result: SearchResult) -> SearchResult {
         return SearchResult(contacts: contacts,
                             teamMembers: Array(Set(teamMembers).union(result.teamMembers)),
@@ -203,5 +203,5 @@ extension SearchResult {
                             conversations: conversations,
                             services: services)
     }
-    
+
 }

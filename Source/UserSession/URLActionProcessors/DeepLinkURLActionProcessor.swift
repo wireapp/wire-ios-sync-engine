@@ -19,7 +19,7 @@
 import Foundation
 
 class DeepLinkURLActionProcessor: URLActionProcessor {
-    
+
     var contextProvider: ContextProvider
     var transportSession: TransportSessionType
     var eventProcessor: UpdateEventProcessor
@@ -31,7 +31,7 @@ class DeepLinkURLActionProcessor: URLActionProcessor {
         self.transportSession = transportSession
         self.eventProcessor = eventProcessor
     }
-    
+
     func process(urlAction: URLAction, delegate: PresentationDelegate?) {
         switch urlAction {
         case let .joinConversation(key: key, code: code):
@@ -49,8 +49,8 @@ class DeepLinkURLActionProcessor: URLActionProcessor {
 
                 switch response {
                 case .success((let conversationId, let conversationName)):
-                    /// First of all, we should try to fetch the conversation with ID from the response.
-                    /// If the conversation doesn't exist, we should initiate a request to join the conversation
+                    // First of all, we should try to fetch the conversation with ID from the response.
+                    // If the conversation doesn't exist, we should initiate a request to join the conversation
                     if let conversation = ZMConversation.fetch(with: conversationId, in: viewContext),
                        conversation.isSelfAnActiveMember {
                         delegate.showConversation(conversation, at: nil)
@@ -82,14 +82,14 @@ class DeepLinkURLActionProcessor: URLActionProcessor {
                     delegate.completedURLAction(urlAction)
                 }
             }
-            
+
         case .openConversation(let id):
             let viewContext = contextProvider.viewContext
             guard let conversation = ZMConversation.fetch(with: id, domain: nil, in: viewContext) else {
                 delegate?.failedToPerformAction(urlAction, error: DeepLinkRequestError.invalidConversationLink)
                 return
             }
-            
+
             delegate?.showConversation(conversation, at: nil)
             delegate?.completedURLAction(urlAction)
 
@@ -102,7 +102,7 @@ class DeepLinkURLActionProcessor: URLActionProcessor {
             }
 
             delegate?.completedURLAction(urlAction)
-            
+
         default:
             delegate?.completedURLAction(urlAction)
         }

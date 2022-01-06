@@ -19,11 +19,11 @@
 import XCTest
 
 class ConversationTests_Reactions: ConversationTestsBase {
-    
+
     func testThatAppendingAReactionWithReceivingAMessageWithReaction() {
         XCTAssert(login())
-                
-        //given
+
+        // given
         XCTAssertTrue(login())
 
         self.prefetchClientByInsertingMessage(in: self.selfToUser1Conversation)
@@ -44,15 +44,15 @@ class ConversationTests_Reactions: ConversationTestsBase {
         let fromClient = self.user1.clients.anyObject() as! MockUserClient
         let toClient = self.selfUser.clients.anyObject() as! MockUserClient
 
-        //when
-        self.mockTransportSession.performRemoteChanges { (session) in
+        // when
+        self.mockTransportSession.performRemoteChanges { (_) in
             mockConversation!.encryptAndInsertData(from: fromClient,
                                                         to: toClient,
                                                         data: try! reactionMessage.serializedData())
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
-        //then
+        // then
         XCTAssertEqual(message!.usersReaction.count, 1)
         XCTAssertNotNil(message?.usersReaction[reactionEmoji])
         XCTAssertEqual(message!.usersReaction[reactionEmoji]!.count, 1)
@@ -61,7 +61,7 @@ class ConversationTests_Reactions: ConversationTestsBase {
     }
 
     func testThatAppendingAReactionNotifiesObserverOfChangesInReactionsWhenExternalUserReact() {
-        //given
+        // given
         XCTAssertTrue(self.login())
 
         self.prefetchClientByInsertingMessage(in: self.selfToUser1Conversation)
@@ -78,107 +78,106 @@ class ConversationTests_Reactions: ConversationTestsBase {
 
         let reactionEmoji = "❤️"
         self.userSession?.perform({
-            ZMMessage.addReaction (MessageReaction.like, toMessage: message!)
+            ZMMessage.addReaction(MessageReaction.like, toMessage: message!)
         })
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         let observer = MessageChangeObserver.init(message: message)
-        let reactionMessage = GenericMessage(content: ProtosReactionFactory.createReaction(emoji: reactionEmoji, messageID: message!.nonce!) as! MessageCapable , nonce: UUID.create())
-        
+        let reactionMessage = GenericMessage(content: ProtosReactionFactory.createReaction(emoji: reactionEmoji, messageID: message!.nonce!) as! MessageCapable, nonce: UUID.create())
+
         let fromClient = self.user1.clients.anyObject() as! MockUserClient
         let toClient = self.selfUser.clients.anyObject() as! MockUserClient
 
-        //when
-        self.mockTransportSession.performRemoteChanges { (session) in
+        // when
+        self.mockTransportSession.performRemoteChanges { (_) in
             mockConversation!.encryptAndInsertData(from: fromClient,
                                                         to: toClient,
                                                         data: try! reactionMessage.serializedData())
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
-        //then
+        // then
         XCTAssertGreaterThanOrEqual(observer!.notifications.count, 1)
         let changes = observer?.notifications.lastObject as! MessageChangeInfo
         XCTAssertTrue(changes.reactionsChanged)
     }
 
     func testThatReceivingAReactionThatIsNotHandledDoesntSaveIt() {
-        //given
+        // given
         XCTAssertTrue(self.login())
-        
+
         self.prefetchClientByInsertingMessage(in: self.selfToUser1Conversation)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         let mockConversation = self.selfToUser1Conversation
         let conversation = self.conversation(for: mockConversation!)
-        
+
         var message: ZMMessage?
         self.userSession?.perform {
             message = try! conversation?.appendText(content: "Je t'aime JCVD") as? ZMMessage
         }
         let nonce = message?.nonce
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         let reactionEmoji = "Jean Robert, j'ai mal aux pieds"
-        let reactionMessage = GenericMessage(content: ProtosReactionFactory.createReaction(emoji: reactionEmoji, messageID: nonce!) as! MessageCapable , nonce: UUID.create())
+        let reactionMessage = GenericMessage(content: ProtosReactionFactory.createReaction(emoji: reactionEmoji, messageID: nonce!) as! MessageCapable, nonce: UUID.create())
         let fromClient = self.user1.clients.anyObject() as! MockUserClient
         let toClient = self.selfUser.clients.anyObject() as! MockUserClient
-        
-        
-        //when
-        self.mockTransportSession.performRemoteChanges { (session) in
+
+        // when
+        self.mockTransportSession.performRemoteChanges { (_) in
             mockConversation!.encryptAndInsertData(from: fromClient,
                                                    to: toClient,
                                                    data: try! reactionMessage.serializedData())
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
-        //then
+
+        // then
         XCTAssertEqual(message!.usersReaction.count, 0)
         XCTAssertEqual(message!.reactions.count, 0)
     }
 
     func testThatReceivingALikeInAClearedConversationDoesNotUnarchiveTheConversation() {
-        //given
+        // given
         XCTAssertTrue(self.login())
-        
+
         self.prefetchClientByInsertingMessage(in: self.selfToUser1Conversation)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         let mockConversation = self.selfToUser1Conversation
         let conversation = self.conversation(for: mockConversation!)
-        
+
         var message: ZMMessage?
         self.userSession?.perform {
             message = try! conversation?.appendText(content: "Je t'aime JCVD") as? ZMMessage
         }
         let nonce = message?.nonce
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         let reactionEmoji = "❤️"
-        let reactionMessage = GenericMessage(content: ProtosReactionFactory.createReaction(emoji: reactionEmoji, messageID: nonce!) as! MessageCapable , nonce: UUID.create())
+        let reactionMessage = GenericMessage(content: ProtosReactionFactory.createReaction(emoji: reactionEmoji, messageID: nonce!) as! MessageCapable, nonce: UUID.create())
         let fromClient = self.user1.clients.anyObject() as! MockUserClient
         let toClient = self.selfUser.clients.anyObject() as! MockUserClient
-        
+
         // when
         self.userSession?.perform {
             conversation?.clearMessageHistory()
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         XCTAssertTrue(conversation!.isArchived)
-        
-        self.mockTransportSession.performRemoteChanges { (session) in
+
+        self.mockTransportSession.performRemoteChanges { (_) in
             mockConversation!.encryptAndInsertData(from: fromClient,
                                                    to: toClient,
                                                    data: try! reactionMessage.serializedData())
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
-        //then
+
+        // then
         XCTAssertTrue(conversation!.isArchived)
     }
 
     func testThatReceivingALikeInAnArchivedConversationDoesNotUnarchiveTheConversation() {
-        //given
+        // given
         XCTAssertTrue(self.login())
 
         self.prefetchClientByInsertingMessage(in: self.selfToUser1Conversation)
@@ -195,7 +194,7 @@ class ConversationTests_Reactions: ConversationTestsBase {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         let reactionEmoji = "❤️"
-        let reactionMessage = GenericMessage(content: ProtosReactionFactory.createReaction(emoji: reactionEmoji, messageID: nonce!) as! MessageCapable , nonce: UUID.create())
+        let reactionMessage = GenericMessage(content: ProtosReactionFactory.createReaction(emoji: reactionEmoji, messageID: nonce!) as! MessageCapable, nonce: UUID.create())
         let fromClient = self.user1.clients.anyObject() as! MockUserClient
         let toClient = self.selfUser.clients.anyObject() as! MockUserClient
 
@@ -206,19 +205,19 @@ class ConversationTests_Reactions: ConversationTestsBase {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         XCTAssertTrue(conversation!.isArchived)
 
-        self.mockTransportSession.performRemoteChanges { (session) in
+        self.mockTransportSession.performRemoteChanges { (_) in
             mockConversation!.encryptAndInsertData(from: fromClient,
                                                    to: toClient,
                                                    data: try! reactionMessage.serializedData())
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
-        //then
+        // then
         XCTAssertTrue(conversation!.isArchived)
     }
 
     func testThatMessageDeletedForMyselfDoesNotAppearWhenLikedBySomeoneElse() {
-        //given
+        // given
        XCTAssertTrue(self.login())
 
         self.prefetchClientByInsertingMessage(in: self.selfToUser1Conversation)
@@ -242,19 +241,19 @@ class ConversationTests_Reactions: ConversationTestsBase {
         XCTAssertNil(ZMMessage.fetch(withNonce: nonce, for: conversation!, in: self.userSession!.managedObjectContext))
 
         let reactionEmoji = "❤️"
-        let reactionMessage = GenericMessage(content: ProtosReactionFactory.createReaction(emoji: reactionEmoji, messageID: nonce!) as! MessageCapable , nonce: UUID.create())
+        let reactionMessage = GenericMessage(content: ProtosReactionFactory.createReaction(emoji: reactionEmoji, messageID: nonce!) as! MessageCapable, nonce: UUID.create())
         let fromClient = self.user1.clients.anyObject() as! MockUserClient
         let toClient = self.selfUser.clients.anyObject() as! MockUserClient
 
         // when
-        self.mockTransportSession.performRemoteChanges { (session) in
+        self.mockTransportSession.performRemoteChanges { (_) in
             mockConversation!.encryptAndInsertData(from: fromClient,
                                                    to: toClient,
                                                    data: try! reactionMessage.serializedData())
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
-        //then
+        // then
         XCTAssertNil(ZMMessage.fetch(withNonce: nonce, for: conversation!, in: self.userSession!.managedObjectContext))
     }
 
@@ -266,22 +265,22 @@ class ConversationTests_Reactions: ConversationTestsBase {
 
         let mockConversation = self.selfToUser1Conversation
         let conversation = self.conversation(for: mockConversation!)
-        
+
         let fromClient = self.user1.clients.anyObject() as! MockUserClient
         let toClient = self.selfUser.clients.anyObject() as! MockUserClient
 
         let nonce = UUID.create()
         var message = GenericMessage(content: Text(content: "JCVD is the best actor known", mentions: [], linkPreviews: [], replyingTo: nil), nonce: nonce)
-       
-        self.mockTransportSession.performRemoteChanges { (session) in
+
+        self.mockTransportSession.performRemoteChanges { (_) in
             mockConversation!.encryptAndInsertData(from: fromClient,
                                                    to: toClient,
                                                    data: try! message.serializedData())
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         message = GenericMessage(content: Text(content: "JCVD is the best actor known in the galaxy!", mentions: [], linkPreviews: [], replyingTo: nil), nonce: UUID.create())
-        
-        self.mockTransportSession.performRemoteChanges { (session) in
+
+        self.mockTransportSession.performRemoteChanges { (_) in
             mockConversation!.encryptAndInsertData(from: fromClient,
                                                    to: toClient,
                                                    data: try! message.serializedData())
@@ -289,52 +288,52 @@ class ConversationTests_Reactions: ConversationTestsBase {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         let editedMessage = ZMMessage.fetch(withNonce: nonce, for: conversation!, in: self.userSession!.managedObjectContext)
-        
+
         // when
         self.userSession?.perform {
             ZMMessage.addReaction(MessageReaction.like, toMessage: editedMessage!)
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
-        //then
+        // then
         XCTAssertEqual(editedMessage!.usersReaction.count, 1)
 
     }
 
     func testThatWeSeeLikeFromBlockedUserInGroupConversation() {
         XCTAssertTrue(self.login())
-        
+
         self.prefetchClientByInsertingMessage(in: self.selfToUser1Conversation)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         let mockConversation = self.selfToUser1Conversation
         let conversation = self.conversation(for: mockConversation!)
-        
+
         let blockedUser = self.user(for: self.user1)
         blockedUser?.block(completion: {_ in })
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         var message: ZMMessage?
         self.userSession?.perform {
             message = try! conversation?.appendText(content: "Je t'aime JCVD") as? ZMMessage
         }
         let nonce = message?.nonce
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         let reactionEmoji = "❤️"
-        let reactionMessage = GenericMessage(content: ProtosReactionFactory.createReaction(emoji: reactionEmoji, messageID: nonce!) as! MessageCapable , nonce: UUID.create())
+        let reactionMessage = GenericMessage(content: ProtosReactionFactory.createReaction(emoji: reactionEmoji, messageID: nonce!) as! MessageCapable, nonce: UUID.create())
         let fromClient = self.user1.clients.anyObject() as! MockUserClient
         let toClient = self.selfUser.clients.anyObject() as! MockUserClient
-        
+
         // when
-        self.mockTransportSession.performRemoteChanges { (session) in
+        self.mockTransportSession.performRemoteChanges { (_) in
                    mockConversation!.encryptAndInsertData(from: fromClient,
                                                           to: toClient,
                                                           data: try! reactionMessage.serializedData())
                }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
-        //then
+
+        // then
         XCTAssertEqual(message!.usersReaction.count, 1)
     }
 }

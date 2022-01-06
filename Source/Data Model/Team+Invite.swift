@@ -19,7 +19,7 @@
 import Foundation
 
 extension Team {
-    
+
     /**
      Invite someone to your team via email
      
@@ -28,7 +28,7 @@ extension Team {
          - userSession: Session which the invitation should be sent from
          - completion: Handler which will be called on the main thread when the invitation has been sent
      */
-    public func invite(email : String, in userSession : ZMUserSession, completion: @escaping InviteCompletionHandler) {
+    public func invite(email: String, in userSession: ZMUserSession, completion: @escaping InviteCompletionHandler) {
         userSession.syncManagedObjectContext.performGroupedBlock {
             userSession.applicationStatusDirectory?.teamInvitationStatus.invite(email, completionHandler: { [weak userSession] result in
                 userSession?.managedObjectContext.performGroupedBlock {
@@ -37,5 +37,5 @@ extension Team {
             })
         }
     }
-    
+
 }

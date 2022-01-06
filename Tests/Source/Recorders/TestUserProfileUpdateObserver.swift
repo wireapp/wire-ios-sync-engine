@@ -19,9 +19,9 @@
 import Foundation
 @testable import WireSyncEngine
 
-class TestUserProfileUpdateObserver : NSObject, UserProfileUpdateObserver {
+class TestUserProfileUpdateObserver: NSObject, UserProfileUpdateObserver {
 
-    var invokedCallbacks : [WireSyncEngine.UserProfileUpdateNotificationType] = []
+    var invokedCallbacks: [WireSyncEngine.UserProfileUpdateNotificationType] = []
 
     func passwordUpdateRequestDidFail() {
         invokedCallbacks.append(.passwordUpdateDidFail)

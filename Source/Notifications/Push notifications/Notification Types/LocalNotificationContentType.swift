@@ -24,7 +24,7 @@ public enum LocalNotificationEventType {
 }
 
 public enum LocalNotificationContentType: Equatable {
-    
+
     case text(String, isMention: Bool, isReply: Bool)
     case image
     case video
@@ -48,7 +48,7 @@ public enum LocalNotificationContentType: Equatable {
             self = .participantsRemoved(reason: event.participantsRemovedReason)
 
         case .conversationMessageTimerUpdate:
-            guard let payload = event.payload["data"] as? [String : AnyHashable] else { return nil }
+            guard let payload = event.payload["data"] as? [String: AnyHashable] else { return nil }
             let timeoutIntegerValue = (payload["message_timer"] as? Int64) ?? 0
             let timeoutValue = MessageDestructionTimeoutValue(rawValue: TimeInterval(timeoutIntegerValue))
             self = timeoutValue == .none ? .messageTimerUpdate(nil) : .messageTimerUpdate(timeoutValue.displayString)
@@ -70,7 +70,7 @@ public enum LocalNotificationContentType: Equatable {
             let quotedMessageId = UUID(uuidString: textMessageData.quote.quotedMessageID)
             return ZMOTRMessage.fetch(withNonce: quotedMessageId, for: conversation, in: moc)
         }
-        
+
         switch message.content {
         case .location:
             self =  .location
@@ -97,7 +97,7 @@ public enum LocalNotificationContentType: Equatable {
             else {
                 return nil
             }
-            
+
             let quotedMessage = getQuotedMessage(textMessageData, conversation: conversation, in: moc)
             self = .text(text, isMention: textMessageData.isMentioningSelf(selfUser), isReply: textMessageData.isQuotingSelf(quotedMessage))
 

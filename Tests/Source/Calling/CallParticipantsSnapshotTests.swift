@@ -16,7 +16,6 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import Foundation
 @testable import WireSyncEngine
 
@@ -31,7 +30,7 @@ class CallParticipantsSnapshotTests: MessagingTest {
     private var aliceDesktop: AVSClient!
     private var bobIphone: AVSClient!
     private var bobDesktop: AVSClient!
-    private var conversationId = UUID()
+    private var conversationId = AVSIdentifier.stub
     private var selfUser: ZMUser!
     private var user2: ZMUser!
     private var selfClient: UserClient!
@@ -41,21 +40,21 @@ class CallParticipantsSnapshotTests: MessagingTest {
     override func setUp() {
         super.setUp()
         mockFlowManager = FlowManagerMock()
-        mockWireCallCenterV3 = WireCallCenterV3Mock(userId: UUID(),
+        mockWireCallCenterV3 = WireCallCenterV3Mock(userId: AVSIdentifier.stub,
                                                     clientId: UUID().transportString(),
                                                     uiMOC: uiMOC,
                                                     flowManager: mockFlowManager,
                                                     transport: WireCallCenterTransportMock())
 
-        let aliceId = UUID()
-        let bobId = UUID()
+        let aliceId = AVSIdentifier.stub
+        let bobId = AVSIdentifier.stub
 
         aliceIphone = AVSClient(userId: aliceId, clientId: "iphone")
         aliceDesktop = AVSClient(userId: aliceId, clientId: "desktop")
         bobIphone = AVSClient(userId: bobId, clientId: "iphone")
         bobDesktop = AVSClient(userId: bobId, clientId: "desktop")
     }
-    
+
     override func tearDown() {
         mockFlowManager = nil
         mockWireCallCenterV3 = nil
@@ -73,7 +72,7 @@ class CallParticipantsSnapshotTests: MessagingTest {
 
     // MARK: - Duplicates
 
-    func testThat_ItDoesNotCrash_WhenInitialized_WithDuplicateCallMembers(){
+    func testThat_ItDoesNotCrash_WhenInitialized_WithDuplicateCallMembers() {
         // Given
         let member1 = AVSCallMember(client: aliceIphone, audioState: .established)
         let member2 = AVSCallMember(client: aliceIphone, audioState: .connecting)
@@ -81,12 +80,11 @@ class CallParticipantsSnapshotTests: MessagingTest {
         // When
         let sut = createSut(members: [member1, member2])
 
-        
         // Then
         XCTAssertEqual(sut.members.array, [member1])
     }
-    
-    func testThat_ItDoesNotCrash_WhenUpdated_WithDuplicateCallMembers(){
+
+    func testThat_ItDoesNotCrash_WhenUpdated_WithDuplicateCallMembers() {
         // Given
         let member1 = AVSCallMember(client: aliceIphone, audioState: .established)
         let member2 = AVSCallMember(client: aliceIphone, audioState: .connecting)
@@ -94,7 +92,7 @@ class CallParticipantsSnapshotTests: MessagingTest {
 
         // when
         sut.callParticipantsChanged(participants: [member1, member2])
-        
+
         // then
         XCTAssertEqual(sut.members.array, [member1])
     }
@@ -187,7 +185,6 @@ class CallParticipantsSnapshotTests: MessagingTest {
         XCTAssertEqual(sut.members.array, [member1, member2])
     }
 
-
     func testThat_ItUpdatesAudioState_WhenItChangesForParticipant() {
         // Given
         let member1 = AVSCallMember(client: aliceIphone, audioState: .connecting)
@@ -215,17 +212,17 @@ class CallParticipantsSnapshotTests: MessagingTest {
         // Then
         XCTAssertEqual(sut.members.array, [updatedMember1, member2])
     }
-    
+
     func testThat_ItUpdateMicrophoneState_WhenItChangesForParticipant() {
         // Given
         let member1 = AVSCallMember(client: aliceIphone, microphoneState: .unmuted)
         let member2 = AVSCallMember(client: bobIphone, microphoneState: .unmuted)
         let sut = createSut(members: [member1, member2])
-        
+
         // When
         let updatedMember1 = member1.with(microphoneState: .muted)
         sut.callParticipantsChanged(participants: [updatedMember1, member2])
-        
+
         // Then
         XCTAssertEqual(sut.members.array, [updatedMember1, member2])
     }
@@ -258,7 +255,7 @@ class CallParticipantsSnapshotTests: MessagingTest {
         mockWireCallCenterV3.callSnapshots[conversationId] = CallSnapshot(
             callParticipants: CallParticipantsSnapshot(conversationId: conversationId, members: [], callCenter: mockWireCallCenterV3),
             callState: .established,
-            callStarter: aliceIphone.userId,
+            callStarter: aliceIphone.avsIdentifier,
             isVideo: false,
             isGroup: true,
             isConstantBitRate: false,
@@ -275,7 +272,7 @@ class CallParticipantsSnapshotTests: MessagingTest {
     private func setupUsersAndClients() {
         performPretendingUiMocIsSyncMoc {
             self.selfUser = ZMUser.selfUser(in: self.uiMOC)
-            self.selfUser.remoteIdentifier = self.aliceIphone.userId
+            self.selfUser.remoteIdentifier = self.aliceIphone.avsIdentifier.identifier
 
             self.selfClient = UserClient.insertNewObject(in: self.uiMOC)
             self.selfClient.user = self.selfUser
@@ -286,7 +283,7 @@ class CallParticipantsSnapshotTests: MessagingTest {
             self.client1.user = self.selfUser
             self.client1.remoteIdentifier = self.aliceDesktop.clientId
 
-            self.user2 = ZMUser.fetchOrCreate(with: self.bobIphone.userId, domain: nil, in: self.uiMOC)
+            self.user2 = ZMUser.fetchOrCreate(with: self.bobIphone.avsIdentifier.identifier, domain: nil, in: self.uiMOC)
 
             self.client2 = UserClient.insertNewObject(in: self.uiMOC)
             self.client2.user = self.user2
@@ -336,7 +333,7 @@ private extension AVSCallMember {
                              microphoneState: microphoneState,
                              networkQuality: networkQuality)
     }
-    
+
     func with(microphoneState: MicrophoneState) -> AVSCallMember {
         return AVSCallMember(client: client,
                              audioState: audioState,

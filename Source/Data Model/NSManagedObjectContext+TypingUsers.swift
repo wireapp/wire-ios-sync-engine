@@ -16,14 +16,13 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import Foundation
 
 @objc extension NSManagedObjectContext {
 
     private static let TypingUsersKey = "ZMTypingUsers"
 
-    @objc var typingUsers: TypingUsers? {
+    var typingUsers: TypingUsers? {
         guard zm_isUserInterfaceContext else { return nil }
 
         if let users = userInfo[NSManagedObjectContext.TypingUsersKey] as? TypingUsers {

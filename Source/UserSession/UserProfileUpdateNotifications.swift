@@ -19,55 +19,53 @@
 import Foundation
 
 // MARK: - Observer
-@objc public protocol UserProfileUpdateObserver : NSObjectProtocol {
-    
+@objc public protocol UserProfileUpdateObserver: NSObjectProtocol {
+
     /// Invoked when the password could not be set on the backend
     @objc optional func passwordUpdateRequestDidFail()
-    
+
     /// Invoked when the email could not be set on the backend (duplicated?).
     /// The password might already have been set though - this is how BE is designed and there's nothing SE can do about it
     @objc optional func emailUpdateDidFail(_ error: Error!)
-    
+
     /// Invoked when the email was sent to the backend
     @objc optional func didSendVerificationEmail()
-    
+
     /// Invoked when requesting the phone number verification code failed
     @objc optional func phoneNumberVerificationCodeRequestDidFail(_ error: Error!)
-    
+
     /// Invoken when requesting the phone number verification code succeeded
     @objc optional func phoneNumberVerificationCodeRequestDidSucceed()
-    
+
     /// Invoked when the phone number could not be removed
     @objc optional func phoneNumberRemovalDidFail(_ error: Error!)
-    
+
     /// Invoked when phone number was removed
     @objc optional func didRemovePhoneNumber()
-    
+
     /// Invoked when the phone number code verification failed
     /// The opposite (phone number change success) will be notified
     /// by a change in the user phone number
     @objc optional func phoneNumberChangeDidFail(_ error: Error!)
-    
+
     /// Invoked when the availability of a handle was determined
     @objc optional func didCheckAvailiabilityOfHandle(handle: String, available: Bool)
-    
+
     /// Invoked when failed to check for availability of a handle
     @objc optional func didFailToCheckAvailabilityOfHandle(handle: String)
-    
+
     /// Invoked when the handle is set
     @objc optional func didSetHandle()
-    
+
     /// Invoked when failed to set the handle
     @objc optional func didFailToSetHandle()
-    
+
     /// Invoked when failed to set the handle because already taken
     @objc optional func didFailToSetHandleBecauseExisting()
-    
+
     /// Invoked when a good handle suggestion is found
     @objc optional func didFindHandleSuggestion(handle: String)
 }
-
-
 
 // MARK: - Notification
 enum UserProfileUpdateNotificationType {
@@ -87,15 +85,15 @@ enum UserProfileUpdateNotificationType {
     case didFindHandleSuggestion(handle: String)
 }
 
-struct UserProfileUpdateNotification : SelfPostingNotification {
-    
+struct UserProfileUpdateNotification: SelfPostingNotification {
+
     static let notificationName = NSNotification.Name(rawValue: "UserProfileUpdateNotification")
-    
-    let type : UserProfileUpdateNotificationType
+
+    let type: UserProfileUpdateNotificationType
 }
 
 extension UserProfileUpdateStatus {
-    
+
     @objc(addObserver:) public func add(observer: UserProfileUpdateObserver) -> Any {
         return NotificationInContext.addObserver(name: UserProfileUpdateNotification.notificationName, context: managedObjectContext.notificationContext, queue: .main) { [weak observer] (note) in
             guard let note = note.userInfo[UserProfileUpdateNotification.userInfoKey] as? UserProfileUpdateNotification,
@@ -134,5 +132,5 @@ extension UserProfileUpdateStatus {
             }
         }
     }
-    
+
 }

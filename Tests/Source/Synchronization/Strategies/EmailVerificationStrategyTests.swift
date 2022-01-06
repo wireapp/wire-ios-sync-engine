@@ -19,10 +19,10 @@
 import Foundation
 @testable import WireSyncEngine
 
-class RegistrationCredentialVerificationStrategyTests : MessagingTest {
+class RegistrationCredentialVerificationStrategyTests: MessagingTest {
 
-    var registrationStatus : TestRegistrationStatus!
-    var sut : WireSyncEngine.RegistationCredentialVerificationStrategy!
+    var registrationStatus: TestRegistrationStatus!
+    var sut: WireSyncEngine.RegistationCredentialVerificationStrategy!
 
     override func setUp() {
         super.setUp()
@@ -37,17 +37,17 @@ class RegistrationCredentialVerificationStrategyTests : MessagingTest {
         super.tearDown()
     }
 
-    // MARK:- nil request tests
+    // MARK: - nil request tests
 
-    func testThatItDoesNotReturnRequestIfThePhaseIsNone(){
+    func testThatItDoesNotReturnRequestIfThePhaseIsNone() {
         let request = sut.nextRequest()
-        XCTAssertNil(request);
+        XCTAssertNil(request)
     }
 
-    // MARK:- Send activation code tests
+    // MARK: - Send activation code tests
 
-    func testThatItReturnsARequestWhenStateIsSendActivationCode(){
-        //given
+    func testThatItReturnsARequestWhenStateIsSendActivationCode() {
+        // given
         let email = "john@smith.com"
         let path = "/activate/send"
         let payload = ["email": email,
@@ -56,17 +56,17 @@ class RegistrationCredentialVerificationStrategyTests : MessagingTest {
         let transportRequest = ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData)
         registrationStatus.phase = .sendActivationCode(credentials: .email(email))
 
-        //when
+        // when
 
         let request = sut.nextRequest()
 
-        //then
-        XCTAssertNotNil(request);
+        // then
+        XCTAssertNotNil(request)
         XCTAssertEqual(request, transportRequest)
     }
 
-    func testThatItReturnsARequestWhenStateIsSendPhoneActivationCode(){
-        //given
+    func testThatItReturnsARequestWhenStateIsSendPhoneActivationCode() {
+        // given
         let phone = "+4912345678900"
         let path = "/activate/send"
         let payload = ["phone": phone,
@@ -75,12 +75,12 @@ class RegistrationCredentialVerificationStrategyTests : MessagingTest {
         let transportRequest = ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData)
         registrationStatus.phase = .sendActivationCode(credentials: .phone(phone))
 
-        //when
+        // when
 
         let request = sut.nextRequest()
 
-        //then
-        XCTAssertNotNil(request);
+        // then
+        XCTAssertNotNil(request)
         XCTAssertEqual(request, transportRequest)
     }
 
@@ -112,47 +112,47 @@ class RegistrationCredentialVerificationStrategyTests : MessagingTest {
         XCTAssertEqual(registrationStatus.successCalled, 1)
     }
 
-    // MARK:- Check activation code tests
+    // MARK: - Check activation code tests
 
-    func testThatItReturnsARequestWhenStateIsCheckActivationCode(){
-        //given
+    func testThatItReturnsARequestWhenStateIsCheckActivationCode() {
+        // given
         let email = "john@smith.com"
         let code = "123456"
         let path = "/activate"
         let payload = ["email": email,
                        "code": code,
-                       "dryrun": true] as [String : Any]
+                       "dryrun": true] as [String: Any]
 
         let transportRequest = ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData)
         registrationStatus.phase = .checkActivationCode(credentials: .email(email), code: code)
 
-        //when
+        // when
 
         let request = sut.nextRequest()
 
-        //then
-        XCTAssertNotNil(request);
+        // then
+        XCTAssertNotNil(request)
         XCTAssertEqual(request, transportRequest)
     }
 
-    func testThatItReturnsARequestWhenStateIsCheckPhoneActivationCode(){
-        //given
+    func testThatItReturnsARequestWhenStateIsCheckPhoneActivationCode() {
+        // given
         let phone = "+4912345678900"
         let code = "123456"
         let path = "/activate"
         let payload = ["phone": phone,
                        "code": code,
-                       "dryrun": true] as [String : Any]
+                       "dryrun": true] as [String: Any]
 
         let transportRequest = ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData)
         registrationStatus.phase = .checkActivationCode(credentials: .phone(phone), code: code)
 
-        //when
+        // when
 
         let request = sut.nextRequest()
 
-        //then
-        XCTAssertNotNil(request);
+        // then
+        XCTAssertNotNil(request)
         XCTAssertEqual(request, transportRequest)
     }
 
@@ -171,7 +171,6 @@ class RegistrationCredentialVerificationStrategyTests : MessagingTest {
         XCTAssertEqual(registrationStatus.successCalled, 1)
     }
 
-
 }
 
 extension RegistrationCredentialVerificationStrategyTests: RegistrationStatusStrategyTestHelper {
@@ -180,7 +179,7 @@ extension RegistrationCredentialVerificationStrategyTests: RegistrationStatusStr
         sut.didReceive(response, forSingleRequest: sut.codeSendingSync)
     }
 
-    // MARK:- error tests for verification
+    // MARK: - error tests for verification
 
     func testThatItNotifiesStatusAfterErrorToEmailVerify_BlacklistEmail() {
         checkSendingCodeResponseError(with: .blacklistedEmail, errorLabel: "blacklisted-email", httpStatus: 403)
@@ -209,12 +208,12 @@ extension RegistrationCredentialVerificationStrategyTests: RegistrationStatusStr
     func testThatItNotifiesStatusAfterErrorToPhoneVerify_OtherError() {
         checkSendingPhoneCodeResponseError(with: .unknownError, errorLabel: "not-clear-what-happened", httpStatus: 414)
     }
-    
+
     func testThatItNotifiesStatusAfterErrorToEmailVerify_DomainBlocked() {
         checkSendingCodeResponseError(with: .domainBlocked, errorLabel: "domain-blocked-for-registration", httpStatus: 451)
     }
 
-    // MARK:- error tests for activation
+    // MARK: - error tests for activation
 
     func testThatItNotifiesStatusAfterErrorToEmailActivate_InvalidCode() {
         checkActivationResponseError(with: .invalidActivationCode, errorLabel: "invalid-code", httpStatus: 404)
