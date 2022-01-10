@@ -22,17 +22,17 @@ import Foundation
 
 public struct AVSClient: Hashable {
 
-    public let userId: UUID
+    public let userId: String
     public let clientId: String
 
-    public init(userId: UUID, clientId: String) {
-        self.userId = userId
+    public init(userId: AVSIdentifier, clientId: String) {
+        self.userId = userId.serialized
         self.clientId = clientId
     }
 
     init?(userClient: UserClient) {
         guard
-            let userId = userClient.user?.remoteIdentifier,
+            let userId = userClient.user?.avsIdentifier,
             let clientId = userClient.remoteIdentifier
         else {
             return nil
@@ -48,6 +48,14 @@ extension AVSClient: Codable {
     enum CodingKeys: String, CodingKey {
         case userId = "userid"
         case clientId = "clientid"
+    }
+
+}
+
+extension AVSClient {
+
+    public var avsIdentifier: AVSIdentifier {
+        AVSIdentifier.from(string: userId)
     }
 
 }

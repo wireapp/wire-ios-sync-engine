@@ -64,9 +64,11 @@ class ZMLocalNotificationTests_SystemMessage: ZMLocalNotificationTests {
         //    "push.notification.member.join.self.noconversationname" = "%1$@ added you to a conversation";
 
         // given, when
-        let note1 = noteForParticipantAdded(groupConversation, aSender: sender, otherUsers: Set(arrayLiteral: selfUser))
-        let note2 = noteForParticipantAdded(groupConversationWithoutName, aSender: sender, otherUsers: Set(arrayLiteral: selfUser))
-        let note3 = noteForParticipantAdded(groupConversation, aSender: sender, otherUsers: Set(arrayLiteral: selfUser, otherUser1))
+        let selfUserSet: Set<ZMUser> = [selfUser]
+        let note1 = noteForParticipantAdded(groupConversation, aSender: sender, otherUsers: selfUserSet)
+        let selfUserAndOtherUserOneSet: Set<ZMUser> = [selfUser, otherUser1]
+        let note2 = noteForParticipantAdded(groupConversationWithoutName, aSender: sender, otherUsers: selfUserSet)
+        let note3 = noteForParticipantAdded(groupConversation, aSender: sender, otherUsers: selfUserAndOtherUserOneSet)
 
         // then
         XCTAssertNotNil(note1)
@@ -78,10 +80,12 @@ class ZMLocalNotificationTests_SystemMessage: ZMLocalNotificationTests {
     }
 
     func testThatItDoesNotCreateANotificationForParticipantAdd_Other() {
-        XCTAssertNil(noteForParticipantAdded(groupConversation, aSender: sender, otherUsers: Set(arrayLiteral: otherUser1)))
-        XCTAssertNil(noteForParticipantAdded(groupConversation, aSender: sender, otherUsers: Set(arrayLiteral: otherUser1, otherUser2)))
-        XCTAssertNil(noteForParticipantAdded(groupConversationWithoutName, aSender: sender, otherUsers: Set(arrayLiteral: otherUser1)))
-        XCTAssertNil(noteForParticipantAdded(groupConversationWithoutName, aSender: sender, otherUsers: Set(arrayLiteral: otherUser1, otherUser2)))
+        let otherUserOneSet: Set<ZMUser> = [otherUser1]
+        let otherUserOneAndOtherUserTwoSet: Set<ZMUser> = [otherUser1, otherUser2]
+        XCTAssertNil(noteForParticipantAdded(groupConversation, aSender: sender, otherUsers: otherUserOneSet))
+        XCTAssertNil(noteForParticipantAdded(groupConversation, aSender: sender, otherUsers: otherUserOneAndOtherUserTwoSet))
+        XCTAssertNil(noteForParticipantAdded(groupConversationWithoutName, aSender: sender, otherUsers: otherUserOneSet))
+        XCTAssertNil(noteForParticipantAdded(groupConversationWithoutName, aSender: sender, otherUsers: otherUserOneAndOtherUserTwoSet))
     }
 
     func testThatItDoesNotCreateANotificationWhenTheUserLeaves() {

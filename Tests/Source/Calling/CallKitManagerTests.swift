@@ -220,7 +220,7 @@ class CallKitManagerTest: DatabaseTest {
         let configuration = WireSyncEngine.CallKitManager.providerConfiguration
         self.callKitProvider = MockCallKitProvider(configuration: configuration)
         self.callKitController = MockCallKitCallController()
-        self.mockWireCallCenterV3 = WireCallCenterV3Mock(userId: selfUser.remoteIdentifier!, clientId: "123", uiMOC: uiMOC, flowManager: flowManager, transport: WireCallCenterTransportMock())
+        self.mockWireCallCenterV3 = WireCallCenterV3Mock(userId: selfUser.avsIdentifier, clientId: "123", uiMOC: uiMOC, flowManager: flowManager, transport: WireCallCenterTransportMock())
         self.mockCallKitManagerDelegate = MockCallKitManagerDelegate()
         self.mockTransportSession = MockTransportSession(dispatchGroup: dispatchGroup)
 
@@ -386,7 +386,7 @@ class CallKitManagerTest: DatabaseTest {
         self.uiMOC.saveOrRollback()
 
         let state: CallState = .incoming(video: true, shouldRing: true, degraded: false)
-        mockWireCallCenterV3.setMockCallState(state, conversationId: conversation.remoteIdentifier!, callerId: otherUser.remoteIdentifier, isVideo: false)
+        mockWireCallCenterV3.setMockCallState(state, conversationId: conversation.avsIdentifier!, callerId: otherUser.avsIdentifier, isVideo: false)
         self.sut.callCenterDidChange(callState: state, conversation: conversation, caller: otherUser, timestamp: Date(), previousCallState: nil)
 
         let call = CallKitDelegateTestsMocking.mockCall(with: sut.callUUID(for: conversation)!, outgoing: false)
@@ -418,7 +418,7 @@ class CallKitManagerTest: DatabaseTest {
         self.sut.provider(provider, perform: action)
 
         // when
-        mockWireCallCenterV3.update(callState: .established, conversationId: conversation.remoteIdentifier!, callerId: otherUser.remoteIdentifier, isVideo: false)
+        mockWireCallCenterV3.update(callState: .established, conversationId: conversation.avsIdentifier!, callerId: otherUser.avsIdentifier, isVideo: false)
 
         // then
         XCTAssertTrue(action.isFulfilled)
@@ -435,7 +435,7 @@ class CallKitManagerTest: DatabaseTest {
         self.sut.provider(provider, perform: action)
 
         // when
-        mockWireCallCenterV3.update(callState: .establishedDataChannel, conversationId: conversation.remoteIdentifier!, callerId: otherUser.remoteIdentifier, isVideo: false)
+        mockWireCallCenterV3.update(callState: .establishedDataChannel, conversationId: conversation.avsIdentifier!, callerId: otherUser.avsIdentifier, isVideo: false)
 
         // then
         XCTAssertTrue(action.isFulfilled)
@@ -501,7 +501,7 @@ class CallKitManagerTest: DatabaseTest {
 
         // when
         self.sut.provider(provider, perform: action)
-        mockWireCallCenterV3.update(callState: .answered(degraded: false), conversationId: conversation.remoteIdentifier!, callerId: ZMUser.selfUser(in: uiMOC).remoteIdentifier!, isVideo: false)
+        mockWireCallCenterV3.update(callState: .answered(degraded: false), conversationId: conversation.avsIdentifier!, callerId: ZMUser.selfUser(in: uiMOC).avsIdentifier, isVideo: false)
 
         // then
         XCTAssertTrue(provider.connectingCalls.contains(callUUID))
@@ -518,7 +518,7 @@ class CallKitManagerTest: DatabaseTest {
 
         // when
         self.sut.provider(provider, perform: action)
-        mockWireCallCenterV3.update(callState: .establishedDataChannel, conversationId: conversation.remoteIdentifier!, callerId: ZMUser.selfUser(in: uiMOC).remoteIdentifier!, isVideo: false)
+        mockWireCallCenterV3.update(callState: .establishedDataChannel, conversationId: conversation.avsIdentifier!, callerId: ZMUser.selfUser(in: uiMOC).avsIdentifier, isVideo: false)
 
         // then
         XCTAssertTrue(provider.connectedCalls.contains(callUUID))
@@ -532,7 +532,7 @@ class CallKitManagerTest: DatabaseTest {
         let otherUser = self.otherUser(moc: self.uiMOC)
 
         let state: CallState = .incoming(video: true, shouldRing: true, degraded: false)
-        mockWireCallCenterV3.setMockCallState(state, conversationId: conversation.remoteIdentifier!, callerId: otherUser.remoteIdentifier!, isVideo: true)
+        mockWireCallCenterV3.setMockCallState(state, conversationId: conversation.avsIdentifier!, callerId: otherUser.avsIdentifier, isVideo: true)
         self.sut.callCenterDidChange(callState: state, conversation: conversation, caller: otherUser, timestamp: Date(), previousCallState: nil)
         guard let callUUID = sut.callUUID(for: conversation) else {
             return XCTFail()
@@ -555,7 +555,7 @@ class CallKitManagerTest: DatabaseTest {
         let otherUser = self.otherUser(moc: self.uiMOC)
 
         let state: CallState = .incoming(video: true, shouldRing: true, degraded: false)
-        mockWireCallCenterV3.setMockCallState(state, conversationId: conversation.remoteIdentifier!, callerId: otherUser.remoteIdentifier, isVideo: true)
+        mockWireCallCenterV3.setMockCallState(state, conversationId: conversation.avsIdentifier!, callerId: otherUser.avsIdentifier, isVideo: true)
         self.sut.callCenterDidChange(callState: state, conversation: conversation, caller: otherUser, timestamp: Date(), previousCallState: nil)
         let callUUID = sut.callUUID(for: conversation)
 
@@ -576,7 +576,7 @@ class CallKitManagerTest: DatabaseTest {
         let otherUser = self.otherUser(moc: self.uiMOC)
 
         let state: CallState = .incoming(video: true, shouldRing: true, degraded: false)
-        mockWireCallCenterV3.setMockCallState(state, conversationId: conversation.remoteIdentifier!, callerId: otherUser.remoteIdentifier, isVideo: true)
+        mockWireCallCenterV3.setMockCallState(state, conversationId: conversation.avsIdentifier!, callerId: otherUser.avsIdentifier, isVideo: true)
         self.sut.callCenterDidChange(callState: state, conversation: conversation, caller: otherUser, timestamp: Date(), previousCallState: nil)
         let callUUID = sut.callUUID(for: conversation)
 
@@ -784,7 +784,7 @@ class CallKitManagerTest: DatabaseTest {
         let otherUser = self.otherUser(moc: self.uiMOC)
 
         let state: CallState = .incoming(video: true, shouldRing: true, degraded: false)
-        mockWireCallCenterV3.setMockCallState(state, conversationId: conversation.remoteIdentifier!, callerId: otherUser.remoteIdentifier, isVideo: true)
+        mockWireCallCenterV3.setMockCallState(state, conversationId: conversation.avsIdentifier!, callerId: otherUser.avsIdentifier, isVideo: true)
         self.sut.callCenterDidChange(callState: state, conversation: conversation, caller: otherUser, timestamp: Date(), previousCallState: nil)
 
         // when
@@ -800,7 +800,7 @@ class CallKitManagerTest: DatabaseTest {
         let otherUser = self.otherUser(moc: self.uiMOC)
 
         let state: CallState = .incoming(video: true, shouldRing: true, degraded: false)
-        mockWireCallCenterV3.setMockCallState(state, conversationId: conversation.remoteIdentifier!, callerId: otherUser.remoteIdentifier, isVideo: true)
+        mockWireCallCenterV3.setMockCallState(state, conversationId: conversation.avsIdentifier!, callerId: otherUser.avsIdentifier, isVideo: true)
         self.sut.callCenterDidChange(callState: state, conversation: conversation, caller: otherUser, timestamp: Date(), previousCallState: nil)
 
         // when
@@ -816,7 +816,7 @@ class CallKitManagerTest: DatabaseTest {
         let otherUser = self.otherUser(moc: self.uiMOC)
 
         let state: CallState = .incoming(video: true, shouldRing: true, degraded: false)
-        mockWireCallCenterV3.setMockCallState(state, conversationId: conversation.remoteIdentifier!, callerId: otherUser.remoteIdentifier, isVideo: true)
+        mockWireCallCenterV3.setMockCallState(state, conversationId: conversation.avsIdentifier!, callerId: otherUser.avsIdentifier, isVideo: true)
         self.sut.callCenterDidChange(callState: state, conversation: conversation, caller: otherUser, timestamp: Date(), previousCallState: nil)
 
         // when

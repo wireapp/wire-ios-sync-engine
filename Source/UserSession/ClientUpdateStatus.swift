@@ -67,7 +67,8 @@ public enum ClientUpdateError: NSInteger {
             // This code can be removed and possibly moved to a hotfix once all paths that lead to the bug
             // have been discovered
             selfUser.markedToDelete = false
-            selfUser.resetLocallyModifiedKeys(Set(arrayLiteral: ZMUserClientMarkedToDeleteKey))
+            let userClientMarkedToDeleteKeysSet: Set<AnyHashable> = [ZMUserClientMarkedToDeleteKey]
+            selfUser.resetLocallyModifiedKeys(userClientMarkedToDeleteKeysSet)
         }
     }
 

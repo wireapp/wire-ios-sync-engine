@@ -165,13 +165,14 @@ import Foundation
 
         guard
             let conversation = userInfo.conversation(in: managedObjectContext),
+            let conversationId = conversation.avsIdentifier,
             let callState = conversation.voiceChannel?.state,
             case .incoming(video: _, shouldRing: _, degraded: _) = callState,
             let callCenter = self.callCenter,
             callCenter.activeCallConversations(in: self).count == 0
-            else { return }
+        else { return }
 
-        let type: ConversationMediaAction = callCenter.isVideoCall(conversationId: conversation.remoteIdentifier!) ? .videoCall : .audioCall
+        let type: ConversationMediaAction = callCenter.isVideoCall(conversationId: conversationId) ? .videoCall : .audioCall
 
         self.syncManagedObjectContext.performGroupedBlock { [weak self] in
             guard

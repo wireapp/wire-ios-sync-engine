@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2018 Wire Swiss GmbH
+// Copyright (C) 2021 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,14 +18,11 @@
 
 import Foundation
 
-extension WireCallCenterV3 {
-
-    func callDidDegrade(conversationId: AVSIdentifier, degradedUser: ZMUser) {
-        closeCall(conversationId: conversationId, reason: .securityDegraded)
-
-        if let previousSnapshot = callSnapshots[conversationId] {
-            callSnapshots[conversationId] = previousSnapshot.updateDegradedUser(degradedUser)
+public extension ZMConversation {
+    var avsIdentifier: AVSIdentifier? {
+        guard let identifier = remoteIdentifier else {
+            return nil
         }
+        return AVSIdentifier(identifier: identifier, domain: domain)
     }
-
 }

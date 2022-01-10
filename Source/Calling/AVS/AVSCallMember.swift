@@ -91,10 +91,17 @@ public struct AVSCallMember: Hashable {
 extension AVSCallMember {
 
     init(member: AVSParticipantsChange.Member) {
-        client = AVSClient(userId: member.userid, clientId: member.clientid)
+        client = AVSClient(member: member)
         audioState = member.aestab
         videoState = member.vrecv
         microphoneState = member.muted
         networkQuality = .normal
+    }
+}
+
+private extension AVSClient {
+    init(member: AVSParticipantsChange.Member) {
+        userId = member.userid
+        clientId = member.clientid
     }
 }
