@@ -25,7 +25,7 @@ import Foundation
 struct CallSnapshot {
     let callParticipants: CallParticipantsSnapshot
     let callState: CallState
-    let callStarter: UUID
+    let callStarter: AVSIdentifier
     let isVideo: Bool
     let isGroup: Bool
     let isConstantBitRate: Bool

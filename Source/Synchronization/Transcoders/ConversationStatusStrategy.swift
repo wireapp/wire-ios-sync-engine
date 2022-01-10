@@ -33,7 +33,8 @@ public final class ConversationStatusStrategy: ZMObjectSyncStrategy, ZMContextCh
                 if conv.hasLocalModifications(forKey: lastReadKey) {
                     do {
                         try ZMConversation.updateSelfConversation(withLastReadOf: conv)
-                        conv.resetLocallyModifiedKeys(Set(arrayLiteral: lastReadKey))
+                        let lastReadKeySet: Set<AnyHashable> = [lastReadKey]
+                        conv.resetLocallyModifiedKeys(lastReadKeySet)
                         didUpdateConversation = true
                     } catch {
                         Logging.messageProcessing.warn("Failed to update last read in self conversation. Reason: \(error.localizedDescription)")
@@ -43,7 +44,8 @@ public final class ConversationStatusStrategy: ZMObjectSyncStrategy, ZMContextCh
                 if conv.hasLocalModifications(forKey: clearedKey) {
                     do {
                         try ZMConversation.updateSelfConversation(withClearedOf: conv)
-                        conv.resetLocallyModifiedKeys(Set(arrayLiteral: clearedKey))
+                        let clearedKeySet: Set<AnyHashable> = [clearedKey]
+                        conv.resetLocallyModifiedKeys(clearedKeySet)
                         conv.deleteOlderMessages()
                         didUpdateConversation = true
                     } catch {

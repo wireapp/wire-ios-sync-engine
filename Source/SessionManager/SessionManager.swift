@@ -415,7 +415,6 @@ public final class SessionManager: NSObject, SessionManagerType {
         super.init()
 
         registerForVoipPushNotificationsIfNeeded()
-
         deleteAccountToken = AccountDeletedNotification.addObserver(observer: self, queue: groupQueue)
         callCenterObserverToken = WireCallCenterV3.addGlobalCallStateObserver(observer: self)
 
@@ -427,7 +426,8 @@ public final class SessionManager: NSObject, SessionManagerType {
         guard #available(iOS 13.0, *) else {
             // register for voIP push notifications
             self.pushRegistry.delegate = self
-            self.pushRegistry.desiredPushTypes = Set(arrayLiteral: PKPushType.voIP)
+            let pkPushTypeSet: Set<PKPushType> = [PKPushType.voIP]
+            self.pushRegistry.desiredPushTypes = pkPushTypeSet
             return
         }
     }

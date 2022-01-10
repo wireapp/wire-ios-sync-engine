@@ -20,7 +20,9 @@ import Foundation
 
 extension ZMContextChangeTrackerSource {
     func notifyChangeTrackers(_ client: UserClient) {
-        contextChangeTrackers.forEach {$0.objectsDidChange(Set(arrayLiteral: client))}
+        let clientSet: Set<NSManagedObject> = [client]
+        contextChangeTrackers.forEach {
+            $0.objectsDidChange(clientSet)}
     }
 }
 

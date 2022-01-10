@@ -75,9 +75,9 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
         let selfUser = ZMUser.selfUser(in: managedObjectContext)
 
-        if let userId = selfUser.remoteIdentifier, let clientId = selfUser.selfClient()?.remoteIdentifier {
+        if let clientId = selfUser.selfClient()?.remoteIdentifier {
             zmLog.debug("Creating callCenter from init")
-            callCenter = WireCallCenterV3Factory.callCenter(withUserId: userId,
+            callCenter = WireCallCenterV3Factory.callCenter(withUserId: selfUser.avsIdentifier,
                                                             clientId: clientId,
                                                             uiMOC: managedObjectContext.zm_userInterface,
                                                             flowManager: flowManager,
@@ -134,6 +134,7 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
     }
 
+    // TODO: David - Update the Client Discovery strategy to use federation endpoint when federated
     public func didReceive(_ response: ZMTransportResponse, forSingleRequest sync: ZMSingleRequestSync) {
         switch sync {
         case callConfigRequestSync:
@@ -167,8 +168,12 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
             do {
                 let payload = try decoder.decode(ClientDiscoveryResponsePayload.self, from: jsonData)
 
-                let clients = payload.clients.flatMap { clients in
-                    clients.clientIds.map { AVSClient(userId: clients.userId, clientId: $0) }
+                let clients = payload.clients.flatMap { client -> [AVSClient] in
+                    let userId = AVSIdentifier.from(string: client.userId)
+
+                    return client.clientIds.map { clientID -> AVSClient in
+                        return AVSClient(userId: userId, clientId: clientID)
+                    }
                 }
 
                 clientDiscoveryRequest?.completion(clients)
@@ -199,7 +204,7 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
         guard callCenter == nil else { return }
 
         for object in objects {
-            if let userClient = object as? UserClient, userClient.isSelfClient(), let clientId = userClient.remoteIdentifier, let userId = userClient.user?.remoteIdentifier {
+            if let userClient = object as? UserClient, userClient.isSelfClient(), let clientId = userClient.remoteIdentifier, let userId = userClient.user?.avsIdentifier {
                 zmLog.debug("Creating callCenter")
                 let uiContext = managedObjectContext.zm_userInterface!
                 let analytics = managedObjectContext.analytics
@@ -239,11 +244,13 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
                 self.zmLog.debug("received calling message, timestamp \(eventTimestamp), serverTimeDelta \(serverTimeDelta)")
 
+                let conversationId = AVSIdentifier(identifier: conversationUUID, domain: event.conversationDomain)
+                let userId = AVSIdentifier(identifier: senderUUID, domain: event.senderDomain)
                 let callEvent = CallEvent(data: payload,
                                           currentTimestamp: Date().addingTimeInterval(serverTimeDelta),
                                           serverTimestamp: eventTimestamp,
-                                          conversationId: conversationUUID,
-                                          userId: senderUUID,
+                                          conversationId: conversationId,
+                                          userId: userId,
                                           clientId: clientId)
 
                 callEventStatus.scheduledCallEventForProcessing()
@@ -266,7 +273,7 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
 extension CallingRequestStrategy: WireCallCenterTransport {
 
-    public func send(data: Data, conversationId: UUID, targets: [AVSClient]?, completionHandler: @escaping ((Int) -> Void)) {
+    public func send(data: Data, conversationId: AVSIdentifier, targets: [AVSClient]?, completionHandler: @escaping ((Int) -> Void)) {
 
         guard let dataString = String(data: data, encoding: .utf8) else {
             zmLog.error("Not sending calling messsage since it's not UTF-8")
@@ -275,7 +282,10 @@ extension CallingRequestStrategy: WireCallCenterTransport {
         }
 
         managedObjectContext.performGroupedBlock {
-            guard let conversation = ZMConversation.fetch(with: conversationId, in: self.managedObjectContext) else {
+            guard let conversation = ZMConversation.fetch(with: conversationId.identifier,
+                                                          domain: conversationId.domain,
+                                                          in: self.managedObjectContext)
+            else {
                 self.zmLog.error("Not sending calling messsage since conversation doesn't exist")
                 completionHandler(500)
                 return
@@ -397,7 +407,7 @@ extension CallingRequestStrategy {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             let nestedContainer = try container.nestedContainer(keyedBy: Clients.CodingKeys.self, forKey: .missing)
 
-            let userIds = nestedContainer.allKeys.compactMap { UUID(uuidString: $0.stringValue) }
+            let userIds = nestedContainer.allKeys.compactMap { $0.stringValue }
 
             clients = try userIds.map { userId in
                 let userIdKey = Clients.CodingKeys.userId(userId)
@@ -414,23 +424,22 @@ extension CallingRequestStrategy {
 
         struct Clients {
 
-            let userId: UUID
+            let userId: String
             let clientIds: [String]
 
             enum CodingKeys: CodingKey {
 
-                case userId(UUID)
+                case userId(String)
 
                 var stringValue: String {
                     switch self {
-                    case .userId(let uuid):
-                        return uuid.transportString()
+                    case .userId(let id):
+                        return id
                     }
                 }
 
-                init?(stringValue: String) {
-                    guard let uuid = UUID(uuidString: stringValue) else { return nil }
-                    self = .userId(uuid)
+                init(stringValue: String) {
+                    self = .userId(stringValue)
                 }
 
                 var intValue: Int? {
