@@ -13,7 +13,6 @@ disabled_rules:
     - weak_delegate
     - inclusive_language
     - class_delegate_protocol
-    - multiple_closures_with_trailing_closure
     - nesting
     - function_parameter_count
     - xctfail_message
