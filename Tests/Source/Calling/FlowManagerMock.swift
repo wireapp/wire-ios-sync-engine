@@ -44,7 +44,7 @@ public class FlowManagerMock: NSObject, FlowManagerType {
         didReportCallConfig = true
     }
 
-    public func setVideoCaptureDevice(_ device: CaptureDevice, for conversationId: UUID) {
+    public func setVideoCaptureDevice(_ device: CaptureDevice, for conversationId: AVSIdentifier) {
         didSetVideoCaptureDevice = true
     }
 

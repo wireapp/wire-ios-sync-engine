@@ -160,7 +160,7 @@ public class ZMUserSession: NSObject {
             return value.boolValue
         }
         set {
-            managedObjectContext.setPersistentStoreMetadata(NSNumber(booleanLiteral: newValue), key: LocalNotificationDispatcher.ZMShouldHideNotificationContentKey)
+            managedObjectContext.setPersistentStoreMetadata(NSNumber(value: newValue), key: LocalNotificationDispatcher.ZMShouldHideNotificationContentKey)
         }
     }
 
@@ -464,7 +464,7 @@ public class ZMUserSession: NSObject {
 
     public func initiateUserDeletion() {
         syncManagedObjectContext.performGroupedBlock {
-            self.syncManagedObjectContext.setPersistentStoreMetadata(NSNumber(booleanLiteral: true), key: DeleteAccountRequestStrategy.userDeletionInitiatedKey)
+            self.syncManagedObjectContext.setPersistentStoreMetadata(NSNumber(value: true), key: DeleteAccountRequestStrategy.userDeletionInitiatedKey)
             RequestAvailableNotification.notifyNewRequestsAvailable(self)
         }
     }

@@ -63,8 +63,9 @@ public class UserClientEventConsumer: NSObject, ZMEventConsumer {
         switch event.type {
         case .userClientAdd:
             if let client = UserClient.createOrUpdateSelfUserClient(clientInfo, context: managedObjectContext) {
+                let clientSet: Set<UserClient> = [client]
                 selfUser.selfClient()?.addNewClientToIgnored(client)
-                selfUser.selfClient()?.updateSecurityLevelAfterDiscovering(Set(arrayLiteral: client))
+                selfUser.selfClient()?.updateSecurityLevelAfterDiscovering(clientSet)
             }
         case .userClientRemove:
             let selfClientId = selfUser.selfClient()?.remoteIdentifier

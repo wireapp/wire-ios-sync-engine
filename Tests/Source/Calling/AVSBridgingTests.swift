@@ -31,7 +31,7 @@ class AVSBridgingTests: MessagingTest {
     var rawEnumWithoutFallback: Int32!
     var rawInvalidEnumWithoutFallback: Int32!
 
-    var userID: UUID!
+    var userID: AVSIdentifier!
     var clientID: String!
     var callCenter: WireCallCenterV3!
     var callCenterRef: UnsafeMutableRawPointer!
@@ -47,7 +47,7 @@ class AVSBridgingTests: MessagingTest {
         rawEnumWithoutFallback = 3
         rawInvalidEnumWithoutFallback = 5
 
-        userID = UUID()
+        userID = AVSIdentifier.stub
         clientID = UUID().uuidString
         let avsWrapper = MockAVSWrapper(userId: userID, clientId: clientID, observer: nil)
         callCenter = WireCallCenterV3(userId: userID, clientId: clientID, avsWrapper: avsWrapper, uiMOC: uiMOC, flowManager: FlowManagerMock(), transport: WireCallCenterTransportMock())

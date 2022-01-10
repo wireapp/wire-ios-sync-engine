@@ -23,7 +23,7 @@ class CallSystemMessageGeneratorTests: MessagingTest {
 
     var sut: WireSyncEngine.CallSystemMessageGenerator!
     var mockWireCallCenterV3: WireCallCenterV3Mock!
-    var selfUserID: UUID!
+    var selfUserID: AVSIdentifier!
     var clientID: String!
     var conversation: ZMConversation!
     var user: ZMUser!
@@ -41,7 +41,7 @@ class CallSystemMessageGeneratorTests: MessagingTest {
 
         selfUser = ZMUser.selfUser(in: uiMOC)
         selfUser.remoteIdentifier = UUID()
-        selfUserID = selfUser.remoteIdentifier
+        selfUserID = selfUser.avsIdentifier
         clientID = "foo"
 
         sut = WireSyncEngine.CallSystemMessageGenerator()

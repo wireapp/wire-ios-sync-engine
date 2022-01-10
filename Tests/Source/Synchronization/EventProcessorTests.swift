@@ -157,8 +157,10 @@ class EventProcessorTests: MessagingTest {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
-        XCTAssertEqual(batchFetchRequest.remoteIdentifiersToFetch, NSSet(arrayLiteral: converationID))
-        XCTAssertEqual(batchFetchRequest.noncesToFetch, NSSet(arrayLiteral: messageNonce))
+        let conversationIdSet: NSSet = [converationID]
+        let messageNonceSet: NSSet = [messageNonce]
+        XCTAssertEqual(batchFetchRequest.remoteIdentifiersToFetch, conversationIdSet)
+        XCTAssertEqual(batchFetchRequest.noncesToFetch, messageNonceSet)
     }
 
 }
