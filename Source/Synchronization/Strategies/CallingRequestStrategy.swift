@@ -265,8 +265,15 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
                 self.zmLog.debug("received calling message, timestamp \(eventTimestamp), serverTimeDelta \(serverTimeDelta)")
 
-                let conversationId = AVSIdentifier(identifier: conversationUUID, domain: event.conversationDomain)
-                let userId = AVSIdentifier(identifier: senderUUID, domain: event.senderDomain)
+                let conversationId = AVSIdentifier(
+                    identifier: conversationUUID,
+                    domain: useFederationEndpoint ? event.conversationDomain : nil
+                )
+                let userId = AVSIdentifier(
+                    identifier: senderUUID,
+                    domain: useFederationEndpoint ? event.senderDomain : nil
+                )
+
                 let callEvent = CallEvent(data: payload,
                                           currentTimestamp: Date().addingTimeInterval(serverTimeDelta),
                                           serverTimestamp: eventTimestamp,
