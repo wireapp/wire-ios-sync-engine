@@ -149,7 +149,8 @@ public final class UserClientRequestFactory {
             let request = ZMTransportRequest(path: "/clients/\(remoteIdentifier)", method: ZMTransportRequestMethod.methodPUT, payload: payload as ZMTransportData)
             request.add(storeMaxRangeID(client, maxRangeID: preKeysRangeMax))
 
-            return ZMUpstreamRequest(keys: Set(arrayLiteral: ZMUserClientNumberOfKeysRemainingKey), transportRequest: request, userInfo: nil)
+            let userClientNumberOfKeysRemainingKeySet: Set<String> = [ZMUserClientNumberOfKeysRemainingKey]
+            return ZMUpstreamRequest(keys: userClientNumberOfKeysRemainingKeySet, transportRequest: request, userInfo: nil)
         }
         throw UserClientRequestError.clientNotRegistered
     }
@@ -164,7 +165,8 @@ public final class UserClientRequestFactory {
             let request = ZMTransportRequest(path: "/clients/\(remoteIdentifier)", method: ZMTransportRequestMethod.methodPUT, payload: payload as ZMTransportData)
             request.add(storeAPSSignalingKeys(client, signalingKeys: signalingKeys))
 
-            return ZMUpstreamRequest(keys: Set(arrayLiteral: ZMUserClientNeedsToUpdateSignalingKeysKey), transportRequest: request, userInfo: nil)
+            let userClientNeedsToUpdateSignalingKeysKeySet: Set<String> = [ZMUserClientNeedsToUpdateSignalingKeysKey]
+            return ZMUpstreamRequest(keys: userClientNeedsToUpdateSignalingKeysKeySet, transportRequest: request, userInfo: nil)
         }
         throw UserClientRequestError.clientNotRegistered
     }
@@ -179,7 +181,8 @@ public final class UserClientRequestFactory {
         let request = ZMTransportRequest(path: "/clients/\(remoteIdentifier)", method: ZMTransportRequestMethod.methodPUT, payload: payload as ZMTransportData)
         request.add(storeCapabilitiesHandler(client))
 
-        return ZMUpstreamRequest(keys: Set(arrayLiteral: ZMUserClientNeedsToUpdateCapabilitiesKey), transportRequest: request, userInfo: nil)
+        let userClientNeedsToUpdateCapabilitiesKeySet: Set<String> = [ZMUserClientNeedsToUpdateCapabilitiesKey]
+        return ZMUpstreamRequest(keys: userClientNeedsToUpdateCapabilitiesKeySet, transportRequest: request, userInfo: nil)
     }
 
     /// Password needs to be set
@@ -198,7 +201,8 @@ public final class UserClientRequestFactory {
         }
 
         let request =  ZMTransportRequest(path: "/clients/\(client.remoteIdentifier!)", method: ZMTransportRequestMethod.methodDELETE, payload: payload as ZMTransportData)
-        return ZMUpstreamRequest(keys: Set(arrayLiteral: ZMUserClientMarkedToDeleteKey), transportRequest: request)
+        let userClientMarkedToDeleteKeySet: Set<String> = [ZMUserClientMarkedToDeleteKey]
+        return ZMUpstreamRequest(keys: userClientMarkedToDeleteKeySet, transportRequest: request)
     }
 
     public func fetchClientsRequest() -> ZMTransportRequest! {

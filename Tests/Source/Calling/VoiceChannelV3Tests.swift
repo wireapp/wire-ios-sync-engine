@@ -36,7 +36,7 @@ class VoiceChannelV3Tests: MessagingTest {
         conversation = ZMConversation.insertNewObject(in: uiMOC)
         conversation?.remoteIdentifier = UUID.create()
 
-        wireCallCenterMock = WireCallCenterV3Mock(userId: selfUser.remoteIdentifier!, clientId: selfClient.remoteIdentifier!, uiMOC: uiMOC, flowManager: FlowManagerMock(), transport: WireCallCenterTransportMock())
+        wireCallCenterMock = WireCallCenterV3Mock(userId: selfUser.avsIdentifier, clientId: selfClient.remoteIdentifier!, uiMOC: uiMOC, flowManager: FlowManagerMock(), transport: WireCallCenterTransportMock())
 
         uiMOC.zm_callCenter = wireCallCenterMock
 
@@ -62,7 +62,7 @@ class VoiceChannelV3Tests: MessagingTest {
 
     func testThatItAnswers_whenTheresAnIncomingCall() {
         // given
-        wireCallCenterMock?.setMockCallState(.incoming(video: false, shouldRing: false, degraded: false), conversationId: conversation!.remoteIdentifier!, callerId: UUID(), isVideo: false)
+        wireCallCenterMock?.setMockCallState(.incoming(video: false, shouldRing: false, degraded: false), conversationId: conversation!.avsIdentifier!, callerId: AVSIdentifier.stub, isVideo: false)
 
         // when
         _ = sut.join(video: false)
@@ -73,14 +73,14 @@ class VoiceChannelV3Tests: MessagingTest {
 
     func testThatItForwardsNetworkQualityFromCallCenter() {
         // given
-        let caller = AVSClient(userId: UUID(), clientId: UUID().transportString())
-        wireCallCenterMock?.setMockCallState(.established, conversationId: conversation!.remoteIdentifier!, callerId: caller.userId, isVideo: false)
+        let caller = AVSClient(userId: AVSIdentifier.stub, clientId: UUID().transportString())
+        wireCallCenterMock?.setMockCallState(.established, conversationId: conversation!.avsIdentifier!, callerId: caller.avsIdentifier, isVideo: false)
         let quality = NetworkQuality.poor
         XCTAssertEqual(sut.networkQuality, .normal)
 
         // when
 
-        wireCallCenterMock?.handleNetworkQualityChange(conversationId: conversation!.remoteIdentifier!, client: caller, quality: quality)
+        wireCallCenterMock?.handleNetworkQualityChange(conversationId: conversation!.avsIdentifier!, client: caller, quality: quality)
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
@@ -89,7 +89,7 @@ class VoiceChannelV3Tests: MessagingTest {
 
     func testThatItReturnsDegradedUser_IfSavedInCallCenter() {
         // Given
-        let conversationId = conversation!.remoteIdentifier!
+        let conversationId = conversation!.avsIdentifier!
         let user = ZMUser.insertNewObject(in: uiMOC)
         user.remoteIdentifier = UUID()
 
@@ -107,7 +107,7 @@ class VoiceChannelV3Tests: MessagingTest {
 
     func testThatItUpdatesVideoGridPresentationMode() {
         // Given
-        let conversationId = conversation!.remoteIdentifier!
+        let conversationId = conversation!.avsIdentifier!
         let user = ZMUser.insertNewObject(in: uiMOC)
         user.remoteIdentifier = UUID()
 
@@ -128,5 +128,20 @@ class VoiceChannelV3Tests: MessagingTest {
 
     func testThatItReturnsNil_IfNoDegradedUser() {
         XCTAssert(sut.firstDegradedUser == nil)
+    }
+
+    func testThatCallInitiatorIsFetchedCorrectly() {
+        // Given
+        let caller = ZMUser.insertNewObject(in: uiMOC)
+        caller.remoteIdentifier = UUID()
+        caller.domain = "wire.com"
+
+        wireCallCenterMock?.setMockCallInitiator(
+            callerId: AVSIdentifier(identifier: caller.remoteIdentifier, domain: caller.domain),
+            conversationId: conversation!.avsIdentifier!
+        )
+
+        // When / Then
+        XCTAssertEqual(sut.initiator as? ZMUser, caller)
     }
 }

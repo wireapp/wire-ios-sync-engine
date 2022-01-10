@@ -21,12 +21,10 @@ disabled_rules:
     - nesting
     - function_parameter_count
     - xctfail_message
-    - compiler_protocol_init
     
 included:
     - Source
     - Tests
-
 
 # In order to deal with the huge number of violations, first set
 # very high limits then iteratively reduce the limits and resolve

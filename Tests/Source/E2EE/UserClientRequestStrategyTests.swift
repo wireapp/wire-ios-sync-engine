@@ -1,19 +1,19 @@
 // Wire
 // Copyright (C) 2016 Wire Swiss GmbH
-// 
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see http://www.gnu.org/licenses/.
-// 
+//
 
 import XCTest
 @testable import WireSyncEngine
@@ -357,11 +357,12 @@ extension UserClientRequestStrategyTests {
             self.clientRegistrationStatus.mockPhase = .registered
 
             let client = UserClient.insertNewObject(in: self.sut.managedObjectContext!)
+            let userClientNumberOfKeysRemainingKeySet: Set<AnyHashable> = [ZMUserClientNumberOfKeysRemainingKey]
             client.remoteIdentifier = UUID.create().transportString()
             self.sut.managedObjectContext!.saveOrRollback()
 
             client.numberOfKeysRemaining = Int32(self.sut.minNumberOfRemainingKeys - 1)
-            client.setLocallyModifiedKeys(Set(arrayLiteral: ZMUserClientNumberOfKeysRemainingKey))
+            client.setLocallyModifiedKeys(userClientNumberOfKeysRemainingKeySet)
             self.sut.notifyChangeTrackers(client)
 
             // when
@@ -388,13 +389,14 @@ extension UserClientRequestStrategyTests {
             self.clientRegistrationStatus.mockPhase = .registered
 
             let client = UserClient.insertNewObject(in: self.sut.managedObjectContext!)
+            let userClientNumberOfKeysRemainingKeySet: Set<AnyHashable> = [ZMUserClientNumberOfKeysRemainingKey]
 
             // when
             client.remoteIdentifier = nil
             self.sut.managedObjectContext!.saveOrRollback()
 
             client.numberOfKeysRemaining = Int32(self.sut.minNumberOfRemainingKeys - 1)
-            client.setLocallyModifiedKeys(Set(arrayLiteral: ZMUserClientNumberOfKeysRemainingKey))
+            client.setLocallyModifiedKeys(userClientNumberOfKeysRemainingKeySet)
             self.sut.notifyChangeTrackers(client)
 
             // then
@@ -412,7 +414,8 @@ extension UserClientRequestStrategyTests {
 
             client.numberOfKeysRemaining = Int32(self.sut.minNumberOfRemainingKeys)
 
-            client.setLocallyModifiedKeys(Set(arrayLiteral: ZMUserClientNumberOfKeysRemainingKey))
+            let userClientNumberOfKeysRemainingKeySet: Set<AnyHashable> = [ZMUserClientNumberOfKeysRemainingKey]
+            client.setLocallyModifiedKeys(userClientNumberOfKeysRemainingKeySet)
             self.sut.notifyChangeTrackers(client)
 
             // when
@@ -435,7 +438,8 @@ extension UserClientRequestStrategyTests {
 
             // when
             let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil)
-            _ = self.sut.updateUpdatedObject(client, requestUserInfo: nil, response: response, keysToParse: Set(arrayLiteral: ZMUserClientNumberOfKeysRemainingKey))
+            let userClientNumberOfKeysRemainingKeySet: Set<String> = [ZMUserClientNumberOfKeysRemainingKey]
+            _ = self.sut.updateUpdatedObject(client, requestUserInfo: nil, response: response, keysToParse: userClientNumberOfKeysRemainingKeySet)
 
             // then
             XCTAssertEqual(client.numberOfKeysRemaining, expectedNumberOfKeys)
@@ -567,7 +571,8 @@ extension UserClientRequestStrategyTests {
             let response = ZMTransportResponse(payload: [:] as ZMTransportData, httpStatus: 200, transportSessionError: nil)
 
             // when
-            _ = self.sut.updateUpdatedObject(client, requestUserInfo: nil, response: response, keysToParse: Set(arrayLiteral: ZMUserClientMarkedToDeleteKey))
+            let userClientMarkedToDeleteKeySet: Set<String> = [ZMUserClientMarkedToDeleteKey]
+            _ = self.sut.updateUpdatedObject(client, requestUserInfo: nil, response: response, keysToParse: userClientMarkedToDeleteKeySet)
         }
 
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
@@ -589,13 +594,18 @@ extension UserClientRequestStrategyTests {
             self.clientRegistrationStatus.mockPhase = .registered
 
             existingClient = self.createSelfClient()
+            let existingClientSet: Set<NSManagedObject> = [existingClient]
+            let userClientNeedsToUpdateSignalingKeysKeySet: Set<AnyHashable> = [ZMUserClientNeedsToUpdateSignalingKeysKey]
+
             XCTAssertNil(existingClient.apsVerificationKey)
             XCTAssertNil(existingClient.apsDecryptionKey)
 
             // when
             existingClient.needsToUploadSignalingKeys = true
-            existingClient.setLocallyModifiedKeys(Set(arrayLiteral: ZMUserClientNeedsToUpdateSignalingKeysKey))
-            self.sut.contextChangeTrackers.forEach {$0.objectsDidChange(Set(arrayLiteral: existingClient))}
+            existingClient.setLocallyModifiedKeys(userClientNeedsToUpdateSignalingKeysKeySet)
+            self.sut.contextChangeTrackers.forEach {
+                $0.objectsDidChange(existingClientSet)
+            }
             let request = self.sut.nextRequest()
 
             // then
@@ -623,12 +633,16 @@ extension UserClientRequestStrategyTests {
             self.clientRegistrationStatus.mockPhase = .registered
 
             let existingClient = self.createSelfClient()
+            let existingClientSet: Set<NSManagedObject> = [existingClient]
+            let userClientNeedsToUpdateSignalingKeysKeySet: Set<AnyHashable> =  [ZMUserClientNeedsToUpdateSignalingKeysKey]
             XCTAssertNil(existingClient.apsVerificationKey)
             XCTAssertNil(existingClient.apsDecryptionKey)
 
             existingClient.needsToUploadSignalingKeys = true
-            existingClient.setLocallyModifiedKeys(Set(arrayLiteral: ZMUserClientNeedsToUpdateSignalingKeysKey))
-            self.sut.contextChangeTrackers.forEach {$0.objectsDidChange(Set(arrayLiteral: existingClient))}
+            existingClient.setLocallyModifiedKeys(userClientNeedsToUpdateSignalingKeysKeySet)
+            self.sut.contextChangeTrackers.forEach {
+                $0.objectsDidChange(existingClientSet)
+            }
 
             // when
             let request = self.sut.nextRequest()
@@ -665,11 +679,15 @@ extension UserClientRequestStrategyTests {
             self.clientRegistrationStatus.mockPhase = .registered
 
             existingClient = self.createSelfClient()
+            let existingClientSet: Set<NSManagedObject> = [existingClient]
+            let userClientNeedsToUpdateCapabilitiesKeySet: Set<AnyHashable> =  [ZMUserClientNeedsToUpdateCapabilitiesKey]
 
             // when
             existingClient.needsToUpdateCapabilities = true
-            existingClient.setLocallyModifiedKeys(Set(arrayLiteral: ZMUserClientNeedsToUpdateCapabilitiesKey))
-            self.sut.contextChangeTrackers.forEach {$0.objectsDidChange(Set(arrayLiteral: existingClient))}
+            existingClient.setLocallyModifiedKeys(userClientNeedsToUpdateCapabilitiesKeySet)
+            self.sut.contextChangeTrackers.forEach {
+                $0.objectsDidChange(existingClientSet)
+            }
             let request = self.sut.nextRequest()
 
             // then
@@ -695,10 +713,15 @@ extension UserClientRequestStrategyTests {
             self.clientRegistrationStatus.mockPhase = .registered
 
             let existingClient = self.createSelfClient()
+            let existingClientSet: Set<NSManagedObject> = [existingClient]
+            let userClientNeedsToUpdateCapabilitiesKeySet: Set<AnyHashable> = [ZMUserClientNeedsToUpdateCapabilitiesKey]
 
             existingClient.needsToUpdateCapabilities = true
-            existingClient.setLocallyModifiedKeys(Set(arrayLiteral: ZMUserClientNeedsToUpdateCapabilitiesKey))
-            self.sut.contextChangeTrackers.forEach {$0.objectsDidChange(Set(arrayLiteral: existingClient))}
+
+            existingClient.setLocallyModifiedKeys(userClientNeedsToUpdateCapabilitiesKeySet)
+            self.sut.contextChangeTrackers.forEach {
+                $0.objectsDidChange(existingClientSet)
+            }
 
             // when
             let request = self.sut.nextRequest()

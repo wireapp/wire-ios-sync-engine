@@ -23,7 +23,7 @@ struct AVSActiveSpeakersChange: Codable {
     let activeSpeakers: [ActiveSpeaker]
 
     struct ActiveSpeaker: Codable, Equatable {
-        let userId: UUID
+        let userId: String
         let clientId: String
 
         /// Audio level smoothed over time
@@ -47,6 +47,13 @@ struct AVSActiveSpeakersChange: Codable {
 
 extension AVSActiveSpeakersChange.ActiveSpeaker {
     var client: AVSClient {
-        AVSClient(userId: userId, clientId: clientId)
+        AVSClient(activeSpeaker: self)
+    }
+}
+
+private extension AVSClient {
+    init(activeSpeaker: AVSActiveSpeakersChange.ActiveSpeaker) {
+        userId = activeSpeaker.userId
+        clientId = activeSpeaker.clientId
     }
 }

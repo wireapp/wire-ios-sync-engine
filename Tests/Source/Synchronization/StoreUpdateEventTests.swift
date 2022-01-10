@@ -75,10 +75,10 @@ class StoreUpdateEventTests: MessagingTest {
         let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: UUID.create())!
 
         guard let storedEvent1 = StoredUpdateEvent.encryptAndCreate(event, managedObjectContext: eventMOC, index: 0),
-             let storedEvent2 = StoredUpdateEvent.encryptAndCreate(event, managedObjectContext: eventMOC, index: 1),
-             let storedEvent3 = StoredUpdateEvent.encryptAndCreate(event, managedObjectContext: eventMOC, index: 2)
-            else {
-                return XCTFail("Could not create storedEvents")
+              let storedEvent2 = StoredUpdateEvent.encryptAndCreate(event, managedObjectContext: eventMOC, index: 1),
+              let storedEvent3 = StoredUpdateEvent.encryptAndCreate(event, managedObjectContext: eventMOC, index: 2)
+        else {
+            return XCTFail("Could not create storedEvents")
         }
 
         // when
@@ -101,10 +101,10 @@ class StoreUpdateEventTests: MessagingTest {
         let event = ZMUpdateEvent(fromEventStreamPayload: payload!, uuid: UUID.create())!
 
         guard let storedEvent1 = StoredUpdateEvent.encryptAndCreate(event, managedObjectContext: eventMOC, index: 0),
-            let storedEvent2 = StoredUpdateEvent.encryptAndCreate(event, managedObjectContext: eventMOC, index: 30),
-            let storedEvent3 = StoredUpdateEvent.encryptAndCreate(event, managedObjectContext: eventMOC, index: 10)
-            else {
-                return XCTFail("Could not create storedEvents")
+              let storedEvent2 = StoredUpdateEvent.encryptAndCreate(event, managedObjectContext: eventMOC, index: 30),
+              let storedEvent3 = StoredUpdateEvent.encryptAndCreate(event, managedObjectContext: eventMOC, index: 10)
+        else {
+            return XCTFail("Could not create storedEvents")
         }
 
         // when
@@ -125,10 +125,10 @@ class StoreUpdateEventTests: MessagingTest {
         let event = ZMUpdateEvent(fromEventStreamPayload: payload!, uuid: UUID.create())!
 
         guard let storedEvent1 = StoredUpdateEvent.encryptAndCreate(event, managedObjectContext: eventMOC, index: 0),
-            let storedEvent2 = StoredUpdateEvent.encryptAndCreate(event, managedObjectContext: eventMOC, index: 10),
-            let storedEvent3 = StoredUpdateEvent.encryptAndCreate(event, managedObjectContext: eventMOC, index: 30)
-            else {
-                return XCTFail("Could not create storedEvents")
+              let storedEvent2 = StoredUpdateEvent.encryptAndCreate(event, managedObjectContext: eventMOC, index: 10),
+              let storedEvent3 = StoredUpdateEvent.encryptAndCreate(event, managedObjectContext: eventMOC, index: 30)
+        else {
+            return XCTFail("Could not create storedEvents")
         }
 
         // when
@@ -160,8 +160,8 @@ class StoreUpdateEventTests: MessagingTest {
         guard (StoredUpdateEvent.encryptAndCreate(event, managedObjectContext: eventMOC, index: 0) != nil),
               (StoredUpdateEvent.encryptAndCreate(event, managedObjectContext: eventMOC, index: 1) != nil),
               (StoredUpdateEvent.encryptAndCreate(event, managedObjectContext: eventMOC, index: 2) != nil)
-            else {
-                return XCTFail("Could not create storedEvents")
+        else {
+            return XCTFail("Could not create storedEvents")
         }
 
         // when
@@ -181,14 +181,14 @@ class StoreUpdateEventTests: MessagingTest {
 
         // when
         guard let storedEvent = StoredUpdateEvent.encryptAndCreate(event, managedObjectContext: eventMOC, index: 0)
-            else {
-                return XCTFail("Could not create storedEvents")
+        else {
+            return XCTFail("Could not create storedEvents")
 
         }
 
         guard let restoredEvent = StoredUpdateEvent.eventsFromStoredEvents([storedEvent]).first
-            else {
-                return XCTFail("Could not create original event")
+        else {
+            return XCTFail("Could not create original event")
         }
 
         // then
@@ -221,7 +221,7 @@ extension StoreUpdateEventTests {
             XCTAssertEqual(storedEvent.uuidString, event.uuid?.transportString())
 
             XCTAssertNotNil(storedEvent.payload)
-            #if targetEnvironment(simulator)
+            #if targetEnvironment(simulator) && swift(>=5.4)
             if #available(iOS 15, *) {
                 XCTExpectFailure("Expect to fail on iOS 15 simulator. ref: https://wearezeta.atlassian.net/browse/SQCORE-1188")
             }
@@ -229,9 +229,9 @@ extension StoreUpdateEventTests {
             XCTAssertTrue(storedEvent.isEncrypted)
             let privateKey = try XCTUnwrap( encryptionKeys?.privateKey)
             let decryptedData = SecKeyCreateDecryptedData(privateKey,
-                                                 .eciesEncryptionCofactorX963SHA256AESGCM,
-                                                 storedEvent.payload![StoredUpdateEvent.encryptedPayloadKey] as! CFData,
-                                                 nil)
+                                                          .eciesEncryptionCofactorX963SHA256AESGCM,
+                                                          storedEvent.payload![StoredUpdateEvent.encryptedPayloadKey] as! CFData,
+                                                          nil)
             let payload: NSDictionary = try JSONSerialization.jsonObject(with: decryptedData! as Data, options: []) as! NSDictionary
             XCTAssertEqual(payload, event.payload as NSDictionary)
 
@@ -280,7 +280,7 @@ extension StoreUpdateEventTests {
             XCTAssertEqual(storedEvent.sortIndex, 2)
             XCTAssertEqual(storedEvent.uuidString, event.uuid?.transportString())
             XCTAssertNotNil(storedEvent.payload)
-            #if targetEnvironment(simulator)
+            #if targetEnvironment(simulator) && swift(>=5.4)
             if #available(iOS 15, *) {
                 XCTExpectFailure("Expect to fail on iOS 15 simulator. ref: https://wearezeta.atlassian.net/browse/SQCORE-1188")
             }
@@ -350,7 +350,7 @@ extension StoreUpdateEventTests {
             XCTAssertEqual(storedEvent.sortIndex, 2)
             XCTAssertEqual(storedEvent.uuidString, event.uuid?.transportString())
             XCTAssertNotNil(storedEvent.payload)
-            #if targetEnvironment(simulator)
+            #if targetEnvironment(simulator) && swift(>=5.4)
             if #available(iOS 15, *) {
                 XCTExpectFailure("Expect to fail on iOS 15 simulator. ref: https://wearezeta.atlassian.net/browse/SQCORE-1188")
             }
@@ -359,7 +359,7 @@ extension StoreUpdateEventTests {
 
             // when
             let convertedEvents = StoredUpdateEvent.eventsFromStoredEvents([storedEvent], encryptionKeys: nil)
-
+            
             // then
             XCTAssertTrue(convertedEvents.isEmpty)
         } else {
