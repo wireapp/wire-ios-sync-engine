@@ -1457,40 +1457,35 @@ extension WireCallCenterV3Tests {
     }
 
     func testThatCallParticipants_LimitsActiveSpeakersCorrectly() {
-        testCallParticipants(activeSpeakerKind: .realTime, participantsKind: .all, limit: 1) {
-            _, activeSpeakerAmount in
+        testCallParticipants(activeSpeakerKind: .realTime, participantsKind: .all, limit: 1) { _, activeSpeakerAmount in
 
             XCTAssertEqual(activeSpeakerAmount, 1)
         }
     }
 
     func testThatCallParticipants_IncludesRealTimeActiveSpeakers_WhenParticipantsKind_All() {
-        testCallParticipants(activeSpeakerKind: .realTime, participantsKind: .all) {
-            participants, activeSpeakerAmount in
+        testCallParticipants(activeSpeakerKind: .realTime, participantsKind: .all) { participants, activeSpeakerAmount in
 
             XCTAssertEqual(activeSpeakerAmount, participants.count)
         }
     }
 
     func testThatCallParticipants_ExcludesSmoothedActiveSpeakers_WhenParticipantsKind_All() {
-        testCallParticipants(activeSpeakerKind: .smoothed, participantsKind: .all) {
-            _, activeSpeakerAmount in
+        testCallParticipants(activeSpeakerKind: .smoothed, participantsKind: .all) { _, activeSpeakerAmount in
 
             XCTAssertEqual(activeSpeakerAmount, 0)
         }
     }
 
     func testThatCallParticipants_ReturnsSmoothedActiveSpeakersOnly_WhenParticipantKind_SmoothedActiveSpeakers() {
-        testCallParticipants(activeSpeakerKind: .smoothed, participantsKind: .smoothedActiveSpeakers) {
-            participants, activeSpeakerAmount in
+        testCallParticipants(activeSpeakerKind: .smoothed, participantsKind: .smoothedActiveSpeakers) { participants, activeSpeakerAmount in
 
             XCTAssertEqual(activeSpeakerAmount, participants.count)
         }
     }
 
     func testThatCallParticipants_ExcludesRealTimeActiveSpeakers_WhenParticipantKind_SmoothedActiveSpeakers() {
-        testCallParticipants(activeSpeakerKind: .realTime, participantsKind: .smoothedActiveSpeakers) {
-            _, activeSpeakerAmount in
+        testCallParticipants(activeSpeakerKind: .realTime, participantsKind: .smoothedActiveSpeakers) { _, activeSpeakerAmount in
 
             XCTAssertEqual(activeSpeakerAmount, 0)
         }

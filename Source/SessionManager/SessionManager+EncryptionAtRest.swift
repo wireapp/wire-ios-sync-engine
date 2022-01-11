@@ -37,14 +37,14 @@ extension SessionManager: UserSessionEncryptionAtRestDelegate {
                                                     try context.disableEncryptionAtRest(encryptionKeys: encryptionKeys)
                                                     try EncryptionKeys.deleteKeys(for: account)
                                                 }
-            }) { result in
+            }, completion: { result in
                 switch result {
                 case .success:
                     self?.loadSession(for: account, completion: { _ in })
                 case .failure(let error):
                     Logging.EAR.debug("Failed to migrate account: \(error)")
                 }
-            }
+            })
         })
     }
 
