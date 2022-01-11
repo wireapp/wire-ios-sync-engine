@@ -274,12 +274,14 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
                     domain: useFederationEndpoint ? event.senderDomain : nil
                 )
 
-                let callEvent = CallEvent(data: payload,
-                                          currentTimestamp: Date().addingTimeInterval(serverTimeDelta),
-                                          serverTimestamp: eventTimestamp,
-                                          conversationId: conversationId,
-                                          userId: userId,
-                                          clientId: clientId)
+                let callEvent = CallEvent(
+                    data: payload,
+                    currentTimestamp: Date().addingTimeInterval(serverTimeDelta),
+                    serverTimestamp: eventTimestamp,
+                    conversationId: conversationId,
+                    userId: userId,
+                    clientId: clientId
+                )
 
                 callEventStatus.scheduledCallEventForProcessing()
 
