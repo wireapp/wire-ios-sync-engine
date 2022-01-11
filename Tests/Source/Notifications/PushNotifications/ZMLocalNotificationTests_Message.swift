@@ -707,11 +707,11 @@ extension ZMLocalNotificationTests_Message {
 
     func testThatItGeneratesCorrectCategoryIfEncryptionAtRestIsEnabledForTeamUser() throws {
         // GIVEN
-        #if targetEnvironment(simulator)
+#if targetEnvironment(simulator) && swift(>=5.4)
         if #available(iOS 15, *) {
             XCTExpectFailure("Expect to fail on iOS 15 simulator. ref: https://wearezeta.atlassian.net/browse/SQCORE-1188")
         }
-        #endif
+#endif
 
         let encryptionKeys = try EncryptionKeys.createKeys(for: Account(userName: "", userIdentifier: UUID()))
         try uiMOC.enableEncryptionAtRest(encryptionKeys: encryptionKeys, skipMigration: true)
@@ -720,21 +720,21 @@ extension ZMLocalNotificationTests_Message {
         let note = textNotification(oneOnOneConversation, sender: sender, text: "Hello", isEphemeral: false)!
 
         // THEN
-        #if targetEnvironment(simulator)
+#if targetEnvironment(simulator) && swift(>=5.4)
         if #available(iOS 15, *) {
             XCTExpectFailure("Expect to fail on iOS 15 simulator. ref: https://wearezeta.atlassian.net/browse/SQCORE-1188")
         }
-        #endif
+#endif
         XCTAssertEqual(note.category, .conversationUnderEncryptionAtRestWithMute)
     }
 
     func testThatItGeneratesCorrectCategoryIfEncryptionAtRestIsEnabledForNormalUser() throws {
         // GIVEN
-        #if targetEnvironment(simulator)
+#if targetEnvironment(simulator) && swift(>=5.4)
         if #available(iOS 15, *) {
             XCTExpectFailure("Expect to fail on iOS 15 simulator. ref: https://wearezeta.atlassian.net/browse/SQCORE-1188")
         }
-        #endif
+#endif
         let encryptionKeys = try EncryptionKeys.createKeys(for: Account(userName: "", userIdentifier: UUID()))
         try uiMOC.enableEncryptionAtRest(encryptionKeys: encryptionKeys, skipMigration: true)
 

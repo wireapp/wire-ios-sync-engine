@@ -31,13 +31,13 @@ public struct AVSIdentifier: Hashable, Equatable {
 extension AVSIdentifier {
 
     public var serialized: String {
-        var identifier = identifier.uuidString
+        var returnIdentifier = identifier.uuidString
 
         if let domain = domain {
-            identifier += "@\(domain)"
+            returnIdentifier += "@\(domain)"
         }
 
-        return identifier
+        return returnIdentifier
     }
 
     /// Creates a non optional AVSIdentifier from a string. Crashes when the string format is wrong.
