@@ -19,6 +19,8 @@
 import Foundation
 import WireUtilities
 
+private let zmLog = ZMSLog(tag: "calling")
+
 class CallParticipantsSnapshot {
 
     // MARK: - Properties
@@ -38,6 +40,7 @@ class CallParticipantsSnapshot {
 
     private var participants = [CallParticipant]() {
         didSet {
+            zmLog.info("[332] CallParticipantSnapshot.participants: \(participants)")
             updateUserVerifiedMap()
             notifyChange()
         }
@@ -116,6 +119,8 @@ class CallParticipantsSnapshot {
 
     private func notifyChange() {
         guard let context = callCenter.uiMOC else { return }
+
+        zmLog.info("[332] CallParticipantSnapshop.notifyChange()")
 
         WireCallCenterCallParticipantNotification(conversationId: conversationId, participants: participants)
             .post(in: context.notificationContext)

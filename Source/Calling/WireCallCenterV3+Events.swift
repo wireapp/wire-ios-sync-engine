@@ -232,6 +232,7 @@ extension WireCallCenterV3 {
     }
 
     func handleParticipantChange(conversationId: AVSIdentifier, data: String) {
+        zmLog.info("[332] WireCallCenterV3.handleParticipantChange()")
         handleEvent("participant-change") {
             guard let data = data.data(using: .utf8) else {
                 zmLog.safePublic("Invalid participant change data")
@@ -254,6 +255,7 @@ extension WireCallCenterV3 {
 
             do {
                 let change = try self.decoder.decode(AVSParticipantsChange.self, from: data)
+                zmLog.info("[332] WireCallCenterV3.handleParticipantChange(). change: \(change)")
                 let members = change.members.map(AVSCallMember.init)
                 self.callParticipantsChanged(conversationId: AVSIdentifier.from(string: change.convid), participants: members)
             } catch {

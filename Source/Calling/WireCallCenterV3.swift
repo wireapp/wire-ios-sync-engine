@@ -389,6 +389,7 @@ extension WireCallCenterV3 {
 
     /// Call this method when the callParticipants changed and avs calls the handler `wcall_participant_changed_h`
     func callParticipantsChanged(conversationId: AVSIdentifier, participants: [AVSCallMember]) {
+        zmLog.info("[332] WireCallCenterV3.callPrticipantsChanged")
         callSnapshots[conversationId]?.callParticipants.callParticipantsChanged(participants: participants)
     }
 
