@@ -19,34 +19,33 @@ import Foundation
 @testable import WireSyncEngine
 
 class FeatureFlagRequestStrategyTests: MessagingTest {
-    
+
     var sut: FeatureFlagRequestStrategy!
     var mockSyncStatus: MockSyncStatus!
     var mockSyncStateDelegate: MockSyncStateDelegate!
     var mockApplicationStatus: MockApplicationStatus!
-    
+
     var selfUser: ZMUser!
     var team: Team!
-    
-    
+
     override func setUp() {
         super.setUp()
         mockSyncStateDelegate = MockSyncStateDelegate()
         mockSyncStatus = MockSyncStatus(managedObjectContext: syncMOC, syncStateDelegate: mockSyncStateDelegate)
         mockApplicationStatus = MockApplicationStatus()
         mockApplicationStatus.mockSynchronizationState = .slowSyncing
-        
+
         sut = FeatureFlagRequestStrategy(withManagedObjectContext: syncMOC,
                                          applicationStatus: mockApplicationStatus,
                                          syncStatus: mockSyncStatus)
-        
+
         team = Team.insertNewObject(in: self.syncMOC)
         team.name = "Wire Amazing Team"
         team.remoteIdentifier = UUID.create()
         selfUser = ZMUser.selfUser(in: self.syncMOC)
         selfUser.teamIdentifier = team.remoteIdentifier
         uiMOC.saveOrRollback()
-        
+
         syncMOC.performGroupedBlockAndWait {
             FeatureFlag.insert(with: .digitalSignature,
                                value: false,
@@ -54,7 +53,7 @@ class FeatureFlagRequestStrategyTests: MessagingTest {
                                context: self.syncMOC)
         }
     }
-    
+
     override func tearDown() {
         sut = nil
         mockSyncStatus = nil
@@ -64,14 +63,14 @@ class FeatureFlagRequestStrategyTests: MessagingTest {
         team = nil
         super.tearDown()
     }
-    
+
     // MARK: - Slow Sync
-    
+
     func testThatItRequestsFeatureFlags_DuringSlowSync() {
         syncMOC.performGroupedBlockAndWait {
             // GIVEN
             self.mockSyncStatus.mockPhase = .fetchingFeatureFlags
-            
+
             // WHEN
             guard
                 let teamId = self.selfUser.teamIdentifier?.uuidString,
@@ -79,24 +78,24 @@ class FeatureFlagRequestStrategyTests: MessagingTest {
             else {
                 return XCTFail()
             }
-            
+
             // THEN
             XCTAssertEqual(request.path, "/teams/\(teamId)/features/digital-signatures")
         }
     }
-    
+
     func testThatItFinishSlowSyncPhase_WhenFeatureFlagsExist() {
         syncMOC.performGroupedBlockAndWait {
             // GIVEN
             self.mockSyncStatus.mockPhase = .fetchingFeatureFlags
-            
+
             guard
                 let teamId = self.selfUser.teamIdentifier?.uuidString,
                 let request = self.sut.nextRequest()
             else {
                 return XCTFail()
             }
-            
+
             // WHEN
             let encoder = JSONEncoder()
             let data = try! encoder.encode(SignatureFeatureFlagResponse(status: false))
@@ -110,13 +109,13 @@ class FeatureFlagRequestStrategyTests: MessagingTest {
             request.complete(with: response)
         }
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-            
+
         // THEN
         syncMOC.performGroupedBlockAndWait {
             XCTAssertTrue(self.mockSyncStatus.didCallFinishCurrentSyncPhase)
         }
     }
-    
+
     func testThatItFinishSlowSyncPhase_WhenFeatureFlagsDontExist() {
         syncMOC.performGroupedBlockAndWait {
             // GIVEN
@@ -124,20 +123,20 @@ class FeatureFlagRequestStrategyTests: MessagingTest {
             guard let request = self.sut.nextRequest() else {
                 return XCTFail()
             }
-            
+
             // WHEN
             request.complete(with: ZMTransportResponse(payload: nil,
                                                        httpStatus: 404,
                                                        transportSessionError: nil))
         }
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // THEN
         syncMOC.performGroupedBlockAndWait {
             XCTAssertTrue(self.mockSyncStatus.didCallFinishCurrentSyncPhase)
         }
     }
-    
+
     func testThatItGeneratesCorrectRequestIfFeatureFlagUpdatedMoreThan24HoursAgo() {
         let calendar = Calendar.current
         guard
@@ -146,7 +145,7 @@ class FeatureFlagRequestStrategyTests: MessagingTest {
         else {
             return XCTFail()
         }
-        
+
         syncMOC.performGroupedBlockAndWait {
             // GIVEN
             let featureFlag = FeatureFlag.updateOrCreate(with: .digitalSignature,
@@ -156,17 +155,17 @@ class FeatureFlagRequestStrategyTests: MessagingTest {
             featureFlag.updatedTimestamp = lastUpdateDate
             self.syncMOC.saveOrRollback()
         }
-        
+
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         let request = sut.nextRequestIfAllowed()
         XCTAssertNotNil(request)
         XCTAssertEqual(request?.path, "/teams/\(teamId)/features/digital-signatures")
         XCTAssertEqual(request?.method, .methodGET)
     }
-    
+
     func testThatItItUpdatesSignatureFeatureFlag() {
         let updatedValue = true
-        
+
         syncMOC.performGroupedBlockAndWait {
             // GIVEN
             let featureFlag = FeatureFlag.updateOrCreate(with: .digitalSignature,
@@ -177,7 +176,7 @@ class FeatureFlagRequestStrategyTests: MessagingTest {
             self.syncMOC.saveOrRollback()
         }
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // THEN
         syncMOC.performGroupedBlockAndWait {
             let featureFlag = FeatureFlag.fetch(with: .digitalSignature,

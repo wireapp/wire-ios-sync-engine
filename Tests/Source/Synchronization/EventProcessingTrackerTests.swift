@@ -20,90 +20,90 @@ import XCTest
 @testable import WireSyncEngine
 
 final class EventProcessingTrackerTests: XCTestCase {
-    
+
     var sut: EventProcessingTracker!
-    
+
     override func setUp() {
         super.setUp()
         sut = EventProcessingTracker()
     }
-    
+
     override func tearDown() {
         sut = nil
         super.tearDown()
     }
 
     func testThatItIncrementCounters_savesPerformed_debugDescription() {
-        //given
+        // given
         XCTAssertEqual(sut.debugDescription, "Optional([:])")
 
-        //when
+        // when
         sut.registerSavePerformed()
 
-        //then
+        // then
         XCTAssertEqual(sut.debugDescription, "Optional([\"event_savesPerformed\": 1])")
     }
 
     func testThatItIncrementCounters_savesPerformed() {
-        //when
+        // when
         sut.registerSavePerformed()
-        
-        //then
+
+        // then
         verifyIncrement(attribute: .savesPerformed)
     }
-    
+
     func testThatItIncrementCounters_processedEvents() {
-        //when
+        // when
         sut.registerEventProcessed()
-        
-        //then
+
+        // then
         verifyIncrement(attribute: .processedEvents)
     }
-    
+
     func testThatItIncrementCounters_dataUpdatePerformed() {
-        //when
+        // when
         sut.registerDataUpdatePerformed()
-        
-        //then
+
+        // then
         verifyIncrement(attribute: .dataUpdatePerformed)
     }
-    
+
     func testThatItIncrementCounters_dataDeletionPerformed() {
-        //when
+        // when
         sut.registerDataDeletionPerformed()
-        
-        //then
+
+        // then
         verifyIncrement(attribute: .dataDeletionPerformed)
     }
-    
+
     func testThatItIncrementCounters_dataInsertionPerformed() {
-        //when
+        // when
         sut.registerDataInsertionPerformed()
-        
-        //then
+
+        // then
         verifyIncrement(attribute: .dataInsertionPerformed)
     }
-    
+
     func testMultipleIncrements() {
-        //when
+        // when
         sut.registerSavePerformed()
         sut.registerEventProcessed()
         sut.registerDataUpdatePerformed()
         sut.registerDataDeletionPerformed()
         sut.registerDataInsertionPerformed()
-        
-        //then
+
+        // then
         verifyIncrement(attribute: .dataInsertionPerformed)
         verifyIncrement(attribute: .dataDeletionPerformed)
         verifyIncrement(attribute: .dataUpdatePerformed)
         verifyIncrement(attribute: .processedEvents)
         verifyIncrement(attribute: .savesPerformed)
     }
-    
+
     func verifyIncrement(attribute: EventProcessingTracker.Attributes) {
         let attributes = sut.persistedAttributes(for: sut.eventName)
         XCTAssertNotNil(attributes)
         XCTAssertEqual(attributes[attribute.identifier] as? Int, 1)
     }
-    
+
 }

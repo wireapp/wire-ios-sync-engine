@@ -19,7 +19,7 @@
 import Foundation
 import WireDataModel
 
-public struct SearchOptions : OptionSet {
+public struct SearchOptions: OptionSet {
     public let rawValue: Int
 
     /// Users you are connected to via connection request
@@ -40,11 +40,11 @@ public struct SearchOptions : OptionSet {
     public static let services = SearchOptions(rawValue: 1 << 7)
     /// Users from federated servers
     public static let federated = SearchOptions(rawValue: 1 << 8)
-    
+
     public init(rawValue: Int) {
         self.rawValue = rawValue
     }
-    
+
 }
 
 extension SearchOptions {
@@ -58,21 +58,20 @@ extension SearchOptions {
     }
 }
 
-
 public struct SearchRequest {
-    
+
     let maxQueryLength = 200
-    
+
     public init(query: String, searchOptions: SearchOptions, team: Team? = nil) {
         self.query = query.truncated(at: maxQueryLength)
         self.searchOptions = searchOptions
         self.team = team
     }
-    
-    var team : Team? = nil
-    let query : String
+
+    var team: Team?
+    let query: String
     let searchOptions: SearchOptions
-    
+
     var normalizedQuery: String {
         return query.normalizedAndTrimmed()
     }
@@ -91,14 +90,14 @@ public struct SearchRequest {
 
         return (String(handle), String(domain))
     }
-    
+
 }
 
 fileprivate extension String {
-    
+
     func normalizedAndTrimmed() -> String {
         guard let normalized = self.normalizedForSearch() as String? else { return "" }
         return normalized.trimmingCharacters(in: .whitespaces)
     }
-    
+
 }

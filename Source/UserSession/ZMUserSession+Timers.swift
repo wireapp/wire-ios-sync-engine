@@ -26,7 +26,7 @@ extension ZMUserSession {
         }
         managedObjectContext.zm_createMessageDeletionTimer()
     }
-    
+
     public func stopEphemeralTimers() {
         syncManagedObjectContext.performGroupedBlock {
             self.syncManagedObjectContext.zm_teardownMessageObfuscationTimer()

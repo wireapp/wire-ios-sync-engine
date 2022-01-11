@@ -29,7 +29,7 @@ extension TypingUsersTimeout {
 
         init(user: ZMUser, conversation: ZMConversation) {
             // We need the ids to be permanent.
-            if (user.objectID.isTemporaryID || conversation.objectID.isTemporaryID) {
+            if user.objectID.isTemporaryID || conversation.objectID.isTemporaryID {
                 do {
                     try user.managedObjectContext?.obtainPermanentIDs(for: [user, conversation])
                 } catch let error {
@@ -43,4 +43,3 @@ extension TypingUsersTimeout {
         }
     }
 }
-

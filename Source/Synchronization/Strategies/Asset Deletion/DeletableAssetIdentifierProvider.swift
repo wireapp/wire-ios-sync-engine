@@ -16,20 +16,20 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-@objc public protocol DeletableAssetIdentifierProvider: class {
+@objc public protocol DeletableAssetIdentifierProvider: AnyObject {
     var assetIdentifiersToBeDeleted: Set<String> { get set }
 }
 
 extension NSManagedObjectContext: DeletableAssetIdentifierProvider {
-    
+
     private static let assetIdentifiersToBeDeletedKey = "assetIdentifiersToBeDeleted"
-    
+
     public var assetIdentifiersToBeDeleted: Set<String> {
-        set {
-            setPersistentStoreMetadata(Array(newValue), key: NSManagedObjectContext.assetIdentifiersToBeDeletedKey)
-        }
         get {
             return Set(persistentStoreMetadata(forKey: NSManagedObjectContext.assetIdentifiersToBeDeletedKey) as? [String] ?? [])
+        }
+        set {
+            setPersistentStoreMetadata(Array(newValue), key: NSManagedObjectContext.assetIdentifiersToBeDeletedKey)
         }
     }
 }

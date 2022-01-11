@@ -24,7 +24,7 @@ class CallParticipantsSnapshot {
     // MARK: - Properties
 
     private unowned var callCenter: WireCallCenterV3
-    private let conversationId: UUID
+    private let conversationId: AVSIdentifier
 
     private(set) var members: OrderedSetState<AVSCallMember> {
         didSet {
@@ -78,7 +78,7 @@ class CallParticipantsSnapshot {
 
     // MARK: - Life Cycle
 
-    init(conversationId: UUID, members: [AVSCallMember], callCenter: WireCallCenterV3) {
+    init(conversationId: AVSIdentifier, members: [AVSCallMember], callCenter: WireCallCenterV3) {
         self.callCenter = callCenter
         self.conversationId = conversationId
         self.members = type(of: self).removeDuplicateMembers(members)
@@ -87,7 +87,7 @@ class CallParticipantsSnapshot {
     // MARK: - Updates
 
     func callParticipantsChanged(participants: [AVSCallMember]) {
-        members = type(of:self).removeDuplicateMembers(participants)
+        members = type(of: self).removeDuplicateMembers(participants)
     }
 
     func callParticipantNetworkQualityChanged(client: AVSClient, networkQuality: NetworkQuality) {

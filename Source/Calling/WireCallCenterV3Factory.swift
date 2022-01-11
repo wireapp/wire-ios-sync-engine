@@ -23,13 +23,13 @@ import WireDataModel
  * Creates call centers.
  */
 
-@objcMembers public class WireCallCenterV3Factory : NSObject {
+@objcMembers public class WireCallCenterV3Factory: NSObject {
 
     /// The class to use when creating a call center,
-    public static var wireCallCenterClass : WireCallCenterV3.Type = WireCallCenterV3.self
+    public static var wireCallCenterClass: WireCallCenterV3.Type = WireCallCenterV3.self
 
     /// The class to use when creating a voice channel.
-    public static var voiceChannelClass : VoiceChannel.Type = VoiceChannelV3.self
+    public static var voiceChannelClass: VoiceChannel.Type = VoiceChannelV3.self
 
     /**
      * Creates a call center with the specified information.
@@ -42,7 +42,7 @@ import WireDataModel
      * - returns: The call center to use for the given configuration.
      */
 
-    public class func callCenter(withUserId userId: UUID,
+    public class func callCenter(withUserId userId: AVSIdentifier,
                                  clientId: String,
                                  uiMOC: NSManagedObjectContext,
                                  flowManager: FlowManagerType,
@@ -65,5 +65,5 @@ import WireDataModel
             return newInstance
         }
     }
-    
+
 }

@@ -78,4 +78,6 @@
 @property (nonatomic, null_unspecified) MockConnection *connectionSelfToUser1;
 @property (nonatomic, null_unspecified) MockConnection *connectionSelfToUser2;
 
+@property (nonatomic, null_unspecified) NSString *appState;
+
 @end

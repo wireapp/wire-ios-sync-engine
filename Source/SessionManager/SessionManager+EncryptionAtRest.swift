@@ -19,11 +19,11 @@
 import Foundation
 
 extension SessionManager: UserSessionEncryptionAtRestDelegate {
-        
+
     func setEncryptionAtRest(enabled: Bool, account: Account, encryptionKeys: EncryptionKeys) {
         let sharedContainerURL = self.sharedContainerURL
         let dispatchGroup = self.dispatchGroup
-                    
+
         delegate?.sessionManagerWillMigrateAccount(userSessionCanBeTornDown: { [weak self] in
             self?.tearDownBackgroundSession(for: account.userIdentifier)
             self?.activeUserSession = nil
@@ -37,15 +37,15 @@ extension SessionManager: UserSessionEncryptionAtRestDelegate {
                                                     try context.disableEncryptionAtRest(encryptionKeys: encryptionKeys)
                                                     try EncryptionKeys.deleteKeys(for: account)
                                                 }
-            }) { result in
+            }, completion: { result in
                 switch result {
-                case .success():
+                case .success:
                     self?.loadSession(for: account, completion: { _ in })
                 case .failure(let error):
                     Logging.EAR.debug("Failed to migrate account: \(error)")
                 }
-            }
+            })
         })
     }
-    
+
 }

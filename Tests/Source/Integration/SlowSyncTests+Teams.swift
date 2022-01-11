@@ -16,15 +16,14 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 class SlowSyncTestsTeams: IntegrationTest {
 
-    func mockMember(_ mockMember : MockMember, isEqualTo member: Member) -> Bool {
+    func mockMember(_ mockMember: MockMember, isEqualTo member: Member) -> Bool {
         return mockMember.user.identifier == member.user?.remoteIdentifier?.transportString()
             && mockMember.team.identifier == member.team?.remoteIdentifier?.transportString()
     }
-    
-    /// MARK -
+
+    // MARK: -
 
     func DISABLED_testThatItFetchesTeamsAndMembersDuringSlowSync() {
         // Given

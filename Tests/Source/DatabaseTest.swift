@@ -19,39 +19,39 @@
 import Foundation
 
 class DatabaseTest: ZMTBaseTest {
-    
+
     let accountId = UUID()
     var coreDataStack: CoreDataStack?
-    
+
     var useInMemoryDatabase: Bool {
         return true
     }
-    
+
     var uiMOC: NSManagedObjectContext {
         return self.coreDataStack!.viewContext
     }
-    
+
     var syncMOC: NSManagedObjectContext {
         return self.coreDataStack!.syncContext
     }
-    
+
     var searchMOC: NSManagedObjectContext {
         return self.coreDataStack!.searchContext
     }
-    
+
     var sharedContainerURL: URL? {
         let bundleIdentifier = Bundle.main.bundleIdentifier
         let groupIdentifier = "group." + bundleIdentifier!
         return FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: groupIdentifier)
     }
-    
+
     private func cleanUp() {
         try? FileManager.default.contentsOfDirectory(at: sharedContainerURL!, includingPropertiesForKeys: nil, options: .skipsHiddenFiles).forEach {
             try? FileManager.default.removeItem(at: $0)
         }
     }
 
-    private func createCoreDataStack() -> CoreDataStack{
+    private func createCoreDataStack() -> CoreDataStack {
         let account = Account(userName: "", userIdentifier: accountId)
         let stack = CoreDataStack(account: account,
                                   applicationContainer: sharedContainerURL!,
@@ -64,40 +64,40 @@ class DatabaseTest: ZMTBaseTest {
 
         return stack
     }
-        
+
     private func configureCaches() {
         let fileAssetCache = FileAssetCache(location: nil)
         let userImageCache = UserImageLocalCache(location: nil)
-        
+
         uiMOC.zm_fileAssetCache = fileAssetCache
         uiMOC.zm_userImageCache = userImageCache
-        
+
         syncMOC.performGroupedBlockAndWait {
             self.syncMOC.zm_fileAssetCache = fileAssetCache
             self.uiMOC.zm_userImageCache = userImageCache
         }
     }
-    
+
     override func setUp() {
         super.setUp()
-        
+
         self.coreDataStack = createCoreDataStack()
 
         configureCaches()
     }
-    
+
     override func tearDown() {
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         coreDataStack = nil
 
         cleanUp()
-        
+
         super.tearDown()
     }
-    
+
     // MARK: - Helper methods
-    
+
     func performPretendingUIMocIsSyncMoc(_ block: () -> Void) {
         uiMOC.resetContextType()
         uiMOC.markAsSyncContext()
@@ -105,11 +105,11 @@ class DatabaseTest: ZMTBaseTest {
         uiMOC.resetContextType()
         uiMOC.markAsUIContext()
     }
-    
+
     func event(withPayload payload: [AnyHashable: Any]?, type: ZMUpdateEventType, in conversation: ZMConversation, user: ZMUser) -> ZMUpdateEvent {
         return ZMUpdateEvent(uuid: nil, payload: eventPayload(content: payload, type: type, in: conversation, from: user), transient: false, decrypted: true, source: .download)!
     }
-    
+
     private func eventPayload(content: [AnyHashable: Any]?,
                               type: ZMUpdateEventType,
                               in conversation: ZMConversation,
@@ -122,5 +122,5 @@ class DatabaseTest: ZMTBaseTest {
                  "type": ZMUpdateEvent.eventTypeString(for: type)!
         ]
     }
-    
+
 }

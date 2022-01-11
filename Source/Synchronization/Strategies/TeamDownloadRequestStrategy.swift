@@ -19,7 +19,7 @@
 struct TeamListPayload: Decodable {
     let hasMore: Bool
     let teams: [TeamPayload]
-    
+
     private enum CodingKeys: String, CodingKey {
         case hasMore = "has_more"
         case teams
@@ -27,14 +27,14 @@ struct TeamListPayload: Decodable {
 }
 
 struct TeamPayload: Decodable {
-    
+
     let identifier: UUID
     let name: String
     let creator: UUID
     let binding: Bool
     let icon: String
     let iconKey: String?
-    
+
     private enum CodingKeys: String, CodingKey {
         case identifier = "id"
         case name
@@ -43,11 +43,11 @@ struct TeamPayload: Decodable {
         case icon
         case iconKey = "icon_key"
     }
-        
+
 }
 
 extension TeamPayload {
-    
+
     func createOrUpdateTeam(in managedObjectContext: NSManagedObjectContext) -> Team? {
         var created: Bool = false
         guard let team = Team.fetchOrCreate(with: identifier,
@@ -57,28 +57,28 @@ extension TeamPayload {
         else {
             return nil
         }
-        
+
         if created {
             let selfUser = ZMUser.selfUser(in: managedObjectContext)
             _ = Member.getOrCreateMember(for: selfUser, in: team, context: managedObjectContext)
         }
-        
+
         updateTeam(team, in: managedObjectContext)
-                
+
         return team
     }
-    
+
     func updateTeam(_ team: Team, in managedObjectContext: NSManagedObjectContext) {
         team.name = name
         team.creator = ZMUser.fetchOrCreate(with: creator, domain: nil, in: managedObjectContext)
         team.pictureAssetId = icon
         team.pictureAssetKey = iconKey
-        
+
         if !binding {
             managedObjectContext.delete(team)
         }
     }
-    
+
 }
 
 fileprivate extension Team {
@@ -91,14 +91,14 @@ fileprivate extension Team {
 
 /// Responsible for downloading the team which the self user belongs to during the slow sync
 /// and for updating it when processing events or when manually requested.
-    
+
 public final class TeamDownloadRequestStrategy: AbstractRequestStrategy, ZMContextChangeTrackerSource, ZMEventConsumer, ZMSingleRequestTranscoder, ZMDownstreamTranscoder {
 
     private (set) var downstreamSync: ZMDownstreamObjectSync!
     private (set) var slowSync: ZMSingleRequestSync!
-    
+
     fileprivate unowned var syncStatus: SyncStatus
-    
+
     public init(withManagedObjectContext managedObjectContext: NSManagedObjectContext, applicationStatus: ApplicationStatus, syncStatus: SyncStatus) {
         self.syncStatus = syncStatus
         super.init(withManagedObjectContext: managedObjectContext, applicationStatus: applicationStatus)
@@ -126,25 +126,25 @@ public final class TeamDownloadRequestStrategy: AbstractRequestStrategy, ZMConte
     public var contextChangeTrackers: [ZMContextChangeTracker] {
         return [downstreamSync]
     }
-    
-    fileprivate var expectedSyncPhase : SyncPhase {
-        return .fetchingTeams;
+
+    fileprivate var expectedSyncPhase: SyncPhase {
+        return .fetchingTeams
     }
-    
+
     fileprivate var isSyncing: Bool {
         return syncStatus.currentSyncPhase == expectedSyncPhase
     }
 
-    //MARK: - ZMEventConsumer
+    // MARK: - ZMEventConsumer
     public func processEvents(_ events: [ZMUpdateEvent], liveEvents: Bool, prefetchResult: ZMFetchRequestBatchResult?) {
         events.forEach(process)
     }
-    
+
     private func process(_ event: ZMUpdateEvent) {
         switch event.type {
         case .teamCreate: createTeam(with: event)
         case .teamDelete: deleteTeam(with: event)
-        case .teamUpdate: updateTeam(with : event)
+        case .teamUpdate: updateTeam(with: event)
         case .teamMemberJoin: processAddedMember(with: event)
         case .teamMemberLeave: processRemovedMember(with: event)
         case .teamMemberUpdate: processUpdatedMember(with: event)
@@ -166,7 +166,7 @@ public final class TeamDownloadRequestStrategy: AbstractRequestStrategy, ZMConte
     private func updateTeam(with event: ZMUpdateEvent) {
         guard let identifier = event.teamId, let data = event.dataPayload else { return }
         guard let existingTeam = Team.fetchOrCreate(with: identifier, create: false, in: managedObjectContext, created: nil) else { return }
-        
+
         TeamUpdateEventPayload(data)?.updateTeam(existingTeam, in: managedObjectContext)
     }
 
@@ -202,23 +202,23 @@ public final class TeamDownloadRequestStrategy: AbstractRequestStrategy, ZMConte
         guard let member = Member.fetch(with: userId, in: managedObjectContext) else { return }
         member.needsToBeUpdatedFromBackend = true
     }
-    
+
     private func deleteTeamAndConversations(_ team: Team) {
         team.conversations.forEach(managedObjectContext.delete)
         managedObjectContext.delete(team)
     }
-    
+
     private func deleteAccount() {
         let notification = AccountDeletedNotification(context: managedObjectContext)
         notification.post(in: managedObjectContext.notificationContext)
     }
 
-    //MARK:- ZMSingleRequestTranscoder
-    
+    // MARK: - ZMSingleRequestTranscoder
+
     public func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
         return TeamDownloadRequestFactory.getTeamsRequest
     }
-    
+
     public func didReceive(_ response: ZMTransportResponse, forSingleRequest sync: ZMSingleRequestSync) {
         guard
             let rawData = response.rawData,
@@ -227,13 +227,13 @@ public final class TeamDownloadRequestStrategy: AbstractRequestStrategy, ZMConte
             syncStatus.failCurrentSyncPhase(phase: expectedSyncPhase)
             return
         }
-        
+
         _ = teamListPayload.teams.first?.createOrUpdateTeam(in: managedObjectContext)
-                        
+
         syncStatus.finishCurrentSyncPhase(phase: expectedSyncPhase)
     }
-    
-    //MARK:- ZMDownstreamTranscoder
+
+    // MARK: - ZMDownstreamTranscoder
 
     public func request(forFetching object: ZMManagedObject!, downstreamSync: ZMObjectSync!) -> ZMTransportRequest! {
         guard downstreamSync as? ZMDownstreamObjectSync == self.downstreamSync, let team = object as? Team else { fatal("Wrong sync or object for: \(object.safeForLoggingDescription)") }
@@ -246,21 +246,21 @@ public final class TeamDownloadRequestStrategy: AbstractRequestStrategy, ZMConte
             let team = object as? Team,
             let rawData = response.rawData,
             let teamPayload = TeamPayload(rawData) else { return }
-                    
+
         teamPayload.updateTeam(team, in: managedObjectContext)
-        
+
         team.needsToBeUpdatedFromBackend = false
         team.needsToDownloadRoles = true
     }
 
     public func delete(_ object: ZMManagedObject!, with response: ZMTransportResponse!, downstreamSync: ZMObjectSync!) {
         guard downstreamSync as? ZMDownstreamObjectSync == self.downstreamSync, let team = object as? Team else { return }
-        
+
         managedObjectContext.delete(team)
     }
 }
 
-//MARK:- Event
+// MARK: - Event
 
 fileprivate extension ZMUpdateEvent {
 
@@ -273,37 +273,37 @@ fileprivate extension ZMUpdateEvent {
     }
 }
 
-fileprivate  enum TeamEventPayloadKey: String {
-    
+private  enum TeamEventPayloadKey: String {
+
     case team
     case data
     case user
     case conversation = "conv"
-    
+
 }
 
 struct TeamUpdateEventPayload: Decodable {
-    
+
     let name: String?
     let icon: String?
     let iconKey: String?
-    
+
     private enum CodingKeys: String, CodingKey {
         case name
         case icon
         case iconKey = "icon_key"
     }
-        
+
 }
 
 extension TeamUpdateEventPayload {
-    
+
     func updateTeam(_ team: Team, in managedObjectContext: NSManagedObjectContext) {
         team.name = name
         team.pictureAssetId = icon
         team.pictureAssetKey = iconKey
     }
-    
+
 }
 
 private let log = ZMSLog(tag: "Teams")

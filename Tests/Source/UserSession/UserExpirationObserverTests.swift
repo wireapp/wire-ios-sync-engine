@@ -29,33 +29,33 @@ extension ZMUser {
 }
 
 extension XCTestCase {
-    func waitInRunLoop(for condition: ()->(Bool), tick: TimeInterval = 0.05) -> Bool {
+    func waitInRunLoop(for condition: () -> (Bool), tick: TimeInterval = 0.05) -> Bool {
         let maximumWait = Date(timeIntervalSinceNow: 5)
-        
+
         while !condition() {
             RunLoop.current.run(until: Date(timeIntervalSinceNow: tick))
             if Date().compare(maximumWait) == .orderedDescending {
                 return false
             }
         }
-        
+
         return true
     }
 }
 
 public class UserExpirationObserverTests: MessagingTest {
     var sut: UserExpirationObserver!
-    
+
     override public func setUp() {
         super.setUp()
         sut = UserExpirationObserver(managedObjectContext: self.uiMOC)
     }
-    
+
     override public func tearDown() {
         sut = nil
         super.tearDown()
     }
-    
+
     func testThatItIgnoresNonExpiringUsers() {
         // given
         let user = ZMUser.insertNewObject(in: self.uiMOC)
@@ -67,7 +67,7 @@ public class UserExpirationObserverTests: MessagingTest {
         // then
         XCTAssertFalse(user.needsToBeUpdatedFromBackend)
     }
-    
+
     func testThatItMarkToBeFetchedExpiredUsers() {
         // given
         let user = ZMUser.insertNewObject(in: self.uiMOC)
@@ -80,7 +80,7 @@ public class UserExpirationObserverTests: MessagingTest {
         // then
         XCTAssertTrue(user.needsToBeUpdatedFromBackend)
     }
-    
+
     func testThatItDoesNotMarkSameUserTwice() {
         // given
         let user = ZMUser.insertNewObject(in: self.uiMOC)
@@ -99,7 +99,7 @@ public class UserExpirationObserverTests: MessagingTest {
         XCTAssertFalse(user.needsToBeUpdatedFromBackend)
         XCTAssertTrue(sut.expiringUsers.contains(user))
     }
-    
+
     func testThatItStartsTimerForExpiringUsers() {
         // given
         let user = ZMUser.insertNewObject(in: self.uiMOC)
@@ -118,7 +118,7 @@ public class UserExpirationObserverTests: MessagingTest {
         }))
         XCTAssertFalse(sut.expiringUsers.contains(user))
     }
-    
+
     func testThatItDoesNotRetainItself() {
         weak var sut: UserExpirationObserver?
         autoreleasepool {
@@ -135,7 +135,7 @@ public class UserExpirationObserverTests: MessagingTest {
             // then
             XCTAssertNotNil(sut)
         }
-        
+
         // ...and then
         XCTAssertNil(sut)
     }

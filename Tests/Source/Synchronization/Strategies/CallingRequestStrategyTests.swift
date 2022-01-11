@@ -18,13 +18,14 @@
 
 import Foundation
 import WireRequestStrategy
+import WireSyncEngine
 
-class CallingRequestStrategyTests : MessagingTest {
+class CallingRequestStrategyTests: MessagingTest {
 
     var sut: CallingRequestStrategy!
     var mockApplicationStatus: MockApplicationStatus!
     var mockRegistrationDelegate: ClientRegistrationDelegate!
-    
+
     override func setUp() {
         super.setUp()
         mockApplicationStatus = MockApplicationStatus()
@@ -38,7 +39,7 @@ class CallingRequestStrategyTests : MessagingTest {
             callEventStatus: CallEventStatus()
         )
     }
-    
+
     override func tearDown() {
         sut = nil
         mockRegistrationDelegate = nil
@@ -47,64 +48,64 @@ class CallingRequestStrategyTests : MessagingTest {
     }
 
     // MARK: - Call Config
-    
+
     func testThatItGenerateCallConfigRequestAndCallsTheCompletionHandler() {
-        
+
         // given
         let expectedCallConfig = "{\"config\":true}"
         let receivedCallConfigExpectation = expectation(description: "Received CallConfig")
-        
+
         sut.requestCallConfig { (callConfig, httpStatusCode) in
             if callConfig == expectedCallConfig, httpStatusCode == 200 {
                 receivedCallConfigExpectation.fulfill()
             }
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         let request = sut.nextRequest()
         XCTAssertEqual(request?.path, "/calls/config/v2")
-        
+
         // when
-        let payload = [ "config" : true ]
+        let payload = [ "config": true ]
         request?.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil))
-        
+
         // then
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
     }
-    
+
     func testThatItGeneratesOnlyOneCallConfigRequest() {
-        
+
         // given
         sut.requestCallConfig { (_, _) in}
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // when
         let request = sut.nextRequest()
         XCTAssertNotNil(request)
-        
+
         // then
         let secondRequest = sut.nextRequest()
         XCTAssertNil(secondRequest)
     }
-    
+
     func testThatItGeneratesCompressedCallConfigRequest() {
-        
+
         // given
         sut.requestCallConfig { (_, _) in}
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // when
         guard let request = sut.nextRequest() else { return XCTFail() }
-        
+
         // then
         XCTAssertTrue(request.shouldCompress)
     }
-    
+
     func testThatItDoesNotForwardUnsuccessfulResponses() {
         // given
         let expectedCallConfig = "{\"config\":true}"
         let receivedCallConfigExpectation = expectation(description: "Received CallConfig")
-        
+
         sut.requestCallConfig { (callConfig, httpStatusCode) in
             if callConfig == expectedCallConfig, httpStatusCode == 200 {
                 receivedCallConfigExpectation.fulfill()
@@ -113,16 +114,16 @@ class CallingRequestStrategyTests : MessagingTest {
             }
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         let request = sut.nextRequest()
         XCTAssertEqual(request?.path, "/calls/config/v2")
-        
+
         // when
-        let badPayload = [ "error" : "not found" ]
+        let badPayload = [ "error": "not found" ]
         request?.complete(with: ZMTransportResponse(payload: badPayload as ZMTransportData, httpStatus: 412, transportSessionError: nil))
-        
+
         // when
-        let payload = [ "config" : true ]
+        let payload = [ "config": true ]
         request?.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil))
 
         // then
@@ -137,16 +138,16 @@ class CallingRequestStrategyTests : MessagingTest {
         createSelfClient()
 
         let conversationId = UUID.create()
-        let userId1 = UUID.create()
-        let userId2 = UUID.create()
+        let userId1 = AVSIdentifier.stub
+        let userId2 = AVSIdentifier.stub
         let clientId1 = "client1"
         let clientId2 = "client2"
 
         let payload = """
         {
             "missing": {
-                "\(userId1.transportString())": ["\(clientId1)", "\(clientId2)"],
-                "\(userId2.transportString())": ["\(clientId1)"]
+                "\(userId1.serialized)": ["\(clientId1)", "\(clientId2)"],
+                "\(userId2.serialized)": ["\(clientId1)"]
             }
         }
         """
@@ -215,21 +216,21 @@ class CallingRequestStrategyTests : MessagingTest {
         // A conversation with both users and self
         let conversation = ZMConversation.insertNewObject(in: syncMOC)
         conversation.remoteIdentifier = .create()
-        conversation.addParticipantsAndUpdateConversationState(users: Set(arrayLiteral: ZMUser.selfUser(in: syncMOC), user1, user2), role: nil)
+        conversation.addParticipantsAndUpdateConversationState(users: [ZMUser.selfUser(in: syncMOC), user1, user2], role: nil)
         conversation.needsToBeUpdatedFromBackend = false
 
         syncMOC.saveOrRollback()
 
         // Targeting two specific clients
-        let avsClient1 = AVSClient(userId: user1.remoteIdentifier, clientId: client1.remoteIdentifier!)
-        let avsClient2 = AVSClient(userId: user2.remoteIdentifier, clientId: client2.remoteIdentifier!)
+        let avsClient1 = AVSClient(userId: user1.avsIdentifier, clientId: client1.remoteIdentifier!)
+        let avsClient2 = AVSClient(userId: user2.avsIdentifier, clientId: client2.remoteIdentifier!)
         let targets = [avsClient1, avsClient2]
 
         var nextRequest: ZMTransportRequest?
 
         // When we schedule the targeted message
         syncMOC.performGroupedBlock {
-            self.sut.send(data: Data(), conversationId: conversation.remoteIdentifier!, targets: targets) { _ in }
+            self.sut.send(data: Data(), conversationId: conversation.avsIdentifier!, targets: targets) { _ in }
         }
 
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
@@ -289,7 +290,7 @@ class CallingRequestStrategyTests : MessagingTest {
         // A conversation with both users and self
         let conversation = ZMConversation.insertNewObject(in: syncMOC)
         conversation.remoteIdentifier = .create()
-        conversation.addParticipantsAndUpdateConversationState(users: Set(arrayLiteral: ZMUser.selfUser(in: syncMOC), user1, user2), role: nil)
+        conversation.addParticipantsAndUpdateConversationState(users: [ZMUser.selfUser(in: syncMOC), user1, user2], role: nil)
         conversation.needsToBeUpdatedFromBackend = false
 
         syncMOC.saveOrRollback()
@@ -298,7 +299,7 @@ class CallingRequestStrategyTests : MessagingTest {
 
         // When we schedule the message with no targets
         syncMOC.performGroupedBlock {
-            self.sut.send(data: Data(), conversationId: conversation.remoteIdentifier!, targets: nil) { _ in }
+            self.sut.send(data: Data(), conversationId: conversation.avsIdentifier!, targets: nil) { _ in }
         }
 
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))

@@ -16,39 +16,38 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import Foundation
 
 /// Downloads all team members during the slow sync.
 
 public final class TeamMembersDownloadRequestStrategy: AbstractRequestStrategy, ZMSingleRequestTranscoder {
-    
+
     let syncStatus: SyncStatus
     var sync: ZMSingleRequestSync!
-    
+
     public init(withManagedObjectContext managedObjectContext: NSManagedObjectContext,
                 applicationStatus: ApplicationStatus,
                 syncStatus: SyncStatus) {
-        
+
         self.syncStatus = syncStatus
-        
+
         super.init(withManagedObjectContext: managedObjectContext,
                    applicationStatus: applicationStatus)
-        
+
         configuration = [.allowsRequestsDuringSlowSync]
         sync = ZMSingleRequestSync(singleRequestTranscoder: self, groupQueue: managedObjectContext)
     }
-    
+
     override public func nextRequestIfAllowed() -> ZMTransportRequest? {
         guard syncStatus.currentSyncPhase == .fetchingTeamMembers else { return nil }
-        
+
         sync.readyForNextRequestIfNotBusy()
-        
+
         return sync.nextRequest()
     }
-    
-//MARK:- ZMSingleRequestTranscoder
-    
+
+// MARK: - ZMSingleRequestTranscoder
+
     public func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
         guard let teamID = ZMUser.selfUser(in: managedObjectContext).teamIdentifier else {
             completeSyncPhase() // Skip sync phase if user doesn't belong to a team
@@ -56,7 +55,7 @@ public final class TeamMembersDownloadRequestStrategy: AbstractRequestStrategy, 
         }
         return ZMTransportRequest(getFromPath: "/teams/\(teamID.transportString())/members")
     }
-    
+
     public func didReceive(_ response: ZMTransportResponse, forSingleRequest sync: ZMSingleRequestSync) {
         guard
             response.result == .success,
@@ -66,18 +65,18 @@ public final class TeamMembersDownloadRequestStrategy: AbstractRequestStrategy, 
         else {
             return
         }
-        
+
         if !payload.hasMore {
             payload.members.forEach { (membershipPayload) in
                 membershipPayload.createOrUpdateMember(team: team, in: managedObjectContext)
             }
         }
-        
+
         completeSyncPhase()
     }
-    
+
     func completeSyncPhase() {
         syncStatus.finishCurrentSyncPhase(phase: .fetchingTeamMembers)
     }
-    
+
 }

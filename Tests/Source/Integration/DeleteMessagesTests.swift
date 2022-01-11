@@ -16,7 +16,6 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import XCTest
 import WireTesting
 
@@ -26,12 +25,12 @@ class DeleteMessagesTests: ConversationTestsBase {
         // given
         XCTAssertTrue(login())
         var message: ZMConversationMessage! = nil
-        
+
         userSession?.perform {
             guard let conversation = self.conversation(for: self.selfToUser1Conversation) else {return XCTFail()}
             message = try! conversation.appendText(content: "Hello")
         }
-        
+
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         XCTAssertNotNil(message)
 
@@ -54,40 +53,40 @@ class DeleteMessagesTests: ConversationTestsBase {
     func testThatItDeletesAMessageIfItIsDeletedRemotelyByTheSender() {
         // given
         XCTAssertTrue(login())
-        
+
         let fromClient = user1.clients.anyObject() as! MockUserClient
         let toClient = selfUser.clients.anyObject() as! MockUserClient
         let textMessage = GenericMessage(content: Text(content: "Hello"))
-        
+
         // when
-        mockTransportSession.performRemoteChanges { session in
+        mockTransportSession.performRemoteChanges { _ in
             do {
                 self.selfToUser1Conversation.encryptAndInsertData(from: fromClient, to: toClient, data: try textMessage.serializedData())
             } catch {
                 XCTFail()
             }
         }
-        
+
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         guard let conversation = self.conversation(for: selfToUser1Conversation) else {return XCTFail()}
         XCTAssertEqual(conversation.allMessages.count, 1) // inserted message
 
-        guard let message = conversation.lastMessage as? ZMClientMessage , message.textMessageData?.messageText == "Hello" else { return XCTFail() }
+        guard let message = conversation.lastMessage as? ZMClientMessage, message.textMessageData?.messageText == "Hello" else { return XCTFail() }
         let genericMessage = GenericMessage(content: MessageDelete(messageId: message.nonce!))
-        
+
         // when
-        mockTransportSession.performRemoteChanges { session in
+        mockTransportSession.performRemoteChanges { _ in
             do {
                 self.selfToUser1Conversation.encryptAndInsertData(from: fromClient, to: toClient, data: try genericMessage.serializedData())
             } catch {
                 XCTFail()
             }
         }
-        
+
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         XCTAssertTrue(message.hasBeenDeleted)
         XCTAssertEqual(conversation.allMessages.count, 1) // System message
@@ -95,44 +94,44 @@ class DeleteMessagesTests: ConversationTestsBase {
         guard let systemMessage = conversation.lastMessage as? ZMSystemMessage else { return XCTFail() }
         XCTAssertEqual(systemMessage.systemMessageType, ZMSystemMessageType.messageDeletedForEveryone)
     }
-    
+
     func testThatItDoesNotDeleteAMessageIfItIsDeletedRemotelyBySomeoneElse() {
         // given
         XCTAssertTrue(login())
-        
+
         let firstClient = user1.clients.anyObject() as! MockUserClient
         let secondClient = user2.clients.anyObject() as! MockUserClient
         let selfClient = selfUser.clients.anyObject() as! MockUserClient
         let textMessage = GenericMessage(content: Text(content: "Hello"))
-        
+
         // when
-        self.mockTransportSession.performRemoteChanges { session in
+        self.mockTransportSession.performRemoteChanges { _ in
             do {
                 self.groupConversation.encryptAndInsertData(from: firstClient, to: selfClient, data: try textMessage.serializedData())
             } catch {
                 XCTFail()
             }
         }
-        
+
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         guard let conversation = self.conversation(for: self.groupConversation) else {return XCTFail()}
         XCTAssertEqual(conversation.allMessages.count, 2) // system message & inserted message
         guard let message = conversation.lastMessage, message.textMessageData?.messageText == "Hello" else { return XCTFail() }
-        
+
         let genericMessage = GenericMessage(content: MessageDelete(messageId: message.nonce!))
-        
-        self.mockTransportSession.performRemoteChanges { session in
+
+        self.mockTransportSession.performRemoteChanges { _ in
             do {
                 self.groupConversation.encryptAndInsertData(from: secondClient, to: selfClient, data: try genericMessage.serializedData())
             } catch {
                 XCTFail()
             }
         }
-        
+
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         XCTAssertFalse(message.hasBeenDeleted)
         XCTAssertEqual(conversation.allMessages.count, 2) // system message & inserted message
@@ -143,29 +142,29 @@ class DeleteMessagesTests: ConversationTestsBase {
         // given
         XCTAssertTrue(login())
         var message: ZMConversationMessage! = nil
-        
+
         userSession?.perform {
             guard let conversation = self.conversation(for: self.selfToUser1Conversation) else {return XCTFail()}
             message = try! conversation.appendText(content: "Hello")
         }
-        
+
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         XCTAssertNotNil(message)
-        
+
         // when
         mockTransportSession.resetReceivedRequests()
         var requestCount = 0
-        
+
         mockTransportSession.responseGeneratorBlock = { request in
             guard request.path == "/conversations/\(self.selfToUser1Conversation.identifier)/otr/messages" else { return nil }
             if requestCount < 4 {
                 requestCount += 1
                 return ZMTransportResponse(transportSessionError: NSError.tryAgainLaterError() as Error)
             }
-            
+
             return nil
         }
-        
+
         userSession?.perform {
             ZMMessage.deleteForEveryone(message)
         }
@@ -180,44 +179,44 @@ class DeleteMessagesTests: ConversationTestsBase {
         XCTAssertEqual(request.path, "/conversations/\(selfToUser1Conversation.identifier)/otr/messages")
         XCTAssertTrue(message.hasBeenDeleted)
     }
-    
+
     func testThatItNotifiesTheObserverIfAMessageGetsDeletedRemotely() {
         // given
         XCTAssertTrue(login())
-        
+
         let fromClient = user1.clients.anyObject() as! MockUserClient
         let toClient = selfUser.clients.anyObject() as! MockUserClient
         let textMessage = GenericMessage(content: Text(content: "Hello"))
-        
+
         // when
-        mockTransportSession.performRemoteChanges { session in
+        mockTransportSession.performRemoteChanges { _ in
             do {
                 self.selfToUser1Conversation.encryptAndInsertData(from: fromClient, to: toClient, data: try textMessage.serializedData())
             } catch {
                 XCTFail()
             }
         }
-        
+
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         guard let conversation = self.conversation(for: selfToUser1Conversation) else {return XCTFail()}
-        
+
         // then
         XCTAssertEqual(conversation.allMessages.count, 1) // inserted message
 
-        guard let message = conversation.lastMessage as? ZMClientMessage , message.textMessageData?.messageText == "Hello" else { return XCTFail() }
+        guard let message = conversation.lastMessage as? ZMClientMessage, message.textMessageData?.messageText == "Hello" else { return XCTFail() }
         let genericMessage = GenericMessage(content: MessageDelete(messageId: message.nonce!))
-        
+
         // when
-        mockTransportSession.performRemoteChanges { session in
+        mockTransportSession.performRemoteChanges { _ in
             do {
                 self.selfToUser1Conversation.encryptAndInsertData(from: fromClient, to: toClient, data: try genericMessage.serializedData())
             } catch {
                 XCTFail()
             }
         }
-        
+
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         XCTAssertTrue(message.hasBeenDeleted)
         XCTAssertEqual(conversation.allMessages.count, 1) // system message

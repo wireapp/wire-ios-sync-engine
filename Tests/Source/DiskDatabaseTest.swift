@@ -16,26 +16,24 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import Foundation
 import XCTest
 import WireTesting
 import WireDataModel
 
 class DiskDatabaseTest: DatabaseTest {
-    
+
     override var useInMemoryDatabase: Bool {
         return false
     }
-    
+
     public override func setUp() {
         super.setUp()
-        
+
         self.syncMOC.performGroupedBlockAndWait {
             let selfUser = ZMUser.selfUser(in: self.syncMOC)
             selfUser.remoteIdentifier = self.accountId
         }
     }
-    
-}
 
+}

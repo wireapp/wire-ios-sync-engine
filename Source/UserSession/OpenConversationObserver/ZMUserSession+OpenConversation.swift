@@ -27,7 +27,7 @@ extension ZMUserSession: OpenConversationObserver {
     public func didOpen(conversation: ZMConversation) {
         self.userExpirationObserver.check(usersIn: conversation)
     }
-    
+
     public func didClose(conversation: ZMConversation) {
         // no-op
     }

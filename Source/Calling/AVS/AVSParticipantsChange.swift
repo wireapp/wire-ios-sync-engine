@@ -20,12 +20,12 @@ import Foundation
 
 public struct AVSParticipantsChange: Codable {
 
-    let convid: UUID
+    let convid: String
     let members: [Member]
 
     public struct Member: Codable {
 
-        let userid: UUID
+        let userid: String
         let clientid: String
         let aestab: AudioState
         let vrecv: VideoState

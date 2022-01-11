@@ -20,11 +20,11 @@ import Foundation
 
 // Get FeatureFlags
 public final class FeatureFlagRequestStrategy: AbstractRequestStrategy, ZMSingleRequestTranscoder {
-    
+
     // MARK: - Private Property
     private let syncContext: NSManagedObjectContext
     private let syncStatus: SyncStatus
-    
+
     private var needsFeatureFlagsRefresh: Bool {
         guard let thresholdDate = calculateDigitalSignatureFlagRefreshDate() else {
             return true
@@ -32,7 +32,7 @@ public final class FeatureFlagRequestStrategy: AbstractRequestStrategy, ZMSingle
         let now = Date()
         return now > thresholdDate
     }
-    
+
     // MARK: - Public Property
     var singleRequestSync: ZMSingleRequestSync?
 
@@ -43,16 +43,16 @@ public final class FeatureFlagRequestStrategy: AbstractRequestStrategy, ZMSingle
                 syncStatus: SyncStatus) {
         syncContext = managedObjectContext
         self.syncStatus = syncStatus
-        
+
         super.init(withManagedObjectContext: managedObjectContext,
                    applicationStatus: applicationStatus)
-        
+
         self.configuration = [.allowsRequestsDuringSlowSync,
                               .allowsRequestsWhileOnline]
         self.singleRequestSync = ZMSingleRequestSync(singleRequestTranscoder: self,
                                                      groupQueue: managedObjectContext)
     }
-    
+
     @objc
     public override func nextRequestIfAllowed() -> ZMTransportRequest? {
         guard
@@ -61,13 +61,13 @@ public final class FeatureFlagRequestStrategy: AbstractRequestStrategy, ZMSingle
         else {
             return nil
         }
-        
+
         singleRequestSync.readyForNextRequestIfNotBusy()
         return singleRequestSync.nextRequest()
     }
 
     // MARK: - ZMSingleRequestTranscoder
-    
+
     public func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
         switch sync {
         case singleRequestSync:
@@ -76,24 +76,24 @@ public final class FeatureFlagRequestStrategy: AbstractRequestStrategy, ZMSingle
             return nil
         }
     }
-    
+
     public func didReceive(_ response: ZMTransportResponse,
                            forSingleRequest sync: ZMSingleRequestSync) {
-        
+
         guard response.result == .permanentError || response.result == .success else {
             saveInitialDigitalSignatureFlag()
             return
         }
-        
+
         if response.result == .success, let rawData = response.rawData {
             processDigitalSignatureFlagSuccess(with: rawData)
         }
-        
+
         if syncStatus.currentSyncPhase == .fetchingFeatureFlags {
             syncStatus.finishCurrentSyncPhase(phase: .fetchingFeatureFlags)
         }
     }
-    
+
     // MARK: - Helpers
     private func makeDigitalSignatureFlagRequest() -> ZMTransportRequest? {
         guard let teamId = ZMUser.selfUser(in: syncContext).teamIdentifier?.uuidString else {
@@ -103,17 +103,17 @@ public final class FeatureFlagRequestStrategy: AbstractRequestStrategy, ZMSingle
             }
             return nil
         }
-        
+
         return ZMTransportRequest(path: "/teams/\(teamId)/features/digital-signatures",
                                   method: .methodGET,
                                   payload: nil)
     }
-    
+
     private func processDigitalSignatureFlagSuccess(with data: Data?) {
         guard let responseData = data else {
             return
         }
-        
+
         do {
             let decodedResponse = try JSONDecoder().decode(SignatureFeatureFlagResponse.self,
                                                            from: responseData)
@@ -122,19 +122,19 @@ public final class FeatureFlagRequestStrategy: AbstractRequestStrategy, ZMSingle
             Logging.network.debug("Failed to decode SignatureResponse with \(error)")
         }
     }
-    
+
     private func update(with response: SignatureFeatureFlagResponse) {
         guard let team = ZMUser.selfUser(in: syncContext).team else {
             return
         }
-        
+
         FeatureFlag.updateOrCreate(with: .digitalSignature,
                                   value: response.status,
                                   team: team,
                                   context: syncContext)
         syncContext.saveOrRollback()
     }
-    
+
     private func calculateDigitalSignatureFlagRefreshDate() -> Date? {
         guard
             let team = ZMUser.selfUser(in: syncContext).team,
@@ -143,13 +143,13 @@ public final class FeatureFlagRequestStrategy: AbstractRequestStrategy, ZMSingle
             saveInitialDigitalSignatureFlag()
             return nil
         }
-        
+
         let calendar = Calendar.current
         return calendar.date(byAdding: .day,
                              value: 1,
                              to: flag.updatedTimestamp)
     }
-    
+
     private func saveInitialDigitalSignatureFlag() {
         if let teams = ZMUser.selfUser(in: syncContext).team {
             FeatureFlag.updateOrCreate(with: .digitalSignature,
@@ -164,11 +164,11 @@ public final class FeatureFlagRequestStrategy: AbstractRequestStrategy, ZMSingle
 // MARK: - SignatureFeatureFlagResponse
 public struct SignatureFeatureFlagResponse: Codable, Equatable {
     public let status: Bool
-    
+
     public init(status: Bool) {
         self.status = status
     }
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let statusStr = try container.decodeIfPresent(String.self, forKey: .status)

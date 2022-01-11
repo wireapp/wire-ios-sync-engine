@@ -20,7 +20,6 @@ import Foundation
 
 extension UserType {
 
-
     /// Create fake one-to-one connection with a federated user.
     ///
     /// NOTE this is a temporary method for creating a conversation with federated users, it should

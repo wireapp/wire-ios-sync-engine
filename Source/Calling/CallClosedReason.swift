@@ -23,7 +23,7 @@ import avs
  * Reasons why a call can be terminated.
  */
 
-public enum CallClosedReason : Int32 {
+public enum CallClosedReason: Int32 {
 
     /// Ongoing call was closed by remote or self user
     case normal
@@ -86,7 +86,7 @@ public enum CallClosedReason : Int32 {
     }
 
     /// The raw flag for the call end.
-    var wcall_reason : Int32 {
+    var wcall_reason: Int32 {
         switch self {
         case .normal:
             return WCALL_REASON_NORMAL
