@@ -154,14 +154,13 @@ extension ZMUserSession {
 extension ZMUserSession {
 
     public var isLegacyPushNotification: Bool {
-        return applicationStatusDirectory?.pushNotificationStatus.isPushNotificationInLegacyMode ?? true
-    }
-
-    public func setPushNotificationMode (isLegacy: Bool) {
-        guard let applicationStatusDirectory = applicationStatusDirectory else {
-            return
+        get {
+            return applicationStatusDirectory?.pushNotificationStatus.isPushNotificationInLegacyMode ?? true
         }
-        applicationStatusDirectory.pushNotificationStatus.isPushNotificationInLegacyMode = isLegacy
+        
+        set {
+            applicationStatusDirectory?.pushNotificationStatus.isPushNotificationInLegacyMode = newValue
+        }
     }
 
 }
