@@ -42,7 +42,7 @@ import WireDataModel
      * - returns: The call center to use for the given configuration.
      */
 
-    public class func callCenter(withUserId userId: UUID,
+    public class func callCenter(withUserId userId: AVSIdentifier,
                                  clientId: String,
                                  uiMOC: NSManagedObjectContext,
                                  flowManager: FlowManagerType,

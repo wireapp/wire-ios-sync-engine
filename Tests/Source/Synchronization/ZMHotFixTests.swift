@@ -62,7 +62,7 @@ class ZMHotFixTests_Integration: MessagingTest {
         syncMOC.performGroupedBlock {
             // GIVEN
             self.syncMOC.setPersistentStoreMetadata("0.1", key: "lastSavedVersion")
-            self.syncMOC.setPersistentStoreMetadata(NSNumber(booleanLiteral: true), key: "HasHistory")
+            self.syncMOC.setPersistentStoreMetadata(NSNumber(value: true), key: "HasHistory")
 
             let oneOnOneConversation = ZMConversation(context: self.syncMOC)
             oneOnOneConversation.conversationType = .oneOnOne
@@ -104,7 +104,7 @@ class ZMHotFixTests_Integration: MessagingTest {
         syncMOC.performGroupedBlock {
             // GIVEN
             self.syncMOC.setPersistentStoreMetadata("235.0.0", key: "lastSavedVersion")
-            self.syncMOC.setPersistentStoreMetadata(NSNumber(booleanLiteral: true), key: "HasHistory")
+            self.syncMOC.setPersistentStoreMetadata(NSNumber(value: true), key: "HasHistory")
 
             let selfUser = ZMUser.selfUser(in: self.syncMOC)
             selfUser.needsToBeUpdatedFromBackend = false
@@ -130,7 +130,7 @@ class ZMHotFixTests_Integration: MessagingTest {
         syncMOC.performGroupedBlock {
             // GIVEN
             self.syncMOC.setPersistentStoreMetadata("238.0.0", key: "lastSavedVersion")
-            self.syncMOC.setPersistentStoreMetadata(NSNumber(booleanLiteral: true), key: "HasHistory")
+            self.syncMOC.setPersistentStoreMetadata(NSNumber(value: true), key: "HasHistory")
 
             let selfUser = ZMUser.selfUser(in: self.syncMOC)
             let team = Team.fetchOrCreate(with: UUID(), create: true, in: self.syncMOC, created: nil)!
@@ -156,7 +156,7 @@ class ZMHotFixTests_Integration: MessagingTest {
         syncMOC.performGroupedBlock {
             // GIVEN
             self.syncMOC.setPersistentStoreMetadata("238.0.0", key: "lastSavedVersion")
-            self.syncMOC.setPersistentStoreMetadata(NSNumber(booleanLiteral: true), key: "HasHistory")
+            self.syncMOC.setPersistentStoreMetadata(NSNumber(value: true), key: "HasHistory")
 
             let selfUser = ZMUser.selfUser(in: self.syncMOC)
             selfUser.needsToRefetchLabels = false
@@ -180,7 +180,7 @@ class ZMHotFixTests_Integration: MessagingTest {
         syncMOC.performGroupedBlock {
             // GIVEN
             self.syncMOC.setPersistentStoreMetadata("380.0.0", key: "lastSavedVersion")
-            self.syncMOC.setPersistentStoreMetadata(NSNumber(booleanLiteral: true), key: "HasHistory")
+            self.syncMOC.setPersistentStoreMetadata(NSNumber(value: true), key: "HasHistory")
 
             selfClient.needsToUpdateCapabilities = false
             self.syncMOC.saveOrRollback()

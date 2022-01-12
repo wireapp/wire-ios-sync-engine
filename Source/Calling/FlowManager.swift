@@ -19,13 +19,11 @@
 import Foundation
 import avs
 
-@objc
 public protocol FlowManagerType {
 
-    func setVideoCaptureDevice(_ device: CaptureDevice, for conversationId: UUID)
+    func setVideoCaptureDevice(_ device: CaptureDevice, for conversationId: AVSIdentifier)
 }
 
-@objc
 public class FlowManager: NSObject, FlowManagerType {
     public static let AVSFlowManagerCreatedNotification = Notification.Name("AVSFlowManagerCreatedNotification")
 
@@ -40,8 +38,8 @@ public class FlowManager: NSObject, FlowManagerType {
         NotificationCenter.default.post(name: type(of: self).AVSFlowManagerCreatedNotification, object: self)
     }
 
-    public func setVideoCaptureDevice(_ device: CaptureDevice, for conversationId: UUID) {
-        avsFlowManager?.setVideoCaptureDevice(device.deviceIdentifier, forConversation: conversationId.transportString())
+    public func setVideoCaptureDevice(_ device: CaptureDevice, for conversationId: AVSIdentifier) {
+        avsFlowManager?.setVideoCaptureDevice(device.deviceIdentifier, forConversation: conversationId.serialized)
     }
 
 }

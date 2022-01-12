@@ -103,6 +103,11 @@ public class ZMUserSession: NSObject {
         return featureService.fetchSelfDeletingMesssages()
     }
 
+    public var conversationGuestLinksFeature: Feature.ConversationGuestLinks {
+        let featureService = FeatureService(context: coreDataStack.viewContext)
+        return featureService.fetchConversationGuestLinks()
+    }
+
     public var hasCompletedInitialSync: Bool = false
 
     public var topConversationsDirectory: TopConversationsDirectory
@@ -160,7 +165,7 @@ public class ZMUserSession: NSObject {
             return value.boolValue
         }
         set {
-            managedObjectContext.setPersistentStoreMetadata(NSNumber(booleanLiteral: newValue), key: LocalNotificationDispatcher.ZMShouldHideNotificationContentKey)
+            managedObjectContext.setPersistentStoreMetadata(NSNumber(value: newValue), key: LocalNotificationDispatcher.ZMShouldHideNotificationContentKey)
         }
     }
 
@@ -464,7 +469,7 @@ public class ZMUserSession: NSObject {
 
     public func initiateUserDeletion() {
         syncManagedObjectContext.performGroupedBlock {
-            self.syncManagedObjectContext.setPersistentStoreMetadata(NSNumber(booleanLiteral: true), key: DeleteAccountRequestStrategy.userDeletionInitiatedKey)
+            self.syncManagedObjectContext.setPersistentStoreMetadata(NSNumber(value: true), key: DeleteAccountRequestStrategy.userDeletionInitiatedKey)
             RequestAvailableNotification.notifyNewRequestsAvailable(self)
         }
     }
@@ -546,6 +551,7 @@ extension ZMUserSession: ZMSyncStateDelegate {
         featureService.enqueueBackendRefresh(for: .fileSharing)
         featureService.enqueueBackendRefresh(for: .conferenceCalling)
         featureService.enqueueBackendRefresh(for: .selfDeletingMessages)
+        featureService.enqueueBackendRefresh(for: .conversationGuestLinks)
 
     }
 

@@ -26,7 +26,8 @@ class CallParticipantsKindTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        client = AVSClient(userId: UUID(), clientId: UUID().transportString())
+        client = AVSClient(userId: AVSIdentifier.stub,
+                           clientId: UUID().transportString())
     }
 
     private var realTimeActiveSpeaker: AVSActiveSpeakersChange.ActiveSpeaker {
