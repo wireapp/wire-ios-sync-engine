@@ -36,13 +36,15 @@ internal enum AssetTransportError: Error {
     }
 }
 
-public final class UserImageAssetUpdateStrategy: AbstractRequestStrategy, ZMContextChangeTrackerSource, ZMSingleRequestTranscoder, ZMDownstreamTranscoder {
+public final class UserImageAssetUpdateStrategy: AbstractRequestStrategy, ZMContextChangeTrackerSource, ZMSingleRequestTranscoder, ZMDownstreamTranscoder, FederationAware {
     internal let requestFactory = AssetRequestFactory()
     internal var upstreamRequestSyncs = [ProfileImageSize: ZMSingleRequestSync]()
     internal var deleteRequestSync: ZMSingleRequestSync?
     internal var downstreamRequestSyncs = [ProfileImageSize: ZMDownstreamObjectSyncWithWhitelist]()
     internal let moc: NSManagedObjectContext
     internal weak var imageUploadStatus: UserProfileImageUploadStatusProtocol?
+
+    public var useFederationEndpoint = false
 
     fileprivate var observers: [Any] = []
 
@@ -169,7 +171,12 @@ public final class UserImageAssetUpdateStrategy: AbstractRequestStrategy, ZMCont
             remoteId = user.completeProfileAssetIdentifier
         }
         guard let assetId = remoteId else { return nil }
-        let path = "/assets/v3/\(assetId)"
+        let path: String
+        if useFederationEndpoint, let domain = user.domain {
+            path = "/assets/v4/\(domain)/\(assetId)"
+        } else {
+            path = "/assets/v3/\(assetId)"
+        }
         return ZMTransportRequest.imageGet(fromPath: path)
     }
 
