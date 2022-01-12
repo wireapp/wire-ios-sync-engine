@@ -145,13 +145,13 @@ extension SessionManager: PKPushRegistryDelegate {
         session.managedObjectContext.performGroupedBlock { [weak session] in
             let isLegacyPushNotification = session?.isLegacyPushNotification ?? true
             // Refresh the tokens if needed
-            if #available(iOS 13.0, *), !isLegacyPushNotification {
-                self.application.registerForRemoteNotifications()
-            } else {
+            if isLegacyPushNotification {
                 if let token = self.pushRegistry.pushToken(for: .voIP) {
                     let pushToken = PushToken.createVOIPToken(from: token)
                     session?.setPushToken(pushToken)
                 }
+            } else {
+                self.application.registerForRemoteNotifications()
             }
         }
     }
