@@ -180,7 +180,7 @@ extension ZMConversation {
         userSession.transportSession.enqueueOneTime(request)
     }
 
-    /// Changes the conversation access mode to allow guests.
+    /// Changes the conversation access mode to allow services.
     public func setAllowServices(_ allowServices: Bool, in userSession: ZMUserSession, _ completion: @escaping (VoidResult) -> Void) {
         guard canManageAccess else {
             return completion(.failure(WirelessLinkError.invalidOperation))
