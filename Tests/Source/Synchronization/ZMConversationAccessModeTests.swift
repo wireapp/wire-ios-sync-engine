@@ -51,7 +51,7 @@ public class ZMConversationAccessModeTests: MessagingTest {
         selfUser(options: SelfUserOptions(team: .teamA))
         let conversation = self.conversation(options: ConversationOptions(hasRemoteId: true, team: .teamA, isGroup: true))
         // when
-        let request = WireSyncEngine.WirelessRequestFactory.set(allowGuests: true, for: conversation)
+        let request = WireSyncEngine.WirelessRequestFactory.setGuests(allowGuests: true, for: conversation)
         // then
         XCTAssertEqual(request.method, .methodPUT)
         XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/access")

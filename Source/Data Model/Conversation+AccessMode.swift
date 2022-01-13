@@ -24,6 +24,10 @@ public enum SetAllowGuestsError: Error {
     case unknown
 }
 
+public enum SetAllowServicesError: Error {
+    case unknown
+}
+
 fileprivate extension ZMConversation {
     struct TransportKey {
         static let data = "data"
@@ -157,11 +161,37 @@ extension ZMConversation {
             return completion(.failure(WirelessLinkError.invalidOperation))
         }
 
-        let request = WirelessRequestFactory.set(allowGuests: allowGuests, for: self)
+        let request = WirelessRequestFactory.setGuests(allowGuests: allowGuests, for: self)
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
             if let payload = response.payload,
                 let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: nil) {
                 self.allowGuests = allowGuests
+                // Process `conversation.access-update` event
+                userSession.syncManagedObjectContext.performGroupedBlock {
+                    userSession.updateEventProcessor?.storeAndProcessUpdateEvents([event], ignoreBuffer: true)
+                }
+                completion(.success)
+            } else {
+                zmLog.debug("Error creating wireless link: \(response)")
+                completion(.failure(SetAllowServicesError.unknown))
+            }
+        })
+
+        userSession.transportSession.enqueueOneTime(request)
+    }
+
+    /// Changes the conversation access mode to allow guests.
+    public func setAllowServices(_ allowServices: Bool, in userSession: ZMUserSession, _ completion: @escaping (VoidResult) -> Void) {
+        guard canManageAccess else {
+            return completion(.failure(WirelessLinkError.invalidOperation))
+        }
+
+        let request = WirelessRequestFactory.setServices(allowServices: allowServices, for: self)
+        request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
+            if let payload = response.payload,
+                let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: nil) {
+                //TODO: Change self.allowGuests to allowServices when you make the appropriate change in Data Model
+                self.allowGuests = allowServices
                 // Process `conversation.access-update` event
                 userSession.syncManagedObjectContext.performGroupedBlock {
                     userSession.updateEventProcessor?.storeAndProcessUpdateEvents([event], ignoreBuffer: true)
@@ -205,12 +235,22 @@ internal struct WirelessRequestFactory {
         return .init(path: "/conversations/\(identifier)/code", method: .methodDELETE, payload: nil)
     }
 
-    static func set(allowGuests: Bool, for conversation: ZMConversation) -> ZMTransportRequest {
+    static func setGuests(allowGuests: Bool, for conversation: ZMConversation) -> ZMTransportRequest {
         guard let identifier = conversation.remoteIdentifier?.transportString() else {
             fatal("conversation is not yet inserted on the backend")
         }
         let payload = [ "access": ConversationAccessMode.value(forAllowGuests: allowGuests).stringValue as Any,
-                        "access_role": ConversationAccessRole.value(forAllowGuests: allowGuests).rawValue]
+                        "access_role_v2": ConversationAccessRole.value(forAllowGuests: allowGuests).rawValue]
+        return .init(path: "/conversations/\(identifier)/access", method: .methodPUT, payload: payload as ZMTransportData)
+    }
+
+    static func setServices(allowServices: Bool, for conversation: ZMConversation) -> ZMTransportRequest {
+        guard let identifier = conversation.remoteIdentifier?.transportString() else {
+            fatal("conversation is not yet inserted on the backend")
+        }
+        //TODO: Change forAllowGuests to forAllowServices when I make the changes to DataModel
+        let payload = [ "access": ConversationAccessMode.value(forAllowGuests: allowServices).stringValue as Any,
+                        "access_role_v2": ConversationAccessRole.value(forAllowGuests: allowServices).rawValue]
         return .init(path: "/conversations/\(identifier)/access", method: .methodPUT, payload: payload as ZMTransportData)
     }
 }
