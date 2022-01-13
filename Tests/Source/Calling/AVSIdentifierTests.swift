@@ -51,11 +51,12 @@ class AVSIdentifierTests: XCTestCase {
 
     func testThatItSerializesUUIDToLowercase() {
         // When
-        let uuid = UUID()
+        let lowercaseUUIDString = "aaab81b1-674d-445d-b609-e11781d4aebf"
+        let uuid = UUID(uuidString: lowercaseUUIDString)!
         let sut = AVSIdentifier(identifier: uuid, domain: nil)
 
         // Then
-        XCTAssertEqual(sut.serialized, uuid.transportString())
+        XCTAssertEqual(sut.serialized, lowercaseUUIDString)
     }
 
     func testThatCreationFromInvalidStringReturnsNil() {
