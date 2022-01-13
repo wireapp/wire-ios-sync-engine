@@ -30,6 +30,7 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
     private var callCenter: WireCallCenterV3?
     private let messageSync: ProteusMessageSync<GenericMessageEntity>
     private let flowManager: FlowManagerType
+    private let decoder = JSONDecoder()
 
     private let callEventStatus: CallEventStatus
 
@@ -126,7 +127,20 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
             zmLog.debug("Scheduling request to discover clients")
 
             let factory = ClientMessageRequestFactory()
-            return factory.upstreamRequestForFetchingClients(conversationId: request.conversationId, selfClient: selfClient)
+
+            if useFederationEndpoint {
+                guard let domain = request.domain else {
+                    zmLog.error("Could not create request: missing domain")
+                    return nil
+                }
+
+                return factory.upstreamRequestForFetchingClients(conversationId: request.conversationId,
+                                                                 domain: domain,
+                                                                 selfClient: selfClient)
+            } else {
+                return factory.upstreamRequestForFetchingClients(conversationId: request.conversationId,
+                                                                 selfClient: selfClient)
+            }
 
         default:
             return nil
@@ -134,7 +148,6 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
     }
 
-    // TODO: David - Update the Client Discovery strategy to use federation endpoint when federated
     public func didReceive(_ response: ZMTransportResponse, forSingleRequest sync: ZMSingleRequestSync) {
         switch sync {
         case callConfigRequestSync:
@@ -163,17 +176,13 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
             guard let jsonData = response.rawData else { return }
 
-            let decoder = JSONDecoder()
-
             do {
-                let payload = try decoder.decode(ClientDiscoveryResponsePayload.self, from: jsonData)
+                var clients = [AVSClient]()
 
-                let clients = payload.clients.flatMap { client -> [AVSClient] in
-                    let userId = AVSIdentifier.from(string: client.userId)
-
-                    return client.clientIds.map { clientID -> AVSClient in
-                        return AVSClient(userId: userId, clientId: clientID)
-                    }
+                if useFederationEndpoint {
+                    clients = try decodeFederatedClientDiscovery(jsonData: jsonData)
+                } else {
+                    clients = try decodeClientDiscovery(jsonData: jsonData)
                 }
 
                 clientDiscoveryRequest?.completion(clients)
@@ -184,6 +193,18 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
         default:
             break
         }
+    }
+
+    private func decodeClientDiscovery(jsonData: Data) throws -> [AVSClient] {
+        let payload = try decoder.decode(ClientDiscoveryResponsePayload.self, from: jsonData)
+
+        return payload.clients
+    }
+
+    private func decodeFederatedClientDiscovery(jsonData: Data) throws -> [AVSClient] {
+        let payload = try decoder.decode(FederatedClientDiscoveryResponsePayload.self, from: jsonData)
+
+        return payload.clients
     }
 
     // MARK: - Context Change Tracker
@@ -349,10 +370,14 @@ extension CallingRequestStrategy: WireCallCenterTransport {
         }
     }
 
-    public func requestClientsList(conversationId: UUID, completionHandler: @escaping ([AVSClient]) -> Void) {
+    public func requestClientsList(conversationId: AVSIdentifier, completionHandler: @escaping ([AVSClient]) -> Void) {
         self.zmLog.debug("requestClientList() called, moc = \(managedObjectContext)")
         managedObjectContext.performGroupedBlock { [unowned self] in
-            self.clientDiscoveryRequest = ClientDiscoveryRequest(conversationId: conversationId, completion: completionHandler)
+            self.clientDiscoveryRequest = ClientDiscoveryRequest(
+                conversationId: conversationId.identifier,
+                domain: conversationId.domain,
+                completion: completionHandler
+            )
             self.clientDiscoverySync.readyForNextRequestIfNotBusy()
             RequestAvailableNotification.notifyNewRequestsAvailable(nil)
         }
@@ -395,25 +420,71 @@ extension CallingRequestStrategy {
     struct ClientDiscoveryRequest {
 
         let conversationId: UUID
+        let domain: String?
         let completion: ([AVSClient]) -> Void
 
     }
 
+    struct FederatedClientDiscoveryResponsePayload: Decodable {
+        let clients: [AVSClient]
+
+        init(from decoder: Decoder) throws {
+            var allClients = [AVSClient]()
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            let domainsContainer = try container.nestedContainer(keyedBy: DynamicKey.self, forKey: .missing)
+
+            try domainsContainer.allKeys.forEach { domainKey in
+                var domainClients = [AVSClient]()
+                let usersContainer = try domainsContainer.nestedContainer(keyedBy: DynamicKey.self, forKey: domainKey)
+
+                try usersContainer.allKeys.forEach { userIdKey in
+                    let clientIds = try usersContainer.decode([String].self, forKey: userIdKey)
+
+                    let identifier = AVSIdentifier(
+                        identifier: UUID(uuidString: userIdKey.stringValue)!,
+                        domain: domainKey.stringValue
+                    )
+
+                    domainClients += clientIds.compactMap {
+                        AVSClient(userId: identifier, clientId: $0)
+                    }
+                }
+
+                allClients += domainClients
+            }
+
+            clients = allClients
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case missing
+        }
+    }
+
     struct ClientDiscoveryResponsePayload: Decodable {
 
-        let clients: [Clients]
+        let clients: [AVSClient]
 
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
-            let nestedContainer = try container.nestedContainer(keyedBy: Clients.CodingKeys.self, forKey: .missing)
+            let nestedContainer = try container.nestedContainer(keyedBy: DynamicKey.self, forKey: .missing)
 
-            let userIds = nestedContainer.allKeys.compactMap { $0.stringValue }
+            var allClients = [AVSClient]()
 
-            clients = try userIds.map { userId in
-                let userIdKey = Clients.CodingKeys.userId(userId)
+            try nestedContainer.allKeys.forEach { userIdKey in
                 let clientIds = try nestedContainer.decode([String].self, forKey: userIdKey)
-                return Clients(userId: userId, clientIds: clientIds)
+
+                let identifier = AVSIdentifier(
+                    identifier: UUID(uuidString: userIdKey.stringValue)!,
+                    domain: nil
+                )
+
+                allClients += clientIds.compactMap {
+                    AVSClient(userId: identifier, clientId: $0)
+                }
             }
+
+            clients = allClients
         }
 
         enum CodingKeys: String, CodingKey {
@@ -421,38 +492,19 @@ extension CallingRequestStrategy {
             case missing
 
         }
-
-        struct Clients {
-
-            let userId: String
-            let clientIds: [String]
-
-            enum CodingKeys: CodingKey {
-
-                case userId(String)
-
-                var stringValue: String {
-                    switch self {
-                    case .userId(let id):
-                        return id
-                    }
-                }
-
-                init(stringValue: String) {
-                    self = .userId(stringValue)
-                }
-
-                var intValue: Int? {
-                    return nil
-                }
-
-                init?(intValue: Int) {
-                    return nil
-                }
-
-            }
-
-        }
     }
 
+    struct DynamicKey: CodingKey {
+        var stringValue: String
+
+        init?(stringValue: String) {
+            self.stringValue = stringValue
+        }
+
+        var intValue: Int?
+
+        init?(intValue: Int) {
+            return nil
+        }
+    }
 }
