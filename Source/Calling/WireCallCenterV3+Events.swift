@@ -307,7 +307,7 @@ extension WireCallCenterV3 {
 
     func handleClientsRequest(conversationId: AVSIdentifier, completion: @escaping (_ clients: String) -> Void) {
         handleEventInContext("request-clients") { [encoder] _ in
-            self.transport?.requestClientsList(conversationId: conversationId.identifier) { clients in
+            self.transport?.requestClientsList(conversationId: conversationId) { clients in
 
                 guard let json = AVSClientList(clients: clients).jsonString(encoder) else {
                     zmLog.error("Could not encode client list to JSON")
