@@ -59,8 +59,8 @@ public class ZMConversationAccessModeTests: MessagingTest {
         XCTAssertNotNil(payload)
         XCTAssertNotNil(payload["access"])
         XCTAssertEqual(Set(payload["access"] as! [String]), Set(["invite", "code"]))
-        XCTAssertNotNil(payload["access_role"])
-        XCTAssertEqual(payload["access_role"], "non_activated")
+        XCTAssertNotNil(payload["access_role_v2"])
+        XCTAssertEqual(payload["access_role_v2"], "non_activated")
     }
 
     func testThatItGeneratesCorrectFetchLinkRequest() {
