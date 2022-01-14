@@ -28,10 +28,11 @@ class ConversationTests_Guests: IntegrationTest {
         createTeamAndConversations()
     }
 
-    func testThatItSendsRequestToChangeAccessMode() {
+    func testThatItSendsRequestToChangeAccessMode() throws {
         // given
-#if swift(>=5.4) && arch(arm64)
-        XCTExpectFailure("Test is expected to fail on an m1 machine because of the login method for integration tests")
+#if arch(x86_64)
+        throw XCTSkip("Skip this test for arm 64 simulator, because it crashes.")
+        #else
         XCTAssert(login())
 
         let conversation = self.conversation(for: self.groupConversationWithWholeTeam)!
@@ -59,10 +60,11 @@ class ConversationTests_Guests: IntegrationTest {
         #endif
     }
 
-    func testThatItSendsRequestToCreateTheLink() {
+    func testThatItSendsRequestToCreateTheLink() throws {
         // given
-#if swift(>=5.4) && arch(arm64)
-        XCTExpectFailure("Test is expected to fail on an m1 machine because of the login method for integration tests")
+#if arch(x86_64)
+        throw XCTSkip("Skip this test for arm 64 simulator, because it crashes.")
+        #else
         mockTransportSession.performRemoteChanges { _ in
             self.groupConversationWithWholeTeam.accessMode = ["code", "invite"]
             self.groupConversationWithWholeTeam.accessRole = "non_activated"
@@ -95,10 +97,11 @@ class ConversationTests_Guests: IntegrationTest {
 #endif
     }
 
-    func testThatItSendsRequestToSetModeIfLegacyWhenFetchingTheLink() {
+    func testThatItSendsRequestToSetModeIfLegacyWhenFetchingTheLink() throws {
         // given
-#if swift(>=5.4) && arch(arm64)
-        XCTExpectFailure("Test is expected to fail on an m1 machine because of the login method for integration tests")
+#if arch(x86_64)
+        throw XCTSkip("Skip this test for arm 64 simulator, because it crashes.")
+        #else
         mockTransportSession.performRemoteChanges { _ in
             self.groupConversationWithWholeTeam.accessMode = ["invite"]
             self.groupConversationWithWholeTeam.accessRole = "activated"
@@ -133,9 +136,11 @@ class ConversationTests_Guests: IntegrationTest {
 #endif
     }
 
-    func testThatItSendsRequestToFetchTheLink_NoLink() {
+    func testThatItSendsRequestToFetchTheLink_NoLink() throws {
         // given
-#if swift(>=5.4) && arch(arm64)
+#if arch(x86_64)
+        throw XCTSkip("Skip this test for arm 64 simulator, because it crashes.")
+        #else
         XCTExpectFailure("Test is expected to fail on an m1 machine because of the login method for integration tests")
         mockTransportSession.performRemoteChanges { _ in
             self.groupConversationWithWholeTeam.accessMode = ["code", "invite"]
@@ -169,10 +174,11 @@ class ConversationTests_Guests: IntegrationTest {
 #endif
     }
 
-    func testThatItSendsRequestToFetchTheLink_LinkExists() {
+    func testThatItSendsRequestToFetchTheLink_LinkExists() throws {
         // given
-#if swift(>=5.4) && arch(arm64)
-        XCTExpectFailure("Test is expected to fail on an m1 machine because of the login method for integration tests")
+#if arch(x86_64)
+        throw XCTSkip("Skip this test for arm 64 simulator, because it crashes.")
+        #else
         let existingLink = "https://wire-website.com/some-magic-link"
 
         mockTransportSession.performRemoteChanges { _ in
@@ -208,10 +214,11 @@ class ConversationTests_Guests: IntegrationTest {
 #endif
     }
 
-    func testThatItSendsRequestToDeleteTheLink() {
+    func testThatItSendsRequestToDeleteTheLink() throws {
         // given
-#if swift(>=5.4) && arch(arm64)
-        XCTExpectFailure("Test is expected to fail on an m1 machine because of the login method for integration tests")
+#if arch(x86_64)
+        throw XCTSkip("Skip this test for arm 64 simulator, because it crashes.")
+        #else
         let existingLink = "https://wire-website.com/some-magic-link"
 
         mockTransportSession.performRemoteChanges { _ in
@@ -247,10 +254,11 @@ class ConversationTests_Guests: IntegrationTest {
 #endif
     }
 
-    func testThatItSendsRequestToDeleteTheLink_LinkDoesNotExist() {
+    func testThatItSendsRequestToDeleteTheLink_LinkDoesNotExist() throws {
         // given
-#if swift(>=5.4) && arch(arm64)
-        XCTExpectFailure("Test is expected to fail on an m1 machine because of the login method for integration tests")
+#if arch(x86_64)
+        throw XCTSkip("Skip this test for arm 64 simulator, because it crashes.")
+        #else
         mockTransportSession.performRemoteChanges { _ in
             self.groupConversationWithWholeTeam.accessMode = ["code", "invite"]
             self.groupConversationWithWholeTeam.accessRole = "non_activated"
@@ -284,9 +292,10 @@ class ConversationTests_Guests: IntegrationTest {
 #endif
     }
 
-    func testThatAccessModeChangeEventIsHandled() {
-#if swift(>=5.4) && arch(arm64)
-        XCTExpectFailure("Test is expected to fail on an m1 machine because of the login method for integration tests")
+    func testThatAccessModeChangeEventIsHandled() throws {
+#if arch(x86_64)
+        throw XCTSkip("Skip this test for arm 64 simulator, because it crashes.")
+        #else
         // given
         XCTAssert(login())
 
