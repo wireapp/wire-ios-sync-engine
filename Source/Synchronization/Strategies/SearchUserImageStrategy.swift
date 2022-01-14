@@ -136,7 +136,8 @@ public class SearchUserImageStrategy: AbstractRequestStrategy, FederationAware {
         if let key = size == .preview ? assetKeys.preview : assetKeys.complete {
             let path: String
 
-            if requestedUserDomain.keys.contains(user),
+            if useFederationEndpoint,
+               requestedUserDomain.keys.contains(user),
                let domain = requestedUserDomain[user] {
                 path = "/assets/v4/\(domain)/\(key)"
             } else {
