@@ -173,7 +173,7 @@ extension ZMConversation {
                 completion(.success)
             } else {
                 zmLog.debug("Error creating wireless link: \(response)")
-                completion(.failure(SetAllowServicesError.unknown))
+                completion(.failure(SetAllowGuestsError.unknown))
             }
         })
 
@@ -199,7 +199,7 @@ extension ZMConversation {
                 completion(.success)
             } else {
                 zmLog.debug("Error creating wireless link: \(response)")
-                completion(.failure(SetAllowGuestsError.unknown))
+                completion(.failure(SetAllowServicesError.unknown))
             }
         })
 
