@@ -162,7 +162,7 @@ extension ZMConversation {
             return completion(.failure(WirelessLinkError.invalidOperation))
         }
 
-        let request = WirelessRequestFactory.setGuests(allowGuests: allowGuests, for: self)
+        let request = WirelessRequestFactory.set(allowGuests: allowGuests, for: self)
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
             if let payload = response.payload,
                 let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: nil) {
@@ -187,7 +187,7 @@ extension ZMConversation {
             return completion(.failure(SetAllowServicesError.invalidOperation))
         }
 
-        let request = WirelessRequestFactory.setServices(allowServices: allowServices, for: self)
+        let request = WirelessRequestFactory.set(allowServices: allowServices, for: self)
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
             if let payload = response.payload,
                 let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: nil) {
@@ -236,7 +236,7 @@ internal struct WirelessRequestFactory {
         return .init(path: "/conversations/\(identifier)/code", method: .methodDELETE, payload: nil)
     }
 
-    static func setGuests(allowGuests: Bool, for conversation: ZMConversation) -> ZMTransportRequest {
+    static func set(allowGuests: Bool, for conversation: ZMConversation) -> ZMTransportRequest {
         guard let identifier = conversation.remoteIdentifier?.transportString() else {
             fatal("conversation is not yet inserted on the backend")
         }
@@ -245,7 +245,7 @@ internal struct WirelessRequestFactory {
         return .init(path: "/conversations/\(identifier)/access", method: .methodPUT, payload: payload as ZMTransportData)
     }
 
-    static func setServices(allowServices: Bool, for conversation: ZMConversation) -> ZMTransportRequest {
+    static func set(allowServices: Bool, for conversation: ZMConversation) -> ZMTransportRequest {
         guard let identifier = conversation.remoteIdentifier?.transportString() else {
             fatal("conversation is not yet inserted on the backend")
         }
