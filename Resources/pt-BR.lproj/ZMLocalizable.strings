@@ -21,7 +21,7 @@
 "conversation.username.groupingSeparator" = ", ";
 
 "user_session.error.blacklisted-email" = "Este endereço de e-mail não é permitido";
-"user_session.error.domain-blocked" = "This email requires a team invitation. Contact your organization's IT administrators to receive an invite.";
+"user_session.error.domain-blocked" = "Este e-mail requer um convite para uma equipe. Entre em contato com os administradores de TI da sua organização para receber um convite.";
 "user_session.error.email-exists" = "Este endereço de e-mail já foi registrado";
 "user_session.error.invalid-email" = "Este endereço de e-mail é inválido";
 "user_session.error.invalid-code" = "Por favor, introduza um código válido";
