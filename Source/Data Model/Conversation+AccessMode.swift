@@ -26,6 +26,7 @@ public enum SetAllowGuestsError: Error {
 
 public enum SetAllowServicesError: Error {
     case unknown
+    case invalidOperation
 }
 
 fileprivate extension ZMConversation {
@@ -183,7 +184,7 @@ extension ZMConversation {
     /// Changes the conversation access mode to allow services.
     public func setAllowServices(_ allowServices: Bool, in userSession: ZMUserSession, _ completion: @escaping (VoidResult) -> Void) {
         guard canManageAccess else {
-            return completion(.failure(WirelessLinkError.invalidOperation))
+            return completion(.failure(SetAllowServicesError.invalidOperation))
         }
 
         let request = WirelessRequestFactory.setServices(allowServices: allowServices, for: self)
