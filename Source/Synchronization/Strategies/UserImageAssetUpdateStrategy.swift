@@ -203,8 +203,7 @@ public final class UserImageAssetUpdateStrategy: AbstractRequestStrategy, ZMCont
 
     public func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
         if let size = size(for: sync), let image = imageUploadStatus?.consumeImage(for: size) {
-            let domain = ZMUser.selfUser(in: managedObjectContext).domain
-            let request = requestFactory.upstreamRequestForAsset(withData: image, shareable: true, retention: .eternal, domain: domain)
+            let request = requestFactory.upstreamRequestForAsset(withData: image, shareable: true, retention: .eternal)
             request?.addContentDebugInformation("Uploading to /assets/V3: [\(size)]  [\(image)] ")
             return request
         } else if sync === deleteRequestSync {

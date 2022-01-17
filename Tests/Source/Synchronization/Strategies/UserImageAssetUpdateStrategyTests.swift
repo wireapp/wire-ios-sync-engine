@@ -147,9 +147,9 @@ extension UserImageAssetUpdateStrategyTests {
     func testThatItCreatesRequestWithExpectedData() {
         // GIVEN
         let previewData = "--1--".data(using: .utf8)
-        let previewRequest = sut.requestFactory.upstreamRequestForAsset(withData: previewData!, shareable: true, retention: .eternal, domain: nil)
+        let previewRequest = sut.requestFactory.upstreamRequestForAsset(withData: previewData!, shareable: true, retention: .eternal)
         let completeData = "1111111".data(using: .utf8)
-        let completeRequest = sut.requestFactory.upstreamRequestForAsset(withData: completeData!, shareable: true, retention: .eternal, domain: nil)
+        let completeRequest = sut.requestFactory.upstreamRequestForAsset(withData: completeData!, shareable: true, retention: .eternal)
 
         // WHEN
         updateStatus.dataToConsume.removeAll()
