@@ -28,11 +28,8 @@ class ConversationTests_Guests: IntegrationTest {
         createTeamAndConversations()
     }
 
-    func testThatItSendsRequestToChangeAccessMode() throws {
+    func testThatItSendsRequestToChangeAccessMode() {
         // given
-#if arch(x86_64)
-        throw XCTSkip("Skip this test for arm 64 simulator, because it crashes.")
-        #else
         XCTAssert(login())
 
         let conversation = self.conversation(for: self.groupConversationWithWholeTeam)!
@@ -57,14 +54,10 @@ class ConversationTests_Guests: IntegrationTest {
         XCTAssertEqual(mockTransportSession.receivedRequests().count, 1)
         guard let request = mockTransportSession.receivedRequests().first else { return }
         XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/access")
-        #endif
     }
 
-    func testThatItSendsRequestToCreateTheLink() throws {
+    func testThatItSendsRequestToCreateTheLink() {
         // given
-#if arch(x86_64)
-        throw XCTSkip("Skip this test for arm 64 simulator, because it crashes.")
-        #else
         mockTransportSession.performRemoteChanges { _ in
             self.groupConversationWithWholeTeam.accessMode = ["code", "invite"]
             self.groupConversationWithWholeTeam.accessRole = "non_activated"
@@ -94,14 +87,10 @@ class ConversationTests_Guests: IntegrationTest {
         guard let request = mockTransportSession.receivedRequests().first else { return }
         XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/code")
         XCTAssertEqual(request.method, .methodPOST)
-#endif
     }
 
-    func testThatItSendsRequestToSetModeIfLegacyWhenFetchingTheLink() throws {
+    func testThatItSendsRequestToSetModeIfLegacyWhenFetchingTheLink() {
         // given
-#if arch(x86_64)
-        throw XCTSkip("Skip this test for arm 64 simulator, because it crashes.")
-        #else
         mockTransportSession.performRemoteChanges { _ in
             self.groupConversationWithWholeTeam.accessMode = ["invite"]
             self.groupConversationWithWholeTeam.accessRole = "activated"
@@ -133,14 +122,10 @@ class ConversationTests_Guests: IntegrationTest {
         guard let requestLast = mockTransportSession.receivedRequests().last else { return }
         XCTAssertEqual(requestLast.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/code")
         XCTAssertEqual(requestLast.method, .methodPOST)
-#endif
     }
 
-    func testThatItSendsRequestToFetchTheLink_NoLink() throws {
+    func testThatItSendsRequestToFetchTheLink_NoLink() {
         // given
-#if arch(x86_64)
-        throw XCTSkip("Skip this test for arm 64 simulator, because it crashes.")
-        #else
         XCTExpectFailure("Test is expected to fail on an m1 machine because of the login method for integration tests")
         mockTransportSession.performRemoteChanges { _ in
             self.groupConversationWithWholeTeam.accessMode = ["code", "invite"]
@@ -171,14 +156,10 @@ class ConversationTests_Guests: IntegrationTest {
         guard let request = mockTransportSession.receivedRequests().first else { return }
         XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/code")
         XCTAssertEqual(request.method, .methodGET)
-#endif
     }
 
-    func testThatItSendsRequestToFetchTheLink_LinkExists() throws {
+    func testThatItSendsRequestToFetchTheLink_LinkExists() {
         // given
-#if arch(x86_64)
-        throw XCTSkip("Skip this test for arm 64 simulator, because it crashes.")
-        #else
         let existingLink = "https://wire-website.com/some-magic-link"
 
         mockTransportSession.performRemoteChanges { _ in
@@ -211,14 +192,10 @@ class ConversationTests_Guests: IntegrationTest {
         guard let request = mockTransportSession.receivedRequests().first else { return }
         XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/code")
         XCTAssertEqual(request.method, .methodGET)
-#endif
     }
 
-    func testThatItSendsRequestToDeleteTheLink() throws {
+    func testThatItSendsRequestToDeleteTheLink() {
         // given
-#if arch(x86_64)
-        throw XCTSkip("Skip this test for arm 64 simulator, because it crashes.")
-        #else
         let existingLink = "https://wire-website.com/some-magic-link"
 
         mockTransportSession.performRemoteChanges { _ in
@@ -251,14 +228,10 @@ class ConversationTests_Guests: IntegrationTest {
         guard let request = mockTransportSession.receivedRequests().first else { return }
         XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/code")
         XCTAssertEqual(request.method, .methodDELETE)
-#endif
     }
 
-    func testThatItSendsRequestToDeleteTheLink_LinkDoesNotExist() throws {
+    func testThatItSendsRequestToDeleteTheLink_LinkDoesNotExist() {
         // given
-#if arch(x86_64)
-        throw XCTSkip("Skip this test for arm 64 simulator, because it crashes.")
-        #else
         mockTransportSession.performRemoteChanges { _ in
             self.groupConversationWithWholeTeam.accessMode = ["code", "invite"]
             self.groupConversationWithWholeTeam.accessRole = "non_activated"
@@ -289,13 +262,9 @@ class ConversationTests_Guests: IntegrationTest {
         guard let request = mockTransportSession.receivedRequests().first else { return }
         XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/code")
         XCTAssertEqual(request.method, .methodDELETE)
-#endif
     }
 
-    func testThatAccessModeChangeEventIsHandled() throws {
-#if arch(x86_64)
-        throw XCTSkip("Skip this test for arm 64 simulator, because it crashes.")
-        #else
+    func testThatAccessModeChangeEventIsHandled() {
         // given
         XCTAssert(login())
 
@@ -311,7 +280,6 @@ class ConversationTests_Guests: IntegrationTest {
 
         // then
         XCTAssertTrue(conversation.accessMode!.contains(.allowGuests))
-#endif
     }
 
 }
