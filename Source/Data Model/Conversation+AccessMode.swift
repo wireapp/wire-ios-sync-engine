@@ -199,7 +199,7 @@ extension ZMConversation {
                 }
                 completion(.success)
             } else {
-                zmLog.debug("Error \(response)")
+                zmLog.debug("Error setting access role:  \(response)")
                 completion(.failure(SetAllowServicesError.unknown))
             }
         })
