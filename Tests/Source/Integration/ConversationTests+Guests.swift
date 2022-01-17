@@ -126,7 +126,6 @@ class ConversationTests_Guests: IntegrationTest {
 
     func testThatItSendsRequestToFetchTheLink_NoLink() {
         // given
-        XCTExpectFailure("Test is expected to fail on an m1 machine because of the login method for integration tests")
         mockTransportSession.performRemoteChanges { _ in
             self.groupConversationWithWholeTeam.accessMode = ["code", "invite"]
             self.groupConversationWithWholeTeam.accessRole = "non_activated"
