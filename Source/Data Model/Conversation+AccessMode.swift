@@ -199,7 +199,7 @@ extension ZMConversation {
                 }
                 completion(.success)
             } else {
-                zmLog.debug("Error creating wireless link: \(response)")
+                zmLog.debug("Error \(response)")
                 completion(.failure(SetAllowServicesError.unknown))
             }
         })
