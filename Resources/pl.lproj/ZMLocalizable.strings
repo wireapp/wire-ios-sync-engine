@@ -20,10 +20,10 @@
 
 "conversation.username.groupingSeparator" = ", ";
 
-"user_session.error.blacklisted-email" = "This email address is not allowed";
-"user_session.error.domain-blocked" = "This email requires a team invitation. Contact your organization's IT administrators to receive an invite.";
-"user_session.error.email-exists" = "This email address has already been registered";
-"user_session.error.invalid-email" = "This email address is invalid";
-"user_session.error.invalid-code" = "Wprowadź kod";
+"user_session.error.blacklisted-email" = "Ten adres e-mail jest niedozwolony";
+"user_session.error.domain-blocked" = "Ten e-mail wymaga zaproszenia zespołowego. Skontaktuj się z twoimi administratorami organizacji IT, aby otrzymać zaproszenie.";
+"user_session.error.email-exists" = "Ten adres e-mail jest już zarejestrowany";
+"user_session.error.invalid-email" = "Ten adres e-mail jest nieprawidłowy";
+"user_session.error.invalid-code" = "Proszę wprowadzić poprawny kod";
 "user_session.error.unauthorized-email" = "Coś poszło nie tak, spróbuj ponownie";
 "user_session.error.unknown" = "Coś poszło nie tak, spróbuj ponownie";

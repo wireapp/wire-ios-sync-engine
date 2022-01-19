@@ -13,13 +13,13 @@
         <key>NSStringFormatValueTypeKey</key>
         <string>@</string>
         <key>one</key>
-        <string>New message</string>
+        <string>Nowa wiadomość</string>
         <key>few</key>
-        <string>%2$@ messages</string>
+        <string>%2$@ wiadomości</string>
         <key>many</key>
-        <string>%2$@ messages</string>
+        <string>%2$@ wiadomości</string>
         <key>other</key>
-        <string>%2$@ messages</string>
+        <string>%2$@ wiadomości</string>
       </dict>
     </dict>
     <key>push.notification.add.message.many.group.noconversationname</key>
@@ -33,13 +33,13 @@
         <key>NSStringFormatValueTypeKey</key>
         <string>@</string>
         <key>one</key>
-        <string>New message</string>
+        <string>Nowa wiadomość</string>
         <key>few</key>
-        <string>%1$@ messages</string>
+        <string>%1$@ wiadomości</string>
         <key>many</key>
-        <string>%1$@ messages</string>
+        <string>%1$@ wiadomości</string>
         <key>other</key>
-        <string>%1$@ messages</string>
+        <string>%1$@ wiadomości</string>
       </dict>
     </dict>
     <key>push.notification.add.message.many.oneonone</key>
@@ -53,13 +53,13 @@
         <key>NSStringFormatValueTypeKey</key>
         <string>@</string>
         <key>one</key>
-        <string>New message</string>
+        <string>Nowa wiadomość</string>
         <key>few</key>
-        <string>%2$@ messages</string>
+        <string>%2$@ wiadomości</string>
         <key>many</key>
-        <string>%2$@ messages</string>
+        <string>%2$@ wiadomości</string>
         <key>other</key>
-        <string>%2$@ messages</string>
+        <string>%2$@ wiadomości</string>
       </dict>
     </dict>
     <key>push.notification.add.message.many.oneonone.nousername</key>
@@ -73,13 +73,13 @@
         <key>NSStringFormatValueTypeKey</key>
         <string>@</string>
         <key>one</key>
-        <string>New message</string>
+        <string>Nowa wiadomość</string>
         <key>few</key>
-        <string>%1$@ messages</string>
+        <string>%1$@ wiadomości</string>
         <key>many</key>
-        <string>%1$@ messages</string>
+        <string>%1$@ wiadomości</string>
         <key>other</key>
-        <string>%1$@ messages</string>
+        <string>%1$@ wiadomości</string>
       </dict>
     </dict>
     <key>push.notification.call.missed.many</key>
@@ -93,13 +93,13 @@
         <key>NSStringFormatValueTypeKey</key>
         <string>@</string>
         <key>one</key>
-        <string>one missed call</string>
+        <string>jedno nieodebrane połączenie</string>
         <key>few</key>
-        <string>%2@ missed calls</string>
+        <string>%2@ nieodebrane połączenia</string>
         <key>many</key>
-        <string>%2@ missed calls</string>
+        <string>%2@ nieodebranych połączeń</string>
         <key>other</key>
-        <string>%2@ missed calls</string>
+        <string>%2@ nieodebranych połączeń</string>
       </dict>
     </dict>
     <key>push.notification.call.missed.many.noconversationname</key>
@@ -113,13 +113,13 @@
         <key>NSStringFormatValueTypeKey</key>
         <string>@</string>
         <key>one</key>
-        <string>one missed call</string>
+        <string>jedno nieodebrane połączenie</string>
         <key>few</key>
-        <string>%1$@ missed calls</string>
+        <string>%1$@ nieodebrane połączenia</string>
         <key>many</key>
-        <string>%1$@ missed calls</string>
+        <string>%1$@ nieodebranych połączeń</string>
         <key>other</key>
-        <string>%1$@ missed calls</string>
+        <string>%1$@ nieodebrane połączenia</string>
       </dict>
     </dict>
     <key>push.notification.knock.group</key>
