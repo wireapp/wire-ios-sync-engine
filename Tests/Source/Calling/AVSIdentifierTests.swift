@@ -27,7 +27,7 @@ class AVSIdentifierTests: XCTestCase {
 
     func testProperties_WhenCreatedFromSerializedString_WithUUIDAndDomain() {
         // When
-        let serializedString = "\(uuid.uuidString)@\(domain)"
+        let serializedString = "\(uuid.transportString())@\(domain)"
         let sut = AVSIdentifier(string: serializedString)
 
         // Then
@@ -39,7 +39,7 @@ class AVSIdentifierTests: XCTestCase {
 
     func testProperties_WhenCreatedFromSerializedString_WithUUID() {
         // When
-        let serializedString = uuid.uuidString
+        let serializedString = uuid.transportString()
         let sut = AVSIdentifier(string: serializedString)
 
         // Then
@@ -47,6 +47,16 @@ class AVSIdentifierTests: XCTestCase {
         XCTAssertEqual(sut?.identifier, uuid)
         XCTAssertNil(sut?.domain)
         XCTAssertEqual(sut?.serialized, serializedString)
+    }
+
+    func testThatItSerializesUUIDToLowercase() {
+        // When
+        let lowercaseUUIDString = "aaab81b1-674d-445d-b609-e11781d4aebf"
+        let uuid = UUID(uuidString: lowercaseUUIDString)!
+        let sut = AVSIdentifier(identifier: uuid, domain: nil)
+
+        // Then
+        XCTAssertEqual(sut.serialized, lowercaseUUIDString)
     }
 
     func testThatCreationFromInvalidStringReturnsNil() {

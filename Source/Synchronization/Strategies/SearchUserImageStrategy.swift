@@ -18,7 +18,9 @@
 
 private let userPath = "/users?ids="
 
-public class SearchUserImageStrategy: AbstractRequestStrategy {
+public class SearchUserImageStrategy: AbstractRequestStrategy, FederationAware {
+
+    public var useFederationEndpoint = false
 
     fileprivate unowned var uiContext: NSManagedObjectContext
     fileprivate unowned var syncContext: NSManagedObjectContext
@@ -28,6 +30,7 @@ public class SearchUserImageStrategy: AbstractRequestStrategy {
 
     fileprivate var requestedPreviewAssets: [UUID: SearchUserAssetKeys?] = [:]
     fileprivate var requestedCompleteAssets: [UUID: SearchUserAssetKeys?] = [:]
+    fileprivate var requestedUserDomain: [UUID: String] = [:]
     fileprivate var requestedPreviewAssetsInProgress: Set<UUID> = Set()
     fileprivate var requestedCompleteAssetsInProgress: Set<UUID> = Set()
 
@@ -63,7 +66,7 @@ public class SearchUserImageStrategy: AbstractRequestStrategy {
     }
 
     public func requestAsset(with note: NotificationInContext) {
-        guard let searchUser = note.object as? ZMSearchUser, let userId = searchUser.remoteIdentifier  else { return }
+        guard let searchUser = note.object as? ZMSearchUser, let userId = searchUser.remoteIdentifier else { return }
 
         if !searchUser.hasDownloadedFullUserProfile {
             requestedMissingFullProfiles.insert(userId)
@@ -76,6 +79,10 @@ public class SearchUserImageStrategy: AbstractRequestStrategy {
             requestedCompleteAssets[userId] = searchUser.assetKeys
         default:
             break
+        }
+
+        if let domain = searchUser.domain {
+            requestedUserDomain[userId] = domain
         }
 
         RequestAvailableNotification.notifyNewRequestsAvailable(nil)
@@ -127,7 +134,16 @@ public class SearchUserImageStrategy: AbstractRequestStrategy {
 
     func request(for assetKeys: SearchUserAssetKeys, size: ProfileImageSize, user: UUID) -> ZMTransportRequest? {
         if let key = size == .preview ? assetKeys.preview : assetKeys.complete {
-            return ZMTransportRequest(getFromPath: "/assets/v3/\(key)")
+            let path: String
+
+            if useFederationEndpoint,
+               requestedUserDomain.keys.contains(user),
+               let domain = requestedUserDomain[user] {
+                path = "/assets/v4/\(domain)/\(key)"
+            } else {
+                path = "/assets/v3/\(key)"
+            }
+            return ZMTransportRequest(getFromPath: path)
         }
         return nil
     }
