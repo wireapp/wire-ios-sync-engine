@@ -48,6 +48,6 @@ class ZMConversation_AVSIdentifierTests: MessagingTest {
         sut.domain = "example.domain.com"
 
         // WHEN / THEN
-        XCTAssertNil(sut.avsIdentifier?.domain)
+        XCTAssertNil(sut.avsIdentifier!.domain)
     }
 }
