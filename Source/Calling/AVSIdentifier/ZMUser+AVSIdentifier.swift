@@ -19,7 +19,13 @@
 import Foundation
 
 public extension ZMUser {
+
     var avsIdentifier: AVSIdentifier {
-        AVSIdentifier(identifier: remoteIdentifier, domain: domain)
+        if managedObjectContext?.zm_isFederationEnabled == true {
+            return AVSIdentifier(identifier: remoteIdentifier, domain: domain)
+        } else {
+            return AVSIdentifier(identifier: remoteIdentifier, domain: nil)
+        }
     }
+
 }
