@@ -423,13 +423,14 @@ public final class SessionManager: NSObject, SessionManagerType {
 
     ///  For iOS earlier than 13 we should register for voip push notifications
     private func registerForVoipPushNotificationsIfNeeded() {
-        guard #available(iOS 13.0, *) else {
+        //        guard #available(iOS 13.0, *) else {
+//        if userSession.isLegacyPushNotification {
             // register for voIP push notifications
             self.pushRegistry.delegate = self
             let pkPushTypeSet: Set<PKPushType> = [PKPushType.voIP]
             self.pushRegistry.desiredPushTypes = pkPushTypeSet
-            return
-        }
+        //            return
+        //        }
     }
 
     public func start(launchOptions: LaunchOptions) {
