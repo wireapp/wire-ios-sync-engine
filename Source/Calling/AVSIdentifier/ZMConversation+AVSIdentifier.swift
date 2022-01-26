@@ -24,10 +24,10 @@ public extension ZMConversation {
             return nil
         }
 
-        if managedObjectContext?.zm_isFederationEnabled == true {
-            return AVSIdentifier(identifier: identifier, domain: domain)
-        } else {
+        if managedObjectContext?.zm_isFederationEnabled == false {
             return AVSIdentifier(identifier: identifier, domain: nil)
+        } else {
+            return AVSIdentifier(identifier: identifier, domain: domain)
         }
     }
 }
