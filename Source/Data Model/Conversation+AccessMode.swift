@@ -191,8 +191,7 @@ extension ZMConversation {
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
             if let payload = response.payload,
                 let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: nil) {
-                //TODO: Change self.allowGuests to allowServices when you make the appropriate change in Data Model
-                self.allowGuests = allowServices
+                self.allowServices = allowServices
                 // Process `conversation.access-update` event
                 userSession.syncManagedObjectContext.performGroupedBlock {
                     userSession.updateEventProcessor?.storeAndProcessUpdateEvents([event], ignoreBuffer: true)
