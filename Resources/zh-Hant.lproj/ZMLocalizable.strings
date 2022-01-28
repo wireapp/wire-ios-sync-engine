@@ -21,7 +21,7 @@
 "conversation.username.groupingSeparator" = "、";
 
 "user_session.error.blacklisted-email" = "不能使用此電子郵件地址";
-"user_session.error.domain-blocked" = "This email requires a team invitation. Contact your organization's IT administrators to receive an invite.";
+"user_session.error.domain-blocked" = "這封電子郵件需要團隊邀請。 請與您組織的IT管理員聯繫，以接收邀請。";
 "user_session.error.email-exists" = "這個電郵地址已經註冊";
 "user_session.error.invalid-email" = "這個電子郵件地址無效 ";
 "user_session.error.invalid-code" = "請輸入一個有效的代碼";

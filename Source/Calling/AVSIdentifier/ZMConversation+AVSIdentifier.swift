@@ -23,6 +23,11 @@ public extension ZMConversation {
         guard let identifier = remoteIdentifier else {
             return nil
         }
-        return AVSIdentifier(identifier: identifier, domain: domain)
+
+        if managedObjectContext?.zm_isFederationEnabled == false {
+            return AVSIdentifier(identifier: identifier, domain: nil)
+        } else {
+            return AVSIdentifier(identifier: identifier, domain: domain)
+        }
     }
 }

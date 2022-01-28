@@ -230,3 +230,24 @@
 "push.notification.action.call.message" = "Sõnum";
 "push.notification.action.call.callback" = "Helist tagasi";
 "push.notification.action.connection.accept" = "Vasta";
+
+
+
+//////////////
+// The following keys are handled in the Push.stringsdict file. Please make the according changes there.
+/////////////
+//"push.notification.knock.group" = "%1$@ pinged %2$@ times";
+//"push.notification.knock.group.nousername" = "%1$@ pings";
+//"push.notification.knock.group.nousername.noconversationname" = "%1$@ pings in a conversation";
+//"push.notification.knock.group.noconversationname" = "%1$@ pinged %2$@ times in a conversation";
+//"push.notification.knock.oneonone" = "pinged you %1$@ times";
+//"push.notification.knock.oneonone.nousername" = "You were pinged %1$@ times";
+// NOTE: At the moment we are not bundling any messages, however we may re-implement it. The following
+// push strings will not be used:
+//"push.notification.add.message.many.group" = "%2$@ new messages in %1$@";
+//"push.notification.add.message.many.group.noconversationname" = "%2$@ new messages in a conversation";
+//
+//"push.notification.add.message.many.oneonone" = "%2$@ new messages from %1$@";
+//"push.notification.add.message.many.oneonone.nousername" = "%1$@ new messages in a conversation";
+//"push.notification.call.missed.many" = "You have %1$@ missed calls in %2$@";
+//"push.notification.call.missed.many.noconversationname" = "You have %1$@ missed calls in a conversation";
