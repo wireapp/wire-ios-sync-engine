@@ -162,23 +162,7 @@ extension ZMConversation {
             return completion(.failure(WirelessLinkError.invalidOperation))
         }
 
-        let request = WirelessRequestFactory.set(allowGuests: allowGuests, for: self)
-        request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
-            if let payload = response.payload,
-                let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: nil) {
-                self.allowGuests = allowGuests
-                // Process `conversation.access-update` event
-                userSession.syncManagedObjectContext.performGroupedBlock {
-                    userSession.updateEventProcessor?.storeAndProcessUpdateEvents([event], ignoreBuffer: true)
-                }
-                completion(.success)
-            } else {
-                zmLog.debug("Error creating wireless link: \(response)")
-                completion(.failure(SetAllowGuestsError.unknown))
-            }
-        })
-
-        userSession.transportSession.enqueueOneTime(request)
+        setAllowGuestsAndServices(allowGuests: allowGuests, allowServices: self.allowServices, in: userSession, completion)
     }
 
     /// Changes the conversation access mode to allow services.
@@ -187,10 +171,18 @@ extension ZMConversation {
             return completion(.failure(SetAllowServicesError.invalidOperation))
         }
 
-        let request = WirelessRequestFactory.set(allowServices: allowServices, for: self)
+        setAllowGuestsAndServices(allowGuests: self.allowGuests, allowServices: allowServices, in: userSession, completion)
+
+    }
+
+    /// Changes the conversation access mode to allow services.
+    private func setAllowGuestsAndServices(allowGuests: Bool, allowServices: Bool, in userSession: ZMUserSession, _ completion: @escaping (VoidResult) -> Void) {
+
+        let request = WirelessRequestFactory.setAccessRoles(allowGuests: allowGuests, allowServices: allowServices, for: self)
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
             if let payload = response.payload,
                 let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: nil) {
+                self.allowGuests = allowGuests
                 self.allowServices = allowServices
                 // Process `conversation.access-update` event
                 userSession.syncManagedObjectContext.performGroupedBlock {
@@ -248,9 +240,46 @@ internal struct WirelessRequestFactory {
         guard let identifier = conversation.remoteIdentifier?.transportString() else {
             fatal("conversation is not yet inserted on the backend")
         }
-        //TODO: Change forAllowGuests to forAllowServices when I make the changes to DataModel
-        let payload = [ "access": ConversationAccessMode.value(forAllowGuests: allowServices).stringValue as Any,
-                        "access_role_v2": ConversationAccessRole.value(forAllowGuests: allowServices).rawValue]
+
+        var accessRoles = conversation.accessRoles
+
+        if allowServices {
+            accessRoles.insert(.service)
+        } else {
+            accessRoles.remove(.service)
+        }
+
+        let payload = [ "access": ConversationAccessMode.value(forAllowGuests: conversation.allowGuests).stringValue as Any,
+                        "access_role_v2": accessRoles.map(\.rawValue)]
         return .init(path: "/conversations/\(identifier)/access", method: .methodPUT, payload: payload as ZMTransportData)
     }
+
+    static func setAccessRoles(allowGuests: Bool, allowServices: Bool, for conversation: ZMConversation) -> ZMTransportRequest {
+        guard let identifier = conversation.remoteIdentifier?.transportString() else {
+            fatal("conversation is not yet inserted on the backend")
+        }
+
+        var accessRoles = conversation.accessRoles
+
+        if allowServices {
+            accessRoles.insert(.service)
+        } else {
+            accessRoles.remove(.service)
+        }
+
+        if allowGuests {
+            accessRoles.insert(.guest)
+            accessRoles.insert(.nonTeamMember)
+        } else {
+            accessRoles.remove(.guest)
+            accessRoles.remove(.nonTeamMember)
+        }
+
+        let payload = [
+            "access": ConversationAccessMode.value(forAllowGuests: allowGuests).stringValue as Any,
+            "access_role_v2": accessRoles.map(\.rawValue)
+        ]
+        return .init(path: "/conversations/\(identifier)/access", method: .methodPUT, payload: payload as ZMTransportData)
+    }
+
 }
