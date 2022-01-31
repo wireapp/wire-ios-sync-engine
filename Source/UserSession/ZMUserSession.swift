@@ -108,6 +108,11 @@ public class ZMUserSession: NSObject {
         return featureService.fetchConversationGuestLinks()
     }
 
+    public var classifiedDomainsFeature: Feature.ClassifiedDomains {
+        let featureService = FeatureService(context: coreDataStack.viewContext)
+        return featureService.fetchClassifiedDomains()
+    }
+
     public var hasCompletedInitialSync: Bool = false
 
     public var topConversationsDirectory: TopConversationsDirectory
