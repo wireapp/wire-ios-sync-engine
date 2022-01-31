@@ -552,6 +552,7 @@ extension ZMUserSession: ZMSyncStateDelegate {
         featureService.enqueueBackendRefresh(for: .conferenceCalling)
         featureService.enqueueBackendRefresh(for: .selfDeletingMessages)
         featureService.enqueueBackendRefresh(for: .conversationGuestLinks)
+        featureService.enqueueBackendRefresh(for: .classifiedDomains)
 
     }
 
