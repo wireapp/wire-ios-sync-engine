@@ -414,7 +414,7 @@ public final class SessionManager: NSObject, SessionManagerType {
 
         super.init()
 
-        registerForVoipPushNotificationsIfNeeded()
+        //registerForVoipPushNotificationsIfNeeded()
         deleteAccountToken = AccountDeletedNotification.addObserver(observer: self, queue: groupQueue)
         callCenterObserverToken = WireCallCenterV3.addGlobalCallStateObserver(observer: self)
 
@@ -423,6 +423,7 @@ public final class SessionManager: NSObject, SessionManagerType {
 
     ///  For iOS earlier than 13 we should register for voip push notifications
     private func registerForVoipPushNotificationsIfNeeded() {
+       
         //        guard #available(iOS 13.0, *) else {
 //        if userSession.isLegacyPushNotification {
             // register for voIP push notifications
@@ -769,6 +770,15 @@ public final class SessionManager: NSObject, SessionManagerType {
         }
     }
 
+    private func registerForVoipPushNotificationsIfNeeded(session userSession: ZMUserSession) {
+        if userSession.isLegacyPushNotification {
+            // register for voIP push notifications
+            self.pushRegistry.delegate = self
+            let pkPushTypeSet: Set<PKPushType> = [PKPushType.voIP]
+            self.pushRegistry.desiredPushTypes = pkPushTypeSet
+        }
+    }
+
     // Creates the user session for @c account given, calls @c completion when done.
     private func startBackgroundSession(for account: Account, with coreDataStack: CoreDataStack) -> ZMUserSession {
         let sessionConfig = ZMUserSession.Configuration(
@@ -781,7 +791,7 @@ public final class SessionManager: NSObject, SessionManagerType {
                                                                    configuration: sessionConfig) else {
             preconditionFailure("Unable to create session for \(account)")
         }
-
+        self.registerForVoipPushNotificationsIfNeeded(session: newSession)
         self.configure(session: newSession, for: account)
         self.deleteMessagesOlderThanRetentionLimit(contextProvider: coreDataStack)
         self.updateSystemBootTimeIfNeeded()
