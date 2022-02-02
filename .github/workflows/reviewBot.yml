@@ -24,10 +24,12 @@ jobs:
 
       # workaround of unable to include : in string
       - name: guard for title
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
         if: ${{ !(startsWith(github.event.pull_request.title, 'chore') && endsWith(github.event.pull_request.title, 'bump components SQPIT-776')) }}
         run: |
           echo "github: ${{ github }}"
-          echo "title not match. Exit. Title is ${{ github.event.issue.title }}"
+          echo "title not match. Exit. Title is $ISSUE_TITLE"
           exit 0
 
       - name: guard for admins
