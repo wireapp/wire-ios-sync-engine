@@ -17,6 +17,7 @@
 //
 
 import Foundation
+import XCTest
 
 class ZMHotFixTests_Integration: MessagingTest {
 
@@ -197,6 +198,43 @@ class ZMHotFixTests_Integration: MessagingTest {
         syncMOC.performGroupedBlock {
             XCTAssertTrue(selfClient.needsToUpdateCapabilities)
             XCTAssertTrue(selfClient.hasLocalModifications(forKey: ZMUserClientNeedsToUpdateCapabilitiesKey))
+        }
+    }
+
+    func testThatItRefetchesAllUsers_412_3_3() {
+        var selfUser: ZMUser!
+        var user1: ZMUser!
+        var user2: ZMUser!
+
+        syncMOC.performGroupedBlock {
+            // GIVEN
+            self.syncMOC.setPersistentStoreMetadata("412.3.2", key: "lastSavedVersion")
+            self.syncMOC.setPersistentStoreMetadata(NSNumber(value: true), key: "HasHistory")
+
+            selfUser = ZMUser.selfUser(in: self.syncMOC)
+            user1 = ZMUser.insertNewObject(in: self.syncMOC)
+            user2 = ZMUser.insertNewObject(in: self.syncMOC)
+
+            selfUser.needsToBeUpdatedFromBackend = false
+            user1.needsToBeUpdatedFromBackend = false
+            user2.needsToBeUpdatedFromBackend = false
+
+            XCTAssertFalse(selfUser.needsToBeUpdatedFromBackend)
+            XCTAssertFalse(user1.needsToBeUpdatedFromBackend)
+            XCTAssertFalse(user2.needsToBeUpdatedFromBackend)
+
+            // WHEN
+            let sut = ZMHotFix(syncMOC: self.syncMOC)
+            self.performIgnoringZMLogError {
+                sut!.applyPatches(forCurrentVersion: "412.3.3")
+            }
+        }
+        XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+
+        syncMOC.performGroupedBlock {
+            XCTAssertTrue(selfUser.needsToBeUpdatedFromBackend)
+            XCTAssertTrue(user1.needsToBeUpdatedFromBackend)
+            XCTAssertTrue(user2.needsToBeUpdatedFromBackend)
         }
     }
 
