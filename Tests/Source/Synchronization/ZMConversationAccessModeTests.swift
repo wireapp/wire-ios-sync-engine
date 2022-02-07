@@ -59,8 +59,9 @@ public class ZMConversationAccessModeTests: MessagingTest {
         XCTAssertNotNil(payload)
         XCTAssertNotNil(payload["access"])
         XCTAssertEqual(Set(payload["access"] as! [String]), Set(["invite", "code"]))
+        // TODO: [Agis] Set access role when we do the mapping
         XCTAssertNotNil(payload["access_role_v2"])
-        XCTAssertEqual(payload["access_role_v2"], "non_activated")
+        XCTAssertEqual(Set(payload["access_role_v2"] as! [String]), Set(["team_member", "non_team_member", "guest"]))
     }
 
     func testThatItGeneratesCorrectFetchLinkRequest() {
