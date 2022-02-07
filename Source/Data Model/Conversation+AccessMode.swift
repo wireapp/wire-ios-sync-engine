@@ -250,6 +250,7 @@ internal struct WirelessRequestFactory {
 
         let payload = [
             "access": ConversationAccessMode.value(forAllowGuests: allowGuests).stringValue as Any,
+            // TODO [Agis] update this line after we add mapping between old and new access roles.
             "access_role": ConversationAccessRole.value(forAllowGuests: allowGuests).rawValue,
             "access_role_v2": accessRoles.map(\.rawValue)
         ]
