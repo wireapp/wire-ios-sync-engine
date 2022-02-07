@@ -35,19 +35,20 @@ class DeepLinkURLActionProcessor: URLActionProcessor {
     func process(urlAction: URLAction, delegate: PresentationDelegate?) {
         switch urlAction {
         case let .joinConversation(key: key, code: code):
-            ZMConversation.fetchIdAndName(key: key,
-                                          code: code,
-                                          transportSession: transportSession,
-                                          eventProcessor: eventProcessor,
-                                          contextProvider: contextProvider) { [weak self] (response) in
-                guard let strongSelf = self,
-                      let delegate = delegate else {
+            ZMConversation.fetch(key: key,
+                                 code: code,
+                                 context: contextProvider.syncContext.notificationContext) { [weak self] result in
+                guard
+                    let self = self,
+                    let delegate = delegate
+                else {
                     return
                 }
-
-                let viewContext = strongSelf.contextProvider.viewContext
-
-                switch response {
+                
+                let syncContext = self.contextProvider.syncContext
+                let viewContext = self.contextProvider.viewContext
+                
+                switch result {
                 case .success((let conversationId, let conversationName)):
                     // First of all, we should try to fetch the conversation with ID from the response.
                     // If the conversation doesn't exist, we should initiate a request to join the conversation
@@ -61,18 +62,22 @@ class DeepLinkURLActionProcessor: URLActionProcessor {
                                 delegate.completedURLAction(urlAction)
                                 return
                             }
+                            
                             ZMConversation.join(key: key,
                                                 code: code,
-                                                transportSession: strongSelf.transportSession,
-                                                eventProcessor: strongSelf.eventProcessor,
-                                                contextProvider: strongSelf.contextProvider) { (response) in
-                                switch response {
+                                                syncContext: syncContext,
+                                                viewContext: viewContext) { (result) in
+                                switch result {
                                 case .success(let conversation):
-                                    delegate.showConversation(conversation, at: nil)
+                                    viewContext.performGroupedBlock {
+                                        delegate.showConversation(conversation, at: nil)
+                                        delegate.completedURLAction(urlAction)
+                                    }
+                                    
                                 case .failure(let error):
                                     delegate.failedToPerformAction(urlAction, error: error)
+                                    delegate.completedURLAction(urlAction)
                                 }
-                                delegate.completedURLAction(urlAction)
                             }
                         }
                     }
