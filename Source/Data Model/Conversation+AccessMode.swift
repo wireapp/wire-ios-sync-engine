@@ -227,33 +227,6 @@ internal struct WirelessRequestFactory {
         return .init(path: "/conversations/\(identifier)/code", method: .methodDELETE, payload: nil)
     }
 
-    static func set(allowGuests: Bool, for conversation: ZMConversation) -> ZMTransportRequest {
-        guard let identifier = conversation.remoteIdentifier?.transportString() else {
-            fatal("conversation is not yet inserted on the backend")
-        }
-        let payload = [ "access": ConversationAccessMode.value(forAllowGuests: allowGuests).stringValue as Any,
-                        "access_role_v2": ConversationAccessRole.value(forAllowGuests: allowGuests).rawValue]
-        return .init(path: "/conversations/\(identifier)/access", method: .methodPUT, payload: payload as ZMTransportData)
-    }
-
-    static func set(allowServices: Bool, for conversation: ZMConversation) -> ZMTransportRequest {
-        guard let identifier = conversation.remoteIdentifier?.transportString() else {
-            fatal("conversation is not yet inserted on the backend")
-        }
-
-        var accessRoles = conversation.accessRoles
-
-        if allowServices {
-            accessRoles.insert(.service)
-        } else {
-            accessRoles.remove(.service)
-        }
-
-        let payload = [ "access": ConversationAccessMode.value(forAllowGuests: conversation.allowGuests).stringValue as Any,
-                        "access_role_v2": accessRoles.map(\.rawValue)]
-        return .init(path: "/conversations/\(identifier)/access", method: .methodPUT, payload: payload as ZMTransportData)
-    }
-
     static func setAccessRoles(allowGuests: Bool, allowServices: Bool, for conversation: ZMConversation) -> ZMTransportRequest {
         guard let identifier = conversation.remoteIdentifier?.transportString() else {
             fatal("conversation is not yet inserted on the backend")
@@ -277,6 +250,7 @@ internal struct WirelessRequestFactory {
 
         let payload = [
             "access": ConversationAccessMode.value(forAllowGuests: allowGuests).stringValue as Any,
+            "access_role": ConversationAccessRole.value(forAllowGuests: allowGuests).rawValue,
             "access_role_v2": accessRoles.map(\.rawValue)
         ]
         return .init(path: "/conversations/\(identifier)/access", method: .methodPUT, payload: payload as ZMTransportData)
