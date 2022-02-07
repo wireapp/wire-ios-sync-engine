@@ -263,4 +263,22 @@ class ConversationTests_Guests: IntegrationTest {
         XCTAssertEqual(request.method, .methodDELETE)
     }
 
+    func testThatAccessModeChangeEventIsHandled() {
+        // given
+        XCTAssert(login())
+
+        let conversation = self.conversation(for: self.groupConversationWithWholeTeam!)!
+        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
+        XCTAssertFalse(conversation.accessMode!.contains(.allowGuests))
+
+        // when
+        mockTransportSession?.performRemoteChanges { _ in
+            self.groupConversationWithWholeTeam.set(allowGuests: true, allowServices: true)
+        }
+        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
+
+        // then
+        XCTAssertTrue(conversation.accessMode!.contains(.allowGuests))
+    }
+
 }
