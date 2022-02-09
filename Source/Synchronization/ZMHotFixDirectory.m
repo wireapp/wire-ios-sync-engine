@@ -201,17 +201,28 @@ static NSString* ZMLogTag ZM_UNUSED = @"HotFix";
                      patchCode:^(NSManagedObjectContext *context) {
                         [ZMHotFixDirectory restartSlowSync:context];
                     }],
+
                     /// We need to refetch the users after qualified ID was introduced
                     [ZMHotFixPatch
                      patchWithVersion:@"372.1.2"
                      patchCode:^(NSManagedObjectContext *context) {
                          [ZMHotFixDirectory refetchUsers:context];
                      }],
+
                     /// We need to set implicit legalhold consent capability for the SelfClient
                     [ZMHotFixPatch
                      patchWithVersion:@"381.0.1"
                      patchCode:^(NSManagedObjectContext *context){
                          [ZMHotFixDirectory updateClientCapabilities:context];
+                     }],
+
+                    /// We need to refetch all users in order to fetch all profile images. Backend made some changes that broke
+                    /// asset fetching, which has been fixed, but now profile images are missing locally.
+                    [ZMHotFixPatch
+                     patchWithVersion:@"412.3.3"
+                     patchCode:^(NSManagedObjectContext *context) {
+                        [ZMHotFixDirectory refetchSelfUser:context];
+                        [ZMHotFixDirectory refetchUsers:context];
                      }],
                     ];
     });
