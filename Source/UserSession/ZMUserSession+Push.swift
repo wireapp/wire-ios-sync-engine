@@ -149,22 +149,6 @@ extension ZMUserSession {
     }
 }
 
-// Internal flag to enable/disable use of Notification Service Extension
-
-extension ZMUserSession {
-
-    public var isLegacyPushNotification: Bool {
-        get {
-            return applicationStatusDirectory?.pushNotificationStatus.isPushNotificationInLegacyMode ?? true
-        }
-        
-        set {
-            applicationStatusDirectory?.pushNotificationStatus.isPushNotificationInLegacyMode = newValue
-        }
-    }
-
-}
-
 extension ZMUserSession {
 
     public func receivedPushNotification(with payload: [AnyHashable: Any], completion: @escaping () -> Void) {

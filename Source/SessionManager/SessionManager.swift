@@ -746,11 +746,11 @@ public final class SessionManager: NSObject, SessionManagerType {
         updateOrMigratePushToken(session: userSession)
         registerObservers(account: account, session: userSession)
     }
-    
-    // If isLegacyPushNotification is disabled we cannot use voIP notifications. We should migrate (remove voip token and register APNS token ) the push token when upgrading the client OS or app version.
+
+    // If useLegacyPushNotifications is disabled we cannot use voIP notifications. We should migrate (remove voip token and register APNS token ) the push token when upgrading the client OS or app version.
     private func updateOrMigratePushToken(session userSession: ZMUserSession) {
         if userSession.selfUserClient?.pushToken?.tokenType == .voip,
-           !userSession.isLegacyPushNotification {
+           !configuration.useLegacyPushNotifications {
             userSession.deletePushKitToken() // delete voip token and register APNS token for remote notifications
         }
         updatePushToken(for: userSession)
@@ -771,7 +771,7 @@ public final class SessionManager: NSObject, SessionManagerType {
     }
 
     private func registerForVoipPushNotificationsIfNeeded(session userSession: ZMUserSession) {
-        if userSession.isLegacyPushNotification {
+        if configuration.useLegacyPushNotifications {
             // register for voIP push notifications
             self.pushRegistry.delegate = self
             let pkPushTypeSet: Set<PKPushType> = [PKPushType.voIP]
@@ -783,7 +783,8 @@ public final class SessionManager: NSObject, SessionManagerType {
     private func startBackgroundSession(for account: Account, with coreDataStack: CoreDataStack) -> ZMUserSession {
         let sessionConfig = ZMUserSession.Configuration(
             appLockConfig: configuration.legacyAppLockConfig,
-            supportFederation: configuration.supportFederation
+            supportFederation: configuration.supportFederation,
+            useLegacyPushNotifications: configuration.useLegacyPushNotifications
         )
 
         guard let newSession = authenticatedSessionFactory.session(for: account,

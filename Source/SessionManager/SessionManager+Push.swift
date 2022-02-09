@@ -143,9 +143,8 @@ extension SessionManager: PKPushRegistryDelegate {
 
     public func updatePushToken(for session: ZMUserSession) {
         session.managedObjectContext.performGroupedBlock { [weak session] in
-            let isLegacyPushNotification = session?.isLegacyPushNotification ?? true
             // Refresh the tokens if needed
-            if isLegacyPushNotification {
+            if self.configuration.useLegacyPushNotifications {
                 if let token = self.pushRegistry.pushToken(for: .voIP) {
                     let pushToken = PushToken.createVOIPToken(from: token)
                     session?.setPushToken(pushToken)

@@ -42,6 +42,7 @@ NSUInteger const ZMMissingUpdateEventsTranscoderListPageSize = 500;
 @property (nonatomic, weak) OperationStatus* operationStatus;
 @property (nonatomic, weak) id<ClientRegistrationDelegate> clientRegistrationDelegate;
 @property (nonatomic) NotificationsTracker *notificationsTracker;
+@property (nonatomic) BOOL useLegacyPushNotifications;
 
 
 - (void)appendPotentialGapSystemMessageIfNeededWithResponse:(ZMTransportResponse *)response;
@@ -63,6 +64,7 @@ NSUInteger const ZMMissingUpdateEventsTranscoderListPageSize = 500;
                       pushNotificationStatus:(PushNotificationStatus *)pushNotificationStatus
                                   syncStatus:(SyncStatus *)syncStatus
                              operationStatus:(OperationStatus *)operationStatus
+                  useLegacyPushNotifications:(BOOL)useLegacyPushNotifications
 
 {
     self = [super initWithManagedObjectContext:managedObjectContext applicationStatus:applicationStatus];
@@ -73,6 +75,7 @@ NSUInteger const ZMMissingUpdateEventsTranscoderListPageSize = 500;
         self.pushNotificationStatus = pushNotificationStatus;
         self.syncStatus = syncStatus;
         self.operationStatus = operationStatus;
+        self.useLegacyPushNotifications = useLegacyPushNotifications;
         self.listPaginator = [[ZMSimpleListRequestPaginator alloc] initWithBasePath:NotificationsPath
                                                                            startKey:StartKey
                                                                            pageSize:ZMMissingUpdateEventsTranscoderListPageSize
@@ -99,11 +102,6 @@ NSUInteger const ZMMissingUpdateEventsTranscoderListPageSize = 500;
 - (BOOL)isFetchingStreamForAPNS
 {
     return self.pushNotificationStatus.hasEventsToFetch;
-}
-
-- (BOOL)isLegacyPushNotification
-{
-    return self.pushNotificationStatus.isPushNotificationInLegacyMode;
 }
 
 - (BOOL)isFetchingStreamInBackground
@@ -256,7 +254,7 @@ NSUInteger const ZMMissingUpdateEventsTranscoderListPageSize = 500;
 
     // We want to create a new request if we are either currently fetching the paginated stream
     // or if we have a new notification ID that requires a pingback.
-    if ((self.isFetchingStreamForAPNS && self.isLegacyPushNotification) || self.isFetchingStreamInBackground || self.isSyncing) {
+    if ((self.isFetchingStreamForAPNS && self.useLegacyPushNotifications) || self.isFetchingStreamInBackground || self.isSyncing) {
         
         // We only reset the paginator if it is neither in progress nor has more pages to fetch.
         if (self.listPaginator.status != ZMSingleRequestInProgress && !self.listPaginator.hasMoreToFetch) {
