@@ -21,7 +21,7 @@ import XCTest
 
 final class ZMUserSessionTests_SecurityClassification: ZMUserSessionTestsBase {
 
-    func otherUser(moc: NSManagedObjectContext, domain: String?) -> ZMUser {
+    func createUser(moc: NSManagedObjectContext, domain: String?) -> ZMUser {
         let user = ZMUser(context: moc)
         user.remoteIdentifier = UUID()
         user.domain = domain
@@ -40,7 +40,7 @@ final class ZMUserSessionTests_SecurityClassification: ZMUserSessionTestsBase {
 
     func testThatItReturnsNone_WhenFeatureIsEnabled_WhenSelfDomainIsNil() {
         // given
-        let otherUser = otherUser(moc: syncMOC, domain: UUID().uuidString)
+        let otherUser = createUser(moc: syncMOC, domain: UUID().uuidString)
 
         storeClassifiedDomains(with: .enabled, domains: [])
 
@@ -61,7 +61,7 @@ final class ZMUserSessionTests_SecurityClassification: ZMUserSessionTestsBase {
 
     func testThatItReturnsNone_WhenFeatureIsDisabled_WhenSelfDomainIsNotNil() {
         // given
-        let otherUser = otherUser(moc: syncMOC, domain: UUID().uuidString)
+        let otherUser = createUser(moc: syncMOC, domain: UUID().uuidString)
 
         storeClassifiedDomains(with: .disabled, domains: [])
 
@@ -82,9 +82,9 @@ final class ZMUserSessionTests_SecurityClassification: ZMUserSessionTestsBase {
 
     func testThatItReturnClassified_WhenFeatureIsEnabled_WhenAllOtherUserDomainIsClassified() {
         // given
-        let otherUser1 = otherUser(moc: syncMOC, domain: UUID().uuidString)
-        let otherUser2 = otherUser(moc: syncMOC, domain: UUID().uuidString)
-        let otherUser3 = otherUser(moc: syncMOC, domain: UUID().uuidString)
+        let otherUser1 = createUser(moc: syncMOC, domain: UUID().uuidString)
+        let otherUser2 = createUser(moc: syncMOC, domain: UUID().uuidString)
+        let otherUser3 = createUser(moc: syncMOC, domain: UUID().uuidString)
         let otherUsers = [otherUser1, otherUser2, otherUser3]
         let classifiedDomains = otherUsers.map { $0.domain! }
 
@@ -107,9 +107,9 @@ final class ZMUserSessionTests_SecurityClassification: ZMUserSessionTestsBase {
 
     func testThatItReturnsNotClassified_WhenFeatureIsEnabled_WhenAtLeastOneOtherUserDomainIsNotClassified() {
         // given
-        let otherUser1 = otherUser(moc: syncMOC, domain: UUID().uuidString)
-        let otherUser2 = otherUser(moc: syncMOC, domain: UUID().uuidString)
-        let otherUser3 = otherUser(moc: syncMOC, domain: UUID().uuidString)
+        let otherUser1 = createUser(moc: syncMOC, domain: UUID().uuidString)
+        let otherUser2 = createUser(moc: syncMOC, domain: UUID().uuidString)
+        let otherUser3 = createUser(moc: syncMOC, domain: UUID().uuidString)
         let otherUsers = [otherUser1, otherUser2, otherUser3]
 
         var classifiedDomains = otherUsers.map { $0.domain! }
@@ -134,9 +134,9 @@ final class ZMUserSessionTests_SecurityClassification: ZMUserSessionTestsBase {
 
     func testThatItReturnsNotClassified_WhenFeatureIsEnabled_WhenAtLeastOneOtherUserDomainIsNil() {
         // given
-        let otherUser1 = otherUser(moc: syncMOC, domain: UUID().uuidString)
-        let otherUser2 = otherUser(moc: syncMOC, domain: nil)
-        let otherUser3 = otherUser(moc: syncMOC, domain: UUID().uuidString)
+        let otherUser1 = createUser(moc: syncMOC, domain: UUID().uuidString)
+        let otherUser2 = createUser(moc: syncMOC, domain: nil)
+        let otherUser3 = createUser(moc: syncMOC, domain: UUID().uuidString)
         let otherUsers = [otherUser1, otherUser2, otherUser3]
 
         let classifiedDomains = otherUsers.compactMap { $0.domain }
