@@ -68,6 +68,10 @@
     },
     {
       "skippedTests" : [
+        "APNSTests\/testThatItFetchesTheNotificationStreamWhenReceivingNotificationOfTypeNotice",
+        "APNSTests\/testThatItFetchesTheNotificationStreamWhenReceivingNotificationOfTypeNotice_TriesAgainWhenReceiving_401",
+        "APNSTests_Swift\/testThatItSendsAConfirmationMessage_WhenReceivingATextMessage()",
+        "APNSTests_Swift\/testThatItUpdatesApplicationBadgeCount_WhenReceivingATextMessage()",
         "AvailabilityTests",
         "SessionManagerTests"
       ],
