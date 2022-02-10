@@ -22,12 +22,12 @@ import XCTest
 final class ZMUserSessionTests_SecurityClassification: ZMUserSessionTestsBase {
 
     func otherUser(moc: NSManagedObjectContext, domain: String?) -> ZMUser {
-        let otherUser = ZMUser(context: moc)
-        otherUser.remoteIdentifier = UUID()
-        otherUser.domain = domain
-        otherUser.name = "Other Test User"
+        let user = ZMUser(context: moc)
+        user.remoteIdentifier = UUID()
+        user.domain = domain
+        user.name = "Other Test User"
 
-        return otherUser
+        return user
     }
 
     func storeClassifiedDomains(with status: Feature.Status, domains: [String]) {
