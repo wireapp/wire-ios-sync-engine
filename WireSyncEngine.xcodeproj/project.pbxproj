@@ -415,7 +415,7 @@
 		63EB9B2D258131F700B44635 /* AVSActiveSpeakerChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EB9B2C258131F700B44635 /* AVSActiveSpeakerChange.swift */; };
 		63FE4B9E25C1D2EC002878E5 /* VideoGridPresentationMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63FE4B9D25C1D2EC002878E5 /* VideoGridPresentationMode.swift */; };
 		70355A7327AAE62E00F02C76 /* ZMUserSession+SecurityClassification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70355A7227AAE62D00F02C76 /* ZMUserSession+SecurityClassification.swift */; };
-		707CEBB727B515B200E080A4 /* ZMUserSessionTests+Classification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 707CEBB627B515B200E080A4 /* ZMUserSessionTests+Classification.swift */; };
+		707CEBB727B515B200E080A4 /* ZMUserSessionTests+SecurityClassification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 707CEBB627B515B200E080A4 /* ZMUserSessionTests+SecurityClassification.swift */; };
 		71AE6F20A2708DCF3BAD54F7 /* ZMOperationLoopTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3BF3961360B7EB12679AF27 /* ZMOperationLoopTests.swift */; };
 		7C1F4BF5203C4F67000537A8 /* Analytics+Push.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1F4BF4203C4F67000537A8 /* Analytics+Push.swift */; };
 		7C26879D21F7193800570AA9 /* EventProcessingTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C26879C21F7193800570AA9 /* EventProcessingTracker.swift */; };
@@ -1066,7 +1066,7 @@
 		63F65F222474378200534A69 /* APNSTestsBase.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = APNSTestsBase.m; sourceTree = "<group>"; };
 		63FE4B9D25C1D2EC002878E5 /* VideoGridPresentationMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoGridPresentationMode.swift; sourceTree = "<group>"; };
 		70355A7227AAE62D00F02C76 /* ZMUserSession+SecurityClassification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ZMUserSession+SecurityClassification.swift"; sourceTree = "<group>"; };
-		707CEBB627B515B200E080A4 /* ZMUserSessionTests+Classification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ZMUserSessionTests+Classification.swift"; sourceTree = "<group>"; };
+		707CEBB627B515B200E080A4 /* ZMUserSessionTests+SecurityClassification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ZMUserSessionTests+SecurityClassification.swift"; sourceTree = "<group>"; };
 		7C1F4BF4203C4F67000537A8 /* Analytics+Push.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Analytics+Push.swift"; sourceTree = "<group>"; };
 		7C26879C21F7193800570AA9 /* EventProcessingTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventProcessingTracker.swift; sourceTree = "<group>"; };
 		7C419ED621F8D7EB00B95770 /* EventProcessingTrackerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventProcessingTrackerTests.swift; sourceTree = "<group>"; };
@@ -1909,7 +1909,7 @@
 				168474252252579A004DE9EC /* ZMUserSessionTests+Syncing.swift */,
 				16E0FBB4233119FE000E3235 /* ZMUserSessionTests+Authentication.swift */,
 				1673C35224CB36D800AE2714 /* ZMUserSessionTests+EncryptionAtRest.swift */,
-				707CEBB627B515B200E080A4 /* ZMUserSessionTests+Classification.swift */,
+				707CEBB627B515B200E080A4 /* ZMUserSessionTests+SecurityClassification.swift */,
 				0920C4D81B305FF500C55728 /* UserSessionGiphyRequestStateTests.swift */,
 				541228431AEE422C00D9ED1C /* ZMAuthenticationStatusTests.m */,
 				7CE017142317D07E00144905 /* ZMAuthenticationStatusTests.swift */,
@@ -3245,7 +3245,7 @@
 				F9F9F5621D75D62100AE6499 /* RequestStrategyTestBase.swift in Sources */,
 				7C419ED821F8D81D00B95770 /* EventProcessingTrackerTests.swift in Sources */,
 				16962EE52028A86D0069D88D /* ZMLocalNotificationLocalizationTests.swift in Sources */,
-				707CEBB727B515B200E080A4 /* ZMUserSessionTests+Classification.swift in Sources */,
+				707CEBB727B515B200E080A4 /* ZMUserSessionTests+SecurityClassification.swift in Sources */,
 				85D8522CF8DE246DDD5BD12C /* MockEntity.m in Sources */,
 				EF2CB12A22D5E5BF00350B0A /* TeamImageAssetUpdateStrategyTests.swift in Sources */,
 				3E288A6C19C859210031CFCE /* NotificationObservers.m in Sources */,
