@@ -414,24 +414,10 @@ public final class SessionManager: NSObject, SessionManagerType {
 
         super.init()
 
-        //registerForVoipPushNotificationsIfNeeded()
         deleteAccountToken = AccountDeletedNotification.addObserver(observer: self, queue: groupQueue)
         callCenterObserverToken = WireCallCenterV3.addGlobalCallStateObserver(observer: self)
 
         checkJailbreakIfNeeded()
-    }
-
-    ///  For iOS earlier than 13 we should register for voip push notifications
-    private func registerForVoipPushNotificationsIfNeeded() {
-       
-        //        guard #available(iOS 13.0, *) else {
-//        if userSession.isLegacyPushNotification {
-            // register for voIP push notifications
-            self.pushRegistry.delegate = self
-            let pkPushTypeSet: Set<PKPushType> = [PKPushType.voIP]
-            self.pushRegistry.desiredPushTypes = pkPushTypeSet
-        //            return
-        //        }
     }
 
     public func start(launchOptions: LaunchOptions) {
