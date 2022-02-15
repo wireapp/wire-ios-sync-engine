@@ -261,7 +261,8 @@ public class ZMUserSession: NSObject {
             self.configureTransportSession()
             self.applicationStatusDirectory = self.createApplicationStatusDirectory()
             self.updateEventProcessor = eventProcessor ?? self.createUpdateEventProcessor()
-            self.strategyDirectory = strategyDirectory ?? self.createStrategyDirectory(supportFederation: configuration.supportFederation)
+            self.strategyDirectory = strategyDirectory ?? self.createStrategyDirectory(supportFederation: configuration.supportFederation,
+                                                                                       useLegacyPushNotifications: configuration.useLegacyPushNotifications)
             self.syncStrategy = syncStrategy ?? self.createSyncStrategy()
             self.operationLoop = operationLoop ?? self.createOperationLoop()
             self.urlActionProcessors = self.createURLActionProcessors()
@@ -308,7 +309,7 @@ public class ZMUserSession: NSObject {
 
     }
 
-    private func createStrategyDirectory(supportFederation: Bool) -> StrategyDirectoryProtocol {
+    private func createStrategyDirectory(supportFederation: Bool, useLegacyPushNotifications: Bool) -> StrategyDirectoryProtocol {
         return StrategyDirectory(contextProvider: coreDataStack,
                                  applicationStatusDirectory: applicationStatusDirectory!,
                                  cookieStorage: transportSession.cookieStorage,
@@ -316,7 +317,8 @@ public class ZMUserSession: NSObject {
                                  flowManager: flowManager,
                                  updateEventProcessor: updateEventProcessor!,
                                  localNotificationDispatcher: localNotificationDispatcher!,
-                                 supportFederation: supportFederation)
+                                 supportFederation: supportFederation,
+                                 useLegacyPushNotifications: useLegacyPushNotifications)
     }
 
     private func createUpdateEventProcessor() -> EventProcessor {
@@ -327,11 +329,11 @@ public class ZMUserSession: NSObject {
 
     private func createApplicationStatusDirectory() -> ApplicationStatusDirectory {
         let applicationStatusDirectory = ApplicationStatusDirectory(withManagedObjectContext: self.syncManagedObjectContext,
-                                                                     cookieStorage: transportSession.cookieStorage,
-                                                                     requestCancellation: transportSession,
-                                                                     application: application,
-                                                                     syncStateDelegate: self,
-                                                                     analytics: analytics)
+                                                                    cookieStorage: transportSession.cookieStorage,
+                                                                    requestCancellation: transportSession,
+                                                                    application: application,
+                                                                    syncStateDelegate: self,
+                                                                    analytics: analytics)
 
         applicationStatusDirectory.clientRegistrationStatus.prepareForClientRegistration()
         self.hasCompletedInitialSync = !applicationStatusDirectory.syncStatus.isSlowSyncing

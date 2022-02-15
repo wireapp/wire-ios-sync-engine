@@ -80,7 +80,8 @@ static NSString * const LastUpdateEventIDStoreKey = @"LastUpdateEventID";
                                                                applicationStatus:self.mockApplicationDirectory
                                                           pushNotificationStatus:self.mockPushNotificationStatus
                                                                       syncStatus:self.mockSyncStatus
-                                                                 operationStatus:self.mockOperationStatus];
+                                                                 operationStatus:self.mockOperationStatus
+                                                      useLegacyPushNotifications:NO];
 }
 
 - (void)tearDown {
@@ -407,7 +408,8 @@ static NSString * const LastUpdateEventIDStoreKey = @"LastUpdateEventID";
                                                                                                applicationStatus:self.mockApplicationDirectory
                                                                                           pushNotificationStatus:self.mockPushNotificationStatus
                                                                                                       syncStatus:self.mockSyncStatus
-                                                                                                 operationStatus:self.mockOperationStatus];
+                                                                                                 operationStatus:self.mockOperationStatus
+                                                                                      useLegacyPushNotifications:NO];
     
     WaitForAllGroupsToBeEmpty(0.5);
     [sut.listPaginator resetFetching];

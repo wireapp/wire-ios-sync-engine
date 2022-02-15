@@ -44,7 +44,8 @@ extern NSUInteger const ZMMissingUpdateEventsTranscoderListPageSize;
                            applicationStatus:(id<ZMApplicationStatus>)applicationStatus
                       pushNotificationStatus:(PushNotificationStatus *)pushNotificationStatus
                                   syncStatus:(SyncStatus *)syncStatus
-                             operationStatus:(OperationStatus *)operationStatus;
+                             operationStatus:(OperationStatus *)operationStatus
+                  useLegacyPushNotifications:(BOOL)useLegacyPushNotifications;
 
 - (void)startDownloadingMissingNotifications;
 
