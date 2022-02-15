@@ -274,15 +274,15 @@ extension PushToken {
         self.init(deviceToken: deviceToken,
                   appIdentifier: metadata.appIdentifier,
                   transportType: metadata.transportType,
-                  type: pushTokenType,
+                  tokenType: pushTokenType,
                   isRegistered: isRegistered)
     }
-    
+
     public static func createVOIPToken(from deviceToken: Data) -> PushToken {
         return PushToken(deviceToken: deviceToken, pushTokenType: .voip)
     }
-    
-    public static func createAPNSToken(from deviceToken: Data) -> PushToken  {
+
+    public static func createAPNSToken(from deviceToken: Data) -> PushToken {
         return PushToken(deviceToken: deviceToken, pushTokenType: .standard)
     }
 }
