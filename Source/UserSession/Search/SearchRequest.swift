@@ -78,8 +78,8 @@ public struct SearchRequest {
 
     var handleAndDomain: (String, String)? {
         let components = query.split(separator: "@")
-            .map { String($0).trimmingCharacters(in: .whitespaces).lowercased() }
-            .map { $0.replacingOccurrences(of: " ", with: "") }
+//            .map { String($0).trimmingCharacters(in: .whitespaces).lowercased() }
+            .map { String($0).replacingOccurrences(of: " ", with: "") }
             .filter { !$0.isEmpty }
 
         guard
