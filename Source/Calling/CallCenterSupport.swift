@@ -18,6 +18,8 @@
 
 import Foundation
 
+private let zmLog = ZMSLog(tag: "calling")
+
 /// An opaque OTR calling message.
 
 public typealias WireCallMessageToken = UnsafeMutableRawPointer
@@ -61,6 +63,7 @@ extension CallEvent {
 
     var isRemoteMute: Bool {
         let content = try? decoder.decode(Content.self, from: data)
+        zmLog.debug("call event: \(content?.type)")
         return content?.type == "REMOTE_MUTE"
     }
 
