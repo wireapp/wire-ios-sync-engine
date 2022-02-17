@@ -53,6 +53,21 @@ public struct CallEvent {
     let userId: AVSIdentifier
     let clientId: String
 
+    let decoder = JSONDecoder()
+
+}
+
+extension CallEvent {
+
+    var isRemoteMute: Bool {
+        let content = try? decoder.decode(Content.self, from: data)
+        return content?.type == "REMOTE_MUTE"
+    }
+
+    private struct Content: Codable {
+        let type: String
+    }
+
 }
 
 // MARK: - Call center transport

@@ -285,6 +285,12 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
                 callEventStatus.scheduledCallEventForProcessing()
 
+                guard !callEvent.isRemoteMute else {
+                    callCenter?.muted = true
+                    zmLog.debug("muted remotely from calling message")
+                    return
+                }
+
                 callCenter?.processCallEvent(callEvent, completionHandler: { [weak self] in
                     self?.zmLog.debug("processed calling message")
                     self?.callEventStatus.finishedProcessingCallEvent()
