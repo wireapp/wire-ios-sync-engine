@@ -64,7 +64,7 @@ extension CallEvent {
     var isRemoteMute: Bool {
         let content = try? decoder.decode(Content.self, from: data)
         zmLog.debug("call event: \(content?.type)")
-        return content?.type == "REMOTE_MUTE"
+        return content?.type == "REMOTEMUTE"
     }
 
     private struct Content: Codable {
