@@ -99,7 +99,7 @@ public class SessionManagerConfiguration: NSObject, NSCopying, Codable {
         encryptionAtRestIsEnabledByDefault: Bool = false,
         legacyAppLockConfig: AppLockController.LegacyConfig? = nil,
         supportFederation: Bool = false,
-        useLegacyPushNotifications: Bool = true) {
+        useLegacyPushNotifications: Bool = false) {
 
         self.wipeOnCookieInvalid = wipeOnCookieInvalid
         self.blacklistDownloadInterval = blacklistDownloadInterval
@@ -126,7 +126,7 @@ public class SessionManagerConfiguration: NSObject, NSCopying, Codable {
         encryptionAtRestEnabledByDefault = try container.decode(Bool.self, forKey: .encryptionAtRestEnabledByDefault)
         legacyAppLockConfig = try container.decodeIfPresent(AppLockController.LegacyConfig.self, forKey: .legacyAppLockConfig)
         supportFederation = try container.decodeIfPresent(Bool.self, forKey: .supportFederation) ?? false
-        useLegacyPushNotifications = try container.decodeIfPresent(Bool.self, forKey: .useLegacyPushNotifications) ?? true
+        useLegacyPushNotifications = try container.decodeIfPresent(Bool.self, forKey: .useLegacyPushNotifications) ?? false
     }
 
     // MARK: - Methods
