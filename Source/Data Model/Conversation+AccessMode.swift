@@ -24,6 +24,11 @@ public enum SetAllowGuestsError: Error {
     case unknown
 }
 
+public enum SetAllowServicesError: Error {
+    case unknown
+    case invalidOperation
+}
+
 fileprivate extension ZMConversation {
     struct TransportKey {
         static let data = "data"
@@ -157,19 +162,36 @@ extension ZMConversation {
             return completion(.failure(WirelessLinkError.invalidOperation))
         }
 
-        let request = WirelessRequestFactory.set(allowGuests: allowGuests, for: self)
+        setAllowGuestsAndServices(allowGuests: allowGuests, allowServices: self.allowServices, in: userSession, completion)
+    }
+
+    /// Changes the conversation access mode to allow services.
+    public func setAllowServices(_ allowServices: Bool, in userSession: ZMUserSession, _ completion: @escaping (VoidResult) -> Void) {
+        guard canManageAccess else {
+            return completion(.failure(SetAllowServicesError.invalidOperation))
+        }
+
+        setAllowGuestsAndServices(allowGuests: self.allowGuests, allowServices: allowServices, in: userSession, completion)
+
+    }
+
+    /// Changes the conversation access mode to allow services.
+    private func setAllowGuestsAndServices(allowGuests: Bool, allowServices: Bool, in userSession: ZMUserSession, _ completion: @escaping (VoidResult) -> Void) {
+
+        let request = WirelessRequestFactory.setAccessRoles(allowGuests: allowGuests, allowServices: allowServices, for: self)
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
             if let payload = response.payload,
                 let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: nil) {
                 self.allowGuests = allowGuests
+                self.allowServices = allowServices
                 // Process `conversation.access-update` event
                 userSession.syncManagedObjectContext.performGroupedBlock {
                     userSession.updateEventProcessor?.storeAndProcessUpdateEvents([event], ignoreBuffer: true)
                 }
                 completion(.success)
             } else {
-                zmLog.debug("Error creating wireless link: \(response)")
-                completion(.failure(SetAllowGuestsError.unknown))
+                zmLog.debug("Error setting access role:  \(response)")
+                completion(.failure(SetAllowServicesError.unknown))
             }
         })
 
@@ -205,12 +227,33 @@ internal struct WirelessRequestFactory {
         return .init(path: "/conversations/\(identifier)/code", method: .methodDELETE, payload: nil)
     }
 
-    static func set(allowGuests: Bool, for conversation: ZMConversation) -> ZMTransportRequest {
+    static func setAccessRoles(allowGuests: Bool, allowServices: Bool, for conversation: ZMConversation) -> ZMTransportRequest {
         guard let identifier = conversation.remoteIdentifier?.transportString() else {
             fatal("conversation is not yet inserted on the backend")
         }
-        let payload = [ "access": ConversationAccessMode.value(forAllowGuests: allowGuests).stringValue as Any,
-                        "access_role": ConversationAccessRole.value(forAllowGuests: allowGuests).rawValue]
+
+        var accessRoles = conversation.accessRoles
+
+        if allowServices {
+            accessRoles.insert(.service)
+        } else {
+            accessRoles.remove(.service)
+        }
+
+        if allowGuests {
+            accessRoles.insert(.guest)
+            accessRoles.insert(.nonTeamMember)
+        } else {
+            accessRoles.remove(.guest)
+            accessRoles.remove(.nonTeamMember)
+        }
+
+        let payload = [
+            "access": ConversationAccessMode.value(forAllowGuests: allowGuests).stringValue as Any,
+            "access_role": ConversationAccessRole.fromAccessRoleV2(accessRoles).rawValue,
+            "access_role_v2": accessRoles.map(\.rawValue)
+        ]
         return .init(path: "/conversations/\(identifier)/access", method: .methodPUT, payload: payload as ZMTransportData)
     }
+
 }

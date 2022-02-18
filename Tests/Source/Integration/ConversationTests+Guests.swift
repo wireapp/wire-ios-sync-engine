@@ -60,7 +60,7 @@ class ConversationTests_Guests: IntegrationTest {
         // given
         mockTransportSession.performRemoteChanges { _ in
             self.groupConversationWithWholeTeam.accessMode = ["code", "invite"]
-            self.groupConversationWithWholeTeam.accessRole = "non_activated"
+            self.groupConversationWithWholeTeam.accessRoleV2 = ["team_member", "non_team_member", "guest", "service"]
         }
         XCTAssert(login())
 
@@ -68,7 +68,7 @@ class ConversationTests_Guests: IntegrationTest {
 
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
         XCTAssertEqual(conversation.accessMode, [.code, .invite])
-        XCTAssertEqual(conversation.accessRole, .nonActivated)
+        XCTAssertEqual(conversation.accessRoles, [.teamMember, .nonTeamMember, .guest, .service])
         mockTransportSession?.resetReceivedRequests()
 
         // when
@@ -93,7 +93,7 @@ class ConversationTests_Guests: IntegrationTest {
         // given
         mockTransportSession.performRemoteChanges { _ in
             self.groupConversationWithWholeTeam.accessMode = ["invite"]
-            self.groupConversationWithWholeTeam.accessRole = "activated"
+            self.groupConversationWithWholeTeam.accessRoleV2 = ["team_member", "non_team_member", "guest"]
         }
         XCTAssert(login())
 
@@ -101,7 +101,7 @@ class ConversationTests_Guests: IntegrationTest {
 
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
         XCTAssertEqual(conversation.accessMode, [.invite])
-        XCTAssertEqual(conversation.accessRole, .activated)
+        XCTAssertEqual(conversation.accessRoles, [.teamMember, .nonTeamMember, .guest])
         mockTransportSession?.resetReceivedRequests()
 
         // when
@@ -128,7 +128,7 @@ class ConversationTests_Guests: IntegrationTest {
         // given
         mockTransportSession.performRemoteChanges { _ in
             self.groupConversationWithWholeTeam.accessMode = ["code", "invite"]
-            self.groupConversationWithWholeTeam.accessRole = "non_activated"
+            self.groupConversationWithWholeTeam.accessRoleV2 = ["team_member", "non_team_member", "guest", "service"]
         }
         XCTAssert(login())
 
@@ -136,7 +136,7 @@ class ConversationTests_Guests: IntegrationTest {
 
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
         XCTAssertEqual(conversation.accessMode, [.code, .invite])
-        XCTAssertEqual(conversation.accessRole, .nonActivated)
+        XCTAssertEqual(conversation.accessRoles, [.teamMember, .nonTeamMember, .guest, .service])
         mockTransportSession?.resetReceivedRequests()
 
         // when
@@ -163,7 +163,7 @@ class ConversationTests_Guests: IntegrationTest {
 
         mockTransportSession.performRemoteChanges { _ in
             self.groupConversationWithWholeTeam.accessMode = ["code", "invite"]
-            self.groupConversationWithWholeTeam.accessRole = "non_activated"
+            self.groupConversationWithWholeTeam.accessRoleV2 = ["team_member", "non_team_member", "guest", "service"]
             self.groupConversationWithWholeTeam.link = existingLink
         }
         XCTAssert(login())
@@ -172,7 +172,7 @@ class ConversationTests_Guests: IntegrationTest {
 
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
         XCTAssertEqual(conversation.accessMode, [.code, .invite])
-        XCTAssertEqual(conversation.accessRole, .nonActivated)
+        XCTAssertEqual(conversation.accessRoles, [.teamMember, .nonTeamMember, .guest, .service])
         mockTransportSession?.resetReceivedRequests()
 
         // when
@@ -199,7 +199,7 @@ class ConversationTests_Guests: IntegrationTest {
 
         mockTransportSession.performRemoteChanges { _ in
             self.groupConversationWithWholeTeam.accessMode = ["code", "invite"]
-            self.groupConversationWithWholeTeam.accessRole = "non_activated"
+            self.groupConversationWithWholeTeam.accessRoleV2 = ["team_member", "non_team_member", "guest", "service"]
             self.groupConversationWithWholeTeam.link = existingLink
         }
         XCTAssert(login())
@@ -208,7 +208,7 @@ class ConversationTests_Guests: IntegrationTest {
 
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
         XCTAssertEqual(conversation.accessMode, [.code, .invite])
-        XCTAssertEqual(conversation.accessRole, .nonActivated)
+        XCTAssertEqual(conversation.accessRoles, [.teamMember, .nonTeamMember, .guest, .service])
         mockTransportSession?.resetReceivedRequests()
 
         // when
@@ -233,16 +233,16 @@ class ConversationTests_Guests: IntegrationTest {
         // given
         mockTransportSession.performRemoteChanges { _ in
             self.groupConversationWithWholeTeam.accessMode = ["code", "invite"]
-            self.groupConversationWithWholeTeam.accessRole = "non_activated"
+            self.groupConversationWithWholeTeam.accessRoleV2 = ["team_member", "non_team_member", "guest", "service"]
             self.groupConversationWithWholeTeam.link = nil
         }
         XCTAssert(login())
 
         let conversation = self.conversation(for: self.groupConversationWithWholeTeam)!
 
-        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
+        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         XCTAssertEqual(conversation.accessMode, [.code, .invite])
-        XCTAssertEqual(conversation.accessRole, .nonActivated)
+        XCTAssertEqual(conversation.accessRoles, [.teamMember, .nonTeamMember, .guest, .service])
         mockTransportSession?.resetReceivedRequests()
 
         // when
@@ -273,11 +273,12 @@ class ConversationTests_Guests: IntegrationTest {
 
         // when
         mockTransportSession?.performRemoteChanges { _ in
-            self.groupConversationWithWholeTeam.set(allowGuests: true)
+            self.groupConversationWithWholeTeam.set(allowGuests: true, allowServices: true)
         }
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
 
         // then
         XCTAssertTrue(conversation.accessMode!.contains(.allowGuests))
     }
+
 }
