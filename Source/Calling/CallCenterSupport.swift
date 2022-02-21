@@ -18,8 +18,6 @@
 
 import Foundation
 
-private let zmLog = ZMSLog(tag: "calling")
-
 /// An opaque OTR calling message.
 
 public typealias WireCallMessageToken = UnsafeMutableRawPointer
