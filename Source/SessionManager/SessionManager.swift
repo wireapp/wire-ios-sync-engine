@@ -26,6 +26,8 @@ import UserNotifications
 import WireDataModel
 
 private let log = ZMSLog(tag: "SessionManager")
+private let pushLog = ZMSLog(tag: "Push")
+
 public typealias LaunchOptions = [UIApplication.LaunchOptionsKey: Any]
 
 public extension Bundle {
@@ -737,6 +739,7 @@ public final class SessionManager: NSObject, SessionManagerType {
     private func updateOrMigratePushToken(session userSession: ZMUserSession) {
         if userSession.selfUserClient?.pushToken?.tokenType == .voip,
            !configuration.useLegacyPushNotifications {
+            pushLog.safePublic("deleting voip push token")
             userSession.deletePushKitToken() // delete voip token and register APNS token for remote notifications
         }
         updatePushToken(for: userSession)
@@ -758,6 +761,7 @@ public final class SessionManager: NSObject, SessionManagerType {
 
     private func registerForVoipPushNotificationsIfNeeded(session userSession: ZMUserSession) {
         if configuration.useLegacyPushNotifications {
+            pushLog.safePublic("registering for voip push token")
             // register for voIP push notifications
             self.pushRegistry.delegate = self
             let pkPushTypeSet: Set<PKPushType> = [PKPushType.voIP]

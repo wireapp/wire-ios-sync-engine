@@ -20,6 +20,8 @@ import Foundation
 import PushKit
 import UserNotifications
 
+private let pushLog = ZMSLog(tag: "Push")
+
 protocol PushRegistry {
 
     var delegate: PKPushRegistryDelegate? { get set }
@@ -146,10 +148,12 @@ extension SessionManager: PKPushRegistryDelegate {
             // Refresh the tokens if needed
             if self.configuration.useLegacyPushNotifications {
                 if let token = self.pushRegistry.pushToken(for: .voIP) {
+                    pushLog.safePublic("creating voip push token")
                     let pushToken = PushToken.createVOIPToken(from: token)
                     session?.setPushToken(pushToken)
                 }
             } else {
+                pushLog.safePublic("creating standard push token")
                 self.application.registerForRemoteNotifications()
             }
         }
