@@ -359,7 +359,7 @@ extension StoreUpdateEventTests {
 
             // when
             let convertedEvents = StoredUpdateEvent.eventsFromStoredEvents([storedEvent], encryptionKeys: nil)
-            
+
             // then
             XCTAssertTrue(convertedEvents.isEmpty)
         } else {
