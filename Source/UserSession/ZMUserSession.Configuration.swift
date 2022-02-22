@@ -34,7 +34,7 @@ public extension ZMUserSession {
 
         public init(appLockConfig: AppLockController.LegacyConfig? = nil,
                     supportFederation: Bool = false,
-                    useLegacyPushNotifications: Bool = false) {
+                    useLegacyPushNotifications: Bool = true) {
 
             self.appLockConfig = appLockConfig
             self.supportFederation = supportFederation
