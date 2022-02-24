@@ -81,7 +81,9 @@ typedef NS_ENUM(NSUInteger, ZMUserSessionErrorCode) {
     /// The email used in the registration is blocked
     ZMUserSessionDomainBlocked,
     /// User has rebooted the device
-    ZMUserSessionNeedsAuthenticationAfterReboot
+    ZMUserSessionNeedsAuthenticationAfterReboot,
+    /// User's account pending verification
+    ZMUserSessionAccountIsPendingVerification
 };
 
 FOUNDATION_EXPORT NSString * const ZMClientsKey;
