@@ -35,9 +35,9 @@ extension RegistrationStrategy: ZMSingleRequestTranscoder {
     func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
         switch registrationStatus.phase {
         case let .createUser(user):
-            return ZMTransportRequest(path: "/register", method: .methodPOST, payload: user.payload)
+            return ZMTransportRequest(path: "/register", method: .methodPOST, payload: user.payload, apiVersion: 0)
         case let .createTeam(team):
-            return ZMTransportRequest(path: "/register", method: .methodPOST, payload: team.payload)
+            return ZMTransportRequest(path: "/register", method: .methodPOST, payload: team.payload, apiVersion: 0)
         default:
             fatal("Generating request for invalid phase: \(registrationStatus.phase)")
         }

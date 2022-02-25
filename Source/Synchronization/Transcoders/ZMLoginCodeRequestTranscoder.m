@@ -66,7 +66,8 @@
     ZMTransportRequest *request = [[ZMTransportRequest alloc] initWithPath:@"/login/send"
                                                                     method:ZMMethodPOST
                                                                    payload:@{@"phone": self.authenticationStatus.loginPhoneNumberThatNeedsAValidationCode}
-                                                            authentication:ZMTransportRequestAuthNone];
+                                                            authentication:ZMTransportRequestAuthNone
+                                                                apiVersion:0];
     return request;
 }
 

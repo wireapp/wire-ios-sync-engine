@@ -79,7 +79,7 @@ public class LabelUpstreamRequestStrategy: AbstractRequestStrategy, ZMContextCha
             fatal("Couldn't encode label update: \(error)")
         }
 
-        let request = ZMTransportRequest(path: "/properties/labels", method: .methodPUT, payload: transportPayload as? ZMTransportData)
+        let request = ZMTransportRequest(path: "/properties/labels", method: .methodPUT, payload: transportPayload as? ZMTransportData, apiVersion: 0)
         request.add(ZMCompletionHandler(on: managedObjectContext, block: { [weak self] (response) in
             self?.didReceive(response, updatedKeys: updatedKeys)
         }))

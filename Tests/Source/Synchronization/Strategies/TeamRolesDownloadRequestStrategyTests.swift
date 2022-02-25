@@ -139,7 +139,7 @@ class TeamRolesDownloadRequestStrategyTests: MessagingTest {
             guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
 
             // when
-            let response = ZMTransportResponse(payload: self.sampleResponse as ZMTransportData, httpStatus: 200, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: self.sampleResponse as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: 0)
             request.complete(with: response)
         }
 
@@ -178,7 +178,7 @@ class TeamRolesDownloadRequestStrategyTests: MessagingTest {
             guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
 
             // when
-            let response = ZMTransportResponse(payload: self.sampleResponse as ZMTransportData, httpStatus: 200, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: self.sampleResponse as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: 0)
             request.complete(with: response)
         }
 
@@ -200,7 +200,7 @@ class TeamRolesDownloadRequestStrategyTests: MessagingTest {
             guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
 
             // when
-            let response = ZMTransportResponse(payload: self.sampleResponse as ZMTransportData, httpStatus: 200, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: self.sampleResponse as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: 0)
             request.complete(with: response)
         }
 
@@ -239,7 +239,7 @@ class TeamRolesDownloadRequestStrategyTests: MessagingTest {
             guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
 
             // when
-            let response = ZMTransportResponse(payload: self.sampleResponse as ZMTransportData, httpStatus: 200, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: self.sampleResponse as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: 0)
             request.complete(with: response)
         }
 
@@ -268,7 +268,8 @@ class TeamRolesDownloadRequestStrategyTests: MessagingTest {
             let response = ZMTransportResponse(
                 payload: ["label": "no-team-member"] as ZMTransportData,
                 httpStatus: 403,
-                transportSessionError: nil
+                transportSessionError: nil,
+                apiVersion: 0
             )
 
             // when

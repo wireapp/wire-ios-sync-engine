@@ -143,7 +143,7 @@ public class SearchUserImageStrategy: AbstractRequestStrategy, FederationAware {
             } else {
                 path = "/assets/v3/\(key)"
             }
-            return ZMTransportRequest(getFromPath: path)
+            return ZMTransportRequest(getFromPath: path, apiVersion: 0)
         }
         return nil
     }
@@ -229,7 +229,7 @@ public class SearchUserImageStrategy: AbstractRequestStrategy, FederationAware {
 
     public static func requestForFetchingFullProfile(for usersWithIDs: Set<UUID>, completionHandler: ZMCompletionHandler) -> ZMTransportRequest {
         let usersList = usersWithIDs.map {$0.transportString()}.joined(separator: ",")
-        let request = ZMTransportRequest(getFromPath: userPath + usersList)
+        let request = ZMTransportRequest(getFromPath: userPath + usersList, apiVersion: 0)
         request.add(completionHandler)
         return request
     }

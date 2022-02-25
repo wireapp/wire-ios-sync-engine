@@ -117,7 +117,7 @@
         components.queryItems = @[[NSURLQueryItem queryItemWithName:@"client" value:selfClient.remoteIdentifier]];
     }
     
-    return [ZMTransportRequest requestGetFromPath:components.string];
+    return [ZMTransportRequest requestGetFromPath:components.string apiVersion:0];
 }
 
 - (void)didReceiveResponse:(ZMTransportResponse *)response forSingleRequest:(ZMSingleRequestSync *)sync

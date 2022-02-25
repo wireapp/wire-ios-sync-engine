@@ -135,7 +135,7 @@ class TeamMembersDownloadRequestStrategyTests: MessagingTest {
             guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
 
             // when
-            let response = ZMTransportResponse(payload: self.sampleResponseForSmallTeam as ZMTransportData, httpStatus: 200, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: self.sampleResponseForSmallTeam as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: 0)
             request.complete(with: response)
         }
 
@@ -160,7 +160,7 @@ class TeamMembersDownloadRequestStrategyTests: MessagingTest {
             guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
 
             // when
-            let response = ZMTransportResponse(payload: self.sampleResponseForSmallTeam as ZMTransportData, httpStatus: 200, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: self.sampleResponseForSmallTeam as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: 0)
             request.complete(with: response)
         }
 
@@ -184,7 +184,7 @@ class TeamMembersDownloadRequestStrategyTests: MessagingTest {
             guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
 
             // when
-            let response = ZMTransportResponse(payload: self.sampleResponseForLargeTeam as ZMTransportData, httpStatus: 200, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: self.sampleResponseForLargeTeam as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: 0)
             request.complete(with: response)
         }
 

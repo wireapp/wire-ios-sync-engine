@@ -73,10 +73,10 @@ public class PushTokenStrategy: AbstractRequestStrategy, ZMUpstreamTranscoder, Z
         let requestType: RequestType
 
         if pushToken.isMarkedForDeletion {
-            request = ZMTransportRequest(path: "\(PushTokenPath)/\(pushToken.deviceTokenString)", method: .methodDELETE, payload: nil)
+            request = ZMTransportRequest(path: "\(PushTokenPath)/\(pushToken.deviceTokenString)", method: .methodDELETE, payload: nil, apiVersion: 0)
             requestType = .deleteToken
         } else if pushToken.isMarkedForDownload {
-            request = ZMTransportRequest(path: "\(PushTokenPath)", method: .methodGET, payload: nil)
+            request = ZMTransportRequest(path: "\(PushTokenPath)", method: .methodGET, payload: nil, apiVersion: 0)
             requestType = .getToken
         } else if !pushToken.isRegistered {
             let tokenPayload = PushTokenPayload(pushToken: pushToken, clientIdentifier: clientIdentifier)
@@ -84,7 +84,7 @@ public class PushTokenStrategy: AbstractRequestStrategy, ZMUpstreamTranscoder, Z
 
             // In various places (MockTransport for example) the payload is expected to be dictionary
             let payload = ((try? JSONDecoder().decode([String: String].self, from: payloadData)) ?? [:]) as NSDictionary
-            request = ZMTransportRequest(path: "\(PushTokenPath)", method: .methodPOST, payload: payload)
+            request = ZMTransportRequest(path: "\(PushTokenPath)", method: .methodPOST, payload: payload, apiVersion: 0)
             requestType = .postToken
         } else {
             return nil

@@ -99,7 +99,7 @@ extension ZMUserSession {
             payload = [:]
         }
 
-        let request = ZMTransportRequest(path: "/clients/\(selfClientIdentifier)", method: .methodDELETE, payload: payload as ZMTransportData)
+        let request = ZMTransportRequest(path: "/clients/\(selfClientIdentifier)", method: .methodDELETE, payload: payload as ZMTransportData, apiVersion: 0)
 
         request.add(ZMCompletionHandler(on: managedObjectContext, block: { [weak self] (response) in
             guard let strongSelf = self else { return }

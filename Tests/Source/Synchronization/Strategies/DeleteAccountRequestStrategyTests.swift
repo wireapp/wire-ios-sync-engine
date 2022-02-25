@@ -86,7 +86,7 @@ class DeleteAccountRequestStrategyTests: MessagingTest, AccountDeletedObserver {
 
         // when
         let request1: ZMTransportRequest! = self.sut.nextRequest()
-        request1.complete(with: ZMTransportResponse(payload: NSDictionary(), httpStatus: 201, transportSessionError: nil))
+        request1.complete(with: ZMTransportResponse(payload: NSDictionary(), httpStatus: 201, transportSessionError: nil, apiVersion: 0))
 
         // then
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))

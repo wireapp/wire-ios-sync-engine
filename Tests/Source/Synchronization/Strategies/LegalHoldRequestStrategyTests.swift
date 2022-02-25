@@ -141,7 +141,7 @@ class LegalHoldRequestStrategyTests: MessagingTest {
 
             // WHEN
             let request = self.sut.nextRequest()
-            request?.complete(with: ZMTransportResponse(payload: nil, httpStatus: 500, transportSessionError: nil))
+            request?.complete(with: ZMTransportResponse(payload: nil, httpStatus: 500, transportSessionError: nil, apiVersion: 0))
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
@@ -165,7 +165,7 @@ class LegalHoldRequestStrategyTests: MessagingTest {
 
             let payload = type(of: self).payloadForReceivingLegalHoldRequestStatus(request: expectedLegalHoldRequest)
             guard let request = self.sut.nextRequest() else { return XCTFail() }
-            request.complete(with: ZMTransportResponse(payload: payload, httpStatus: 200, transportSessionError: nil))
+            request.complete(with: ZMTransportResponse(payload: payload, httpStatus: 200, transportSessionError: nil, apiVersion: 0))
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
@@ -194,7 +194,7 @@ class LegalHoldRequestStrategyTests: MessagingTest {
                 "status": "disabled"
             ]
             guard let request = self.sut.nextRequest() else { return XCTFail() }
-            request.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil))
+            request.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: 0))
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 

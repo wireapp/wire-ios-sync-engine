@@ -153,7 +153,7 @@ extension UserClientRequestStrategyTests {
 
             let remoteIdentifier = "superRandomIdentifer"
             let payload = ["id": remoteIdentifier]
-            let response = ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: 0)
             let request = self.sut.request(forInserting: client, forKeys: Set())
 
             // when
@@ -184,7 +184,7 @@ extension UserClientRequestStrategyTests {
 
             self.sut.notifyChangeTrackers(client)
             guard let request = self.sut.nextRequest() else { return XCTFail() }
-            let response = ZMTransportResponse(payload: ["id": "fakeRemoteID"] as ZMTransportData, httpStatus: 200, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: ["id": "fakeRemoteID"] as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: 0)
 
             // when
             request.complete(with: response)
@@ -214,7 +214,7 @@ extension UserClientRequestStrategyTests {
 
             self.sut.notifyChangeTrackers(client)
             guard let request = self.sut.nextRequest() else { return XCTFail() }
-            let response = ZMTransportResponse(payload: ["id": "fakeRemoteID"] as ZMTransportData, httpStatus: 200, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: ["id": "fakeRemoteID"] as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: 0)
 
             // when
             request.complete(with: response)
@@ -238,7 +238,7 @@ extension UserClientRequestStrategyTests {
             self.sut.notifyChangeTrackers(client)
 
             guard let request = self.sut.nextRequest() else { return XCTFail() }
-            let response = ZMTransportResponse(payload: ["id": "fakeRemoteID"] as ZMTransportData, httpStatus: 200, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: ["id": "fakeRemoteID"] as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: 0)
 
             // when
             request.complete(with: response)
@@ -260,7 +260,7 @@ extension UserClientRequestStrategyTests {
 
             guard let request = self.sut.nextRequest() else { return XCTFail() }
             let responsePayload = ["code": 403, "message": "Re-authentication via password required", "label": "missing-auth"] as [String: Any]
-            let response = ZMTransportResponse(payload: responsePayload as ZMTransportData, httpStatus: 403, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: responsePayload as ZMTransportData, httpStatus: 403, transportSessionError: nil, apiVersion: 0)
 
             // when
             request.complete(with: response)
@@ -291,7 +291,7 @@ extension UserClientRequestStrategyTests {
 
             guard let request = self.sut.nextRequest() else { return XCTFail() }
             let responsePayload = ["code": 403, "message": "Re-authentication via password required", "label": "missing-auth"] as [String: Any]
-            let response = ZMTransportResponse(payload: responsePayload as ZMTransportData, httpStatus: 403, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: responsePayload as ZMTransportData, httpStatus: 403, transportSessionError: nil, apiVersion: 0)
 
             // when
             request.complete(with: response)
@@ -329,7 +329,7 @@ extension UserClientRequestStrategyTests {
                 return
             }
             let responsePayload = ["code": 403, "message": "Too many clients", "label": "too-many-clients"] as [String: Any]
-            let response = ZMTransportResponse(payload: responsePayload as ZMTransportData?, httpStatus: 403, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: responsePayload as ZMTransportData?, httpStatus: 403, transportSessionError: nil, apiVersion: 0)
 
             _ = NSError(domain: NSError.ZMUserSessionErrorDomain, code: Int(ZMUserSessionErrorCode.canNotRegisterMoreClients.rawValue), userInfo: nil)
 
@@ -437,7 +437,7 @@ extension UserClientRequestStrategyTests {
             let expectedNumberOfKeys = client.numberOfKeysRemaining + Int32(self.sut.requestsFactory.keyCount)
 
             // when
-            let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil, apiVersion: 0)
             let userClientNumberOfKeysRemainingKeySet: Set<String> = [ZMUserClientNumberOfKeysRemainingKey]
             _ = self.sut.updateUpdatedObject(client, requestUserInfo: nil, response: response, keysToParse: userClientNumberOfKeysRemainingKeySet)
 
@@ -473,7 +473,7 @@ extension UserClientRequestStrategyTests {
 
         syncMOC.performGroupedBlockAndWait {
             // given
-            let nextResponse = ZMTransportResponse(payload: self.payloadForClients() as ZMTransportData?, httpStatus: 200, transportSessionError: nil)
+            let nextResponse = ZMTransportResponse(payload: self.payloadForClients() as ZMTransportData?, httpStatus: 200, transportSessionError: nil, apiVersion: 0)
 
             // when
             _ = self.sut.nextRequest()
@@ -499,7 +499,7 @@ extension UserClientRequestStrategyTests {
             // given
             selfClient = self.createSelfClient()
             selfUser = ZMUser.selfUser(in: self.syncMOC)
-            let nextResponse = ZMTransportResponse(payload: self.payloadForClients() as ZMTransportData?, httpStatus: 200, transportSessionError: nil)
+            let nextResponse = ZMTransportResponse(payload: self.payloadForClients() as ZMTransportData?, httpStatus: 200, transportSessionError: nil, apiVersion: 0)
             newClient = UserClient.insertNewObject(in: self.syncMOC)
             newClient.user = selfUser
             newClient.remoteIdentifier = "deleteme"
@@ -568,7 +568,7 @@ extension UserClientRequestStrategyTests {
             client.user = ZMUser.selfUser(in: self.syncMOC)
             self.syncMOC.saveOrRollback()
 
-            let response = ZMTransportResponse(payload: [:] as ZMTransportData, httpStatus: 200, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: [:] as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: 0)
 
             // when
             let userClientMarkedToDeleteKeySet: Set<String> = [ZMUserClientMarkedToDeleteKey]
@@ -612,7 +612,7 @@ extension UserClientRequestStrategyTests {
             XCTAssertNotNil(request)
 
             // and when
-            let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil, apiVersion: 0)
             request?.complete(with: response)
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
@@ -647,7 +647,7 @@ extension UserClientRequestStrategyTests {
             // when
             let request = self.sut.nextRequest()
             XCTAssertNotNil(request)
-            let badResponse = ZMTransportResponse(payload: ["label": "bad-request"] as ZMTransportData, httpStatus: 400, transportSessionError: nil)
+            let badResponse = ZMTransportResponse(payload: ["label": "bad-request"] as ZMTransportData, httpStatus: 400, transportSessionError: nil, apiVersion: 0)
 
             request?.complete(with: badResponse)
         }
@@ -657,7 +657,7 @@ extension UserClientRequestStrategyTests {
         syncMOC.performGroupedBlock {
             let secondRequest = self.sut.nextRequest()
             XCTAssertNotNil(secondRequest)
-            let success = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil)
+            let success = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil, apiVersion: 0)
 
             secondRequest?.complete(with: success)
         }
@@ -694,7 +694,7 @@ extension UserClientRequestStrategyTests {
             XCTAssertNotNil(request)
 
             // and when
-            let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil, apiVersion: 0)
             request?.complete(with: response)
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
@@ -726,7 +726,7 @@ extension UserClientRequestStrategyTests {
             // when
             let request = self.sut.nextRequest()
             XCTAssertNotNil(request)
-            let badResponse = ZMTransportResponse(payload: ["label": "bad-request"] as ZMTransportData, httpStatus: 400, transportSessionError: nil)
+            let badResponse = ZMTransportResponse(payload: ["label": "bad-request"] as ZMTransportData, httpStatus: 400, transportSessionError: nil, apiVersion: 0)
 
             request?.complete(with: badResponse)
         }
@@ -736,7 +736,7 @@ extension UserClientRequestStrategyTests {
         syncMOC.performGroupedBlock {
             let secondRequest = self.sut.nextRequest()
             XCTAssertNotNil(secondRequest)
-            let success = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil)
+            let success = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil, apiVersion: 0)
 
             secondRequest?.complete(with: success)
         }

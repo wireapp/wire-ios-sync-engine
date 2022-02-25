@@ -117,7 +117,7 @@ class PermissionsDownloadRequestStrategyTests: MessagingTest {
                 "permissions": ["self": 17, "copy": 0]
             ]
 
-            let response = ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: 0)
 
             // when
             request.complete(with: response)
@@ -158,7 +158,7 @@ class PermissionsDownloadRequestStrategyTests: MessagingTest {
             guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
 
             // when
-            let response = ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 404, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 404, transportSessionError: nil, apiVersion: 0)
 
             // when
             request.complete(with: response)

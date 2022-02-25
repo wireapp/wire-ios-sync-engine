@@ -211,7 +211,7 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
     NSDictionary *payload = @{@"email": self.testEmailCredentials.email,
                               @"password": self.testEmailCredentials.password,
                               @"label": CookieLabel.current.value};
-    ZMTransportRequest *expectedRequest = [[ZMTransportRequest alloc] initWithPath:ZMLoginURL method:ZMMethodPOST payload:payload authentication:ZMTransportRequestAuthCreatesCookieAndAccessToken];
+    ZMTransportRequest *expectedRequest = [[ZMTransportRequest alloc] initWithPath:ZMLoginURL method:ZMMethodPOST payload:payload authentication:ZMTransportRequestAuthCreatesCookieAndAccessToken apiVersion:0];
     
     [self.authenticationStatus prepareForLoginWithCredentials:self.testEmailCredentials];
 
@@ -228,7 +228,7 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
     NSDictionary *payload = @{@"phone": self.testPhoneNumberCredentials.phoneNumber,
                               @"code": self.testPhoneNumberCredentials.phoneNumberVerificationCode,
                               @"label": CookieLabel.current.value};
-    ZMTransportRequest *expectedRequest = [[ZMTransportRequest alloc] initWithPath:ZMLoginURL method:ZMMethodPOST payload:payload authentication:ZMTransportRequestAuthCreatesCookieAndAccessToken];
+    ZMTransportRequest *expectedRequest = [[ZMTransportRequest alloc] initWithPath:ZMLoginURL method:ZMMethodPOST payload:payload authentication:ZMTransportRequestAuthCreatesCookieAndAccessToken apiVersion:0];
     [self.authenticationStatus prepareForLoginWithCredentials:self.testPhoneNumberCredentials];
     
     // when
@@ -273,7 +273,7 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
                               @"token_type": @"Bearer"
                               };
     [self.authenticationStatus prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:@"foo@example.com" password:@"12345678"]];
-    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:200 transportSessionError:nil];
+    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:200 transportSessionError:nil apiVersion:0];
     
     // when
     
@@ -291,7 +291,7 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
                               @"token_type": @"Bearer"
                               };
     [self.authenticationStatus prepareForLoginWithCredentials:[ZMPhoneCredentials credentialsWithPhoneNumber:@"+49123456789" verificationCode:@"123456"]];
-    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:200 transportSessionError:nil];
+    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:200 transportSessionError:nil apiVersion:0];
 
     // when
     [self expectAuthenticationSucceedAfter:^{
@@ -307,7 +307,7 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
                               @"message":@"Invalid login credentials",
                               @"label":@"invalid-credentials"};
     [self.authenticationStatus prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:@"foo@example.com" password:@"12345678"]];
-    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:403 transportSessionError:nil];
+    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:403 transportSessionError:nil apiVersion:0];
     
     // when
     [self expectAuthenticationFailedWithError:ZMUserSessionInvalidCredentials after:^{
@@ -323,7 +323,7 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
                               @"message":@"Invalid login credentials",
                               @"label":@"invalid-credentials"};
     
-    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:403 transportSessionError:nil];
+    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:403 transportSessionError:nil apiVersion:0];
     [self.authenticationStatus prepareForLoginWithCredentials:[ZMPhoneCredentials credentialsWithPhoneNumber:@"+4912345678" verificationCode:@"123456"]];
     
     // when
@@ -337,7 +337,7 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
 {
     // given
     [self.authenticationStatus prepareForLoginWithCredentials:[ZMPhoneCredentials credentialsWithPhoneNumber:@"+4912345678" verificationCode:@"123456"]];
-    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:nil HTTPStatus:403 transportSessionError:nil];
+    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:nil HTTPStatus:403 transportSessionError:nil apiVersion:0];
 
     // when
     [self expectAuthenticationFailedWithError:ZMUserSessionUnknownError after:^{
@@ -353,7 +353,7 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
                               @"message":@"Account pending activation",
                               @"label":@"pending-activation"};
     [self.authenticationStatus prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:@"foo@example.com" password:@"12345678"]];
-    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:403 transportSessionError:nil];
+    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:403 transportSessionError:nil apiVersion:0];
     
     // when
     [self expectAuthenticationFailedWithError:ZMUserSessionAccountIsPendingActivation after:^{
@@ -369,7 +369,7 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
                               @"message":@"Account suspended.",
                               @"label":@"suspended"};
     [self.authenticationStatus prepareForLoginWithCredentials:[ZMPhoneCredentials credentialsWithPhoneNumber:@"+4912345678" verificationCode:@"123456"]];
-    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:403 transportSessionError:nil];
+    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:403 transportSessionError:nil apiVersion:0];
     
     // when
     [self expectAuthenticationFailedWithError:ZMUserSessionAccountSuspended after:^{
@@ -386,7 +386,7 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
                               @"message":@"Account suspended.",
                               @"label":@"suspended"};
     [self.authenticationStatus prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:@"foo@example.com" password:@"12345678"]];
-    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:403 transportSessionError:nil];
+    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:403 transportSessionError:nil apiVersion:0];
     
     // when
     [self expectAuthenticationFailedWithError:ZMUserSessionAccountSuspended after:^{
@@ -402,7 +402,7 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
                               @"message":@"Invalid login credentials",
                               @"label":@"invalid-credentials"};
     
-    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:403 transportSessionError:nil];
+    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:403 transportSessionError:nil apiVersion:0];
     [self.authenticationStatus prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:@"foo@example.com" password:@"12345678"]];
     
     // when
@@ -424,7 +424,7 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
                               @"message":@"Invalid login credentials",
                               @"label":@"invalid-credentials"};
     [self.authenticationStatus prepareForLoginWithCredentials:[ZMPhoneCredentials credentialsWithPhoneNumber:@"+49123456789" verificationCode:@"12345678"]];
-    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:403 transportSessionError:nil];
+    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:403 transportSessionError:nil apiVersion:0];
     
     // when
     [self expectAuthenticationFailedWithError:ZMUserSessionInvalidCredentials after:^{
@@ -445,7 +445,7 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
                               @"token_type": @"Bearer"
                               };
     [self.authenticationStatus prepareForLoginWithCredentials:[ZMPhoneCredentials credentialsWithPhoneNumber:@"+49123456789" verificationCode:@"12345678"]];
-    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:200 transportSessionError:nil];
+    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:200 transportSessionError:nil apiVersion:0];
     
     // when
     [self expectAuthenticationSucceedAfter:^{
@@ -470,7 +470,7 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
                               @"token_type": @"Bearer"
                               };
     [self.authenticationStatus prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:@"foo@example.com" password:@"12345678"]];
-    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:200 transportSessionError:nil];
+    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:200 transportSessionError:nil apiVersion:0];
     
     // when
     [self expectAuthenticationSucceedAfter:^{

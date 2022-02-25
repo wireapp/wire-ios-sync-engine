@@ -65,7 +65,7 @@ public final class TeamInvitationRequestStrategy: AbstractRequestStrategy {
             "inviter_name": ZMUser.selfUser(in: managedObjectContext).name
         ]
 
-        let request = ZMTransportRequest(path: "/teams/\(teamId.transportString())/invitations", method: .methodPOST, payload: payload as ZMTransportData)
+        let request = ZMTransportRequest(path: "/teams/\(teamId.transportString())/invitations", method: .methodPOST, payload: payload as ZMTransportData, apiVersion: 0)
 
         request.add(ZMCompletionHandler(on: managedObjectContext, block: { [weak self] (response) in
             self?.processResponse(response, for: email)

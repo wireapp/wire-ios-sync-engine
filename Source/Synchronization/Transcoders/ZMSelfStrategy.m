@@ -202,7 +202,7 @@ NSTimeInterval ZMSelfStrategyPendingValidationRequestInterval = 5;
         payload[@"assets"] = [self profilePictureAssetsPayloadForUser:user];
     }
     
-    ZMTransportRequest *request = [ZMTransportRequest requestWithPath:@"/self" method:ZMMethodPUT payload:payload];
+    ZMTransportRequest *request = [ZMTransportRequest requestWithPath:@"/self" method:ZMMethodPUT payload:payload apiVersion:0];
     return [[ZMUpstreamRequest alloc] initWithKeys:keys transportRequest:request];
 }
 
@@ -255,7 +255,7 @@ NSTimeInterval ZMSelfStrategyPendingValidationRequestInterval = 5;
 - (ZMTransportRequest *)requestForSingleRequestSync:(ZMSingleRequestSync *)sync;
 {
     NOT_USED(sync);
-    return [ZMTransportRequest requestGetFromPath:SelfPath];
+    return [ZMTransportRequest requestGetFromPath:SelfPath apiVersion:0];
 }
 
 - (void)didReceiveResponse:(ZMTransportResponse *)response forSingleRequest:(ZMSingleRequestSync *)sync;

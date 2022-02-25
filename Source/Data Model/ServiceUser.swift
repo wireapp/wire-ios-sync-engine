@@ -116,17 +116,17 @@ public extension ServiceUserData {
                                      "service": self.service.transportString(),
                                      "locale": NSLocale.formattedLocaleIdentifier()!]
 
-        return ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData)
+        return ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData, apiVersion: 0)
     }
 
     fileprivate func requestToFetchProvider() -> ZMTransportRequest {
         let path = "/providers/\(provider.transportString())/"
-        return ZMTransportRequest(path: path, method: .methodGET, payload: nil)
+        return ZMTransportRequest(path: path, method: .methodGET, payload: nil, apiVersion: 0)
     }
 
     fileprivate func requestToFetchDetails() -> ZMTransportRequest {
         let path = "/providers/\(provider.transportString())/services/\(service.transportString())"
-        return ZMTransportRequest(path: path, method: .methodGET, payload: nil)
+        return ZMTransportRequest(path: path, method: .methodGET, payload: nil, apiVersion: 0)
     }
 }
 

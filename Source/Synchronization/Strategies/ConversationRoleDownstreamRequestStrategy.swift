@@ -80,7 +80,7 @@ public final class ConversationRoleDownstreamRequestStrategy: AbstractRequestStr
 
     public static func getRolesRequest(in conversationIdentifier: UUID) -> ZMTransportRequest {
         let path = requestPath + "/" + conversationIdentifier.transportString() + "/roles"
-        return ZMTransportRequest(getFromPath: path)
+        return ZMTransportRequest(getFromPath: path, apiVersion: 0)
     }
 
     public func request(forFetching object: ZMManagedObject!, downstreamSync: ZMObjectSync!) -> ZMTransportRequest! {

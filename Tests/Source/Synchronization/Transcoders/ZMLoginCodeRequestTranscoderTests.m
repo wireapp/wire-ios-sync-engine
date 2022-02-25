@@ -71,7 +71,7 @@
     NSString *phoneNumber = @"+7123456789";
     [self.authenticationStatus prepareForRequestingPhoneVerificationCodeForLogin:phoneNumber];
 
-    ZMTransportRequest *expectedRequest = [[ZMTransportRequest alloc] initWithPath:@"/login/send" method:ZMMethodPOST payload:@{@"phone": phoneNumber} authentication:ZMTransportRequestAuthNone];
+    ZMTransportRequest *expectedRequest = [[ZMTransportRequest alloc] initWithPath:@"/login/send" method:ZMMethodPOST payload:@{@"phone": phoneNumber} authentication:ZMTransportRequestAuthNone apiVersion:0];
     
     ZMTransportRequest *request = [self.sut nextRequest];
     XCTAssertEqualObjects(request, expectedRequest);
@@ -85,7 +85,7 @@
     ZMTransportRequest *request = [self.sut nextRequest];
     
     // when
-    [request completeWithResponse:[ZMTransportResponse responseWithPayload:nil HTTPStatus:200 transportSessionError:nil]];
+    [request completeWithResponse:[ZMTransportResponse responseWithPayload:nil HTTPStatus:200 transportSessionError:nil apiVersion:request.apiVersion]];
     WaitForAllGroupsToBeEmpty(0.2);
     
     // then
@@ -102,7 +102,8 @@
     // when
     [request completeWithResponse:[ZMTransportResponse responseWithPayload:nil
                                                                 HTTPStatus:400
-                                                     transportSessionError:nil]];
+                                                     transportSessionError:nil
+                                                                apiVersion:request.apiVersion]];
     WaitForAllGroupsToBeEmpty(0.2);
 
     // then
@@ -123,7 +124,7 @@
     ZMTransportRequest *request = [self.sut nextRequest];
 
     // when
-    [request completeWithResponse:[ZMTransportResponse responseWithPayload:@{@"label":@"invalid-phone"} HTTPStatus:400 transportSessionError:nil]];
+    [request completeWithResponse:[ZMTransportResponse responseWithPayload:@{@"label":@"invalid-phone"} HTTPStatus:400 transportSessionError:nil apiVersion:request.apiVersion]];
     WaitForAllGroupsToBeEmpty(0.2);
 
     // then
@@ -144,7 +145,7 @@
     ZMTransportRequest *request = [self.sut nextRequest];
 
     // when
-    [request completeWithResponse:[ZMTransportResponse responseWithPayload:@{@"label":@"pending-login"} HTTPStatus:403 transportSessionError:nil]];
+    [request completeWithResponse:[ZMTransportResponse responseWithPayload:@{@"label":@"pending-login"} HTTPStatus:403 transportSessionError:nil apiVersion:request.apiVersion]];
     WaitForAllGroupsToBeEmpty(0.2);
 
     // then
@@ -165,7 +166,7 @@
     ZMTransportRequest *request = [self.sut nextRequest];
     
     // when
-    [request completeWithResponse:[ZMTransportResponse responseWithPayload:@{@"label":@"unauthorized"} HTTPStatus:403 transportSessionError:nil]];
+    [request completeWithResponse:[ZMTransportResponse responseWithPayload:@{@"label":@"unauthorized"} HTTPStatus:403 transportSessionError:nil apiVersion:request.apiVersion]];
     WaitForAllGroupsToBeEmpty(0.2);
     
     // then

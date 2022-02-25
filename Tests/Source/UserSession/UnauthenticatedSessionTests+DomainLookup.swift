@@ -142,7 +142,7 @@ public final class UnauthenticatedSessionTests_DomainLookup: ZMTBaseTest {
         }
 
         // when
-        transportSession.lastEnqueuedRequest?.complete(with: ZMTransportResponse(payload: payload, httpStatus: statusCode, transportSessionError: nil))
+        transportSession.lastEnqueuedRequest?.complete(with: ZMTransportResponse(payload: payload, httpStatus: statusCode, transportSessionError: nil, apiVersion: 0))
 
         // then
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
