@@ -76,7 +76,7 @@ class AssetDeletionRequestStrategyTests: MessagingTest {
         guard let request = sut.nextRequest() else { return XCTFail("No request created") }
 
         // When
-        let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil, apiVersion: 0)
+        let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil, apiVersion: .v0)
         request.complete(with: response)
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
@@ -93,7 +93,7 @@ class AssetDeletionRequestStrategyTests: MessagingTest {
         guard let request = sut.nextRequest() else { return XCTFail("No request created") }
 
         // When
-        let response = ZMTransportResponse(payload: nil, httpStatus: 403, transportSessionError: nil, apiVersion: 0)
+        let response = ZMTransportResponse(payload: nil, httpStatus: 403, transportSessionError: nil, apiVersion: .v0)
         request.complete(with: response)
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 

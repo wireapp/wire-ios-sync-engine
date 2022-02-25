@@ -115,7 +115,7 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
                                       type: "application/json",
                                       contentDisposition: nil,
                                       shouldCompress: true,
-                                      apiVersion: 0)
+                                      apiVersion: .v0)
 
         case clientDiscoverySync:
             guard

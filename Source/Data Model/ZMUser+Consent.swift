@@ -117,7 +117,7 @@ struct ConsentRequestFactory {
     static let consentPath = "/self/consent"
 
     static func fetchConsentRequest() -> ZMTransportRequest {
-        return .init(getFromPath: consentPath, apiVersion: 0)
+        return .init(getFromPath: consentPath, apiVersion: .v0)
     }
 
     static var sourceString: String {
@@ -133,6 +133,6 @@ struct ConsentRequestFactory {
         return .init(path: consentPath,
                      method: .methodPUT,
                      payload: payload as ZMTransportData,
-                     apiVersion: 0)
+                     apiVersion: .v0)
     }
 }

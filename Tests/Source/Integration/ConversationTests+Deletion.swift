@@ -54,7 +54,7 @@ class ConversationTests_Deletion: ConversationTestsBase {
 
             self?.mockTransportSession.responseGeneratorBlock = nil
 
-            return ZMTransportResponse(payload: nil, httpStatus: 403, transportSessionError: nil, apiVersion: 0)
+            return ZMTransportResponse(payload: nil, httpStatus: 403, transportSessionError: nil, apiVersion: .v0)
         }
 
         // WHEN

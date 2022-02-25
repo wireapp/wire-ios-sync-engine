@@ -94,7 +94,7 @@ class PushTokenStrategyTests: MessagingTest {
         if let fallback = fallback {
             responsePayload["fallback"] = fallback
         }
-        return ZMTransportResponse(payload: responsePayload as ZMTransportData?, httpStatus: 201, transportSessionError: nil, headers: [:], apiVersion: 0)
+        return ZMTransportResponse(payload: responsePayload as ZMTransportData?, httpStatus: 201, transportSessionError: nil, headers: [:], apiVersion: .v0)
     }
 }
 
@@ -228,7 +228,7 @@ extension PushTokenStrategyTests {
             // given
             self.insertPushKitToken(isRegistered: true, shouldBeDeleted: true)
             self.sut.contextChangeTrackers.forEach {$0.objectsDidChange(Set())}
-            let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil, headers: [:], apiVersion: 0)
+            let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil, headers: [:], apiVersion: .v0)
 
             // when
             let req = self.sut.nextRequest()
@@ -256,7 +256,7 @@ extension PushTokenStrategyTests {
             // given
             self.insertPushKitToken(isRegistered: true, shouldBeDeleted: true)
             XCTAssertNotNil(self.pushKitToken())
-            let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil, headers: [:], apiVersion: 0)
+            let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil, headers: [:], apiVersion: .v0)
 
             // when
             let req = self.sut.nextRequest()
@@ -285,7 +285,7 @@ extension PushTokenStrategyTests {
             // given
             let payload = self.insertPushKitToken(isRegistered: true, shouldBeDeleted: false, shouldBeDownloaded: true)
             XCTAssertNotNil(self.pushKitToken())
-            let response = ZMTransportResponse(payload: ["tokens": [payload]] as NSDictionary, httpStatus: 200, transportSessionError: nil, headers: [:], apiVersion: 0)
+            let response = ZMTransportResponse(payload: ["tokens": [payload]] as NSDictionary, httpStatus: 200, transportSessionError: nil, headers: [:], apiVersion: .v0)
 
             // when
             let req = self.sut.nextRequest()
@@ -318,7 +318,7 @@ extension PushTokenStrategyTests {
             // Token for this client is different
             payload["token"] = "something else"
             XCTAssertNotNil(self.pushKitToken())
-            let response = ZMTransportResponse(payload: ["tokens": [payload]] as NSDictionary, httpStatus: 200, transportSessionError: nil, headers: [:], apiVersion: 0)
+            let response = ZMTransportResponse(payload: ["tokens": [payload]] as NSDictionary, httpStatus: 200, transportSessionError: nil, headers: [:], apiVersion: .v0)
 
             // when
             let req = self.sut.nextRequest()

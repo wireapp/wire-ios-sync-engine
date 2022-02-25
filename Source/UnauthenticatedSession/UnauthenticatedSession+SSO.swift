@@ -58,7 +58,7 @@ extension UnauthenticatedSession {
     public func fetchSSOSettings(completion: @escaping (Result<SSOSettings>) -> Void) {
 
         let path = "/sso/settings"
-        let request = ZMTransportRequest(path: path, method: .methodGET, payload: nil, apiVersion: 0)
+        let request = ZMTransportRequest(path: path, method: .methodGET, payload: nil, apiVersion: .v0)
 
         request.add(ZMCompletionHandler(on: operationLoop.operationQueue!, block: { (response) in
 

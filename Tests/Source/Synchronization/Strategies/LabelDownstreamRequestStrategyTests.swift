@@ -60,7 +60,7 @@ class LabelDownstreamRequestStrategyTests: MessagingTest {
         let encoder = JSONEncoder()
         let data = try! encoder.encode(self.folderResponse(name: "folder", conversations: []))
         let urlResponse = HTTPURLResponse(url: URL(string: "properties/labels")!, statusCode: 200, httpVersion: nil, headerFields: nil)!
-        return ZMTransportResponse(httpurlResponse: urlResponse, data: data, error: nil, apiVersion: 0)
+        return ZMTransportResponse(httpurlResponse: urlResponse, data: data, error: nil, apiVersion: .v0)
     }
 
     func favoriteResponse(identifier: UUID = UUID(), favorites: [UUID]) -> WireSyncEngine.LabelPayload {
@@ -140,7 +140,7 @@ class LabelDownstreamRequestStrategyTests: MessagingTest {
             guard let request = self.sut.nextRequest() else { return XCTFail() }
 
             // WHEN
-            request.complete(with: ZMTransportResponse(payload: nil, httpStatus: 404, transportSessionError: nil, apiVersion: 0))
+            request.complete(with: ZMTransportResponse(payload: nil, httpStatus: 404, transportSessionError: nil, apiVersion: .v0))
         }
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
@@ -174,7 +174,7 @@ class LabelDownstreamRequestStrategyTests: MessagingTest {
             guard let request = self.sut.nextRequest() else { return XCTFail() }
 
             // WHEN
-            request.complete(with: ZMTransportResponse(payload: nil, httpStatus: 404, transportSessionError: nil, apiVersion: 0))
+            request.complete(with: ZMTransportResponse(payload: nil, httpStatus: 404, transportSessionError: nil, apiVersion: .v0))
         }
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 

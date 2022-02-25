@@ -95,7 +95,7 @@ class TeamInvitationRequestStrategyTests: MessagingTest {
 
         // when
         let request = sut.nextRequest()
-        request?.complete(with: ZMTransportResponse(payload: nil, httpStatus: 408, transportSessionError: nil, apiVersion: 0))
+        request?.complete(with: ZMTransportResponse(payload: nil, httpStatus: 408, transportSessionError: nil, apiVersion: .v0))
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
@@ -123,7 +123,7 @@ class TeamInvitationRequestStrategyTests: MessagingTest {
                 "code": httpStatus
             ]
 
-            return ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: httpStatus, transportSessionError: nil, apiVersion: 0)
+            return ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: httpStatus, transportSessionError: nil, apiVersion: .v0)
         }
 
         let inviteResults = responses.map({ InviteResult.init(response: $0, email: "")})

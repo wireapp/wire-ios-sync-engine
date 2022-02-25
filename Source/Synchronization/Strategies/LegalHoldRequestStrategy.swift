@@ -52,7 +52,7 @@ public class LegalHoldRequestStrategy: AbstractRequestStrategy, ZMSingleRequestT
 
         guard let userID = selfUser.remoteIdentifier else { return nil }
 
-        return ZMTransportRequest(getFromPath: "teams/\(teamID.transportString())/legalhold/\(userID.transportString())", apiVersion: 0)
+        return ZMTransportRequest(getFromPath: "teams/\(teamID.transportString())/legalhold/\(userID.transportString())", apiVersion: .v0)
     }
 
     public func didReceive(_ response: ZMTransportResponse, forSingleRequest sync: ZMSingleRequestSync) {

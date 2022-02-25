@@ -53,7 +53,7 @@ public final class TeamMembersDownloadRequestStrategy: AbstractRequestStrategy, 
             completeSyncPhase() // Skip sync phase if user doesn't belong to a team
             return nil
         }
-        return ZMTransportRequest(getFromPath: "/teams/\(teamID.transportString())/members", apiVersion: 0)
+        return ZMTransportRequest(getFromPath: "/teams/\(teamID.transportString())/members", apiVersion: .v0)
     }
 
     public func didReceive(_ response: ZMTransportResponse, forSingleRequest sync: ZMSingleRequestSync) {

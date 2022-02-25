@@ -104,7 +104,7 @@ public class ZMConversationAccessModeTests: MessagingTest {
         let response = ZMTransportResponse(payload: ["label": "invalid-op"] as ZMTransportData,
                                            httpStatus: 403,
                                            transportSessionError: nil,
-                                           apiVersion: 0)
+                                           apiVersion: .v0)
 
         // when
         let error = WirelessLinkError(response: response)
@@ -118,7 +118,7 @@ public class ZMConversationAccessModeTests: MessagingTest {
         let response = ZMTransportResponse(payload: ["label": "no-conversation-code"] as ZMTransportData,
                                            httpStatus: 404,
                                            transportSessionError: nil,
-                                           apiVersion: 0)
+                                           apiVersion: .v0)
 
         // when
         let error = WirelessLinkError(response: response)
@@ -132,7 +132,7 @@ public class ZMConversationAccessModeTests: MessagingTest {
         let response = ZMTransportResponse(payload: ["label": "guest-links-disabled"] as ZMTransportData,
                                            httpStatus: 409,
                                            transportSessionError: nil,
-                                           apiVersion: 0)
+                                           apiVersion: .v0)
 
         // when
         let error = WirelessLinkError(response: response)

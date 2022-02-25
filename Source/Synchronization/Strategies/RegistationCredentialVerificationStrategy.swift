@@ -49,7 +49,7 @@ extension RegistationCredentialVerificationStrategy: ZMSingleRequestTranscoder {
             fatal("Generating request for invalid phase: \(currentStatus.phase)")
         }
 
-        return ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData, apiVersion: 0)
+        return ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData, apiVersion: .v0)
     }
 
     func didReceive(_ response: ZMTransportResponse, forSingleRequest sync: ZMSingleRequestSync) {

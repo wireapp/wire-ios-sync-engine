@@ -177,7 +177,7 @@ public final class UserImageAssetUpdateStrategy: AbstractRequestStrategy, ZMCont
         } else {
             path = "/assets/v3/\(assetId)"
         }
-        return ZMTransportRequest.imageGet(fromPath: path, apiVersion: 0)
+        return ZMTransportRequest.imageGet(fromPath: path, apiVersion: .v0)
     }
 
     public func delete(_ object: ZMManagedObject!, with response: ZMTransportResponse!, downstreamSync: ZMObjectSync!) {
@@ -209,7 +209,7 @@ public final class UserImageAssetUpdateStrategy: AbstractRequestStrategy, ZMCont
         } else if sync === deleteRequestSync {
             if let assetId = imageUploadStatus?.consumeAssetToDelete() {
                 let path = "/assets/v3/\(assetId)"
-                return ZMTransportRequest(path: path, method: .methodDELETE, payload: nil, apiVersion: 0)
+                return ZMTransportRequest(path: path, method: .methodDELETE, payload: nil, apiVersion: .v0)
             }
         }
         return nil

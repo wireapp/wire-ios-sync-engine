@@ -38,7 +38,7 @@ class ConversationTestsOTR_Swift: ConversationTestsBase {
                     ]
                 ]
             ]
-           return ZMTransportResponse(payload: payload, httpStatus: 201, transportSessionError: nil, apiVersion: 0)
+           return ZMTransportResponse(payload: payload, httpStatus: 201, transportSessionError: nil, apiVersion: .v0)
         }
 
         // WHEN
@@ -91,7 +91,7 @@ class ConversationTestsOTR_Swift: ConversationTestsBase {
                     ]
                 ]
             ]
-            return ZMTransportResponse(payload: payload, httpStatus: 201, transportSessionError: nil, apiVersion: 0)
+            return ZMTransportResponse(payload: payload, httpStatus: 201, transportSessionError: nil, apiVersion: .v0)
         }
 
         // WHEN
