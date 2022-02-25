@@ -44,7 +44,7 @@
     }
     NSString *email = self.email ?: @"knockknock@example.com";
     NSString *password = self.password ?: @"guessmeifyoucan";
-    return [ZMEmailCredentials credentialsWithEmail:email password:password];
+    return [ZMEmailCredentials credentialsWithEmail:email password:password twoFactorVerificationCode: nil];
 }
 
 - (void)credentialsMayBeCleared
@@ -323,7 +323,7 @@
     
     // and when
     // the user entered the password, we can proceed trying to register the client
-    self.sut.emailCredentials = [ZMEmailCredentials credentialsWithEmail:@"john.doe@domain.com" password:@"12345789"];
+    self.sut.emailCredentials = [ZMEmailCredentials credentialsWithEmail:@"john.doe@domain.com" password:@"12345789" twoFactorVerificationCode: nil];
     
     // then
     XCTAssertEqual(self.sut.currentPhase, ZMClientRegistrationPhaseUnregistered);

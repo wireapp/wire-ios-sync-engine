@@ -126,7 +126,7 @@ extension UserProfileUpdateRequestStrategyTests {
     func testThatItCreatesARequestToUpdatePassword() {
 
         // GIVEN
-        let credentials = ZMEmailCredentials(email: "mario@example.com", password: "princess")
+        let credentials = ZMEmailCredentials(email: "mario@example.com", password: "princess", twoFactorVerificationCode: nil)
         try! self.userProfileUpdateStatus.requestSettingEmailAndPassword(credentials: credentials)
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
@@ -182,7 +182,7 @@ extension UserProfileUpdateRequestStrategyTests {
     func testThatItCreatesARequestToUpdateEmailAfterUpdatingPassword() {
 
         // GIVEN
-        let credentials = ZMEmailCredentials(email: "mario@example.com", password: "princess")
+        let credentials = ZMEmailCredentials(email: "mario@example.com", password: "princess", twoFactorVerificationCode: nil)
         try! self.userProfileUpdateStatus.requestSettingEmailAndPassword(credentials: credentials)
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
         self.userProfileUpdateStatus.didUpdatePasswordSuccessfully()
@@ -374,7 +374,7 @@ extension UserProfileUpdateRequestStrategyTests {
     func testThatCallsDidUpdatePasswordSuccessfully() {
 
         // GIVEN
-        let credentials = ZMEmailCredentials(email: "mario@example.com", password: "princess")
+        let credentials = ZMEmailCredentials(email: "mario@example.com", password: "princess", twoFactorVerificationCode: nil)
         try! self.userProfileUpdateStatus.requestSettingEmailAndPassword(credentials: credentials)
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
@@ -390,7 +390,7 @@ extension UserProfileUpdateRequestStrategyTests {
     func testThatCallsDidUpdatePasswordSuccessfullyOn403() {
 
         // GIVEN
-        let credentials = ZMEmailCredentials(email: "mario@example.com", password: "princess")
+        let credentials = ZMEmailCredentials(email: "mario@example.com", password: "princess", twoFactorVerificationCode: nil)
         try! self.userProfileUpdateStatus.requestSettingEmailAndPassword(credentials: credentials)
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
@@ -406,7 +406,7 @@ extension UserProfileUpdateRequestStrategyTests {
     func testThatCallsDidFailPasswordUpdateOn400() {
 
         // GIVEN
-        let credentials = ZMEmailCredentials(email: "mario@example.com", password: "princess")
+        let credentials = ZMEmailCredentials(email: "mario@example.com", password: "princess", twoFactorVerificationCode: nil)
         try! self.userProfileUpdateStatus.requestSettingEmailAndPassword(credentials: credentials)
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
@@ -422,7 +422,7 @@ extension UserProfileUpdateRequestStrategyTests {
     func testThatItCallsDidUpdateEmailSuccessfullyWhenSettingEmailAndPassword() {
 
         // GIVEN
-        let credentials = ZMEmailCredentials(email: "mario@example.com", password: "princess")
+        let credentials = ZMEmailCredentials(email: "mario@example.com", password: "princess", twoFactorVerificationCode: nil)
         try! self.userProfileUpdateStatus.requestSettingEmailAndPassword(credentials: credentials)
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
         self.userProfileUpdateStatus.didUpdatePasswordSuccessfully()
@@ -439,7 +439,7 @@ extension UserProfileUpdateRequestStrategyTests {
     func testThatItCallsDidFailEmailUpdateWithInvalidEmail() {
 
         // GIVEN
-        let credentials = ZMEmailCredentials(email: "mario@example.com", password: "princess")
+        let credentials = ZMEmailCredentials(email: "mario@example.com", password: "princess", twoFactorVerificationCode: nil)
         try! self.userProfileUpdateStatus.requestSettingEmailAndPassword(credentials: credentials)
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
         self.userProfileUpdateStatus.didUpdatePasswordSuccessfully()
@@ -458,7 +458,7 @@ extension UserProfileUpdateRequestStrategyTests {
     func testThatItCallsDidFailEmailUpdateWithDuplicatedEmail() {
 
         // GIVEN
-        let credentials = ZMEmailCredentials(email: "mario@example.com", password: "princess")
+        let credentials = ZMEmailCredentials(email: "mario@example.com", password: "princess", twoFactorVerificationCode: nil)
         try! self.userProfileUpdateStatus.requestSettingEmailAndPassword(credentials: credentials)
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
         self.userProfileUpdateStatus.didUpdatePasswordSuccessfully()
@@ -477,7 +477,7 @@ extension UserProfileUpdateRequestStrategyTests {
     func testThatItCallsDidFailEmailUpdateWithUnknownError() {
 
         // GIVEN
-        let credentials = ZMEmailCredentials(email: "mario@example.com", password: "princess")
+        let credentials = ZMEmailCredentials(email: "mario@example.com", password: "princess", twoFactorVerificationCode: nil)
         try! self.userProfileUpdateStatus.requestSettingEmailAndPassword(credentials: credentials)
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
         self.userProfileUpdateStatus.didUpdatePasswordSuccessfully()

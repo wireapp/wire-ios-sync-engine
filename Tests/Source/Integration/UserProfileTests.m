@@ -372,7 +372,7 @@
     // given
     NSString *email = @"foobar@geraterwerwer.dsf.example.com";
     XCTAssertTrue([self loginWithPhoneAndRemoveEmail]);
-    ZMEmailCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:@"ds4rgsdg"];
+    ZMEmailCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:@"ds4rgsdg" twoFactorVerificationCode: nil];
     [self.mockTransportSession resetReceivedRequests];
     
     ZMUser *selfUser = [ZMUser selfUserInUserSession:self.userSession];
@@ -412,7 +412,7 @@
     // given
     NSString *email = @"foobar@geraterwerwer.dsf.example.com";
     XCTAssertTrue([self loginWithPhoneAndRemoveEmail]);
-    ZMEmailCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:@"ds4rgsdg"];
+    ZMEmailCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:@"ds4rgsdg" twoFactorVerificationCode: nil];
     [self.mockTransportSession resetReceivedRequests];
     
     ZMUser *selfUser = [ZMUser selfUserInUserSession:self.userSession];
@@ -446,7 +446,7 @@
     // given
     NSString *email = @"foobar@geraterwerwer.dsf.example.com";
     XCTAssertTrue([self loginWithPhoneAndRemoveEmail]);
-    ZMEmailCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:@"ds4rgsdg"];
+    ZMEmailCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:@"ds4rgsdg" twoFactorVerificationCode: nil];
     [self.mockTransportSession resetReceivedRequests];
     
     ZMUser *selfUser = [ZMUser selfUserInUserSession:self.userSession];
@@ -493,7 +493,7 @@
     // given
     NSString *email = @"foobar@geraterwerwer.dsf.example.com";
     XCTAssertTrue([self loginWithPhoneAndRemoveEmail]);
-    ZMEmailCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:@"ds4rgsdg"];
+    ZMEmailCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:@"ds4rgsdg" twoFactorVerificationCode: nil];
     [self.mockTransportSession resetReceivedRequests];
     
     ZMUser *selfUser = [ZMUser selfUserInUserSession:self.userSession];
@@ -528,7 +528,7 @@
     // given
     NSString *email = @"foobar@geraterwerwer.dsf.example.com";
     XCTAssertTrue([self loginWithPhoneAndRemoveEmail]);
-    ZMEmailCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:@"ds4rgsdg"];
+    ZMEmailCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:@"ds4rgsdg" twoFactorVerificationCode: nil];
     [self.mockTransportSession resetReceivedRequests];
     
     ZMUser *selfUser = [ZMUser selfUserInUserSession:self.userSession];
@@ -563,7 +563,7 @@
     // given
     NSString *email = @"foobar@geraterwerwer.dsf.example.com";
     XCTAssertTrue([self loginWithPhoneAndRemoveEmail]);
-    ZMEmailCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:@"ds4rgsdg"];
+    ZMEmailCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:@"ds4rgsdg" twoFactorVerificationCode: nil];
     [self.mockTransportSession resetReceivedRequests];
     
     ZMUser *selfUser = [ZMUser selfUserInUserSession:self.userSession];
