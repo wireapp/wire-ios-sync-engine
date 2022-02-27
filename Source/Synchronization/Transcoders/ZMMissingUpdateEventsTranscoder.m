@@ -242,7 +242,7 @@ NSUInteger const ZMMissingUpdateEventsTranscoderListPageSize = 500;
     }
 }
 
-- (ZMTransportRequest *)nextRequestIfAllowed
+- (ZMTransportRequest *)nextRequestIfAllowedForAPIVersion:(ZMAPIVersion)apiVersion
 {
     /// There are multiple scenarios in which this class will create a new request:
     ///
@@ -259,7 +259,7 @@ NSUInteger const ZMMissingUpdateEventsTranscoderListPageSize = 500;
             [self.listPaginator resetFetching];
         }
 
-        ZMTransportRequest *request = [self.listPaginator nextRequest];
+        ZMTransportRequest *request = [self.listPaginator nextRequestForAPIVersion:apiVersion];
 
         if (self.isFetchingStreamForAPNS && nil != request) {
             [request forceToVoipSession];

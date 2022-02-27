@@ -89,10 +89,10 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
     // MARK: - Methods
 
-    public override func nextRequestIfAllowed() -> ZMTransportRequest? {
-        let request = callConfigRequestSync.nextRequest() ??
-                      clientDiscoverySync.nextRequest() ??
-                      messageSync.nextRequest()
+    public override func nextRequestIfAllowed(for apiVersion: ZMAPIVersion) -> ZMTransportRequest? {
+        let request = callConfigRequestSync.nextRequest(for: apiVersion) ??
+                      clientDiscoverySync.nextRequest(for: apiVersion) ??
+                      messageSync.nextRequest(for: apiVersion)
 
         request?.forceToVoipSession()
         return request

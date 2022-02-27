@@ -55,7 +55,7 @@ public final class ProxiedRequestStrategy: AbstractRequestStrategy {
         super.init(withManagedObjectContext: moc, applicationStatus: applicationStatus)
     }
 
-    public override func nextRequestIfAllowed() -> ZMTransportRequest? {
+    public override func nextRequestIfAllowed(for apiVersion: ZMAPIVersion) -> ZMTransportRequest? {
         guard let status = self.requestsStatus else { return nil }
 
         if let proxyRequest = status.pendingRequests.popFirst() {

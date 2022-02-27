@@ -45,7 +45,7 @@ public final class SignatureRequestStrategy: AbstractRequestStrategy, ZMSingleRe
     }
 
     @objc
-    public override func nextRequestIfAllowed() -> ZMTransportRequest? {
+    public override func nextRequestIfAllowed(for apiVersion: ZMAPIVersion) -> ZMTransportRequest? {
         guard let signatureStatus = syncContext.signatureStatus else {
             return nil
         }
@@ -58,7 +58,7 @@ public final class SignatureRequestStrategy: AbstractRequestStrategy, ZMSingleRe
                 return nil
             }
             requestSync.readyForNextRequestIfNotBusy()
-            return requestSync.nextRequest()
+            return requestSync.nextRequest(for: apiVersion)
         case .waitingForCodeVerification:
             break
         case .waitingForSignature:
@@ -66,7 +66,7 @@ public final class SignatureRequestStrategy: AbstractRequestStrategy, ZMSingleRe
                 return nil
             }
             retrieveSync.readyForNextRequestIfNotBusy()
-            return retrieveSync.nextRequest()
+            return retrieveSync.nextRequest(for: apiVersion)
         case .signatureInvalid:
             break
         case .finished:

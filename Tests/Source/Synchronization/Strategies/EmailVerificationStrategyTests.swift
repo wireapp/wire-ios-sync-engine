@@ -40,7 +40,7 @@ class RegistrationCredentialVerificationStrategyTests: MessagingTest {
     // MARK: - nil request tests
 
     func testThatItDoesNotReturnRequestIfThePhaseIsNone() {
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
         XCTAssertNil(request)
     }
 
@@ -58,7 +58,7 @@ class RegistrationCredentialVerificationStrategyTests: MessagingTest {
 
         // when
 
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
 
         // then
         XCTAssertNotNil(request)
@@ -77,7 +77,7 @@ class RegistrationCredentialVerificationStrategyTests: MessagingTest {
 
         // when
 
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
 
         // then
         XCTAssertNotNil(request)
@@ -128,7 +128,7 @@ class RegistrationCredentialVerificationStrategyTests: MessagingTest {
 
         // when
 
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
 
         // then
         XCTAssertNotNil(request)
@@ -149,7 +149,7 @@ class RegistrationCredentialVerificationStrategyTests: MessagingTest {
 
         // when
 
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
 
         // then
         XCTAssertNotNil(request)

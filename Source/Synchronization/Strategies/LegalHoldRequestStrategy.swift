@@ -33,12 +33,12 @@ public class LegalHoldRequestStrategy: AbstractRequestStrategy, ZMSingleRequestT
         singleRequstSync = ZMSingleRequestSync(singleRequestTranscoder: self, groupQueue: managedObjectContext)
     }
 
-    public override func nextRequestIfAllowed() -> ZMTransportRequest? {
+    public override func nextRequestIfAllowed(for apiVersion: ZMAPIVersion) -> ZMTransportRequest? {
         guard syncStatus.currentSyncPhase == .fetchingLegalHoldStatus else { return nil }
 
         singleRequstSync.readyForNextRequestIfNotBusy()
 
-        return singleRequstSync.nextRequest()
+        return singleRequstSync.nextRequest(for: apiVersion)
     }
 
     public func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {

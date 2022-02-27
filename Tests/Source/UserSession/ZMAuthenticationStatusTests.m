@@ -369,7 +369,7 @@
     NSString *pass = @"123456xcxc";
 
     ZMCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:pass];
-    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:nil HTTPStatus:200 transportSessionError:nil apiVersion:0];
+    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:nil HTTPStatus:200 transportSessionError:nil apiVersion:v0];
 
     // when
     [self performPretendingUiMocIsSyncMoc:^{

@@ -66,7 +66,7 @@ class TeamInvitationRequestStrategyTests: MessagingTest {
         teamInvitationStatus.invite("example1@test.com", completionHandler: { _ in })
 
         // when
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
 
         // then
         XCTAssertEqual(request?.path, "/teams/\(team.remoteIdentifier!.transportString())/invitations")
@@ -80,8 +80,8 @@ class TeamInvitationRequestStrategyTests: MessagingTest {
         teamInvitationStatus.invite("example1@test.com", completionHandler: { _ in })
 
         // when
-        let request1 = sut.nextRequest()
-        let request2 = sut.nextRequest()
+        let request1 = sut.nextRequest(for: .v0)
+        let request2 = sut.nextRequest(for: .v0)
 
         // then
         XCTAssertEqual(request1?.path, "/teams/\(team.remoteIdentifier!.transportString())/invitations")
@@ -94,12 +94,12 @@ class TeamInvitationRequestStrategyTests: MessagingTest {
         teamInvitationStatus.invite("example1@test.com", completionHandler: { _ in })
 
         // when
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
         request?.complete(with: ZMTransportResponse(payload: nil, httpStatus: 408, transportSessionError: nil, apiVersion: .v0))
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
-        let retryRequest = sut.nextRequest()
+        let retryRequest = sut.nextRequest(for: .v0)
         XCTAssertEqual(retryRequest?.path, "/teams/\(team.remoteIdentifier!.transportString())/invitations")
         XCTAssertEqual(retryRequest?.payload?.asDictionary()?["email"] as? String, "example1@test.com")
         XCTAssertEqual(retryRequest?.payload?.asDictionary()?["inviter_name"] as? String, "Self User")

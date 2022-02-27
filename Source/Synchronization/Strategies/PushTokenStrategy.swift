@@ -57,8 +57,8 @@ public class PushTokenStrategy: AbstractRequestStrategy, ZMUpstreamTranscoder, Z
         }
     }
 
-    public override func nextRequestIfAllowed() -> ZMTransportRequest? {
-        return pushKitTokenSync.nextRequest()
+    public override func nextRequestIfAllowed(for apiVersion: ZMAPIVersion) -> ZMTransportRequest? {
+        return pushKitTokenSync.nextRequest(for: apiVersion)
     }
 
 // MARK: - ZMUpstreamTranscoder

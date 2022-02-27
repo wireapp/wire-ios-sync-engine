@@ -93,8 +93,8 @@ public final class PermissionsDownloadRequestStrategy: AbstractRequestStrategy, 
         )
     }
 
-    public override func nextRequestIfAllowed() -> ZMTransportRequest? {
-        return sync.nextRequest()
+    public override func nextRequestIfAllowed(for apiVersion: ZMAPIVersion) -> ZMTransportRequest? {
+        return sync.nextRequest(for: apiVersion)
     }
 
     public var contextChangeTrackers: [ZMContextChangeTracker] {

@@ -87,11 +87,11 @@ extension RegistationCredentialVerificationStrategy: ZMSingleRequestTranscoder {
 }
 
 extension RegistationCredentialVerificationStrategy: RequestStrategy {
-    func nextRequest() -> ZMTransportRequest? {
+    func nextRequest(for apiVersion: ZMAPIVersion) -> ZMTransportRequest? {
         switch registrationStatus.phase {
         case .sendActivationCode, .checkActivationCode:
             codeSendingSync.readyForNextRequestIfNotBusy()
-            return codeSendingSync.nextRequest()
+            return codeSendingSync.nextRequest(for: apiVersion)
         default:
             return nil
         }

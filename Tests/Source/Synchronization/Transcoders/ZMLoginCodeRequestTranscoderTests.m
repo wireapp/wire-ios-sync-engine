@@ -62,7 +62,7 @@
 - (void)testThatItReturnsNoRequestWhenThereAreNoCredentials
 {
     ZMTransportRequest *request;
-    request = [self.sut nextRequest];
+    request = [self.sut nextRequestForAPIVersion:v0];
     XCTAssertNil(request);
 }
 
@@ -71,9 +71,9 @@
     NSString *phoneNumber = @"+7123456789";
     [self.authenticationStatus prepareForRequestingPhoneVerificationCodeForLogin:phoneNumber];
 
-    ZMTransportRequest *expectedRequest = [[ZMTransportRequest alloc] initWithPath:@"/login/send" method:ZMMethodPOST payload:@{@"phone": phoneNumber} authentication:ZMTransportRequestAuthNone apiVersion:0];
+    ZMTransportRequest *expectedRequest = [[ZMTransportRequest alloc] initWithPath:@"/login/send" method:ZMMethodPOST payload:@{@"phone": phoneNumber} authentication:ZMTransportRequestAuthNone apiVersion:v0];
     
-    ZMTransportRequest *request = [self.sut nextRequest];
+    ZMTransportRequest *request = [self.sut nextRequestForAPIVersion:v0];
     XCTAssertEqualObjects(request, expectedRequest);
 }
 
@@ -82,7 +82,7 @@
     // given
     NSString *phoneNumber = @"+7123456789";
     [self.authenticationStatus prepareForRequestingPhoneVerificationCodeForLogin:phoneNumber];
-    ZMTransportRequest *request = [self.sut nextRequest];
+    ZMTransportRequest *request = [self.sut nextRequestForAPIVersion:v0];
     
     // when
     [request completeWithResponse:[ZMTransportResponse responseWithPayload:nil HTTPStatus:200 transportSessionError:nil apiVersion:request.apiVersion]];
@@ -97,7 +97,7 @@
     // given
     NSString *phoneNumber = @"+7123456789";
     [self.authenticationStatus prepareForRequestingPhoneVerificationCodeForLogin:phoneNumber];
-    ZMTransportRequest *request = [self.sut nextRequest];
+    ZMTransportRequest *request = [self.sut nextRequestForAPIVersion:v0];
 
     // when
     [request completeWithResponse:[ZMTransportResponse responseWithPayload:nil
@@ -121,7 +121,7 @@
     // given
     NSString *phoneNumber = @"+7123456789";
     [self.authenticationStatus prepareForRequestingPhoneVerificationCodeForLogin:phoneNumber];
-    ZMTransportRequest *request = [self.sut nextRequest];
+    ZMTransportRequest *request = [self.sut nextRequestForAPIVersion:v0];
 
     // when
     [request completeWithResponse:[ZMTransportResponse responseWithPayload:@{@"label":@"invalid-phone"} HTTPStatus:400 transportSessionError:nil apiVersion:request.apiVersion]];
@@ -142,7 +142,7 @@
     // given
     NSString *phoneNumber = @"+7123456789";
     [self.authenticationStatus prepareForRequestingPhoneVerificationCodeForLogin:phoneNumber];
-    ZMTransportRequest *request = [self.sut nextRequest];
+    ZMTransportRequest *request = [self.sut nextRequestForAPIVersion:v0];
 
     // when
     [request completeWithResponse:[ZMTransportResponse responseWithPayload:@{@"label":@"pending-login"} HTTPStatus:403 transportSessionError:nil apiVersion:request.apiVersion]];
@@ -163,7 +163,7 @@
     // given
     NSString *phoneNumber = @"+7123456789";
     [self.authenticationStatus prepareForRequestingPhoneVerificationCodeForLogin:phoneNumber];
-    ZMTransportRequest *request = [self.sut nextRequest];
+    ZMTransportRequest *request = [self.sut nextRequestForAPIVersion:v0];
     
     // when
     [request completeWithResponse:[ZMTransportResponse responseWithPayload:@{@"label":@"unauthorized"} HTTPStatus:403 transportSessionError:nil apiVersion:request.apiVersion]];

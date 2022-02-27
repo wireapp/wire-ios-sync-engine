@@ -185,7 +185,7 @@ public class TypingStrategy: AbstractRequestStrategy, TearDownCapable, ZMEventCo
         }
     }
 
-    public override func nextRequestIfAllowed() -> ZMTransportRequest? {
+    public override func nextRequestIfAllowed(for apiVersion: ZMAPIVersion) -> ZMTransportRequest? {
         guard let typingEvent = typingEventQueue.nextEvent(),
               let conversation = managedObjectContext.object(with: typingEvent.objectID) as? ZMConversation,
               let remoteIdentifier = conversation.remoteIdentifier
