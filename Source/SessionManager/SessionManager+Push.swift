@@ -146,15 +146,15 @@ extension SessionManager: PKPushRegistryDelegate {
     public func updatePushToken(for session: ZMUserSession) {
         session.managedObjectContext.performGroupedBlock { [weak session] in
             // Refresh the tokens if needed
-            if self.configuration.useLegacyPushNotifications {
+            if #available(iOS 13.0, *), !self.configuration.useLegacyPushNotifications {
+                pushLog.safePublic("creating standard push token")
+                self.application.registerForRemoteNotifications()
+            } else {
                 if let token = self.pushRegistry.pushToken(for: .voIP) {
                     pushLog.safePublic("creating voip push token")
                     let pushToken = PushToken.createVOIPToken(from: token)
                     session?.setPushToken(pushToken)
                 }
-            } else {
-                pushLog.safePublic("creating standard push token")
-                self.application.registerForRemoteNotifications()
             }
         }
     }
