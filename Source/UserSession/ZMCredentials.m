@@ -27,7 +27,7 @@
 @property (nonatomic, copy, nullable) NSString *password;
 @property (nonatomic, copy, nullable) NSString *phoneNumber;
 @property (nonatomic, copy, nullable) NSString *phoneNumberVerificationCode;
-@property (nonatomic, copy, nullable) NSString *twoFactorVerificationCode;
+@property (nonatomic, copy, nullable) NSString *emailVerificationCode;
 
 @end
 
@@ -54,7 +54,7 @@
     ZMEmailCredentials *credentials = [[ZMEmailCredentials alloc] init];
     credentials.email = email;
     credentials.password = password;
-    credentials.twoFactorVerificationCode = code;
+    credentials.emailVerificationCode = code;
     return credentials;
 }
 
@@ -78,7 +78,7 @@
     BOOL passwordsEqual = ZM_EQUAL_STRINGS(self.password, object.password);
     BOOL phoneNumbersEqual = ZM_EQUAL_STRINGS(self.phoneNumber, object.phoneNumber);
     BOOL phoneNumberCodesEqual = ZM_EQUAL_STRINGS(self.phoneNumberVerificationCode, object.phoneNumberVerificationCode);
-    BOOL twoFactorVerificationCodesEqual = ZM_EQUAL_STRINGS(self.twoFactorVerificationCode, object.twoFactorVerificationCode);
+    BOOL twoFactorVerificationCodesEqual = ZM_EQUAL_STRINGS(self.emailVerificationCode, object.emailVerificationCode);
     return emailsEqual && passwordsEqual && phoneNumbersEqual && phoneNumberCodesEqual && twoFactorVerificationCodesEqual;
 }
 

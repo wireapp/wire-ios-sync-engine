@@ -26,7 +26,7 @@
 @property (nonatomic, copy, readonly, nullable) NSString *password;
 @property (nonatomic, copy, readonly, nullable) NSString *phoneNumber;
 @property (nonatomic, copy, readonly, nullable) NSString *phoneNumberVerificationCode;
-@property (nonatomic, copy, readonly, nullable) NSString *twoFactorVerificationCode;
+@property (nonatomic, copy, readonly, nullable) NSString *emailVerificationCode;
 
 @property (nonatomic, readonly) BOOL credentialWithEmail;
 @property (nonatomic, readonly) BOOL credentialWithPhone;
