@@ -19,6 +19,21 @@
 import Foundation
 
 extension ZMOperationLoopTests {
+
+    // MARK: - Helpers
+
+    @objc
+    static func setCurrentAPIVersion(_ apiVersion: ZMAPIVersion) {
+        ZMAPIVersion.current = apiVersion
+    }
+
+    @objc
+    static func clearCurrentAPIVersion() {
+        ZMAPIVersion.current = nil
+    }
+
+    // MARK: - Tests
+
     func testThatMOCIsSavedOnSuccessfulRequest() {
         // given
         let request = ZMTransportRequest(path: "/boo", method: .methodGET, payload: nil, apiVersion: .v0)
