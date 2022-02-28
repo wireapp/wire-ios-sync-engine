@@ -62,7 +62,7 @@ class UserClientRequestFactoryTests: MessagingTest {
     func testThatItCreatesRegistrationRequestWithEmailCorrectly() {
         // given
         let client = UserClient.insertNewObject(in: self.syncMOC)
-        let credentials = ZMEmailCredentials(email: "some@example.com", password: "123", twoFactorVerificationCode: nil)
+        let credentials = ZMEmailCredentials(email: "some@example.com", password: "123")
 
         // when
         guard let request = try? sut.registerClientRequest(client, credentials: credentials, cookieLabel: "mycookie") else {
@@ -141,7 +141,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         let client = UserClient.insertNewObject(in: self.syncMOC)
         self.spyKeyStore.failToGeneratePreKeys = true
 
-        let credentials = ZMEmailCredentials(email: "some@example.com", password: "123", twoFactorVerificationCode: nil)
+        let credentials = ZMEmailCredentials(email: "some@example.com", password: "123")
 
         // when
         let request = try? sut.registerClientRequest(client, credentials: credentials, cookieLabel: "mycookie")
@@ -154,7 +154,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         let client = UserClient.insertNewObject(in: self.syncMOC)
         self.spyKeyStore.failToGenerateLastPreKey = true
 
-        let credentials = ZMEmailCredentials(email: "some@example.com", password: "123", twoFactorVerificationCode: nil)
+        let credentials = ZMEmailCredentials(email: "some@example.com", password: "123")
 
         // when
         let request = try? sut.registerClientRequest(client, credentials: credentials, cookieLabel: "mycookie")
@@ -249,7 +249,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         // given
         let email = "foo@example.com"
         let password = "gfsgdfgdfgdfgdfg"
-        let credentials = ZMEmailCredentials(email: email, password: password, twoFactorVerificationCode: nil)
+        let credentials = ZMEmailCredentials(email: email, password: password)
         let client = UserClient.insertNewObject(in: self.syncMOC)
         client.remoteIdentifier = "\(client.objectID)"
         self.syncMOC.saveOrRollback()

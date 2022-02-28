@@ -141,7 +141,7 @@ extension UserProfileUpdateStatusTests {
         // GIVEN
         let selfUser = ZMUser.selfUser(in: self.uiMOC)
         XCTAssertNil(selfUser.emailAddress)
-        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111", twoFactorVerificationCode: nil)
+        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111")
 
         // WHEN
         do {
@@ -164,7 +164,7 @@ extension UserProfileUpdateStatusTests {
         // GIVEN
         let selfUser = ZMUser.selfUser(in: self.uiMOC)
         selfUser.setValue("my@fo.example.com", forKey: #keyPath(ZMUser.emailAddress))
-        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111", twoFactorVerificationCode: nil)
+        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111")
 
         // WHEN
         do {
@@ -189,7 +189,7 @@ extension UserProfileUpdateStatusTests {
     func testThatItCanCancelSettingEmailAndPassword() {
 
         // GIVEN
-        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111", twoFactorVerificationCode: nil)
+        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111")
         try? self.sut.requestSettingEmailAndPassword(credentials: credentials)
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
@@ -206,7 +206,7 @@ extension UserProfileUpdateStatusTests {
     func testThatItNeedsToSetEmailAfterSuccessfullySettingPassword() {
 
         // GIVEN
-        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111", twoFactorVerificationCode: nil)
+        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111")
         try? self.sut.requestSettingEmailAndPassword(credentials: credentials)
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
@@ -223,7 +223,7 @@ extension UserProfileUpdateStatusTests {
     func testThatItCompletesAfterSuccessfullySettingPasswordAndEmail() {
 
         // GIVEN
-        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111", twoFactorVerificationCode: nil)
+        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111")
         try? self.sut.requestSettingEmailAndPassword(credentials: credentials)
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
@@ -240,7 +240,7 @@ extension UserProfileUpdateStatusTests {
     func testThatItNotifiesAfterSuccessfullySettingEmail() {
 
         // GIVEN
-        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111", twoFactorVerificationCode: nil)
+        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111")
         try? self.sut.requestSettingEmailAndPassword(credentials: credentials)
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
@@ -262,7 +262,7 @@ extension UserProfileUpdateStatusTests {
     func testThatItIsNotSettingEmailAnymoreAsSoonAsTheSelfUserHasEmail() {
 
         // GIVEN
-        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111", twoFactorVerificationCode: nil)
+        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111")
         try? self.sut.requestSettingEmailAndPassword(credentials: credentials)
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
@@ -278,7 +278,7 @@ extension UserProfileUpdateStatusTests {
     func testThatItIsNotSettingPasswordAnymoreAsSoonAsTheSelfUserHasEmail() {
 
         // GIVEN
-        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111", twoFactorVerificationCode: nil)
+        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111")
         try? self.sut.requestSettingEmailAndPassword(credentials: credentials)
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
         self.sut.didUpdatePasswordSuccessfully()
@@ -295,7 +295,7 @@ extension UserProfileUpdateStatusTests {
     func testThatItIsNotSettingEmailAndPasswordAnymoreIfItFailsToUpdatePassword() {
 
         // GIVEN
-        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111", twoFactorVerificationCode: nil)
+        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111")
         try? self.sut.requestSettingEmailAndPassword(credentials: credentials)
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
@@ -311,7 +311,7 @@ extension UserProfileUpdateStatusTests {
     func testThatItNotifiesIfItFailsToUpdatePassword() {
 
         // GIVEN
-        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111", twoFactorVerificationCode: nil)
+        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111")
         try? self.sut.requestSettingEmailAndPassword(credentials: credentials)
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
@@ -332,7 +332,7 @@ extension UserProfileUpdateStatusTests {
     func testThatItIsNotSettingEmailAnymoreIfItFailsToUpdateEmail() {
 
         // GIVEN
-        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111", twoFactorVerificationCode: nil)
+        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111")
         try? self.sut.requestSettingEmailAndPassword(credentials: credentials)
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
         let error = NSError(domain: "WireSyncEngine", code: 100, userInfo: nil)
@@ -351,7 +351,7 @@ extension UserProfileUpdateStatusTests {
 
         // GIVEN
         let error = NSError(domain: "WireSyncEngine", code: 100, userInfo: nil)
-        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111", twoFactorVerificationCode: nil)
+        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111")
         try? self.sut.requestSettingEmailAndPassword(credentials: credentials)
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
@@ -377,7 +377,7 @@ extension UserProfileUpdateStatusTests {
     func testThatItDoesNotReturnCredentialsIfOnlyPasswordIsVerified() {
 
         // GIVEN
-        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111", twoFactorVerificationCode: nil)
+        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111")
 
         // WHEN
         try? self.sut.requestSettingEmailAndPassword(credentials: credentials)
@@ -391,7 +391,7 @@ extension UserProfileUpdateStatusTests {
     func testThatItDoesNotReturnCredentialsIfOnlyEmailIsVerified() {
 
         // GIVEN
-        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111", twoFactorVerificationCode: nil)
+        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111")
 
         // WHEN
         try? self.sut.requestSettingEmailAndPassword(credentials: credentials)
@@ -405,7 +405,7 @@ extension UserProfileUpdateStatusTests {
     func testThatItReturnsCredentialsIfEmailAndPasswordAreVerified() {
 
         // GIVEN
-        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111", twoFactorVerificationCode: nil)
+        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111")
 
         // WHEN
         try? self.sut.requestSettingEmailAndPassword(credentials: credentials)
@@ -420,7 +420,7 @@ extension UserProfileUpdateStatusTests {
     func testThatItDeletesCredentials() {
 
         // GIVEN
-        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111", twoFactorVerificationCode: nil)
+        let credentials = ZMEmailCredentials(email: "foo@example.com", password: "%$#@11111")
         try? self.sut.requestSettingEmailAndPassword(credentials: credentials)
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
         self.sut.didUpdatePasswordSuccessfully()

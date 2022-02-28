@@ -61,7 +61,7 @@ extern NSTimeInterval DebugLoginFailureTimerOverride;
     }];
 
     // when
-    ZMCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:password twoFactorVerificationCode: nil];
+    ZMCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:password];
     [self.unauthenticatedSession loginWithCredentials:credentials];
     WaitForAllGroupsToBeEmpty(0.5);
 
@@ -112,7 +112,7 @@ extern NSTimeInterval DebugLoginFailureTimerOverride;
     }];
 
     // when
-    ZMCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:password twoFactorVerificationCode: nil];
+    ZMCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:password];
     [self.unauthenticatedSession loginWithCredentials:credentials];
     WaitForAllGroupsToBeEmpty(0.5);
     [self.unauthenticatedSession continueAfterBackupImportStep];
@@ -149,7 +149,7 @@ extern NSTimeInterval DebugLoginFailureTimerOverride;
     }];
     
     // when
-    ZMCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:@"wrong-password" twoFactorVerificationCode: nil];
+    ZMCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:@"wrong-password"];
     [self.unauthenticatedSession loginWithCredentials:credentials];
     WaitForAllGroupsToBeEmpty(0.5);
     
@@ -188,7 +188,7 @@ extern NSTimeInterval DebugLoginFailureTimerOverride;
     };
     
     // when
-    ZMCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:password twoFactorVerificationCode: nil];
+    ZMCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:password];
     [self.unauthenticatedSession loginWithCredentials:credentials];
     WaitForAllGroupsToBeEmpty(0.5);
     [self.unauthenticatedSession continueAfterBackupImportStep];
@@ -229,7 +229,7 @@ extern NSTimeInterval DebugLoginFailureTimerOverride;
     };
     
     // when
-    ZMCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:password twoFactorVerificationCode: nil];
+    ZMCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:password];
     [self.unauthenticatedSession loginWithCredentials:credentials];
     WaitForAllGroupsToBeEmpty(0.5);
     [self.unauthenticatedSession continueAfterBackupImportStep];
@@ -256,7 +256,7 @@ extern NSTimeInterval DebugLoginFailureTimerOverride;
     DebugLoginFailureTimerOverride = 0.2;
     
     // when
-    ZMCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:@"janet@fo.example.com" password:@"::FsdF:#$:fgsdAG" twoFactorVerificationCode: nil];
+    ZMCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:@"janet@fo.example.com" password:@"::FsdF:#$:fgsdAG"];
     [self.unauthenticatedSession loginWithCredentials:credentials];
     
     // then
@@ -433,7 +433,7 @@ extern NSTimeInterval DebugLoginFailureTimerOverride;
     WaitForAllGroupsToBeEmpty(0.5);
     
     // when
-    ZMEmailCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:password twoFactorVerificationCode: nil];
+    ZMEmailCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:password];
     [self.userSession performChanges:^{
         [self.userSession.userProfile requestSettingEmailAndPasswordWithCredentials:credentials error:nil];
     }];
@@ -514,7 +514,7 @@ extern NSTimeInterval DebugLoginFailureTimerOverride;
     
     // first provide the wrong credentials
     [self.mockTransportSession resetReceivedRequests];
-    ZMEmailCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:IntegrationTest.SelfUserEmail password:wrongPassword twoFactorVerificationCode: nil];
+    ZMEmailCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:IntegrationTest.SelfUserEmail password:wrongPassword];
     [self.unauthenticatedSession loginWithCredentials:credentials];
     WaitForAllGroupsToBeEmpty(0.5);
     
@@ -523,7 +523,7 @@ extern NSTimeInterval DebugLoginFailureTimerOverride;
     
     // then provide the right password
     [self.mockTransportSession resetReceivedRequests];
-    ZMEmailCredentials *newCredentials = [ZMEmailCredentials credentialsWithEmail:IntegrationTest.SelfUserEmail password:IntegrationTest.SelfUserPassword twoFactorVerificationCode: nil];
+    ZMEmailCredentials *newCredentials = [ZMEmailCredentials credentialsWithEmail:IntegrationTest.SelfUserEmail password:IntegrationTest.SelfUserPassword];
     [self.unauthenticatedSession loginWithCredentials:newCredentials];
     WaitForAllGroupsToBeEmpty(0.5);
     
@@ -576,7 +576,7 @@ extern NSTimeInterval DebugLoginFailureTimerOverride;
 
     // (2) login again after losing our client (BE will ask for password on 2nd client
     {
-        ZMEmailCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:IntegrationTest.SelfUserEmail password:IntegrationTest.SelfUserPassword twoFactorVerificationCode: nil];
+        ZMEmailCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:IntegrationTest.SelfUserEmail password:IntegrationTest.SelfUserPassword];
         [self.userSession performChanges:^{
             [self.unauthenticatedSession loginWithCredentials:credentials];
         }];

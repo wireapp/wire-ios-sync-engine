@@ -45,7 +45,7 @@ class ZMUserSessionTests_Authentication: ZMUserSessionTestsBase {
     func testThatItEnqueuesRequestToDeleteTheSelfClient() {
         // given
         let selfClient = ZMUser.selfUser(in: uiMOC).selfClient()!
-        let credentials = ZMEmailCredentials(email: "john.doe@domain.com", password: "123456", twoFactorVerificationCode: nil)
+        let credentials = ZMEmailCredentials(email: "john.doe@domain.com", password: "123456")
 
         // when
         sut.logout(credentials: credentials, {_ in })
@@ -62,7 +62,7 @@ class ZMUserSessionTests_Authentication: ZMUserSessionTestsBase {
     func testThatItEnqueuesRequestToDeleteTheSelfClientWithoutPassword() {
         // given
         let selfClient = ZMUser.selfUser(in: uiMOC).selfClient()!
-        let credentials = ZMEmailCredentials(email: "john.doe@domain.com", password: "", twoFactorVerificationCode: nil)
+        let credentials = ZMEmailCredentials(email: "john.doe@domain.com", password: "")
 
         // when
         sut.logout(credentials: credentials, {_ in })
@@ -80,7 +80,7 @@ class ZMUserSessionTests_Authentication: ZMUserSessionTestsBase {
         // given
         let userSessionDelegate = MockUserSessionDelegate()
         sut.delegate = userSessionDelegate
-        let credentials = ZMEmailCredentials(email: "john.doe@domain.com", password: "123456", twoFactorVerificationCode: nil)
+        let credentials = ZMEmailCredentials(email: "john.doe@domain.com", password: "123456")
 
         // when
         sut.logout(credentials: credentials, {_ in })
@@ -96,7 +96,7 @@ class ZMUserSessionTests_Authentication: ZMUserSessionTestsBase {
 
     func testThatItCallsTheCompletionHandler_WhenLogoutRequestSucceeds() {
         // given
-        let credentials = ZMEmailCredentials(email: "john.doe@domain.com", password: "123456", twoFactorVerificationCode: nil)
+        let credentials = ZMEmailCredentials(email: "john.doe@domain.com", password: "123456")
 
         // expect
         let completionHandlerCalled = expectation(description: "Completion handler called")
@@ -124,7 +124,7 @@ class ZMUserSessionTests_Authentication: ZMUserSessionTestsBase {
 
     func checkThatItCallsTheCompletionHandler(with errorCode: ZMUserSessionErrorCode, for response: ZMTransportResponse) {
         // given
-        let credentials = ZMEmailCredentials(email: "john.doe@domain.com", password: "123456", twoFactorVerificationCode: nil)
+        let credentials = ZMEmailCredentials(email: "john.doe@domain.com", password: "123456")
 
         // expect
         let completionHandlerCalled = expectation(description: "Completion handler called")

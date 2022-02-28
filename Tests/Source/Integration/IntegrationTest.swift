@@ -388,13 +388,13 @@ extension IntegrationTest {
 
     @objc
     func login() -> Bool {
-        let credentials = ZMEmailCredentials(email: IntegrationTest.SelfUserEmail, password: IntegrationTest.SelfUserPassword, twoFactorVerificationCode: nil)
+        let credentials = ZMEmailCredentials(email: IntegrationTest.SelfUserEmail, password: IntegrationTest.SelfUserPassword)
         return login(withCredentials: credentials, ignoreAuthenticationFailures: false)
     }
 
     @objc(loginAndIgnoreAuthenticationFailures:)
     func login(ignoreAuthenticationFailures: Bool) -> Bool {
-        let credentials = ZMEmailCredentials(email: IntegrationTest.SelfUserEmail, password: IntegrationTest.SelfUserPassword, twoFactorVerificationCode: nil)
+        let credentials = ZMEmailCredentials(email: IntegrationTest.SelfUserEmail, password: IntegrationTest.SelfUserPassword)
         return login(withCredentials: credentials, ignoreAuthenticationFailures: ignoreAuthenticationFailures)
     }
 

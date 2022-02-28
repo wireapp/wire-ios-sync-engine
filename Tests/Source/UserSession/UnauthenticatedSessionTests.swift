@@ -140,7 +140,7 @@ public final class UnauthenticatedSessionTests: ZMTBaseTest {
 
     func testThatTriesToUpdateCredentials() {
         // given
-        let emailCredentials = ZMEmailCredentials(email: "hello@email.com", password: "123456", twoFactorVerificationCode: nil)
+        let emailCredentials = ZMEmailCredentials(email: "hello@email.com", password: "123456")
         mockDelegate.willAcceptUpdatedCredentials = true
 
         // when
@@ -166,7 +166,7 @@ public final class UnauthenticatedSessionTests: ZMTBaseTest {
         // given
         reachability.mayBeReachable = false
         // when
-        sut.login(with: ZMEmailCredentials(email: "my@mail.com", password: "my-password", twoFactorVerificationCode: nil))
+        sut.login(with: ZMEmailCredentials(email: "my@mail.com", password: "my-password"))
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         // then
         XCTAssertEqual(mockAuthenticationStatusDelegate.authenticationDidFailEvents.count, 1)

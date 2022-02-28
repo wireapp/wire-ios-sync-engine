@@ -100,7 +100,7 @@ class ZMMockClientRegistrationStatus: ZMClientRegistrationStatus {
 
     override init!(managedObjectContext moc: NSManagedObjectContext!, cookieStorage: ZMPersistentCookieStorage!, registrationStatusDelegate: ZMClientRegistrationStatusDelegate!) {
         super.init(managedObjectContext: moc, cookieStorage: cookieStorage, registrationStatusDelegate: registrationStatusDelegate)
-        self.emailCredentials = ZMEmailCredentials(email: "bla@example.com", password: "secret", twoFactorVerificationCode: nil)
+        self.emailCredentials = ZMEmailCredentials(email: "bla@example.com", password: "secret")
     }
 
     override var currentPhase: ZMClientRegistrationPhase {
@@ -124,7 +124,7 @@ class ZMMockClientUpdateStatus: ClientUpdateStatus {
     var mockPhase: ClientUpdatePhase = .done
     var deleteCallCount: Int = 0
     var fetchCallCount: Int = 0
-    var mockCredentials: ZMEmailCredentials = ZMEmailCredentials(email: "bla@example.com", password: "secret", twoFactorVerificationCode: nil)
+    var mockCredentials: ZMEmailCredentials = ZMEmailCredentials(email: "bla@example.com", password: "secret")
 
     override var credentials: ZMEmailCredentials? {
         return mockCredentials
@@ -150,7 +150,7 @@ class FakeCredentialProvider: NSObject, ZMCredentialProvider {
     var password = "verySafePassword"
 
     func emailCredentials() -> ZMEmailCredentials! {
-        return ZMEmailCredentials(email: email, password: password, twoFactorVerificationCode: nil)
+        return ZMEmailCredentials(email: email, password: password)
     }
 
     func credentialsMayBeCleared() {

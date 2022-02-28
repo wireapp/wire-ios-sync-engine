@@ -111,7 +111,7 @@
     NSString *email = @"foo@foo.bar";
     NSString *pass = @"123456xcxc";
     
-    ZMCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:pass twoFactorVerificationCode: nil];
+    ZMCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:pass];
     
     // when
     [self performPretendingUiMocIsSyncMoc:^{
@@ -185,7 +185,7 @@
     
     // when
     [self performPretendingUiMocIsSyncMoc:^{
-        [self.sut prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:email password:password twoFactorVerificationCode: nil]];
+        [self.sut prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:email password:password]];
     }];
     [self.sut didFailLoginWithEmail:YES];
     WaitForAllGroupsToBeEmpty(0.5);
@@ -222,7 +222,7 @@
     // given
     NSString *email = @"gfdgfgdfg@fds.sgf";
     NSString *password = @"#$4tewt343$";
-    ZMCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:password twoFactorVerificationCode: nil];
+    ZMCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:password];
     
     // when
     [self performPretendingUiMocIsSyncMoc:^{
@@ -243,7 +243,7 @@
     // given
     NSString *email = @"gfdgfgdfg@fds.sgf";
     NSString *password = @"#$4tewt343$";
-    ZMCredentials *credentials1 = [ZMEmailCredentials credentialsWithEmail:email password:password twoFactorVerificationCode: nil];
+    ZMCredentials *credentials1 = [ZMEmailCredentials credentialsWithEmail:email password:password];
     ZMCredentials *credentials2 = [ZMPhoneCredentials credentialsWithPhoneNumber:@"+4912345678900" verificationCode:@"123456"];
     
     // when
@@ -265,7 +265,7 @@
 
     // when
     [self performPretendingUiMocIsSyncMoc:^{
-        [self.sut prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:email password:password twoFactorVerificationCode: nil]];
+        [self.sut prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:email password:password]];
     }];
     [self.sut loginSucceededWithResponse:nil];
     WaitForAllGroupsToBeEmpty(0.5);
@@ -286,7 +286,7 @@
 
     // when
     [self performPretendingUiMocIsSyncMoc:^{
-        [self.sut prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:email password:password twoFactorVerificationCode: nil]];
+        [self.sut prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:email password:password]];
     }];
 
     [self.sut loginSucceededWithUserInfo:info];
@@ -318,7 +318,7 @@
     // given
     [self.sut setAuthenticationCookieData:[NSData data]];
     [self performPretendingUiMocIsSyncMoc:^{
-        [self.sut prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:@"foo@example.com" password:@"boo" twoFactorVerificationCode: nil]];
+        [self.sut prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:@"foo@example.com" password:@"boo"]];
     }];
 
     // then
@@ -329,7 +329,7 @@
 {
     // given
     [self performPretendingUiMocIsSyncMoc:^{
-        [self.sut prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:@"foo@example.com" password:@"boo" twoFactorVerificationCode: nil]];
+        [self.sut prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:@"foo@example.com" password:@"boo"]];
     }];
     [self.sut setAuthenticationCookieData:[NSData data]];
     
@@ -346,7 +346,7 @@
 {
     // given
     [self performPretendingUiMocIsSyncMoc:^{
-        [self.sut prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:@"foo@example.com" password:@"boo" twoFactorVerificationCode: nil]];
+        [self.sut prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:@"foo@example.com" password:@"boo"]];
     }];
     
     XCTAssertNotNil(self.sut.loginCredentials);
@@ -368,7 +368,7 @@
     NSString *email = @"foo@foo.bar";
     NSString *pass = @"123456xcxc";
 
-    ZMCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:pass twoFactorVerificationCode: nil];
+    ZMCredentials *credentials = [ZMEmailCredentials credentialsWithEmail:email password:pass];
     ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:nil HTTPStatus:200 transportSessionError:nil];
 
     // when

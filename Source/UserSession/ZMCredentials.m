@@ -49,6 +49,10 @@
 
 @implementation ZMEmailCredentials
 
++ (nonnull ZMEmailCredentials *)credentialsWithEmail:(nonnull NSString *)email password:(nonnull NSString *)password {
+    return [ZMEmailCredentials credentialsWithEmail:email password:password twoFactorVerificationCode:nil];
+}
+
 + (nonnull ZMEmailCredentials *)credentialsWithEmail:(nonnull NSString *)email password:(nonnull NSString *)password twoFactorVerificationCode:(nullable NSString *)code
 {
     ZMEmailCredentials *credentials = [[ZMEmailCredentials alloc] init];
