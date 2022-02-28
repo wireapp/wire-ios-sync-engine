@@ -291,7 +291,7 @@ static NSString* ZMLogTag ZM_UNUSED = @"Authentication";
     ZMLogDebug(@"current phase: %lu", (unsigned long)self.currentPhase);
 }
 
-- (void)didFailLoginBecause2FAIsRequired
+- (void)didFailLoginWithEmailBecauseVerificationCodeIsRequired
 {
     ZMLogDebug(@"%@", NSStringFromSelector(_cmd));
     NSError *error = [NSError userSessionErrorWithErrorCode:ZMUserSessionAccountIsPendingVerification userInfo:nil];

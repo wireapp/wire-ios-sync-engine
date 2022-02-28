@@ -176,7 +176,7 @@ NSTimeInterval DefaultPendingValidationLoginAttemptInterval = 5;
         if ([self isResponseForSuspendedAccount:response]) {
             [authenticationStatus didFailLoginBecauseAccountSuspended];
         } else if ([self isResponseFor2FACode:response]){
-            [authenticationStatus didFailLoginBecause2FAIsRequired];
+            [authenticationStatus didFailLoginWithEmailBecauseVerificationCodeIsRequired];
 
         }
         else if (sync == self.timedDownstreamSync) {
