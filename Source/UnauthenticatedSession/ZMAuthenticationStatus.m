@@ -374,7 +374,8 @@ static NSString* ZMLogTag ZM_UNUSED = @"Authentication";
 {
     if (self.loginCredentials.credentialWithEmail) {
         return [ZMEmailCredentials credentialsWithEmail:self.loginCredentials.email
-                                               password:self.loginCredentials.password];
+                                   password:self.loginCredentials.password
+                                   twoFactorVerificationCode:self.loginCredentials.emailVerificationCode];
     }
     return nil;
 }
