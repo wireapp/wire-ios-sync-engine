@@ -27,24 +27,32 @@ extension ZMLocalNotification {
 
     private class CallNotificationBuilder: NotificationBuilder {
 
-        let callState: CallState
+        let callState: LocalNotificationType.CallState
         let caller: ZMUser
         let conversation: ZMConversation
         let managedObjectContext: NSManagedObjectContext
 
         var notificationType: LocalNotificationType {
-            //TODO Katerina it's a temp fix
-            return LocalNotificationType.failedMessage//calling(callState)
+            return .calling(callState)
         }
 
-        let ignoredCallStates: [CallState] = [
-            .established, .answered(degraded: false), .outgoing(degraded: false), .none, .unknown
-        ]
-
         init?(callState: CallState, caller: ZMUser, conversation: ZMConversation) {
-            guard let managedObjectContext = conversation.managedObjectContext, conversation.remoteIdentifier != nil else { return nil }
+            guard
+                let managedObjectContext = conversation.managedObjectContext,
+                conversation.remoteIdentifier != nil
+            else {
+                return nil
+            }
 
-            self.callState = callState
+            switch callState {
+            case .incoming(let video, shouldRing: true, degraded: _):
+                self.callState = .incomingCall(video: video)
+            case .terminating:
+                self.callState = .missedCall
+            default:
+                return nil
+            }
+
             self.caller = caller
             self.conversation = conversation
             self.managedObjectContext = managedObjectContext
@@ -52,17 +60,7 @@ extension ZMLocalNotification {
 
         func shouldCreateNotification() -> Bool {
             guard conversation.mutedMessageTypesIncludingAvailability != .all else { return false }
-
-            switch callState {
-            case .terminating(reason: .anweredElsewhere), .terminating(reason: .normal), .terminating(reason: .rejectedElsewhere):
-                return false
-            case .incoming(video: _, shouldRing: let shouldRing, degraded: _):
-                return shouldRing
-            case .terminating:
-                return true
-            default:
-                return false
-            }
+            return true
         }
 
         func titleText() -> String? {
