@@ -1597,7 +1597,7 @@ class SessionManagerTestDelegate: SessionManagerDelegate {
         userSessionCanBeTornDown()
     }
 
-    func sessionManagerDidBlacklistCurrentVersion() {
+    func sessionManagerDidBlacklistCurrentVersion(reason: BlacklistReason) {
         // no op
     }
 
