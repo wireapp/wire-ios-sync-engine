@@ -749,15 +749,31 @@ public final class SessionManager: NSObject, SessionManagerType {
         registerObservers(account: account, session: userSession)
     }
 
-    // The restrictions for voip push notifications are only enforced from iOS 13.
-    // If useLegacyPushNotifications is disabled we cannot use voIP notifications. We should migrate (remove voip token and register APNS token ) the push token when upgrading the client OS or app version.
+    // The restrictions for using voip push notifications are only enforced from iOS 13.
+    // For clients running iOS 13 and above, if the token type does not match the useLegacyPushNotifications flag,
+    // we should delete the token and generate a new one when upgrading the client OS or app version.
     private func updateOrMigratePushToken(session userSession: ZMUserSession) {
-        if #available(iOS 13.0, *),
-           userSession.selfUserClient?.pushToken?.tokenType == .voip,
-           !configuration.useLegacyPushNotifications {
-            pushLog.safePublic("deleting voip push token")
-            userSession.deletePushKitToken() // delete voip token and register APNS token for remote notifications
+        guard #available(iOS 13.0, *) else {
+            if userSession.selfUserClient?.pushToken?.tokenType != .voip {
+                pushLog.safePublic("deleting push token")
+                userSession.deletePushKitToken()
+
+                updatePushToken(for: userSession)
+            }
+            return
         }
+
+        // (token type, useLegacyPushNotifications)
+        switch (userSession.selfUserClient?.pushToken?.tokenType,
+                configuration.useLegacyPushNotifications) {
+        case (.voip, false),
+            (.standard, true):
+            pushLog.safePublic("deleting push token")
+            userSession.deletePushKitToken()
+        default:
+            return
+        }
+
         updatePushToken(for: userSession)
     }
 
