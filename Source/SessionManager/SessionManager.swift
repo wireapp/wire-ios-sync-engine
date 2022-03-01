@@ -416,10 +416,23 @@ public final class SessionManager: NSObject, SessionManagerType {
 
         super.init()
 
+        registerForVoipPushNotificationsIfNeeded()
         deleteAccountToken = AccountDeletedNotification.addObserver(observer: self, queue: groupQueue)
         callCenterObserverToken = WireCallCenterV3.addGlobalCallStateObserver(observer: self)
 
         checkJailbreakIfNeeded()
+    }
+
+    //  For iOS earlier than 13 we should register for voip push notifications
+    private func registerForVoipPushNotificationsIfNeeded() {
+        guard #available(iOS 13.0, *) else {
+            pushLog.safePublic("registering for voip push token")
+            // register for voIP push notifications
+            self.pushRegistry.delegate = self
+            let pkPushTypeSet: Set<PKPushType> = [PKPushType.voIP]
+            self.pushRegistry.desiredPushTypes = pkPushTypeSet
+            return
+        }
     }
 
     public func start(launchOptions: LaunchOptions) {
@@ -738,18 +751,11 @@ public final class SessionManager: NSObject, SessionManagerType {
     // The restrictions for voip push notifications are only enforced from iOS 13.
     // If useLegacyPushNotifications is disabled we cannot use voIP notifications. We should migrate (remove voip token and register APNS token ) the push token when upgrading the client OS or app version.
     private func updateOrMigratePushToken(session userSession: ZMUserSession) {
-        if #available(iOS 13.0, *) {
-            if userSession.selfUserClient?.pushToken?.tokenType == .voip,
-               !configuration.useLegacyPushNotifications {
-                pushLog.safePublic("deleting voip push token")
-                userSession.deletePushKitToken() // delete voip token and register APNS token for remote notifications
-            }
-        } else {
-            pushLog.safePublic("registering for voip push token")
-            // register for voIP push notifications
-            self.pushRegistry.delegate = self
-            let pkPushTypeSet: Set<PKPushType> = [PKPushType.voIP]
-            self.pushRegistry.desiredPushTypes = pkPushTypeSet
+        if #available(iOS 13.0, *),
+           userSession.selfUserClient?.pushToken?.tokenType == .voip,
+           !configuration.useLegacyPushNotifications {
+            pushLog.safePublic("deleting voip push token")
+            userSession.deletePushKitToken() // delete voip token and register APNS token for remote notifications
         }
         updatePushToken(for: userSession)
     }
