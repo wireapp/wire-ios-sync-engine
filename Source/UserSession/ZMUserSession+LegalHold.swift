@@ -73,7 +73,7 @@ extension ZMUserSession {
             payload["password"] = password
 
             let path = "/teams/\(teamID.transportString())/legalhold/\(userID.transportString())/approve"
-            let request = ZMTransportRequest(path: path, method: .methodPUT, payload: payload as NSDictionary)
+            let request = ZMTransportRequest(path: path, method: .methodPUT, payload: payload as NSDictionary, apiVersion: .v0)
 
             // 4) Handle the Response
             request.add(ZMCompletionHandler(on: self.syncManagedObjectContext, block: { response in

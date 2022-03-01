@@ -122,7 +122,7 @@ public class UserProfileUpdateRequestStrategy: AbstractRequestStrategy, ZMSingle
             let payload: NSDictionary = [
                 "phone": self.userProfileUpdateStatus.phoneNumberForWhichCodeIsRequested!
             ]
-            return ZMTransportRequest(path: "/self/phone", method: .methodPUT, payload: payload)
+            return ZMTransportRequest(path: "/self/phone", method: .methodPUT, payload: payload, apiVersion: .v0)
 
         case self.phoneUpdateSync:
             let payload: NSDictionary = [
@@ -130,30 +130,30 @@ public class UserProfileUpdateRequestStrategy: AbstractRequestStrategy, ZMSingle
                 "code": self.userProfileUpdateStatus.phoneNumberToSet!.phoneNumberVerificationCode!,
                 "dryrun": false
             ]
-            return ZMTransportRequest(path: "/activate", method: .methodPOST, payload: payload)
+            return ZMTransportRequest(path: "/activate", method: .methodPOST, payload: payload, apiVersion: .v0)
 
         case self.phoneNumberDeleteSync:
-            return ZMTransportRequest(path: "/self/phone", method: .methodDELETE, payload: nil)
+            return ZMTransportRequest(path: "/self/phone", method: .methodDELETE, payload: nil, apiVersion: .v0)
 
         case self.passwordUpdateSync:
             let payload: NSDictionary = [
                 "new_password": self.userProfileUpdateStatus.passwordToSet!
             ]
-            return ZMTransportRequest(path: "/self/password", method: .methodPUT, payload: payload)
+            return ZMTransportRequest(path: "/self/password", method: .methodPUT, payload: payload, apiVersion: .v0)
 
         case self.emailUpdateSync:
             let payload: NSDictionary = [
                 "email": self.userProfileUpdateStatus.emailToSet!
             ]
-            return ZMTransportRequest(path: "/access/self/email", method: .methodPUT, payload: payload, authentication: .needsCookieAndAccessToken)
+            return ZMTransportRequest(path: "/access/self/email", method: .methodPUT, payload: payload, authentication: .needsCookieAndAccessToken, apiVersion: .v0)
 
         case self.handleCheckSync:
             let handle = self.userProfileUpdateStatus.handleToCheck!
-            return ZMTransportRequest(path: "/users/handles/\(handle)", method: .methodHEAD, payload: nil)
+            return ZMTransportRequest(path: "/users/handles/\(handle)", method: .methodHEAD, payload: nil, apiVersion: .v0)
 
         case self.handleSetSync:
             let payload: NSDictionary = ["handle": self.userProfileUpdateStatus.handleToSet!]
-            return ZMTransportRequest(path: "/self/handle", method: .methodPUT, payload: payload)
+            return ZMTransportRequest(path: "/self/handle", method: .methodPUT, payload: payload, apiVersion: .v0)
 
         case self.handleSuggestionSearchSync:
             guard let handlesToCheck = self.userProfileUpdateStatus.suggestedHandlesToCheck else {
@@ -163,7 +163,7 @@ public class UserProfileUpdateRequestStrategy: AbstractRequestStrategy, ZMSingle
                     "handles": handlesToCheck,
                     "return": 1
                 ] as NSDictionary
-            return ZMTransportRequest(path: "/users/handles", method: .methodPOST, payload: payload)
+            return ZMTransportRequest(path: "/users/handles", method: .methodPOST, payload: payload, apiVersion: .v0)
 
         default:
             return nil

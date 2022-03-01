@@ -106,7 +106,8 @@ public final class FeatureFlagRequestStrategy: AbstractRequestStrategy, ZMSingle
 
         return ZMTransportRequest(path: "/teams/\(teamId)/features/digital-signatures",
                                   method: .methodGET,
-                                  payload: nil)
+                                  payload: nil,
+                                  apiVersion: .v0)
     }
 
     private func processDigitalSignatureFlagSuccess(with data: Data?) {

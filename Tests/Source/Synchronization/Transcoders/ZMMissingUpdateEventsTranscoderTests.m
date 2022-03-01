@@ -165,7 +165,7 @@ static NSString * const LastUpdateEventIDStoreKey = @"LastUpdateEventID";
     [self.application setBackground];
     
     id missingUpdateEventsTranscoder = [OCMockObject partialMockForObject:self.sut.listPaginator];
-    ZMTransportRequest *expectedRequest = [ZMTransportRequest requestGetFromPath:@"555555"];
+    ZMTransportRequest *expectedRequest = [ZMTransportRequest requestGetFromPath:@"555555" apiVersion:0];
     
     // expect
     [[[missingUpdateEventsTranscoder expect] andReturn:expectedRequest] nextRequest];
@@ -237,7 +237,7 @@ static NSString * const LastUpdateEventIDStoreKey = @"LastUpdateEventID";
     [expectedEvents addObjectsFromArray:[ZMUpdateEvent eventsArrayFromPushChannelData:payload2]];
     
     // when
-    [(id)self.sut.listPaginator didReceiveResponse:[ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil] forSingleRequest:self.requestSync];
+    [(id)self.sut.listPaginator didReceiveResponse:[ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil apiVersion:0] forSingleRequest:self.requestSync];
     
     // then
     XCTAssertEqualObjects(self.mockUpdateEventProcessor.storedEvents, expectedEvents);
@@ -273,7 +273,7 @@ static NSString * const LastUpdateEventIDStoreKey = @"LastUpdateEventID";
     [expectedEvents addObjectsFromArray:[ZMUpdateEvent eventsArrayFromPushChannelData:payload2]];
     
     // when
-    [(id)self.sut.listPaginator didReceiveResponse:[ZMTransportResponse responseWithPayload:payload HTTPStatus:404 transportSessionError:nil] forSingleRequest:self.requestSync];
+    [(id)self.sut.listPaginator didReceiveResponse:[ZMTransportResponse responseWithPayload:payload HTTPStatus:404 transportSessionError:nil apiVersion:0] forSingleRequest:self.requestSync];
     
     // then
     XCTAssertEqualObjects(self.mockUpdateEventProcessor.storedEvents, expectedEvents);
@@ -312,7 +312,7 @@ static NSString * const LastUpdateEventIDStoreKey = @"LastUpdateEventID";
                               @"has_more" : @(hasMore)
                               };
     
-    return [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil];
+    return [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil apiVersion:0];
 }
 
 - (void)testThatItHasALastUpdateEventIDAfterFetchingNotifications
@@ -345,7 +345,7 @@ static NSString * const LastUpdateEventIDStoreKey = @"LastUpdateEventID";
     [expectedEvents addObjectsFromArray:[ZMUpdateEvent eventsArrayFromPushChannelData:innerPayload]];
     
     // when
-    [(id)self.sut.listPaginator didReceiveResponse:[ZMTransportResponse responseWithPayload:payload HTTPStatus:400 transportSessionError:nil] forSingleRequest:self.requestSync];
+    [(id)self.sut.listPaginator didReceiveResponse:[ZMTransportResponse responseWithPayload:payload HTTPStatus:400 transportSessionError:nil apiVersion:0] forSingleRequest:self.requestSync];
 
     
     // then
@@ -584,7 +584,7 @@ static NSString * const LastUpdateEventIDStoreKey = @"LastUpdateEventID";
                               @"has_more" : @(NO)
                               };
     
-    ZMTransportResponse* response = [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil];
+    ZMTransportResponse* response = [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil apiVersion:0];
     
     // when
 
@@ -609,7 +609,7 @@ static NSString * const LastUpdateEventIDStoreKey = @"LastUpdateEventID";
                               @"has_more" : @(NO)
                               };
     
-    ZMTransportResponse* response = [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil];
+    ZMTransportResponse* response = [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil apiVersion:0];
     
     // when
     
@@ -778,7 +778,7 @@ static NSString * const LastUpdateEventIDStoreKey = @"LastUpdateEventID";
     ZMTransportResponse *response = [self responseForSettingLastUpdateEventID:NSUUID.createUUID hasMore:NO];
     ZMTransportRequest *request = [self.sut nextRequest];
 
-    [(id)self.sut.listPaginator didReceiveResponse:[ZMTransportResponse responseWithPayload:@{} HTTPStatus:400 transportSessionError:nil] forSingleRequest:self.requestSync];
+    [(id)self.sut.listPaginator didReceiveResponse:[ZMTransportResponse responseWithPayload:@{} HTTPStatus:400 transportSessionError:nil apiVersion:request.apiVersion] forSingleRequest:self.requestSync];
 
     id <ZMTransportData> payload = response.payload.asDictionary[@"notifications"][0];
     NSArray<ZMUpdateEvent *> *expectedEvents = [ZMUpdateEvent eventsArrayFromPushChannelData:payload];
@@ -889,8 +889,8 @@ static NSString * const LastUpdateEventIDStoreKey = @"LastUpdateEventID";
     [self expectMockPushNotificationStatusHasEventsToFetch:YES inBackground:YES];
 
     // when
-    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:nil HTTPStatus:400 transportSessionError:nil];
     ZMTransportRequest *request = [self.sut nextRequest];
+    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:nil HTTPStatus:400 transportSessionError:nil apiVersion:request.apiVersion];
     [(PushNotificationStatus *)[self.mockPushNotificationStatus expect] didFailToFetchEvents];
 
     [request completeWithResponse:response];
@@ -939,7 +939,7 @@ static NSString * const LastUpdateEventIDStoreKey = @"LastUpdateEventID";
     
     // when
     [self performPretendingUiMocIsSyncMoc:^{
-        [(id)self.sut.listPaginator didReceiveResponse:[ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil] forSingleRequest:self.requestSync];
+        [(id)self.sut.listPaginator didReceiveResponse:[ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil apiVersion:0] forSingleRequest:self.requestSync];
     }];
     
     // then

@@ -49,7 +49,7 @@ final class SlowSyncTests_Swift: IntegrationTest {
         mockTransportSession.responseGeneratorBlock = { request in
             if request.path.hasPrefix("/notifications") {
                 if !(hasConnectionsRequest && hasConversationsRequest && hasUserRequest) {
-                    return ZMTransportResponse(payload: nil, httpStatus: 404, transportSessionError: nil)
+                    return ZMTransportResponse(payload: nil, httpStatus: 404, transportSessionError: nil, apiVersion: .v0)
                 }
                 hasNotificationsRequest = true
             }

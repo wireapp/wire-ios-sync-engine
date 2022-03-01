@@ -193,7 +193,7 @@ public class TypingStrategy: AbstractRequestStrategy, TearDownCapable, ZMEventCo
 
         let path = "/conversations/\(remoteIdentifier.transportString())/typing"
         let payload = [StatusKey: typingEvent.isTyping ? StartedKey : StoppedKey]
-        let request = ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData)
+        let request = ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData, apiVersion: .v0)
         request.setDebugInformationTranscoder(self)
 
         return request

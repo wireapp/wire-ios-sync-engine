@@ -124,7 +124,8 @@ final class ConversationRoleDownstreamRequestStrategyTests: MessagingTest {
             guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
             request.complete(with: ZMTransportResponse(payload: self.sampleRolesPayload as ZMTransportData,
                                                        httpStatus: 200,
-                                                       transportSessionError: nil))
+                                                       transportSessionError: nil,
+                                                       apiVersion: .v0))
         }
 
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.2))
@@ -154,7 +155,8 @@ final class ConversationRoleDownstreamRequestStrategyTests: MessagingTest {
             guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
             request.complete(with: ZMTransportResponse(payload: nil,
                                                        httpStatus: 404,
-                                                       transportSessionError: nil))
+                                                       transportSessionError: nil,
+                                                       apiVersion: .v0))
         }
 
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.2))

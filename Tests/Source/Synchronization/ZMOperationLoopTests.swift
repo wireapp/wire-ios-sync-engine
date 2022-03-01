@@ -21,7 +21,7 @@ import Foundation
 extension ZMOperationLoopTests {
     func testThatMOCIsSavedOnSuccessfulRequest() {
         // given
-        let request = ZMTransportRequest(path: "/boo", method: .methodGET, payload: nil)
+        let request = ZMTransportRequest(path: "/boo", method: .methodGET, payload: nil, apiVersion: .v0)
         request.add(ZMCompletionHandler(on: syncMOC,
                                         block: { [weak self] _ in
                                             _ = ZMClientMessage(nonce: NSUUID.create(), managedObjectContext: self!.syncMOC)
@@ -38,7 +38,7 @@ extension ZMOperationLoopTests {
             handler: nil)
 
         // when
-        let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil)
+        let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil, apiVersion: .v0)
         request.complete(with: response)
         _ = waitForAllGroupsToBeEmpty(withTimeout: 0.5)
 
@@ -49,7 +49,7 @@ extension ZMOperationLoopTests {
 
     func testThatMOCIsSavedOnFailedRequest() {
         // given
-        let request = ZMTransportRequest(path: "/boo", method: .methodGET, payload: nil)
+        let request = ZMTransportRequest(path: "/boo", method: .methodGET, payload: nil, apiVersion: .v0)
         request.add(ZMCompletionHandler(on: syncMOC,
                                         block: { [weak self] _ in
                                             _ = ZMClientMessage(nonce: NSUUID.create(), managedObjectContext: self!.syncMOC)
@@ -66,7 +66,7 @@ extension ZMOperationLoopTests {
             handler: nil)
 
         // when
-        request.complete(with: ZMTransportResponse(payload: nil, httpStatus: 400, transportSessionError: nil))
+        request.complete(with: ZMTransportResponse(payload: nil, httpStatus: 400, transportSessionError: nil, apiVersion: .v0))
         _ = waitForAllGroupsToBeEmpty(withTimeout: 0.5)
 
         // then

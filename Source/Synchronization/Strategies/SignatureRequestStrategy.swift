@@ -145,7 +145,8 @@ public final class SignatureRequestStrategy: AbstractRequestStrategy, ZMSingleRe
 
         return ZMTransportRequest(path: "/signature/request",
                                   method: .methodPOST,
-                                  payload: payload as ZMTransportData)
+                                  payload: payload as ZMTransportData,
+                                  apiVersion: .v0)
     }
 
     private func makeRetrieveSignatureRequest() -> ZMTransportRequest? {
@@ -156,7 +157,8 @@ public final class SignatureRequestStrategy: AbstractRequestStrategy, ZMSingleRe
 
         return ZMTransportRequest(path: "/signature/pending/\(responseID)",
                                   method: .methodGET,
-                                  payload: nil)
+                                  payload: nil,
+                                  apiVersion: .v0)
     }
 
     private func processRequestSignatureSuccess(with data: Data?) {

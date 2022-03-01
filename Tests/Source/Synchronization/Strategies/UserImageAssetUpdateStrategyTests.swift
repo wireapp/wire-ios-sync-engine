@@ -169,7 +169,7 @@ extension UserImageAssetUpdateStrategyTests {
     func testThatItCreatesDeleteRequestIfThereAreAssetsToDelete() {
         // GIVEN
         let assetId = "12344"
-        let deleteRequest = ZMTransportRequest(path: "/assets/v3/\(assetId)", method: .methodDELETE, payload: nil)
+        let deleteRequest = ZMTransportRequest(path: "/assets/v3/\(assetId)", method: .methodDELETE, payload: nil, apiVersion: .v0)
 
         // WHEN
         updateStatus.assetIdsToDelete = [assetId]
@@ -183,7 +183,7 @@ extension UserImageAssetUpdateStrategyTests {
         // GIVEN
         let size = ProfileImageSize.preview
         let sync = sut.upstreamRequestSyncs[size]
-        let failedResponse = ZMTransportResponse(payload: nil, httpStatus: 500, transportSessionError: nil)
+        let failedResponse = ZMTransportResponse(payload: nil, httpStatus: 500, transportSessionError: nil, apiVersion: .v0)
 
         // WHEN
         sut.didReceive(failedResponse, forSingleRequest: sync!)
@@ -198,7 +198,7 @@ extension UserImageAssetUpdateStrategyTests {
         let sync = sut.upstreamRequestSyncs[size]
         let assetId = "123123"
         let payload: [String: String] = ["key": assetId]
-        let successResponse = ZMTransportResponse(payload: payload as NSDictionary, httpStatus: 200, transportSessionError: nil)
+        let successResponse = ZMTransportResponse(payload: payload as NSDictionary, httpStatus: 200, transportSessionError: nil, apiVersion: .v0)
 
         // WHEN
         sut.didReceive(successResponse, forSingleRequest: sync!)
@@ -311,7 +311,7 @@ extension UserImageAssetUpdateStrategyTests {
         let imageData = "image".data(using: .utf8)!
         let sync = self.sut.downstreamRequestSyncs[.preview]!
         user.previewProfileAssetIdentifier = "foo"
-        let response = ZMTransportResponse(imageData: imageData, httpStatus: 200, transportSessionError: nil, headers: nil)
+        let response = ZMTransportResponse(imageData: imageData, httpStatus: 200, transportSessionError: nil, headers: nil, apiVersion: .v0)
 
         // WHEN
         self.sut.update(user, with: response, downstreamSync: sync)
@@ -326,7 +326,7 @@ extension UserImageAssetUpdateStrategyTests {
         let imageData = "image".data(using: .utf8)!
         let sync = self.sut.downstreamRequestSyncs[.complete]!
         user.completeProfileAssetIdentifier = "foo"
-        let response = ZMTransportResponse(imageData: imageData, httpStatus: 200, transportSessionError: nil, headers: nil)
+        let response = ZMTransportResponse(imageData: imageData, httpStatus: 200, transportSessionError: nil, headers: nil, apiVersion: .v0)
 
         // WHEN
         self.sut.update(user, with: response, downstreamSync: sync)
@@ -352,7 +352,7 @@ extension UserImageAssetUpdateStrategyTests {
         XCTAssertEqual(request.method, .methodGET)
 
         // Given
-        let response = ZMTransportResponse(payload: nil, httpStatus: 404, transportSessionError: nil)
+        let response = ZMTransportResponse(payload: nil, httpStatus: 404, transportSessionError: nil, apiVersion: .v0)
         request.complete(with: response)
 
         // THEN
@@ -379,7 +379,7 @@ extension UserImageAssetUpdateStrategyTests {
         XCTAssertEqual(request.method, .methodGET)
 
         // Given
-        let response = ZMTransportResponse(payload: nil, httpStatus: 404, transportSessionError: nil)
+        let response = ZMTransportResponse(payload: nil, httpStatus: 404, transportSessionError: nil, apiVersion: .v0)
         request.complete(with: response)
 
         // THEN

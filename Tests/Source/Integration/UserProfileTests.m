@@ -209,7 +209,7 @@
 
     self.mockTransportSession.responseGeneratorBlock = ^ZMTransportResponse*(ZMTransportRequest *request) {
         if([request.path isEqualToString:@"/self/phone"]) {
-            return [ZMTransportResponse responseWithPayload:nil HTTPStatus:400 transportSessionError:nil];
+            return [ZMTransportResponse responseWithPayload:nil HTTPStatus:400 transportSessionError:nil apiVersion:0];
         }
         return nil;
     };
@@ -250,7 +250,7 @@
     
     self.mockTransportSession.responseGeneratorBlock = ^ZMTransportResponse*(ZMTransportRequest *request) {
         if([request.path isEqualToString:@"/self/phone"]) {
-            return [ZMTransportResponse responseWithPayload:@{@"label":@"key-exists"} HTTPStatus:409 transportSessionError:nil];
+            return [ZMTransportResponse responseWithPayload:@{@"label":@"key-exists"} HTTPStatus:409 transportSessionError:nil apiVersion:0];
         }
         return nil;
     };
@@ -289,7 +289,7 @@
     
     self.mockTransportSession.responseGeneratorBlock = ^ZMTransportResponse*(ZMTransportRequest *request) {
         if([request.path isEqualToString:@"/self/phone"]) {
-            return [ZMTransportResponse responseWithPayload:@{@"label": @"bad-request"} HTTPStatus:400 transportSessionError:nil];
+            return [ZMTransportResponse responseWithPayload:@{@"label": @"bad-request"} HTTPStatus:400 transportSessionError:nil apiVersion:0];
         }
         return nil;
     };
@@ -327,7 +327,7 @@
     
     self.mockTransportSession.responseGeneratorBlock = ^ZMTransportResponse*(ZMTransportRequest *request) {
         if([request.path isEqualToString:@"/self/phone"]) {
-            return [ZMTransportResponse responseWithPayload:@{@"label": @"invalid-phone"} HTTPStatus:400 transportSessionError:nil];
+            return [ZMTransportResponse responseWithPayload:@{@"label": @"invalid-phone"} HTTPStatus:400 transportSessionError:nil apiVersion:0];
         }
         return nil;
     };
@@ -424,7 +424,7 @@
     // expect
     self.mockTransportSession.responseGeneratorBlock = ^ZMTransportResponse*(ZMTransportRequest *request) {
         if([request.path isEqualToString:@"/self/password"]) {
-            return [ZMTransportResponse responseWithPayload:nil HTTPStatus:400 transportSessionError:nil];
+            return [ZMTransportResponse responseWithPayload:nil HTTPStatus:400 transportSessionError:nil apiVersion:0];
         }
         return nil;
     };
@@ -461,7 +461,7 @@
     // expect
     self.mockTransportSession.responseGeneratorBlock = ^ZMTransportResponse*(ZMTransportRequest *request) {
         if([request.path isEqualToString:@"/self/password"]) {
-            return [ZMTransportResponse responseWithPayload:@{@"label":@"invalid-credentials"} HTTPStatus:403 transportSessionError:nil];
+            return [ZMTransportResponse responseWithPayload:@{@"label":@"invalid-credentials"} HTTPStatus:403 transportSessionError:nil apiVersion:0];
         }
         return nil;
     };
@@ -505,7 +505,7 @@
     // expect
     self.mockTransportSession.responseGeneratorBlock = ^ZMTransportResponse*(ZMTransportRequest *request) {
         if([request.path isEqualToString:@"/self/email"]) {
-            return [ZMTransportResponse responseWithPayload:nil HTTPStatus:400 transportSessionError:nil];
+            return [ZMTransportResponse responseWithPayload:nil HTTPStatus:400 transportSessionError:nil apiVersion:0];
         }
         return nil;
     };
@@ -540,7 +540,7 @@
     // expect
     self.mockTransportSession.responseGeneratorBlock = ^ZMTransportResponse*(ZMTransportRequest *request) {
         if([request.path isEqualToString:@"/self/email"]) {
-            return [ZMTransportResponse responseWithPayload:@{@"label":@"invalid-email"} HTTPStatus:400 transportSessionError:nil];
+            return [ZMTransportResponse responseWithPayload:@{@"label":@"invalid-email"} HTTPStatus:400 transportSessionError:nil apiVersion:0];
         }
         return nil;
     };
@@ -575,7 +575,7 @@
     // expect
     self.mockTransportSession.responseGeneratorBlock = ^ZMTransportResponse*(ZMTransportRequest *request) {
         if([request.path isEqualToString:@"/self/email"]) {
-            return [ZMTransportResponse responseWithPayload:@{@"label":@"key-exists"} HTTPStatus:409 transportSessionError:nil];
+            return [ZMTransportResponse responseWithPayload:@{@"label":@"key-exists"} HTTPStatus:409 transportSessionError:nil apiVersion:0];
         }
         return nil;
     };

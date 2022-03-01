@@ -132,7 +132,7 @@
     
     NSDictionary *payload = [self samplePayloadForUserID:[NSUUID createUUID]];
     
-    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil];
+    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil apiVersion:0];
     
     // simulate hard sync done
     ZMTransportRequest *request = [self.sut nextRequest];
@@ -155,7 +155,7 @@
 
     __block ZMUser *selfUser;
     [self.syncMOC performGroupedBlockAndWait:^{
-        ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil];
+        ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil apiVersion:0];
         ZMTransportRequest *request = [self.sut nextRequest];
         selfUser = [ZMUser selfUserInContext:self.syncMOC];
         
@@ -194,7 +194,7 @@
     // given
     [self simulateNeedsSlowSync];
     NSDictionary *payload = [self samplePayloadForUserID:[NSUUID createUUID]];
-    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil];
+    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil apiVersion:0];
     
     
     // simulate hard sync done
@@ -235,7 +235,7 @@
     [self.syncMOC performGroupedBlockAndWait:^{
         NSDictionary *payload = [self samplePayloadForUserID:[NSUUID createUUID]];
         
-        ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil];
+        ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil apiVersion:0];
         ZMTransportRequest *request = [self.sut nextRequest];
         ZMUser *selfUser = [ZMUser selfUserInContext:self.syncMOC];
         NOT_USED(selfUser);
@@ -261,7 +261,7 @@
     NSDictionary *payload = [self samplePayloadForUserID:[NSUUID createUUID]];
     
     // complete request and hard sync
-    [request completeWithResponse:[ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil]];
+    [request completeWithResponse:[ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil apiVersion:0]];
     WaitForAllGroupsToBeEmpty(0.5);
     XCTAssertTrue(self.sut.isSelfUserComplete);
     
@@ -284,7 +284,7 @@
     NSDictionary *payload = [self samplePayloadForUserID:[NSUUID createUUID]];
     
     // when
-    [request completeWithResponse:[ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil]];
+    [request completeWithResponse:[ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil apiVersion:0]];
     WaitForAllGroupsToBeEmpty(0.5);
     
     // then
@@ -428,7 +428,7 @@
         ZMUpstreamRequest *request = [(id<ZMUpstreamTranscoder>) self.sut requestForInsertingObject:selfUser forKeys:[NSSet setWithObject:@"name"]];
         
         // when
-        ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:nil HTTPStatus:200 transportSessionError:nil];
+        ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:nil HTTPStatus:200 transportSessionError:nil apiVersion:0];
         BOOL needsToUpdateMoreObjects = [(id<ZMUpstreamTranscoder>) self.sut updateUpdatedObject:selfUser requestUserInfo:request.userInfo response:response keysToParse:[NSSet set]];
         
         // then
@@ -460,7 +460,7 @@
     // given
     [(ZMClientRegistrationStatus* )[[self.mockClientRegistrationStatus stub] andReturnValue:@(ZMClientRegistrationPhaseRegistered)] currentPhase];
     
-    ZMTransportRequest *request = [ZMTransportRequest requestWithPath:@"/self" method:ZMMethodPUT payload:@{}];
+    ZMTransportRequest *request = [ZMTransportRequest requestWithPath:@"/self" method:ZMMethodPUT payload:@{} apiVersion:0];
     [[[(OCMockObject *)self.upstreamObjectSync expect] andReturn:request] nextRequest];
     [[[(OCMockObject *)self.upstreamObjectSync expect] andReturn:nil] nextRequest];
     
@@ -497,7 +497,7 @@
     // when
     NSDictionary *payload = @{@"id": [NSUUID UUID].transportString,
                               @"tracking_id": @"someID"};
-    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil];
+    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil apiVersion:0];
     [self.sut didReceiveResponse:response forSingleRequest:self.requestSync];
     
     // then
@@ -514,7 +514,7 @@
     // when
     NSDictionary *payload = @{@"email": @"my@example.com",
                               @"tracking_id": @"someID"};
-    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil];
+    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil apiVersion:0];
     [self.sut didReceiveResponse:response forSingleRequest:self.requestSync];
     
     // then
@@ -531,7 +531,7 @@
     // when
     NSDictionary *payload = @{@"email": @"my@example.com",
                               @"tracking_id": @"someID"};
-    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil];
+    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil apiVersion:0];
     [self.sut didReceiveResponse:response forSingleRequest:self.sut.timedDownstreamSync];
     
     // then
@@ -548,7 +548,7 @@
     // when
     NSDictionary *payload = @{@"email": [NSNull null],
                               @"tracking_id": @"someID"};
-    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil];
+    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil apiVersion:0];
     [self.sut didReceiveResponse:response forSingleRequest:self.sut.timedDownstreamSync];
     
     // then

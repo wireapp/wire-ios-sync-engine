@@ -39,8 +39,8 @@ class Conversation_DeletionTests: DatabaseTest {
     func testThatItParsesAllKnownConversationDeletionErrorResponses() {
 
         let errorResponses: [(ConversationDeletionError, ZMTransportResponse)] = [
-            (ConversationDeletionError.invalidOperation, ZMTransportResponse(payload: ["label": "invalid-op"] as ZMTransportData, httpStatus: 403, transportSessionError: nil)),
-            (ConversationDeletionError.conversationNotFound, ZMTransportResponse(payload: ["label": "no-conversation"] as ZMTransportData, httpStatus: 404, transportSessionError: nil))
+            (ConversationDeletionError.invalidOperation, ZMTransportResponse(payload: ["label": "invalid-op"] as ZMTransportData, httpStatus: 403, transportSessionError: nil, apiVersion: .v0)),
+            (ConversationDeletionError.conversationNotFound, ZMTransportResponse(payload: ["label": "no-conversation"] as ZMTransportData, httpStatus: 404, transportSessionError: nil, apiVersion: .v0))
         ]
 
         for (expectedError, response) in errorResponses {

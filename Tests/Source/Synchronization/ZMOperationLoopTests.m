@@ -136,7 +136,8 @@
     // given
     ZMTransportRequest *request = [[ZMTransportRequest alloc] initWithPath:@"/test"
                                                                    method:ZMMethodPOST
-                                                                  payload:@{@"foo": @"bar"}];
+                                                                  payload:@{@"foo": @"bar"}
+                                                                apiVersion:0];
     self.mockRequestStrategy.mockRequest = request;
 
     // when
@@ -165,7 +166,7 @@
 - (void)testThatItSendsAsManyCallsAsTheTransportSessionCanHandle
 {
     // given
-    ZMTransportRequest *request = [[ZMTransportRequest alloc] initWithPath:@"/test" method:ZMMethodPOST payload:@{}];
+    ZMTransportRequest *request = [[ZMTransportRequest alloc] initWithPath:@"/test" method:ZMMethodPOST payload:@{} apiVersion:0];
     self.mockRequestStrategy.mockRequestQueue = @[request, request, request];
 
     // when
@@ -179,14 +180,14 @@
 - (void)testThatExecuteNextOperationIsCalledWhenThePreviousRequestIsCompleted
 {
     // given
-    ZMTransportRequest *request = [ZMTransportRequest requestWithPath:@"/boo" method:ZMMethodGET payload:nil];
+    ZMTransportRequest *request = [ZMTransportRequest requestWithPath:@"/boo" method:ZMMethodGET payload:nil apiVersion:0];
     self.mockRequestStrategy.mockRequest = request;
     [ZMRequestAvailableNotification notifyNewRequestsAvailable:self]; // this will enqueue `request`
     WaitForAllGroupsToBeEmpty(0.5);
     
     // when
     self.mockRequestStrategy.nextRequestCalled = NO;
-    [request completeWithResponse:[ZMTransportResponse responseWithPayload:@{} HTTPStatus:200 transportSessionError:nil]];
+    [request completeWithResponse:[ZMTransportResponse responseWithPayload:@{} HTTPStatus:200 transportSessionError:nil apiVersion:0]];
     WaitForAllGroupsToBeEmpty(0.5);
     
     // then

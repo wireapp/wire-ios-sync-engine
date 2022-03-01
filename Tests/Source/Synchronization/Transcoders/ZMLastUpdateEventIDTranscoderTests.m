@@ -66,7 +66,7 @@
 - (void)injectLastUpdateEventID:(NSString *)updateEventID
 {
     NSDictionary *payload = @{ @"id" : updateEventID };
-    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil];
+    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil apiVersion:0];
     [self.sut didReceiveResponse:response forSingleRequest:self.downstreamSync];
 }
 
@@ -152,7 +152,7 @@
 - (void)testThatItForwardsNextRequestToTheSingleRequestSync
 {
     // given
-    ZMTransportRequest *dummyRequest = [ZMTransportRequest requestGetFromPath:@"abc"];
+    ZMTransportRequest *dummyRequest = [ZMTransportRequest requestGetFromPath:@"abc" apiVersion:0];
     self.mockSyncStatus.mockPhase = SyncPhaseFetchingLastUpdateEventID;
     [(ZMSingleRequestSync *)[[(id)self.downstreamSync stub] andReturnValue:OCMOCK_VALUE(ZMSingleRequestCompleted)] status];
 
@@ -199,7 +199,7 @@
 - (void)testThatTheLastUpdateEventIDIsNotPersistedIfTheResponseIsAPermanentError
 {
     // given
-    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:nil HTTPStatus:400 transportSessionError:nil];
+    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:nil HTTPStatus:400 transportSessionError:nil apiVersion:0];
     [self.sut didReceiveResponse:response forSingleRequest:self.downstreamSync];
     
     // when

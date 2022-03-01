@@ -156,7 +156,7 @@ NSTimeInterval DefaultPendingValidationLoginAttemptInterval = 5;
     if (CookieLabel.current.length != 0) {
         payload[@"label"] = CookieLabel.current.value;
     }
-    return [[ZMTransportRequest alloc] initWithPath:ZMLoginURL method:LoginMethod payload:payload authentication:ZMTransportRequestAuthCreatesCookieAndAccessToken];
+    return [[ZMTransportRequest alloc] initWithPath:ZMLoginURL method:LoginMethod payload:payload authentication:ZMTransportRequestAuthCreatesCookieAndAccessToken apiVersion:0];
 
 }
 
