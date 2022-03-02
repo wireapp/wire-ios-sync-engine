@@ -62,7 +62,7 @@ class CallingRequestStrategyTests: MessagingTest {
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
         XCTAssertEqual(request?.path, "/calls/config/v2")
 
         // when
@@ -80,11 +80,11 @@ class CallingRequestStrategyTests: MessagingTest {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // when
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
         XCTAssertNotNil(request)
 
         // then
-        let secondRequest = sut.nextRequest()
+        let secondRequest = sut.nextRequest(for: .v0)
         XCTAssertNil(secondRequest)
     }
 
@@ -95,7 +95,7 @@ class CallingRequestStrategyTests: MessagingTest {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // when
-        guard let request = sut.nextRequest() else { return XCTFail() }
+        guard let request = sut.nextRequest(for: .v0) else { return XCTFail() }
 
         // then
         XCTAssertTrue(request.shouldCompress)
@@ -115,7 +115,7 @@ class CallingRequestStrategyTests: MessagingTest {
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
         XCTAssertEqual(request?.path, "/calls/config/v2")
 
         // when
@@ -166,7 +166,7 @@ class CallingRequestStrategyTests: MessagingTest {
 
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
         XCTAssertNotNil(request)
         XCTAssertEqual(request?.path, "/conversations/\(conversationId.identifier.transportString())/otr/messages")
 
@@ -221,7 +221,7 @@ class CallingRequestStrategyTests: MessagingTest {
 
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
         XCTAssertNotNil(request)
         XCTAssertEqual(request?.path, "/conversations/\(domain1)/\(conversationId.identifier.transportString())/proteus/messages")
 
@@ -242,10 +242,10 @@ class CallingRequestStrategyTests: MessagingTest {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // Then
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
         XCTAssertNotNil(request)
 
-        let secondRequest = sut.nextRequest()
+        let secondRequest = sut.nextRequest(for: .v0)
         XCTAssertNil(secondRequest)
     }
 
@@ -292,7 +292,7 @@ class CallingRequestStrategyTests: MessagingTest {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         syncMOC.performGroupedBlock {
-            nextRequest = self.sut.nextRequest()
+            nextRequest = self.sut.nextRequest(for: .v0)
         }
 
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
@@ -361,7 +361,7 @@ class CallingRequestStrategyTests: MessagingTest {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         syncMOC.performGroupedBlock {
-            nextRequest = self.sut.nextRequest()
+            nextRequest = self.sut.nextRequest(for: .v0)
         }
 
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))

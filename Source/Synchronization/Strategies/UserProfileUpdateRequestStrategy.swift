@@ -67,47 +67,47 @@ public class UserProfileUpdateRequestStrategy: AbstractRequestStrategy, ZMSingle
         self.handleSuggestionSearchSync = ZMSingleRequestSync(singleRequestTranscoder: self, groupQueue: managedObjectContext)
     }
 
-    @objc public override func nextRequestIfAllowed() -> ZMTransportRequest? {
+    @objc public override func nextRequestIfAllowed(for apiVersion: ZMAPIVersion) -> ZMTransportRequest? {
 
         if self.userProfileUpdateStatus.currentlyRequestingPhoneVerificationCode {
             self.phoneCodeRequestSync.readyForNextRequestIfNotBusy()
-            return self.phoneCodeRequestSync.nextRequest()
+            return self.phoneCodeRequestSync.nextRequest(for: apiVersion)
         }
 
         if self.userProfileUpdateStatus.currentlySettingPhone {
             self.phoneUpdateSync.readyForNextRequestIfNotBusy()
-            return self.phoneUpdateSync.nextRequest()
+            return self.phoneUpdateSync.nextRequest(for: apiVersion)
         }
 
         if self.userProfileUpdateStatus.currentlySettingEmail ||
             self.userProfileUpdateStatus.currentlyChangingEmail {
             self.emailUpdateSync.readyForNextRequestIfNotBusy()
-            return self.emailUpdateSync.nextRequest()
+            return self.emailUpdateSync.nextRequest(for: apiVersion)
         }
 
         if self.userProfileUpdateStatus.currentlyRemovingPhoneNumber {
             self.phoneNumberDeleteSync.readyForNextRequestIfNotBusy()
-            return self.phoneNumberDeleteSync.nextRequest()
+            return self.phoneNumberDeleteSync.nextRequest(for: apiVersion)
         }
 
         if self.userProfileUpdateStatus.currentlySettingPassword {
             self.passwordUpdateSync.readyForNextRequestIfNotBusy()
-            return self.passwordUpdateSync.nextRequest()
+            return self.passwordUpdateSync.nextRequest(for: apiVersion)
         }
 
         if self.userProfileUpdateStatus.currentlyCheckingHandleAvailability {
             self.handleCheckSync.readyForNextRequestIfNotBusy()
-            return self.handleCheckSync.nextRequest()
+            return self.handleCheckSync.nextRequest(for: apiVersion)
         }
 
         if self.userProfileUpdateStatus.currentlySettingHandle {
             self.handleSetSync.readyForNextRequestIfNotBusy()
-            return self.handleSetSync.nextRequest()
+            return self.handleSetSync.nextRequest(for: apiVersion)
         }
 
         if self.userProfileUpdateStatus.currentlyGeneratingHandleSuggestion {
             self.handleSuggestionSearchSync.readyForNextRequestIfNotBusy()
-            return self.handleSuggestionSearchSync.nextRequest()
+            return self.handleSuggestionSearchSync.nextRequest(for: apiVersion)
         }
 
         return nil

@@ -49,7 +49,7 @@ class SignatureRequestStrategyTests: MessagingTest {
         syncMOC.signatureStatus?.state = .waitingForConsentURL
 
         // when
-        let request = sut.nextRequestIfAllowed()
+        let request = sut.nextRequestIfAllowed(for: .v0)
 
         // then
         XCTAssertNotNil(request)
@@ -71,7 +71,7 @@ class SignatureRequestStrategyTests: MessagingTest {
         // when user inserted correct OTP code
         sut.didReceive(successResponse, forSingleRequest: sut.requestSync!)
         syncMOC.signatureStatus?.state = .waitingForSignature
-        let request = sut.nextRequestIfAllowed()
+        let request = sut.nextRequestIfAllowed(for: .v0)
 
         // then
         XCTAssertNotNil(request)
@@ -87,7 +87,7 @@ class SignatureRequestStrategyTests: MessagingTest {
         let successResponse = ZMTransportResponse(payload: payload as NSDictionary, httpStatus: 200, transportSessionError: nil, apiVersion: .v0)
 
         // when
-        _ = sut.nextRequestIfAllowed()
+        _ = sut.nextRequestIfAllowed(for: .v0)
         sut.didReceive(successResponse, forSingleRequest: sut.requestSync!)
 
         // then
@@ -102,7 +102,7 @@ class SignatureRequestStrategyTests: MessagingTest {
         let successResponse = ZMTransportResponse(payload: payload as NSDictionary, httpStatus: 200, transportSessionError: nil, apiVersion: .v0)
 
         // when
-        _ = sut.nextRequestIfAllowed()
+        _ = sut.nextRequestIfAllowed(for: .v0)
         sut.didReceive(successResponse, forSingleRequest: sut.retrieveSync!)
 
         // then
@@ -114,7 +114,7 @@ class SignatureRequestStrategyTests: MessagingTest {
         let successResponse = ZMTransportResponse(payload: nil, httpStatus: 400, transportSessionError: nil, apiVersion: .v0)
 
         // when
-        _ = sut.nextRequestIfAllowed()
+        _ = sut.nextRequestIfAllowed(for: .v0)
         sut.didReceive(successResponse, forSingleRequest: sut.requestSync!)
 
         // then
@@ -126,7 +126,7 @@ class SignatureRequestStrategyTests: MessagingTest {
         let successResponse = ZMTransportResponse(payload: nil, httpStatus: 400, transportSessionError: nil, apiVersion: .v0)
 
         // when
-        _ = sut.nextRequestIfAllowed()
+        _ = sut.nextRequestIfAllowed(for: .v0)
         sut.didReceive(successResponse, forSingleRequest: sut.retrieveSync!)
 
         // then

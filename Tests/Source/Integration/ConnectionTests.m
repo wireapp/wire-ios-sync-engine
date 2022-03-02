@@ -876,7 +876,7 @@
         NSDictionary *payload = @{@"label": @"connection-limit",
                                   @"code": @(statusCode),
                                   @"message": @"" };
-        return [[ZMTransportResponse alloc] initWithPayload:payload HTTPStatus:statusCode transportSessionError:nil headers:nil apiVersion:0];
+        return [[ZMTransportResponse alloc] initWithPayload:payload HTTPStatus:statusCode transportSessionError:nil headers:nil apiVersion:v0];
     };
 
 }
@@ -910,7 +910,7 @@
             return nil;
         }
         NSDictionary *payload = @{@"label": @"missing-legalhold-consent"};
-        return [[ZMTransportResponse alloc] initWithPayload:payload HTTPStatus:412 transportSessionError:nil headers:nil apiVersion:0];
+        return [[ZMTransportResponse alloc] initWithPayload:payload HTTPStatus:412 transportSessionError:nil headers:nil apiVersion:v0];
     };
 
 }

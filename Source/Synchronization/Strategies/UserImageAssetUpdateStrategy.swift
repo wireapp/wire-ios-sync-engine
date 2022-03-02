@@ -129,10 +129,10 @@ public final class UserImageAssetUpdateStrategy: AbstractRequestStrategy, ZMCont
         }
     }
 
-    public override func nextRequestIfAllowed() -> ZMTransportRequest? {
+    public override func nextRequestIfAllowed(for apiVersion: ZMAPIVersion) -> ZMTransportRequest? {
         for size in ProfileImageSize.allSizes {
             let requestSync = downstreamRequestSyncs[size]
-            if let request = requestSync?.nextRequest() {
+            if let request = requestSync?.nextRequest(for: apiVersion) {
                 return request
             }
         }
@@ -142,12 +142,12 @@ public final class UserImageAssetUpdateStrategy: AbstractRequestStrategy, ZMCont
         // There are assets added for deletion
         if updateStatus.hasAssetToDelete() {
             deleteRequestSync?.readyForNextRequestIfNotBusy()
-            return deleteRequestSync?.nextRequest()
+            return deleteRequestSync?.nextRequest(for: apiVersion)
         }
 
         let sync = ProfileImageSize.allSizes.filter(updateStatus.hasImageToUpload).compactMap { upstreamRequestSyncs[$0] }.first
         sync?.readyForNextRequestIfNotBusy()
-        return sync?.nextRequest()
+        return sync?.nextRequest(for: apiVersion)
     }
 
     // MARK: - ZMContextChangeTrackerSource

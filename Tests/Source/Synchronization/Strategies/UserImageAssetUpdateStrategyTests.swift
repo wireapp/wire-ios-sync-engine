@@ -93,7 +93,7 @@ extension UserImageAssetUpdateStrategyTests {
         updateStatus.dataToConsume.removeAll()
 
         // THEN
-        XCTAssertNil(sut.nextRequest())
+        XCTAssertNil(sut.nextRequest(for: .v0))
     }
 
     func testThatItDoesNotReturnARequestWhenUserIsNotLoggedIn() {
@@ -103,7 +103,7 @@ extension UserImageAssetUpdateStrategyTests {
         mockApplicationStatus.mockSynchronizationState = .unauthenticated
 
         // THEN
-        XCTAssertNil(sut.nextRequest())
+        XCTAssertNil(sut.nextRequest(for: .v0))
     }
 
     func testThatItCreatesRequestSyncs() {
@@ -127,7 +127,7 @@ extension UserImageAssetUpdateStrategyTests {
         updateStatus.dataToConsume[.preview] = "Some".data(using: .utf8)
 
         // THEN
-        let previewRequest = sut.nextRequest()
+        let previewRequest = sut.nextRequest(for: .v0)
         XCTAssertNotNil(previewRequest)
         XCTAssertEqual(previewRequest?.path, "/assets/v3")
         XCTAssertEqual(previewRequest?.method, .methodPOST)
@@ -137,7 +137,7 @@ extension UserImageAssetUpdateStrategyTests {
         updateStatus.dataToConsume[.complete] = "Other".data(using: .utf8)
 
         // THEN
-        let completeRequest = sut.nextRequest()
+        let completeRequest = sut.nextRequest(for: .v0)
         XCTAssertNotNil(completeRequest)
         XCTAssertEqual(completeRequest?.path, "/assets/v3")
         XCTAssertEqual(completeRequest?.method, .methodPOST)
@@ -156,14 +156,14 @@ extension UserImageAssetUpdateStrategyTests {
         updateStatus.dataToConsume[.preview] = previewData
 
         // THEN
-        XCTAssertEqual(sut.nextRequest()?.binaryData, previewRequest?.binaryData)
+        XCTAssertEqual(sut.nextRequest(for: .v0)?.binaryData, previewRequest?.binaryData)
 
         // WHEN
         updateStatus.dataToConsume.removeAll()
         updateStatus.dataToConsume[.complete] = completeData
 
         // THEN
-        XCTAssertEqual(sut.nextRequest()?.binaryData, completeRequest?.binaryData)
+        XCTAssertEqual(sut.nextRequest(for: .v0)?.binaryData, completeRequest?.binaryData)
     }
 
     func testThatItCreatesDeleteRequestIfThereAreAssetsToDelete() {
@@ -175,7 +175,7 @@ extension UserImageAssetUpdateStrategyTests {
         updateStatus.assetIdsToDelete = [assetId]
 
         // THEN
-        XCTAssertEqual(sut.nextRequest(), deleteRequest)
+        XCTAssertEqual(sut.nextRequest(for: .v0), deleteRequest)
         XCTAssert(updateStatus.assetIdsToDelete.isEmpty)
     }
 
@@ -279,7 +279,7 @@ extension UserImageAssetUpdateStrategyTests {
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // THEN
-        let request = self.sut.downstreamRequestSyncs[.preview]?.nextRequest()
+        let request = self.sut.downstreamRequestSyncs[.preview]?.nextRequest(for: .v0)
         XCTAssertNotNil(request)
         XCTAssertEqual(request?.path, "/assets/v3/\(assetId)")
         XCTAssertEqual(request?.method, .methodGET)
@@ -299,7 +299,7 @@ extension UserImageAssetUpdateStrategyTests {
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // THEN
-        let request = self.sut.downstreamRequestSyncs[.complete]?.nextRequest()
+        let request = self.sut.downstreamRequestSyncs[.complete]?.nextRequest(for: .v0)
         XCTAssertNotNil(request)
         XCTAssertEqual(request?.path, "/assets/v3/\(assetId)")
         XCTAssertEqual(request?.method, .methodGET)
@@ -347,7 +347,7 @@ extension UserImageAssetUpdateStrategyTests {
             (self.uiMOC.object(with: user.objectID) as? ZMUser)?.requestPreviewProfileImage()
         }
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        guard let request = sut.nextRequestIfAllowed() else { return XCTFail("nil request generated") }
+        guard let request = sut.nextRequestIfAllowed(for: .v0) else { return XCTFail("nil request generated") }
         XCTAssertEqual(request.path, "/assets/v3/\(assetId)")
         XCTAssertEqual(request.method, .methodGET)
 
@@ -359,7 +359,7 @@ extension UserImageAssetUpdateStrategyTests {
         user.requestPreviewProfileImage()
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         XCTAssertNil(user.previewProfileAssetIdentifier)
-        XCTAssertNil(sut.nextRequestIfAllowed())
+        XCTAssertNil(sut.nextRequestIfAllowed(for: .v0))
     }
 
     func testThatItDeletesCompleteProfileAssetIdentifierWhenReceivingAPermanentErrorForCompleteImage() {
@@ -374,7 +374,7 @@ extension UserImageAssetUpdateStrategyTests {
             (self.uiMOC.object(with: user.objectID) as? ZMUser)?.requestCompleteProfileImage()
         }
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        guard let request = sut.nextRequestIfAllowed() else { return XCTFail("nil request generated") }
+        guard let request = sut.nextRequestIfAllowed(for: .v0) else { return XCTFail("nil request generated") }
         XCTAssertEqual(request.path, "/assets/v3/\(assetId)")
         XCTAssertEqual(request.method, .methodGET)
 
@@ -386,7 +386,7 @@ extension UserImageAssetUpdateStrategyTests {
         user.requestCompleteProfileImage()
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         XCTAssertNil(user.completeProfileAssetIdentifier)
-        XCTAssertNil(sut.nextRequestIfAllowed())
+        XCTAssertNil(sut.nextRequestIfAllowed(for: .v0))
     }
 
 }

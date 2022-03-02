@@ -54,7 +54,7 @@ public final class FeatureFlagRequestStrategy: AbstractRequestStrategy, ZMSingle
     }
 
     @objc
-    public override func nextRequestIfAllowed() -> ZMTransportRequest? {
+    public override func nextRequestIfAllowed(for apiVersion: ZMAPIVersion) -> ZMTransportRequest? {
         guard
             syncStatus.currentSyncPhase == .fetchingFeatureFlags || needsFeatureFlagsRefresh,
             let singleRequestSync = singleRequestSync
@@ -63,7 +63,7 @@ public final class FeatureFlagRequestStrategy: AbstractRequestStrategy, ZMSingle
         }
 
         singleRequestSync.readyForNextRequestIfNotBusy()
-        return singleRequestSync.nextRequest()
+        return singleRequestSync.nextRequest(for: apiVersion)
     }
 
     // MARK: - ZMSingleRequestTranscoder

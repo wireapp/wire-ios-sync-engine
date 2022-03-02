@@ -74,7 +74,7 @@ class FeatureFlagRequestStrategyTests: MessagingTest {
             // WHEN
             guard
                 let teamId = self.selfUser.teamIdentifier?.uuidString,
-                let request = self.sut.nextRequest()
+                let request = self.sut.nextRequest(for: .v0)
             else {
                 return XCTFail()
             }
@@ -91,7 +91,7 @@ class FeatureFlagRequestStrategyTests: MessagingTest {
 
             guard
                 let teamId = self.selfUser.teamIdentifier?.uuidString,
-                let request = self.sut.nextRequest()
+                let request = self.sut.nextRequest(for: .v0)
             else {
                 return XCTFail()
             }
@@ -121,7 +121,7 @@ class FeatureFlagRequestStrategyTests: MessagingTest {
         syncMOC.performGroupedBlockAndWait {
             // GIVEN
             self.mockSyncStatus.mockPhase = .fetchingFeatureFlags
-            guard let request = self.sut.nextRequest() else {
+            guard let request = self.sut.nextRequest(for: .v0) else {
                 return XCTFail()
             }
 
@@ -159,7 +159,7 @@ class FeatureFlagRequestStrategyTests: MessagingTest {
         }
 
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        let request = sut.nextRequestIfAllowed()
+        let request = sut.nextRequestIfAllowed(for: .v0)
         XCTAssertNotNil(request)
         XCTAssertEqual(request?.path, "/teams/\(teamId)/features/digital-signatures")
         XCTAssertEqual(request?.method, .methodGET)

@@ -139,7 +139,7 @@ static char* const ZMLogTag ZM_UNUSED = "OperationLoop";
         if (self == nil) {
             return nil;
         }
-        ZMTransportRequest *request = [self.requestStrategy nextRequest];
+        ZMTransportRequest *request = [self.requestStrategy nextRequestForAPIVersion:v0];
         [request addCompletionHandler:[ZMCompletionHandler handlerOnGroupQueue:self.syncMOC block:^(ZMTransportResponse *response) {
             ZM_STRONG(self);
             
