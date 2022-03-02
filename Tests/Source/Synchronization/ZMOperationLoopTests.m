@@ -67,6 +67,8 @@
                                          using:^(NotificationInContext * note) {
                                              [self pushChannelDidChange:note];
                                          }];
+
+    [ZMOperationLoopTests setCurrentAPIVersion:v0];
 }
 
 - (void)tearDown;
@@ -162,6 +164,25 @@
     XCTAssertNil(self.mockTransportSesssion.lastEnqueuedRequest);
 }
 
+- (void)testThatItDoesNotSendARequestIfThereIsNoCurrentAPIVersion
+{
+    // given
+    [ZMOperationLoopTests clearCurrentAPIVersion];
+    XCTAssertNil(self.sut.currentAPIVersion);
+
+    self.mockRequestStrategy.mockRequest = [[ZMTransportRequest alloc] initWithPath:@"/test"
+                                                                             method:ZMMethodPOST
+                                                                            payload:@{@"foo": @"bar"}
+                                                                          apiVersion:v0];
+
+    // when
+    [ZMRequestAvailableNotification notifyNewRequestsAvailable:self];
+    WaitForAllGroupsToBeEmpty(0.5);
+
+    // then
+    XCTAssertFalse(self.mockRequestStrategy.nextRequestCalled);
+    XCTAssertNil(self.mockTransportSesssion.lastEnqueuedRequest);
+}
 
 - (void)testThatItSendsAsManyCallsAsTheTransportSessionCanHandle
 {
