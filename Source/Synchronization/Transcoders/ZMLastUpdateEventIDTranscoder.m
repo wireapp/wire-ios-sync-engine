@@ -80,11 +80,11 @@
     return self.syncStatus.currentSyncPhase == self.expectedSyncPhase;
 }
 
-- (ZMTransportRequest *)nextRequestIfAllowed
+- (ZMTransportRequest *)nextRequestIfAllowedForAPIVersion:(ZMAPIVersion)apiVersion
 {
     if (self.isSyncing && !self.isDownloadingLastUpdateEventID) {
         [self startRequestingLastUpdateEventIDWithoutPersistingIt];
-        return [self.requestGenerators nextRequest];
+        return [self.requestGenerators nextRequestForAPIVersion:apiVersion];
     }
     
     return nil;
@@ -117,7 +117,7 @@
         components.queryItems = @[[NSURLQueryItem queryItemWithName:@"client" value:selfClient.remoteIdentifier]];
     }
     
-    return [ZMTransportRequest requestGetFromPath:components.string apiVersion:0];
+    return [ZMTransportRequest requestGetFromPath:components.string apiVersion:v0];
 }
 
 - (void)didReceiveResponse:(ZMTransportResponse *)response forSingleRequest:(ZMSingleRequestSync *)sync

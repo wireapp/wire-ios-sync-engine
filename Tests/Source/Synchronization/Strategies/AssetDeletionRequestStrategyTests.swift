@@ -48,7 +48,7 @@ class AssetDeletionRequestStrategyTests: MessagingTest {
 
     func testThatItCreatesNoRequestWhenThereIsNoIdentifier() {
         // When
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
 
         // Then
         XCTAssertNil(request)
@@ -60,7 +60,7 @@ class AssetDeletionRequestStrategyTests: MessagingTest {
         mockIdentifierProvider.nextIdentifier = identifier
 
         // When
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
 
         // Then
         XCTAssertNotNil(request)
@@ -73,7 +73,7 @@ class AssetDeletionRequestStrategyTests: MessagingTest {
         // Given
         let identifier = UUID.create().transportString()
         mockIdentifierProvider.nextIdentifier = identifier
-        guard let request = sut.nextRequest() else { return XCTFail("No request created") }
+        guard let request = sut.nextRequest(for: .v0) else { return XCTFail("No request created") }
 
         // When
         let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil, apiVersion: .v0)
@@ -90,7 +90,7 @@ class AssetDeletionRequestStrategyTests: MessagingTest {
         // Given
         let identifier = UUID.create().transportString()
         mockIdentifierProvider.nextIdentifier = identifier
-        guard let request = sut.nextRequest() else { return XCTFail("No request created") }
+        guard let request = sut.nextRequest(for: .v0) else { return XCTFail("No request created") }
 
         // When
         let response = ZMTransportResponse(payload: nil, httpStatus: 403, transportSessionError: nil, apiVersion: .v0)

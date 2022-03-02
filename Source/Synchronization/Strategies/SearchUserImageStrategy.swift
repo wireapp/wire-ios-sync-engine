@@ -88,7 +88,7 @@ public class SearchUserImageStrategy: AbstractRequestStrategy, FederationAware {
         RequestAvailableNotification.notifyNewRequestsAvailable(nil)
     }
 
-    public override func nextRequestIfAllowed() -> ZMTransportRequest? {
+    public override func nextRequestIfAllowed(for apiVersion: ZMAPIVersion) -> ZMTransportRequest? {
         let request = fetchUserProfilesRequest() ?? fetchAssetRequest()
         request?.setDebugInformationTranscoder(self)
         return request

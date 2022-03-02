@@ -69,12 +69,12 @@ ZM_EMPTY_ASSERTING_INIT()
     return self;
 }
 
-- (ZMTransportRequest *)nextRequest
+- (ZMTransportRequest *)nextRequestForAPIVersion:(ZMAPIVersion)apiVersion
 {
     if(!self.hasMoreToFetch) {
         return nil;
     }
-    return self.singleRequestSync.nextRequest;
+    return [self.singleRequestSync nextRequestForAPIVersion:apiVersion];
 }
 
 - (ZMSingleRequestProgress)status
@@ -103,7 +103,7 @@ ZM_EMPTY_ASSERTING_INIT()
     NSURLComponents *components = [NSURLComponents componentsWithString:self.basePath];
     components.queryItems = queryItems;
     
-    ZMTransportRequest *request = [ZMTransportRequest requestGetFromPath:components.string apiVersion:0];
+    ZMTransportRequest *request = [ZMTransportRequest requestGetFromPath:components.string apiVersion:v0];
     return request;
 }
 

@@ -120,14 +120,14 @@ NSTimeInterval ZMSelfStrategyPendingValidationRequestInterval = 5;
     return self.syncStatus.currentSyncPhase == self.expectedSyncPhase;
 }
 
-- (ZMTransportRequest *)nextRequestIfAllowed;
+- (ZMTransportRequest *)nextRequestIfAllowedForAPIVersion:(ZMAPIVersion)apiVersion;
 {
     ZMClientRegistrationStatus *clientStatus = self.clientStatus;
     ZMUser *selfUser = [ZMUser selfUserInContext:self.managedObjectContext];
     
     if (clientStatus.currentPhase == ZMClientRegistrationPhaseWaitingForEmailVerfication) {
         [self.timedDownstreamSync readyForNextRequestIfNotBusy];
-        return [self.timedDownstreamSync nextRequest];
+        return [self.timedDownstreamSync nextRequestForAPIVersion:apiVersion];
     }
     if (clientStatus.currentPhase == ZMClientRegistrationPhaseWaitingForSelfUser || self.isSyncing) {
         if (! selfUser.needsToBeUpdatedFromBackend) {
@@ -136,11 +136,11 @@ NSTimeInterval ZMSelfStrategyPendingValidationRequestInterval = 5;
             [self.downstreamSelfUserSync readyForNextRequestIfNotBusy];
         }
         if (selfUser.needsToBeUpdatedFromBackend) {
-            return [self.downstreamSelfUserSync nextRequest];
+            return [self.downstreamSelfUserSync nextRequestForAPIVersion:apiVersion];
         }
     }
     else if (clientStatus.currentPhase == ZMClientRegistrationPhaseRegistered) {
-        return [@[self.downstreamSelfUserSync, self.upstreamObjectSync] nextRequest];
+        return [@[self.downstreamSelfUserSync, self.upstreamObjectSync] nextRequestForAPIVersion:apiVersion];
     }
     return nil;
 }
@@ -202,7 +202,7 @@ NSTimeInterval ZMSelfStrategyPendingValidationRequestInterval = 5;
         payload[@"assets"] = [self profilePictureAssetsPayloadForUser:user];
     }
     
-    ZMTransportRequest *request = [ZMTransportRequest requestWithPath:@"/self" method:ZMMethodPUT payload:payload apiVersion:0];
+    ZMTransportRequest *request = [ZMTransportRequest requestWithPath:@"/self" method:ZMMethodPUT payload:payload apiVersion:v0];
     return [[ZMUpstreamRequest alloc] initWithKeys:keys transportRequest:request];
 }
 
@@ -255,7 +255,7 @@ NSTimeInterval ZMSelfStrategyPendingValidationRequestInterval = 5;
 - (ZMTransportRequest *)requestForSingleRequestSync:(ZMSingleRequestSync *)sync;
 {
     NOT_USED(sync);
-    return [ZMTransportRequest requestGetFromPath:SelfPath apiVersion:0];
+    return [ZMTransportRequest requestGetFromPath:SelfPath apiVersion:v0];
 }
 
 - (void)didReceiveResponse:(ZMTransportResponse *)response forSingleRequest:(ZMSingleRequestSync *)sync;

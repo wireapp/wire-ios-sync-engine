@@ -439,7 +439,7 @@
             return nil;
         } else if ([request.path containsString:@"/notifications"]) {
             self.mockTransportSession.responseGeneratorBlock = nil;
-            return [ZMTransportResponse responseWithPayload:notificationPayload HTTPStatus:404 transportSessionError:nil apiVersion:0];
+            return [ZMTransportResponse responseWithPayload:notificationPayload HTTPStatus:404 transportSessionError:nil apiVersion:v0];
         }
         return nil;
     };

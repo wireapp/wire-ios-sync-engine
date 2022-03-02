@@ -54,7 +54,7 @@ class RegistrationStrategyTests: MessagingTest {
     // MARK: - Idle state
 
     func testThatItDoesNotGenerateRequestWhenPhaseIsNone() {
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
         XCTAssertNil(request)
     }
 
@@ -70,7 +70,7 @@ class RegistrationStrategyTests: MessagingTest {
 
         // when
 
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
 
         // then
         XCTAssertNotNil(request)
@@ -86,7 +86,7 @@ class RegistrationStrategyTests: MessagingTest {
         registrationStatus.phase = .createUser(user: user)
 
         // when
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
 
         // then
         XCTAssertNotNil(request)

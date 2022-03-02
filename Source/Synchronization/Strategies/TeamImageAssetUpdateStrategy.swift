@@ -48,8 +48,8 @@ public final class TeamImageAssetUpdateStrategy: AbstractRequestStrategy, ZMCont
         }
     }
 
-    public override func nextRequestIfAllowed() -> ZMTransportRequest? {
-        return downstreamRequestSync?.nextRequest()
+    public override func nextRequestIfAllowed(for apiVersion: ZMAPIVersion) -> ZMTransportRequest? {
+        return downstreamRequestSync?.nextRequest(for: apiVersion)
     }
 
     // MARK: - ZMContextChangeTrackerSource {

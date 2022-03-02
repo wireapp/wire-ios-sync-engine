@@ -276,7 +276,7 @@ extension TypingStrategyTests {
         TypingStrategy.notifyTranscoderThatUser(isTyping: true, in: conversation)
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
 
         // then
         XCTAssertNotNil(request)
@@ -292,7 +292,7 @@ extension TypingStrategyTests {
         TypingStrategy.notifyTranscoderThatUser(isTyping: true, in: conversation)
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
 
         // then
         XCTAssertNotNil(request)
@@ -307,14 +307,14 @@ extension TypingStrategyTests {
         TypingStrategy.notifyTranscoderThatUser(isTyping: true, in: conversation1)
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
         XCTAssertTrue(isExpected(request: request, for: conversation1, isTyping: true))
 
         // when
         TypingStrategy.notifyTranscoderThatUser(isTyping: true, in: conversation2)
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        let request1 = sut.nextRequest()
-        let request2 = sut.nextRequest()
+        let request1 = sut.nextRequest(for: .v0)
+        let request2 = sut.nextRequest(for: .v0)
 
         // then
         let request1IsforConv1 = isExpected(request: request1, for: conversation1, isTyping: false)
@@ -334,7 +334,7 @@ extension TypingStrategyTests {
         TypingStrategy.notifyTranscoderThatUser(isTyping: true, in: conversation1)
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
-        let request1 = sut.nextRequest()
+        let request1 = sut.nextRequest(for: .v0)
 
         // then
         XCTAssertNotNil(request1)
@@ -344,7 +344,7 @@ extension TypingStrategyTests {
         TypingStrategy.notifyTranscoderThatUser(isTyping: false, in: conversation2)
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
-        let request2 = sut.nextRequest()
+        let request2 = sut.nextRequest(for: .v0)
 
         // then
         // and then returns the startTypingEvent of the new conversation
@@ -352,7 +352,7 @@ extension TypingStrategyTests {
         XCTAssertTrue(isExpected(request: request2, for: conversation2, isTyping: false))
 
         // finally
-        XCTAssertNil(sut.nextRequest())
+        XCTAssertNil(sut.nextRequest(for: .v0))
     }
 
     func testThatItReturnsTheNextValidRequest() {
@@ -362,7 +362,7 @@ extension TypingStrategyTests {
         TypingStrategy.notifyTranscoderThatUser(isTyping: true, in: conversation)
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
         XCTAssertTrue(isExpected(request: request, for: conversation, isTyping: true))
 
         // when
@@ -372,14 +372,14 @@ extension TypingStrategyTests {
         TypingStrategy.notifyTranscoderThatUser(isTyping: false, in: conversation)
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
-        let request1 = sut.nextRequest()
+        let request1 = sut.nextRequest(for: .v0)
 
         // then
         XCTAssertNotNil(request1)
         XCTAssertTrue(isExpected(request: request1, for: conversation, isTyping: false))
 
         // finally
-        XCTAssertNil(sut.nextRequest())
+        XCTAssertNil(sut.nextRequest(for: .v0))
     }
 
     func testThatItReturns_OnlyOne_RequestsWhenReceiving_One_TypingNotification() {
@@ -389,11 +389,11 @@ extension TypingStrategyTests {
         TypingStrategy.notifyTranscoderThatUser(isTyping: true, in: conversation)
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
-        let request1 = sut.nextRequest()
+        let request1 = sut.nextRequest(for: .v0)
         XCTAssertNotNil(request1)
 
         // when
-        let request2 = sut.nextRequest()
+        let request2 = sut.nextRequest(for: .v0)
 
         // then
         XCTAssertNil(request2)
@@ -411,8 +411,8 @@ extension TypingStrategyTests {
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // when
-        let request1 = sut.nextRequest()
-        let request2 = sut.nextRequest()
+        let request1 = sut.nextRequest(for: .v0)
+        let request2 = sut.nextRequest(for: .v0)
 
         // then
         // Note: the first typing is ended because we assume that typing can only happen in one conversation at a time
@@ -438,8 +438,8 @@ extension TypingStrategyTests {
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // when
-        let request1 = sut.nextRequest()
-        let request2 = sut.nextRequest()
+        let request1 = sut.nextRequest(for: .v0)
+        let request2 = sut.nextRequest(for: .v0)
 
         // then
         // Note: the first typing is ended because we assume that typing can only happen in one conversation at a time
@@ -462,7 +462,7 @@ extension TypingStrategyTests {
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // when
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
 
         // then
         XCTAssertNil(request)
@@ -478,7 +478,7 @@ extension TypingStrategyTests {
 
         // when
         mockApplicationStatus.mockSynchronizationState = .unauthenticated
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
 
         // then
         XCTAssertNil(request)
@@ -536,7 +536,7 @@ extension TypingStrategyTests {
                 Thread.sleep(forTimeInterval: interval)
             }
 
-            let request = self.sut.nextRequest()
+            let request = self.sut.nextRequest(for: .v0)
             result.append(request)
 
             if delay == .clearTranscoder {
