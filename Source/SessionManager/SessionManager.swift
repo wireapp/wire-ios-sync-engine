@@ -753,7 +753,7 @@ public final class SessionManager: NSObject, SessionManagerType {
     // For clients running iOS 13 and above, if the token type does not match the useLegacyPushNotifications flag,
     // we should delete the token and generate a new one when upgrading the client OS or app version.
     private func updateOrMigratePushToken(session userSession: ZMUserSession) {
-        var isIOS13O: Bool {
+        var isIOS13: Bool {
             if #available(iOS 13.0, *) {
                 return true
             } else {
