@@ -753,25 +753,20 @@ public final class SessionManager: NSObject, SessionManagerType {
     // For clients running iOS 13 and above, if the token type does not match the useLegacyPushNotifications flag,
     // we should delete the token and generate a new one when upgrading the client OS or app version.
     private func updateOrMigratePushToken(session userSession: ZMUserSession) {
-        guard #available(iOS 13.0, *) else {
-            if userSession.selfUserClient?.pushToken?.tokenType != .voip {
-                pushLog.safePublic("deleting push token")
-                userSession.deletePushKitToken()
-
-                updatePushToken(for: userSession)
+        var isIOS13O: Bool {
+            if #available(iOS 13.0, *) {
+                return true
+            } else {
+                return false
             }
-            return
         }
+        let hasLegacyToken = userSession.selfUserClient?.pushToken?.tokenType == .voip
+        let shouldHaveLegacyToken = !isIOS13 || configuration.useLegacyPushNotifications
 
-        // (token type, useLegacyPushNotifications)
-        switch (userSession.selfUserClient?.pushToken?.tokenType,
-                configuration.useLegacyPushNotifications) {
-        case (.voip, false),
-            (.standard, true):
+        if shouldHaveLegacyToken != hasLegacyToken {
             pushLog.safePublic("deleting push token")
             userSession.deletePushKitToken()
-        default:
-            return
+            updatePushToken(for: userSession)
         }
 
         updatePushToken(for: userSession)
