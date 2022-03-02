@@ -766,7 +766,6 @@ public final class SessionManager: NSObject, SessionManagerType {
         if shouldHaveLegacyToken != hasLegacyToken {
             pushLog.safePublic("deleting push token")
             userSession.deletePushKitToken()
-            updatePushToken(for: userSession)
         }
 
         updatePushToken(for: userSession)
