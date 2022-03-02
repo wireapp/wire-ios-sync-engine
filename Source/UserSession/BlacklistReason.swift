@@ -19,7 +19,12 @@
 import Foundation
 
 public enum BlacklistReason {
+    /// The app version is too old to be supported or has been explicitly blacklisted
     case appVersionBlacklisted
+
+    /// The API versions supported by the client are too old in comparison to the ones supported by the backend
     case clientAPIVersionObsolete
+
+    /// The API versions supported by the backend are too old in comparison to the ones supported by the client
     case backendAPIVersionObsolete
 }
