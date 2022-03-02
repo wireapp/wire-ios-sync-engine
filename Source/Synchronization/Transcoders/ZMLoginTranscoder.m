@@ -175,7 +175,7 @@ NSTimeInterval DefaultPendingValidationLoginAttemptInterval = 5;
         
         if ([self isResponseForSuspendedAccount:response]) {
             [authenticationStatus didFailLoginBecauseAccountSuspended];
-        } else if ([self isResponseFor2FACode:response]){
+        } else if ([self isResponseForEmailVerificationCode:response]){
             [authenticationStatus didFailLoginWithEmailBecauseVerificationCodeIsRequired];
 
         }
@@ -216,7 +216,7 @@ NSTimeInterval DefaultPendingValidationLoginAttemptInterval = 5;
     return [label isEqualToString:@"pending-activation"];
 }
 
-- (BOOL)isResponseFor2FACode:(ZMTransportResponse *)response
+- (BOOL)isResponseForEmailVerificationCode:(ZMTransportResponse *)response
 {
     NSString *label = [response.payload asDictionary][@"label"];
     return [label isEqualToString:@"code-authentication-required"];
