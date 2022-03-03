@@ -79,7 +79,7 @@ extension UserProfileUpdateRequestStrategyTests {
         let request = self.sut.nextRequest(for: .v0)
 
         // THEN
-        let expected = ZMTransportRequest(path: "/self/phone", method: .methodPUT, payload: ["phone": phone] as NSDictionary, apiVersion: .v0)
+        let expected = ZMTransportRequest(path: "/self/phone", method: .methodPUT, payload: ["phone": phone] as NSDictionary, apiVersion: APIVersion.v0.rawValue)
         XCTAssertEqual(request, expected)
     }
 
@@ -99,7 +99,7 @@ extension UserProfileUpdateRequestStrategyTests {
             "phone": credentials.phoneNumber!,
             "code": credentials.phoneNumberVerificationCode!,
             "dryrun": false
-            ] as NSDictionary, apiVersion: .v0)
+            ] as NSDictionary, apiVersion: APIVersion.v0.rawValue)
         XCTAssertEqual(request, expected)
     }
 
@@ -119,7 +119,7 @@ extension UserProfileUpdateRequestStrategyTests {
             "phone": credentials.phoneNumber!,
             "code": credentials.phoneNumberVerificationCode!,
             "dryrun": false
-            ] as NSDictionary, apiVersion: .v0)
+            ] as NSDictionary, apiVersion: APIVersion.v0.rawValue)
         XCTAssertEqual(request, expected)
     }
 
@@ -136,7 +136,7 @@ extension UserProfileUpdateRequestStrategyTests {
         // THEN
         let expected = ZMTransportRequest(path: "/self/password", method: .methodPUT, payload: [
             "new_password": credentials.password!
-            ] as NSDictionary, apiVersion: .v0)
+            ] as NSDictionary, apiVersion: APIVersion.v0.rawValue)
         XCTAssertEqual(request, expected)
     }
 
@@ -193,7 +193,7 @@ extension UserProfileUpdateRequestStrategyTests {
         // THEN
         let expected = ZMTransportRequest(path: "/access/self/email", method: .methodPUT, payload: [
             "email": credentials.email!
-            ] as NSDictionary, apiVersion: .v0)
+            ] as NSDictionary, apiVersion: APIVersion.v0.rawValue)
         XCTAssertEqual(request, expected)
 
     }
@@ -209,7 +209,7 @@ extension UserProfileUpdateRequestStrategyTests {
         let request = self.sut.nextRequest(for: .v0)
 
         // THEN
-        let expected = ZMTransportRequest(path: "/users/handles/\(handle)", method: .methodHEAD, payload: nil, apiVersion: .v0)
+        let expected = ZMTransportRequest(path: "/users/handles/\(handle)", method: .methodHEAD, payload: nil, apiVersion: APIVersion.v0.rawValue)
         XCTAssertEqual(request, expected)
     }
 
@@ -225,7 +225,7 @@ extension UserProfileUpdateRequestStrategyTests {
 
         // THEN
         let payload: NSDictionary = ["handle": handle]
-        let expected = ZMTransportRequest(path: "/self/handle", method: .methodPUT, payload: payload, apiVersion: .v0)
+        let expected = ZMTransportRequest(path: "/self/handle", method: .methodPUT, payload: payload, apiVersion: APIVersion.v0.rawValue)
         XCTAssertEqual(request, expected)
     }
 
@@ -685,7 +685,7 @@ extension UserProfileUpdateRequestStrategyTests {
         // WHEN
         let request = self.sut.nextRequest(for: .v0)
         let handlesInResponse = [handles[5], handles[9], handles[10]]
-        request?.complete(with: ZMTransportResponse(payload: handlesInResponse as NSArray, httpStatus: 200, transportSessionError: nil, apiVersion: .v0))
+        request?.complete(with: ZMTransportResponse(payload: handlesInResponse as NSArray, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
 
         // THEN
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
@@ -700,7 +700,7 @@ extension UserProfileUpdateRequestStrategyTests {
 
         // WHEN
         let request = self.sut.nextRequest(for: .v0)
-        request?.complete(with: ZMTransportResponse(payload: [] as NSArray, httpStatus: 200, transportSessionError: nil, apiVersion: .v0))
+        request?.complete(with: ZMTransportResponse(payload: [] as NSArray, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
 
         // THEN
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
@@ -739,7 +739,7 @@ extension UserProfileUpdateRequestStrategyTests {
                                    httpStatus: 400,
                                    transportSessionError: nil,
                                    headers: nil,
-                                   apiVersion: .v0
+                                   apiVersion: APIVersion.v0.rawValue
         )
     }
 
@@ -752,7 +752,7 @@ extension UserProfileUpdateRequestStrategyTests {
                                    httpStatus: 404,
                                    transportSessionError: nil,
                                    headers: nil,
-                                   apiVersion: .v0
+                                   apiVersion: APIVersion.v0.rawValue
         )
     }
 
@@ -760,42 +760,42 @@ extension UserProfileUpdateRequestStrategyTests {
         return ZMTransportResponse(payload: ["label": "bad-request"] as NSDictionary,
                                    httpStatus: 400,
                                    transportSessionError: nil,
-                                   apiVersion: .v0)
+                                   apiVersion: APIVersion.v0.rawValue)
     }
 
     func keyExistsResponse() -> ZMTransportResponse {
         return ZMTransportResponse(payload: ["label": "key-exists"] as NSDictionary,
                                    httpStatus: 409,
                                    transportSessionError: nil,
-                                   apiVersion: .v0)
+                                   apiVersion: APIVersion.v0.rawValue)
     }
 
     func invalidPhoneNumberResponse() -> ZMTransportResponse {
         return ZMTransportResponse(payload: ["label": "invalid-phone"] as NSDictionary,
                                    httpStatus: 400,
                                    transportSessionError: nil,
-                                   apiVersion: .v0)
+                                   apiVersion: APIVersion.v0.rawValue)
     }
 
     func lastIdentityResponse() -> ZMTransportResponse {
         return ZMTransportResponse(payload: ["label": "last-identity"] as NSDictionary,
                                    httpStatus: 403,
                                    transportSessionError: nil,
-                                   apiVersion: .v0)
+                                   apiVersion: APIVersion.v0.rawValue)
     }
 
     func invalidEmailResponse() -> ZMTransportResponse {
         return ZMTransportResponse(payload: ["label": "invalid-email"] as NSDictionary,
                                    httpStatus: 400,
                                    transportSessionError: nil,
-                                   apiVersion: .v0)
+                                   apiVersion: APIVersion.v0.rawValue)
     }
 
     func invalidCredentialsResponse() -> ZMTransportResponse {
         return ZMTransportResponse(payload: ["label": "invalid-credentials"] as NSDictionary,
                                    httpStatus: 403,
                                    transportSessionError: nil,
-                                   apiVersion: .v0)
+                                   apiVersion: APIVersion.v0.rawValue)
     }
 
     func successResponse(path: String? = nil) -> ZMTransportResponse {
@@ -807,7 +807,7 @@ extension UserProfileUpdateRequestStrategyTests {
             httpStatus: 200,
             transportSessionError: nil,
             headers: nil,
-            apiVersion: .v0
+            apiVersion: APIVersion.v0.rawValue
         )
     }
 }
@@ -817,7 +817,7 @@ extension ZMTransportResponse {
     convenience init(originalUrl: URL, httpStatus: Int, error: Error?) {
         let headers = ["Content-Type": "application/json"]
         let httpResponse = HTTPURLResponse(url: originalUrl, statusCode: httpStatus, httpVersion: nil, headerFields: headers)
-        self.init(httpurlResponse: httpResponse!, data: nil, error: error, apiVersion: .v0)
+        self.init(httpurlResponse: httpResponse!, data: nil, error: error, apiVersion: APIVersion.v0.rawValue)
     }
 
 }

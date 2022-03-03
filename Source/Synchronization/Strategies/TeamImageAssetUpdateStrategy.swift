@@ -48,7 +48,7 @@ public final class TeamImageAssetUpdateStrategy: AbstractRequestStrategy, ZMCont
         }
     }
 
-    public override func nextRequestIfAllowed(for apiVersion: ZMAPIVersion) -> ZMTransportRequest? {
+    public override func nextRequestIfAllowed(for apiVersion: APIVersion) -> ZMTransportRequest? {
         return downstreamRequestSync?.nextRequest(for: apiVersion)
     }
 
@@ -63,7 +63,7 @@ public final class TeamImageAssetUpdateStrategy: AbstractRequestStrategy, ZMCont
     public func request(forFetching object: ZMManagedObject!, downstreamSync: ZMObjectSync!) -> ZMTransportRequest! {
         guard let team = object as? Team, let assetId = team.pictureAssetId else { return nil }
 
-        return ZMTransportRequest.imageGet(fromPath: "/assets/v3/\(assetId)", apiVersion: .v0)
+        return ZMTransportRequest.imageGet(fromPath: "/assets/v3/\(assetId)", apiVersion: APIVersion.v0.rawValue)
     }
 
     public func delete(_ object: ZMManagedObject!, with response: ZMTransportResponse!, downstreamSync: ZMObjectSync!) {

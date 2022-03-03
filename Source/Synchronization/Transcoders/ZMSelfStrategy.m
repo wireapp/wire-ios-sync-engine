@@ -120,7 +120,7 @@ NSTimeInterval ZMSelfStrategyPendingValidationRequestInterval = 5;
     return self.syncStatus.currentSyncPhase == self.expectedSyncPhase;
 }
 
-- (ZMTransportRequest *)nextRequestIfAllowedForAPIVersion:(ZMAPIVersion)apiVersion;
+- (ZMTransportRequest *)nextRequestIfAllowedForAPIVersion:(APIVersion)apiVersion;
 {
     ZMClientRegistrationStatus *clientStatus = self.clientStatus;
     ZMUser *selfUser = [ZMUser selfUserInContext:self.managedObjectContext];
@@ -202,7 +202,7 @@ NSTimeInterval ZMSelfStrategyPendingValidationRequestInterval = 5;
         payload[@"assets"] = [self profilePictureAssetsPayloadForUser:user];
     }
     
-    ZMTransportRequest *request = [ZMTransportRequest requestWithPath:@"/self" method:ZMMethodPUT payload:payload apiVersion:v0];
+    ZMTransportRequest *request = [ZMTransportRequest requestWithPath:@"/self" method:ZMMethodPUT payload:payload apiVersion:0];
     return [[ZMUpstreamRequest alloc] initWithKeys:keys transportRequest:request];
 }
 
@@ -255,7 +255,7 @@ NSTimeInterval ZMSelfStrategyPendingValidationRequestInterval = 5;
 - (ZMTransportRequest *)requestForSingleRequestSync:(ZMSingleRequestSync *)sync;
 {
     NOT_USED(sync);
-    return [ZMTransportRequest requestGetFromPath:SelfPath apiVersion:v0];
+    return [ZMTransportRequest requestGetFromPath:SelfPath apiVersion:0];
 }
 
 - (void)didReceiveResponse:(ZMTransportResponse *)response forSingleRequest:(ZMSingleRequestSync *)sync;

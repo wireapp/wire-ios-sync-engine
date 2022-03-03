@@ -30,7 +30,7 @@ public class LabelUpstreamRequestStrategy: AbstractRequestStrategy, ZMContextCha
         self.upstreamSync = ZMSingleRequestSync(singleRequestTranscoder: self, groupQueue: managedObjectContext)
     }
 
-    override public func nextRequestIfAllowed(for apiVersion: ZMAPIVersion) -> ZMTransportRequest? {
+    override public func nextRequestIfAllowed(for apiVersion: APIVersion) -> ZMTransportRequest? {
         return upstreamSync.nextRequest(for: apiVersion)
     }
 
@@ -79,7 +79,7 @@ public class LabelUpstreamRequestStrategy: AbstractRequestStrategy, ZMContextCha
             fatal("Couldn't encode label update: \(error)")
         }
 
-        let request = ZMTransportRequest(path: "/properties/labels", method: .methodPUT, payload: transportPayload as? ZMTransportData, apiVersion: .v0)
+        let request = ZMTransportRequest(path: "/properties/labels", method: .methodPUT, payload: transportPayload as? ZMTransportData, apiVersion: APIVersion.v0.rawValue)
         request.add(ZMCompletionHandler(on: managedObjectContext, block: { [weak self] (response) in
             self?.didReceive(response, updatedKeys: updatedKeys)
         }))

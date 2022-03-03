@@ -38,7 +38,7 @@ public final class TeamMembersDownloadRequestStrategy: AbstractRequestStrategy, 
         sync = ZMSingleRequestSync(singleRequestTranscoder: self, groupQueue: managedObjectContext)
     }
 
-    override public func nextRequestIfAllowed(for apiVersion: ZMAPIVersion) -> ZMTransportRequest? {
+    override public func nextRequestIfAllowed(for apiVersion: APIVersion) -> ZMTransportRequest? {
         guard syncStatus.currentSyncPhase == .fetchingTeamMembers else { return nil }
 
         sync.readyForNextRequestIfNotBusy()
@@ -53,7 +53,7 @@ public final class TeamMembersDownloadRequestStrategy: AbstractRequestStrategy, 
             completeSyncPhase() // Skip sync phase if user doesn't belong to a team
             return nil
         }
-        return ZMTransportRequest(getFromPath: "/teams/\(teamID.transportString())/members", apiVersion: .v0)
+        return ZMTransportRequest(getFromPath: "/teams/\(teamID.transportString())/members", apiVersion: APIVersion.v0.rawValue)
     }
 
     public func didReceive(_ response: ZMTransportResponse, forSingleRequest sync: ZMSingleRequestSync) {

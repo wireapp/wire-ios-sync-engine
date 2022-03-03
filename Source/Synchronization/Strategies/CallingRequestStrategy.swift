@@ -89,7 +89,7 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
     // MARK: - Methods
 
-    public override func nextRequestIfAllowed(for apiVersion: ZMAPIVersion) -> ZMTransportRequest? {
+    public override func nextRequestIfAllowed(for apiVersion: APIVersion) -> ZMTransportRequest? {
         let request = callConfigRequestSync.nextRequest(for: apiVersion) ??
                       clientDiscoverySync.nextRequest(for: apiVersion) ??
                       messageSync.nextRequest(for: apiVersion)
@@ -115,7 +115,7 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
                                       type: "application/json",
                                       contentDisposition: nil,
                                       shouldCompress: true,
-                                      apiVersion: .v0)
+                                      apiVersion: APIVersion.v0.rawValue)
 
         case clientDiscoverySync:
             guard

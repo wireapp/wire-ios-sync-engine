@@ -64,7 +64,7 @@ public final class ConversationRoleDownstreamRequestStrategy: AbstractRequestStr
 
     }
 
-    public override func nextRequestIfAllowed(for apiVersion: ZMAPIVersion) -> ZMTransportRequest? {
+    public override func nextRequestIfAllowed(for apiVersion: APIVersion) -> ZMTransportRequest? {
         return downstreamSync.nextRequest(for: apiVersion)
     }
 
@@ -80,7 +80,7 @@ public final class ConversationRoleDownstreamRequestStrategy: AbstractRequestStr
 
     public static func getRolesRequest(in conversationIdentifier: UUID) -> ZMTransportRequest {
         let path = requestPath + "/" + conversationIdentifier.transportString() + "/roles"
-        return ZMTransportRequest(getFromPath: path, apiVersion: .v0)
+        return ZMTransportRequest(getFromPath: path, apiVersion: APIVersion.v0.rawValue)
     }
 
     public func request(forFetching object: ZMManagedObject!, downstreamSync: ZMObjectSync!) -> ZMTransportRequest! {

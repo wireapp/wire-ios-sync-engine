@@ -106,7 +106,7 @@ class FeatureFlagRequestStrategyTests: MessagingTest {
             let response = ZMTransportResponse(httpurlResponse: urlResponse,
                                                data: data,
                                                error: nil,
-                                               apiVersion: .v0)
+                                               apiVersion: APIVersion.v0.rawValue)
             request.complete(with: response)
         }
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
@@ -129,7 +129,7 @@ class FeatureFlagRequestStrategyTests: MessagingTest {
             request.complete(with: ZMTransportResponse(payload: nil,
                                                        httpStatus: 404,
                                                        transportSessionError: nil,
-                                                       apiVersion: .v0))
+                                                       apiVersion: APIVersion.v0.rawValue))
         }
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 

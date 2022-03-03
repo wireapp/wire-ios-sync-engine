@@ -57,7 +57,7 @@ public final class TeamRolesDownloadRequestStrategy: AbstractRequestStrategy, ZM
         )
     }
 
-    public override func nextRequest(for apiVersion: ZMAPIVersion) -> ZMTransportRequest? {
+    public override func nextRequest(for apiVersion: APIVersion) -> ZMTransportRequest? {
         let request = downstreamSync.nextRequest(for: apiVersion)
         if request == nil {
             completeSyncPhaseIfNoTeam()

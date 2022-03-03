@@ -129,7 +129,7 @@ public final class UserImageAssetUpdateStrategy: AbstractRequestStrategy, ZMCont
         }
     }
 
-    public override func nextRequestIfAllowed(for apiVersion: ZMAPIVersion) -> ZMTransportRequest? {
+    public override func nextRequestIfAllowed(for apiVersion: APIVersion) -> ZMTransportRequest? {
         for size in ProfileImageSize.allSizes {
             let requestSync = downstreamRequestSyncs[size]
             if let request = requestSync?.nextRequest(for: apiVersion) {
@@ -177,7 +177,7 @@ public final class UserImageAssetUpdateStrategy: AbstractRequestStrategy, ZMCont
         } else {
             path = "/assets/v3/\(assetId)"
         }
-        return ZMTransportRequest.imageGet(fromPath: path, apiVersion: .v0)
+        return ZMTransportRequest.imageGet(fromPath: path, apiVersion: APIVersion.v0.rawValue)
     }
 
     public func delete(_ object: ZMManagedObject!, with response: ZMTransportResponse!, downstreamSync: ZMObjectSync!) {
@@ -209,7 +209,7 @@ public final class UserImageAssetUpdateStrategy: AbstractRequestStrategy, ZMCont
         } else if sync === deleteRequestSync {
             if let assetId = imageUploadStatus?.consumeAssetToDelete() {
                 let path = "/assets/v3/\(assetId)"
-                return ZMTransportRequest(path: path, method: .methodDELETE, payload: nil, apiVersion: .v0)
+                return ZMTransportRequest(path: path, method: .methodDELETE, payload: nil, apiVersion: APIVersion.v0.rawValue)
             }
         }
         return nil

@@ -143,7 +143,7 @@ class TeamDownloadRequestStrategyTests: MessagingTest {
 
             // when
             let payload = self.sampleResponse(team: team, creatorId: creatorId)
-            let response = ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: .v0)
+            let response = ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
             // when
             request.complete(with: response)
@@ -177,7 +177,7 @@ class TeamDownloadRequestStrategyTests: MessagingTest {
 
             // when
             let payload = self.sampleResponse(team: team, creatorId: creatorId, isBound: false)
-            let response = ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: .v0)
+            let response = ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
             // when
             request.complete(with: response)
@@ -207,7 +207,7 @@ class TeamDownloadRequestStrategyTests: MessagingTest {
 
             // when
             let payload = self.sampleResponse(team: team, creatorId: UUID(), isBound: false)
-            let response = ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: .v0)
+            let response = ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
             request.complete(with: response)
         }
 
@@ -243,7 +243,7 @@ class TeamDownloadRequestStrategyTests: MessagingTest {
                 payload: ["label": "no-team"] as ZMTransportData,
                 httpStatus: 403,
                 transportSessionError: nil,
-                apiVersion: .v0
+                apiVersion: APIVersion.v0.rawValue
             )
 
             // when
@@ -282,7 +282,7 @@ class TeamDownloadRequestStrategyTests: MessagingTest {
                 payload: ["label": "no-team-member"] as ZMTransportData,
                 httpStatus: 403,
                 transportSessionError: nil, 
-                apiVersion: .v0
+                apiVersion: APIVersion.v0.rawValue
             )
 
             // when
@@ -370,7 +370,7 @@ class TeamDownloadRequestStrategyTests: MessagingTest {
             ]
         ]
 
-        request.complete(with: .init(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: .v0))
+        request.complete(with: .init(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
@@ -389,7 +389,7 @@ class TeamDownloadRequestStrategyTests: MessagingTest {
         guard let request = sut.nextRequest(for: .v0) else { return XCTFail("No request generated") }
 
         // when
-        let response = ZMTransportResponse(payload: nil, httpStatus: 400, transportSessionError: nil, apiVersion: .v0)
+        let response = ZMTransportResponse(payload: nil, httpStatus: 400, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
         request.complete(with: response)
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
@@ -409,7 +409,7 @@ class TeamDownloadRequestStrategyTests: MessagingTest {
                 "has_more": false,
                 "teams": [sampleResponse(teamID: UUID(), creatorId: UUID())]
             ]
-            request.complete(with: .init(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: .v0))
+            request.complete(with: .init(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
             XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
         }
 
@@ -429,7 +429,7 @@ class TeamDownloadRequestStrategyTests: MessagingTest {
                 "has_more": false,
                 "teams": []
             ]
-            request.complete(with: .init(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: .v0))
+            request.complete(with: .init(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
             XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
         }
 

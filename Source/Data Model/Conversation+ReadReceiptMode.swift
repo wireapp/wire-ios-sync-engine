@@ -42,7 +42,7 @@ extension ZMConversation {
         guard let conversationId = remoteIdentifier?.transportString() else { return completion(.failure(ReadReceiptModeError.noConversation)) }
 
         let payload = ["receipt_mode": enabled ? 1 : 0] as ZMTransportData
-        let request = ZMTransportRequest(path: "/conversations/\(conversationId)/receipt-mode", method: .methodPUT, payload: payload, apiVersion: .v0)
+        let request = ZMTransportRequest(path: "/conversations/\(conversationId)/receipt-mode", method: .methodPUT, payload: payload, apiVersion: APIVersion.v0.rawValue)
 
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
             if response.httpStatus == 200, let event = response.updateEvent {

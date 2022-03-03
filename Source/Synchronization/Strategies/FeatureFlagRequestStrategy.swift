@@ -54,7 +54,7 @@ public final class FeatureFlagRequestStrategy: AbstractRequestStrategy, ZMSingle
     }
 
     @objc
-    public override func nextRequestIfAllowed(for apiVersion: ZMAPIVersion) -> ZMTransportRequest? {
+    public override func nextRequestIfAllowed(for apiVersion: APIVersion) -> ZMTransportRequest? {
         guard
             syncStatus.currentSyncPhase == .fetchingFeatureFlags || needsFeatureFlagsRefresh,
             let singleRequestSync = singleRequestSync
@@ -107,7 +107,7 @@ public final class FeatureFlagRequestStrategy: AbstractRequestStrategy, ZMSingle
         return ZMTransportRequest(path: "/teams/\(teamId)/features/digital-signatures",
                                   method: .methodGET,
                                   payload: nil,
-                                  apiVersion: .v0)
+                                  apiVersion: APIVersion.v0.rawValue)
     }
 
     private func processDigitalSignatureFlagSuccess(with data: Data?) {

@@ -102,7 +102,7 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
         return modifiedPredicate
     }
 
-    public func nextRequest(for apiVersion: ZMAPIVersion) -> ZMTransportRequest? {
+    public func nextRequest(for apiVersion: APIVersion) -> ZMTransportRequest? {
         guard let clientRegistrationStatus = self.clientRegistrationStatus,
             let clientUpdateStatus = self.clientUpdateStatus else {
                 return nil

@@ -151,7 +151,7 @@ ZM_EMPTY_ASSERTING_INIT()
 }
 #endif
 
-- (ZMTransportRequest *)nextRequestForAPIVersion:(ZMAPIVersion)apiVersion
+- (ZMTransportRequest *)nextRequestForAPIVersion:(APIVersion)apiVersion
 {
     if (!self.didFetchObjects) {
         self.didFetchObjects = YES;

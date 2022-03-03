@@ -24,20 +24,20 @@ final public class TeamDownloadRequestFactory {
 
     public static func getRequest(for identifiers: UUID...) -> ZMTransportRequest {
         let ids = identifiers.map { $0.transportString() }.joined(separator: ",")
-        return ZMTransportRequest(getFromPath: teamPath + "/" + ids, apiVersion: .v0)
+        return ZMTransportRequest(getFromPath: teamPath + "/" + ids, apiVersion: APIVersion.v0.rawValue)
     }
 
     public static func requestToDownloadRoles(for identifier: UUID) -> ZMTransportRequest {
-        return ZMTransportRequest(getFromPath: teamPath + "/" + identifier.transportString() + "/conversations/roles", apiVersion: .v0)
+        return ZMTransportRequest(getFromPath: teamPath + "/" + identifier.transportString() + "/conversations/roles", apiVersion: APIVersion.v0.rawValue)
     }
 
     public static var getTeamsRequest: ZMTransportRequest {
-        return ZMTransportRequest(getFromPath: teamPath, apiVersion: .v0)
+        return ZMTransportRequest(getFromPath: teamPath, apiVersion: APIVersion.v0.rawValue)
     }
 
     public static func getSingleMemberRequest(for identifier: UUID, in teamIdentifier: UUID) -> ZMTransportRequest {
         let path = teamPath + "/" + teamIdentifier.transportString() + "/members/" + identifier.transportString()
-        return ZMTransportRequest(getFromPath: path, apiVersion: .v0)
+        return ZMTransportRequest(getFromPath: path, apiVersion: APIVersion.v0.rawValue)
     }
 
 }

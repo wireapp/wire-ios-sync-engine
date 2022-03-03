@@ -50,7 +50,7 @@
     return self;
 }
 
-- (ZMTransportRequest *)nextRequestForAPIVersion:(ZMAPIVersion)apiVersion
+- (ZMTransportRequest *)nextRequestForAPIVersion:(APIVersion)apiVersion
 {
     if (self.authenticationStatus.currentPhase == ZMAuthenticationPhaseRequestPhoneVerificationCodeForLogin) {
         [self.codeRequestSync readyForNextRequestIfNotBusy];
@@ -67,7 +67,7 @@
                                                                     method:ZMMethodPOST
                                                                    payload:@{@"phone": self.authenticationStatus.loginPhoneNumberThatNeedsAValidationCode}
                                                             authentication:ZMTransportRequestAuthNone
-                                                                apiVersion:v0];
+                                                                apiVersion:0];
     return request;
 }
 

@@ -188,21 +188,21 @@ internal struct WirelessRequestFactory {
         guard let identifier = conversation.remoteIdentifier?.transportString() else {
             fatal("conversation is not yet inserted on the backend")
         }
-        return .init(getFromPath: "/conversations/\(identifier)/code", apiVersion: .v0)
+        return .init(getFromPath: "/conversations/\(identifier)/code", apiVersion: APIVersion.v0.rawValue)
     }
 
     static func createLinkRequest(for conversation: ZMConversation) -> ZMTransportRequest {
         guard let identifier = conversation.remoteIdentifier?.transportString() else {
             fatal("conversation is not yet inserted on the backend")
         }
-        return .init(path: "/conversations/\(identifier)/code", method: .methodPOST, payload: nil, apiVersion: .v0)
+        return .init(path: "/conversations/\(identifier)/code", method: .methodPOST, payload: nil, apiVersion: APIVersion.v0.rawValue)
     }
 
     static func deleteLinkRequest(for conversation: ZMConversation) -> ZMTransportRequest {
         guard let identifier = conversation.remoteIdentifier?.transportString() else {
             fatal("conversation is not yet inserted on the backend")
         }
-        return .init(path: "/conversations/\(identifier)/code", method: .methodDELETE, payload: nil, apiVersion: .v0)
+        return .init(path: "/conversations/\(identifier)/code", method: .methodDELETE, payload: nil, apiVersion: APIVersion.v0.rawValue)
     }
 
     static func set(allowGuests: Bool, for conversation: ZMConversation) -> ZMTransportRequest {
@@ -211,6 +211,6 @@ internal struct WirelessRequestFactory {
         }
         let payload = [ "access": ConversationAccessMode.value(forAllowGuests: allowGuests).stringValue as Any,
                         "access_role": ConversationAccessRole.value(forAllowGuests: allowGuests).rawValue]
-        return .init(path: "/conversations/\(identifier)/access", method: .methodPUT, payload: payload as ZMTransportData, apiVersion: .v0)
+        return .init(path: "/conversations/\(identifier)/access", method: .methodPUT, payload: payload as ZMTransportData, apiVersion: APIVersion.v0.rawValue)
     }
 }

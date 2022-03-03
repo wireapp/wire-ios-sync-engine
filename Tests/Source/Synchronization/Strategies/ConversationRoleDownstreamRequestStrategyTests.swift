@@ -125,7 +125,7 @@ final class ConversationRoleDownstreamRequestStrategyTests: MessagingTest {
             request.complete(with: ZMTransportResponse(payload: self.sampleRolesPayload as ZMTransportData,
                                                        httpStatus: 200,
                                                        transportSessionError: nil,
-                                                       apiVersion: .v0))
+                                                       apiVersion: APIVersion.v0.rawValue))
         }
 
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.2))
@@ -156,7 +156,7 @@ final class ConversationRoleDownstreamRequestStrategyTests: MessagingTest {
             request.complete(with: ZMTransportResponse(payload: nil,
                                                        httpStatus: 404,
                                                        transportSessionError: nil,
-                                                       apiVersion: .v0))
+                                                       apiVersion: APIVersion.v0.rawValue))
         }
 
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.2))
