@@ -52,11 +52,6 @@
         "AvailabilityTests",
         "EventProcessingPerformanceTests",
         "SessionManagerTests\/testThatSessionManagerSetsUpAPNSEnvironmentOnLaunch()",
-        "ZMLocalNotificationTests_CallState\/testCanceledCall()",
-        "ZMLocalNotificationTests_CallState\/testIncomingAudioCall()",
-        "ZMLocalNotificationTests_CallState\/testIncomingVideoCall()",
-        "ZMLocalNotificationTests_CallState\/testMissedCall()",
-        "ZMLocalNotificationTests_CallState\/testMissedCallFromSelfUser()",
         "ZMMissingUpdateEventsTranscoderTests"
       ],
       "target" : {

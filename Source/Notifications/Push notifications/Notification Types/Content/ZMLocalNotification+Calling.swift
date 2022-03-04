@@ -49,8 +49,10 @@ extension ZMLocalNotification {
                 self.callState = .incomingCall(video: video)
             case .terminating(reason: .anweredElsewhere), .terminating(reason: .normal), .terminating(reason: .rejectedElsewhere):
                 return nil
-            case .terminating:
-                self.callState = .missedCall
+            case .terminating(reason: .timeout):
+                self.callState = .missedCall(cancelled: false)
+            case .terminating(reason: .canceled):
+                self.callState = .missedCall(cancelled: true)
             default:
                 return nil
             }
