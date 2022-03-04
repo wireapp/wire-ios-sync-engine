@@ -47,7 +47,7 @@ struct CallSnapshotTestFixture {
         )
     }
 
-    static func callSnapshot(conversationId: AVSIdentifier, callCenter: WireCallCenterV3, clients: [AVSClient]) -> CallSnapshot {
+    static func callSnapshot(conversationId: AVSIdentifier, callCenter: WireCallCenterV3, clients: [AVSClient], state: CallState = .established) -> CallSnapshot {
 
         let callParticipantsSnapshot = CallParticipantsSnapshot(
             conversationId: conversationId,
@@ -57,7 +57,7 @@ struct CallSnapshotTestFixture {
 
         return CallSnapshot(
             callParticipants: callParticipantsSnapshot,
-            callState: .established,
+            callState: state,
             callStarter: AVSIdentifier.stub,
             isVideo: false,
             isGroup: true,

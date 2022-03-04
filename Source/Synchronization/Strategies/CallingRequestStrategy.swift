@@ -27,7 +27,6 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
     private let zmLog = ZMSLog(tag: "calling")
 
-    private var callCenter: WireCallCenterV3?
     private let messageSync: ProteusMessageSync<GenericMessageEntity>
     private let flowManager: FlowManagerType
     private let decoder = JSONDecoder()
@@ -41,6 +40,10 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
     private var clientDiscoveryRequest: ClientDiscoveryRequest?
 
     private let ephemeralURLSession = URLSession(configuration: .ephemeral)
+
+    // MARK: - Internal Properties
+
+    var callCenter: WireCallCenterV3?
 
     // MARK: - Public Properties
 
@@ -265,32 +268,58 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
                 self.zmLog.debug("received calling message, timestamp \(eventTimestamp), serverTimeDelta \(serverTimeDelta)")
 
-                let conversationId = AVSIdentifier(
-                    identifier: conversationUUID,
-                    domain: useFederationEndpoint ? event.conversationDomain : nil
-                )
-                let userId = AVSIdentifier(
-                    identifier: senderUUID,
-                    domain: useFederationEndpoint ? event.senderDomain : nil
-                )
+                let isRemoteMute = CallEventContent(from: payload, with: decoder)?.isRemoteMute ?? false
 
-                let callEvent = CallEvent(
-                    data: payload,
+                guard !isRemoteMute else {
+                    callCenter?.muted = true
+                    zmLog.debug("muted remotely from calling message")
+                    return
+                }
+
+                processCallEvent(
+                    conversationUUID: conversationUUID,
+                    senderUUID: senderUUID,
+                    clientId: clientId,
+                    event: event,
+                    payload: payload,
                     currentTimestamp: Date().addingTimeInterval(serverTimeDelta),
-                    serverTimestamp: eventTimestamp,
-                    conversationId: conversationId,
-                    userId: userId,
-                    clientId: clientId
+                    eventTimestamp: eventTimestamp
                 )
-
-                callEventStatus.scheduledCallEventForProcessing()
-
-                callCenter?.processCallEvent(callEvent, completionHandler: { [weak self] in
-                    self?.zmLog.debug("processed calling message")
-                    self?.callEventStatus.finishedProcessingCallEvent()
-                })
             }
         }
+    }
+
+    private func processCallEvent(conversationUUID: UUID,
+                                  senderUUID: UUID,
+                                  clientId: String,
+                                  event: ZMUpdateEvent,
+                                  payload: Data,
+                                  currentTimestamp: Date,
+                                  eventTimestamp: Date) {
+        let conversationId = AVSIdentifier(
+            identifier: conversationUUID,
+            domain: useFederationEndpoint ? event.conversationDomain : nil
+        )
+        let userId = AVSIdentifier(
+            identifier: senderUUID,
+            domain: useFederationEndpoint ? event.senderDomain : nil
+        )
+
+        let callEvent = CallEvent(
+            data: payload,
+            currentTimestamp: currentTimestamp,
+            serverTimestamp: eventTimestamp,
+            conversationId: conversationId,
+            userId: userId,
+            clientId: clientId
+        )
+
+        callEventStatus.scheduledCallEventForProcessing()
+
+        callCenter?.processCallEvent(callEvent, completionHandler: { [weak self] in
+            self?.zmLog.debug("processed calling message")
+            self?.callEventStatus.finishedProcessingCallEvent()
+        })
     }
 
     public func processEvents(_ events: [ZMUpdateEvent], liveEvents: Bool, prefetchResult: ZMFetchRequestBatchResult?) {

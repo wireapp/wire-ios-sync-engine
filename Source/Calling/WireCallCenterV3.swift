@@ -331,6 +331,10 @@ extension WireCallCenterV3 {
         return callSnapshots[conversationId]?.videoGridPresentationMode ?? .allVideoStreams
     }
 
+    private func isGroup(conversationId: AVSIdentifier) -> Bool {
+        return callSnapshots[conversationId]?.isGroup ?? false
+    }
+
 }
 
 // MARK: - Call Participants
@@ -694,7 +698,7 @@ extension WireCallCenterV3 {
             callState = .incoming(video: false, shouldRing: false, degraded: isDegraded(conversationId: conversationId))
         }
 
-        if case .incoming = callState, callSnapshots[conversationId]?.isGroup ?? false {
+        if case .incoming = callState, isGroup(conversationId: conversationId), activeCalls.isEmpty {
             muted = true
         }
 

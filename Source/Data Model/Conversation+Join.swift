@@ -19,13 +19,14 @@
 import Foundation
 
 public enum ConversationJoinError: Error {
-    case unknown, tooManyMembers, invalidCode, noConversation
+    case unknown, tooManyMembers, invalidCode, noConversation, guestLinksDisabled
 
     init(response: ZMTransportResponse) {
         switch (response.httpStatus, response.payloadLabel()) {
         case (403, "too-many-members"?): self = .tooManyMembers
         case (404, "no-conversation-code"?): self = .invalidCode
         case (404, "no-conversation"?): self = .noConversation
+        case (409, "guest-links-disabled"?): self = .guestLinksDisabled
         default: self = .unknown
         }
     }
