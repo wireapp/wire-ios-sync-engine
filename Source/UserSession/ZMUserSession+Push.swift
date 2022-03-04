@@ -71,8 +71,9 @@ struct PushTokenMetadata {
      
      @sa https://github.com/zinfra/backend-wiki/wiki/Native-Push-Notifications
      */
-    
+
     var tokenType: PushToken.TokenType
+
     var transportType: String {
         return isSandbox ? (tokenType.transportType + "_SANDBOX") : tokenType.transportType
     }
