@@ -1121,69 +1121,71 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
         self.userSession = nil
         XCTAssertNil(weakSession)
     }
-    /// TODO katerina: move these tests to the NE
 
-    //    func testThatItLoadsAccountForPush() {
-    //        // GIVEN
-    //        let account = Account(userName: "Test Account", userIdentifier: currentUserIdentifier)
-    //        self.sessionManager?.accountManager.addOrUpdate(account)
-    //
-    //        self.prepareSession(for: account)
-    //
-    //        let payload: [AnyHashable: Any] = ["data": [
-    //            "user": currentUserIdentifier.transportString()
-    //            ]
-    //        ]
-    //
-    //        // WHEN
-    //        let pushCompleted = self.expectation(description: "Push completed")
-    //        pushRegistry.mockIncomingPushPayload(payload, completion: {
-    //            DispatchQueue.main.async {
-    //                // THEN
-    //                XCTAssertNotNil(self.sessionManager!.backgroundUserSessions[account.userIdentifier])
-    //
-    //                // CLEANUP
-    //                self.sessionManager!.tearDownAllBackgroundSessions()
-    //                pushCompleted.fulfill()
-    //            }
-    //        })
-    //
-    //        XCTAssertTrue(self.waitForCustomExpectations(withTimeout: 0.5))
-    //    }
-    //
-    //    func testThatItLoadsOnlyOneAccountForPush() {
-    //        // GIVEN
-    //        let account = Account(userName: "Test Account", userIdentifier: currentUserIdentifier)
-    //        self.sessionManager?.accountManager.addOrUpdate(account)
-    //
-    //        self.prepareSession(for: account)
-    //
-    //        let payload: [AnyHashable: Any] = ["data": [
-    //            "user": currentUserIdentifier.transportString()
-    //            ]
-    //        ]
-    //
-    //        // WHEN
-    //        let pushCompleted1 = self.expectation(description: "Push completed 1")
-    //        var userSession1: ZMUserSession!
-    //        let pushCompleted2 = self.expectation(description: "Push completed 2")
-    //        var userSession2: ZMUserSession!
-    //        pushRegistry.mockIncomingPushPayload(payload, completion: {
-    //            pushCompleted1.fulfill()
-    //            userSession1 = self.sessionManager!.backgroundUserSessions[account.userIdentifier]
-    //        })
-    //        pushRegistry.mockIncomingPushPayload(payload, completion: {
-    //            pushCompleted2.fulfill()
-    //            userSession2 = self.sessionManager!.backgroundUserSessions[account.userIdentifier]
-    //        })
-    //
-    //        XCTAssertTrue(self.waitForCustomExpectations(withTimeout: 0.5))
-    //        XCTAssertNotNil(userSession1)
-    //        XCTAssertNotNil(userSession2)
-    //        XCTAssertEqual(userSession1, userSession2)
-    //        // CLEANUP
-    //        self.sessionManager!.tearDownAllBackgroundSessions()
-    //    }
+    func testThatItLoadsAccountForPush() {
+        // GIVEN
+        let account = Account(userName: "Test Account", userIdentifier: currentUserIdentifier)
+        self.sessionManager?.accountManager.addOrUpdate(account)
+
+        self.prepareSession(for: account)
+
+        let payload: [AnyHashable: Any] = [
+            "data": [
+                "user": currentUserIdentifier.transportString()
+            ]
+        ]
+
+        // WHEN
+        let pushCompleted = self.expectation(description: "Push completed")
+        pushRegistry.mockIncomingPushPayload(payload, completion: {
+            DispatchQueue.main.async {
+                // THEN
+                XCTAssertNotNil(self.sessionManager!.backgroundUserSessions[account.userIdentifier])
+
+                // CLEANUP
+                self.sessionManager!.tearDownAllBackgroundSessions()
+                pushCompleted.fulfill()
+            }
+        })
+
+        XCTAssertTrue(self.waitForCustomExpectations(withTimeout: 0.5))
+    }
+
+    func testThatItLoadsOnlyOneAccountForPush() {
+        // GIVEN
+        let account = Account(userName: "Test Account", userIdentifier: currentUserIdentifier)
+        self.sessionManager?.accountManager.addOrUpdate(account)
+
+        self.prepareSession(for: account)
+
+        let payload: [AnyHashable: Any] = [
+            "data": [
+                "user": currentUserIdentifier.transportString()
+            ]
+        ]
+
+        // WHEN
+        let pushCompleted1 = self.expectation(description: "Push completed 1")
+        var userSession1: ZMUserSession!
+        let pushCompleted2 = self.expectation(description: "Push completed 2")
+        var userSession2: ZMUserSession!
+        pushRegistry.mockIncomingPushPayload(payload, completion: {
+            pushCompleted1.fulfill()
+            userSession1 = self.sessionManager!.backgroundUserSessions[account.userIdentifier]
+        })
+        pushRegistry.mockIncomingPushPayload(payload, completion: {
+            pushCompleted2.fulfill()
+            userSession2 = self.sessionManager!.backgroundUserSessions[account.userIdentifier]
+        })
+
+        XCTAssertTrue(self.waitForCustomExpectations(withTimeout: 0.5))
+        XCTAssertNotNil(userSession1)
+        XCTAssertNotNil(userSession2)
+        XCTAssertEqual(userSession1, userSession2)
+
+        // CLEANUP
+        self.sessionManager!.tearDownAllBackgroundSessions()
+    }
 
     func setupSession() -> ZMUserSession {
         let manager = self.sessionManager!.accountManager
