@@ -52,7 +52,6 @@
         "AvailabilityTests",
         "EventProcessingPerformanceTests",
         "SessionManagerTests\/testThatSessionManagerSetsUpAPNSEnvironmentOnLaunch()",
-        "ZMLocalNotificationTests_CallState",
         "ZMLocalNotificationTests_CallState\/testCanceledCall()",
         "ZMLocalNotificationTests_CallState\/testIncomingAudioCall()",
         "ZMLocalNotificationTests_CallState\/testIncomingVideoCall()",
@@ -68,12 +67,7 @@
     },
     {
       "skippedTests" : [
-        "APNSTests\/testThatItFetchesTheNotificationStreamWhenReceivingNotificationOfTypeNotice",
-        "APNSTests\/testThatItFetchesTheNotificationStreamWhenReceivingNotificationOfTypeNotice_TriesAgainWhenReceiving_401",
-        "APNSTests_Swift\/testThatItSendsAConfirmationMessage_WhenReceivingATextMessage()",
-        "APNSTests_Swift\/testThatItUpdatesApplicationBadgeCount_WhenReceivingATextMessage()",
-        "AvailabilityTests",
-        "SessionManagerTests"
+        "AvailabilityTests"
       ],
       "target" : {
         "containerPath" : "container:WireSyncEngine.xcodeproj",
