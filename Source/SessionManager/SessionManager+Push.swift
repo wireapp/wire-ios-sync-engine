@@ -23,19 +23,19 @@ import UserNotifications
 private let pushLog = ZMSLog(tag: "Push")
 
 public enum PushFromNotificationExtensionKeys: String {
-    case accountId = "accountId"
-    case fromNotificationExtension = "fromNotificationExtension"
+    case accountId
+    case fromNotificationExtension
 }
 
 public struct PushFromNotificationExtension: Codable {
     enum CodingKeys: String, CodingKey {
-        case conversationId = "conversationId"
-        case senderId = "senderId"
-        case senderClientID = "senderClientID"
-        case conversationDomain = "conversationDomain"
-        case senderDomain = "senderDomain"
-        case payloadData = "payloadData"
-        case timestamp = "timestamp"
+        case conversationId
+        case senderId
+        case senderClientID
+        case conversationDomain
+        case senderDomain
+        case payloadData
+        case timestamp
     }
 
     let conversationId: UUID
@@ -103,26 +103,23 @@ extension SessionManager: PKPushRegistryDelegate {
 
         if let fromNotificationExtension = payload.dictionaryPayload[PushFromNotificationExtensionKeys.fromNotificationExtension] as? Bool,
            fromNotificationExtension == true {
-            handleIncomingCallPushNotification(payload, completion: completion)
+            handleCallPushPayload(payload, completion: completion)
         } else {
-            handleIncomingNonCallPushNotification(payload, for: type, completion: completion)
+            handleLegacyPushPayload(payload, for: type, completion: completion)
         }
     }
 
-    private func handleIncomingCallPushNotification(_ payload: PKPushPayload, completion: @escaping () -> Void) {
+    private func handleCallPushPayload(_ payload: PKPushPayload, completion: @escaping () -> Void) {
         guard let accountIdString = payload.dictionaryPayload[PushFromNotificationExtensionKeys.accountId] as? String,
               let accountId = UUID(uuidString: accountIdString),
-              let account = self.accountManager.account(with: accountId) else {
+              let account = self.accountManager.account(with: accountId),
+              let dictionaryPayload = payload.dictionaryPayload as? [String : Any],
+              let pushPayload = PushFromNotificationExtension(dictionaryPayload) else {
+                  Logging.push.safePublic("Aborted processing of payload: \(payload)")
                   return completion()
               }
 
         withSession(for: account, perform: { userSession in
-            guard let dictionaryPayload = payload.dictionaryPayload as? [String : Any],
-                let pushPayload = PushFromNotificationExtension(dictionaryPayload) else {
-                Logging.push.safePublic("Aborted processing of payload: \(payload)")
-                return
-            }
-
             Logging.push.safePublic("Forwarding push payload to user session with account \(account.userIdentifier)")
             userSession.syncStrategy?.callingRequestStrategy?.processCallEvent(conversationUUID: pushPayload.conversationId,
                                                                                senderUUID: pushPayload.senderId,
@@ -134,7 +131,7 @@ extension SessionManager: PKPushRegistryDelegate {
         })
     }
 
-    private func handleIncomingNonCallPushNotification(_ payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
+    private func handleLegacyPushPayload(_ payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
         // We only care about voIP pushes, other types are not related to push notifications (watch complications and files)
         guard type == .voIP else { return completion() }
 
