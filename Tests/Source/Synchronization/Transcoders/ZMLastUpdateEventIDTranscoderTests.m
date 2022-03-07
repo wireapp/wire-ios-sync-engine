@@ -212,7 +212,7 @@
 - (void)testThatItEncodesTheRightRequestWithoutClient
 {
     // when
-    ZMTransportRequest *request = [self.sut requestForSingleRequestSync:self.downstreamSync];
+    ZMTransportRequest *request = [self.sut requestForSingleRequestSync:self.downstreamSync apiVersion:APIVersionV0];
     
     // then
     XCTAssertNotNil(request);
@@ -227,7 +227,7 @@
     XCTAssertNotNil(selfClient);
     
     // when
-    ZMTransportRequest *request = [self.sut requestForSingleRequestSync:self.downstreamSync];
+    ZMTransportRequest *request = [self.sut requestForSingleRequestSync:self.downstreamSync apiVersion:APIVersionV0];
     
     // then
     XCTAssertNotNil(request);

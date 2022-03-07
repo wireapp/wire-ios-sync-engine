@@ -158,7 +158,7 @@ public final class UserImageAssetUpdateStrategy: AbstractRequestStrategy, ZMCont
 
     // MARK: - ZMDownstreamTranscoder
 
-    public func request(forFetching object: ZMManagedObject!, downstreamSync: ZMObjectSync!) -> ZMTransportRequest! {
+    public func request(forFetching object: ZMManagedObject!, downstreamSync: ZMObjectSync!, apiVersion: APIVersion) -> ZMTransportRequest! {
         guard let whitelistSync = downstreamSync as? ZMDownstreamObjectSyncWithWhitelist else { return nil }
         guard let user = object as? ZMUser else { return nil }
         guard let size = size(for: whitelistSync) else { return nil }
@@ -177,7 +177,7 @@ public final class UserImageAssetUpdateStrategy: AbstractRequestStrategy, ZMCont
         } else {
             path = "/assets/v3/\(assetId)"
         }
-        return ZMTransportRequest.imageGet(fromPath: path, apiVersion: APIVersion.v0.rawValue)
+        return ZMTransportRequest.imageGet(fromPath: path, apiVersion: apiVersion.rawValue)
     }
 
     public func delete(_ object: ZMManagedObject!, with response: ZMTransportResponse!, downstreamSync: ZMObjectSync!) {
@@ -201,15 +201,15 @@ public final class UserImageAssetUpdateStrategy: AbstractRequestStrategy, ZMCont
 
     // MARK: - ZMSingleRequestTranscoder
 
-    public func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
+    public func request(for sync: ZMSingleRequestSync, apiVersion: APIVersion) -> ZMTransportRequest? {
         if let size = size(for: sync), let image = imageUploadStatus?.consumeImage(for: size) {
-            let request = requestFactory.upstreamRequestForAsset(withData: image, shareable: true, retention: .eternal)
+            let request = requestFactory.upstreamRequestForAsset(withData: image, shareable: true, retention: .eternal, apiVersion: apiVersion)
             request?.addContentDebugInformation("Uploading to /assets/V3: [\(size)]  [\(image)] ")
             return request
         } else if sync === deleteRequestSync {
             if let assetId = imageUploadStatus?.consumeAssetToDelete() {
                 let path = "/assets/v3/\(assetId)"
-                return ZMTransportRequest(path: path, method: .methodDELETE, payload: nil, apiVersion: APIVersion.v0.rawValue)
+                return ZMTransportRequest(path: path, method: .methodDELETE, payload: nil, apiVersion: apiVersion.rawValue)
             }
         }
         return nil

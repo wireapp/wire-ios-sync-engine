@@ -116,7 +116,7 @@ extension UserClientRequestStrategyTests {
             let request = self.sut.nextRequest(for: .v0)
 
             // then
-            let expectedRequest = try! self.sut.requestsFactory.registerClientRequest(client, credentials: self.fakeCredentialsProvider.emailCredentials(), cookieLabel: "mycookie").transportRequest!
+            let expectedRequest = try! self.sut.requestsFactory.registerClientRequest(client, credentials: self.fakeCredentialsProvider.emailCredentials(), cookieLabel: "mycookie", apiVersion: .v0).transportRequest!
 
             AssertOptionalNotNil(request, "Should return request if there is inserted UserClient object") { request in
                 XCTAssertNotNil(request.payload, "Request should contain payload")
@@ -154,7 +154,7 @@ extension UserClientRequestStrategyTests {
             let remoteIdentifier = "superRandomIdentifer"
             let payload = ["id": remoteIdentifier]
             let response = ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
-            let request = self.sut.request(forInserting: client, forKeys: Set())
+            let request = self.sut.request(forInserting: client, forKeys: Set(), apiVersion: .v0)
 
             // when
             self.sut.updateInsertedObject(client, request: request!, response: response)
@@ -372,7 +372,7 @@ extension UserClientRequestStrategyTests {
             }
 
             // then
-            let expectedRequest = try! self.sut.requestsFactory.updateClientPreKeysRequest(client).transportRequest
+            let expectedRequest = try! self.sut.requestsFactory.updateClientPreKeysRequest(client, apiVersion: .v0).transportRequest
 
             AssertOptionalNotNil(request, "Should return request if there is inserted UserClient object") { request in
                 XCTAssertNotNil(request.payload, "Request should contain payload")

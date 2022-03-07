@@ -52,8 +52,8 @@ public final class DeleteAccountRequestStrategy: AbstractRequestStrategy, ZMSing
 
     // MARK: - ZMSingleRequestTranscoder
 
-    public func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
-        let request = ZMTransportRequest(path: type(of: self).path, method: .methodDELETE, payload: ([:] as ZMTransportData), shouldCompress: true, apiVersion: APIVersion.v0.rawValue)
+    public func request(for sync: ZMSingleRequestSync, apiVersion: APIVersion) -> ZMTransportRequest? {
+        let request = ZMTransportRequest(path: type(of: self).path, method: .methodDELETE, payload: ([:] as ZMTransportData), shouldCompress: true, apiVersion: apiVersion.rawValue)
         return request
     }
 

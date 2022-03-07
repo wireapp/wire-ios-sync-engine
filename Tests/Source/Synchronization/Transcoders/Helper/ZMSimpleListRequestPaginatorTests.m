@@ -160,7 +160,7 @@
     [self.sut resetFetching];
     
     // when
-    ZMTransportRequest *request = [self.sut requestForSingleRequestSync:self.singleRequestSync];
+    ZMTransportRequest *request = [self.sut requestForSingleRequestSync:self.singleRequestSync apiVersion:APIVersionV0];
     
     // after
     NSString *expectedURL = [NSString stringWithFormat:@"%@?size=%lu", self.basePath, (unsigned long) self.pageSize];
@@ -185,7 +185,7 @@
     [self.sut resetFetching];
     
     // when
-    ZMTransportRequest *request = [self.sut requestForSingleRequestSync:self.singleRequestSync];
+    ZMTransportRequest *request = [self.sut requestForSingleRequestSync:self.singleRequestSync apiVersion:APIVersionV0];
     
     // after
     NSString *expectedURL = [NSString stringWithFormat:@"%@?size=%lu&%@=%@", self.basePath, (unsigned long) self.pageSize, startKey, startUUID.transportString];
@@ -207,7 +207,7 @@
     [self.sut resetFetching];
     
     // when
-    ZMTransportRequest *request = [self.sut requestForSingleRequestSync:self.singleRequestSync];
+    ZMTransportRequest *request = [self.sut requestForSingleRequestSync:self.singleRequestSync apiVersion:APIVersionV0];
     
     // after
     NSString *expectedURL = [NSString stringWithFormat:@"%@?size=%lu&%@=%@", self.basePath, (unsigned long) self.pageSize, @"client", selfClientID];
@@ -459,7 +459,7 @@
     WaitForAllGroupsToBeEmpty(0.5);
     
     // when
-    ZMTransportRequest *followingRequest = [self.sut requestForSingleRequestSync:self.singleRequestSync];
+    ZMTransportRequest *followingRequest = [self.sut requestForSingleRequestSync:self.singleRequestSync apiVersion:APIVersionV0];
     
     // then
     NSString *expectedURL = [NSString stringWithFormat:@"%@?size=%lu&start=%@", self.basePath, (unsigned long)self.pageSize, lastIdentifier.transportString];
@@ -485,7 +485,7 @@
     [self.sut resetFetching];
 
     // when
-    ZMTransportRequest *firstRequest = [self.sut requestForSingleRequestSync:self.singleRequestSync];
+    ZMTransportRequest *firstRequest = [self.sut requestForSingleRequestSync:self.singleRequestSync apiVersion:APIVersionV0];
     
     // then
     NSString *expectedURL1 = [NSString stringWithFormat:@"%@?size=%lu&start=%@", self.basePath, (unsigned long)self.pageSize, startIdentifier.transportString];
@@ -496,7 +496,7 @@
     WaitForAllGroupsToBeEmpty(0.5);
     
     // when
-    ZMTransportRequest *followingRequest = [self.sut requestForSingleRequestSync:self.singleRequestSync];
+    ZMTransportRequest *followingRequest = [self.sut requestForSingleRequestSync:self.singleRequestSync apiVersion:APIVersionV0];
     
     // then
     NSString *expectedURL2 = [NSString stringWithFormat:@"%@?size=%lu&start=%@", self.basePath, (unsigned long)self.pageSize, lastIdentifier.transportString];
@@ -516,7 +516,7 @@
     WaitForAllGroupsToBeEmpty(0.5);
     
     // when
-    ZMTransportRequest *followingRequest = [self.sut requestForSingleRequestSync:self.singleRequestSync];
+    ZMTransportRequest *followingRequest = [self.sut requestForSingleRequestSync:self.singleRequestSync apiVersion:APIVersionV0];
     
     // then
     XCTAssertNil(followingRequest);
@@ -537,7 +537,7 @@
     
     // when
     [self.sut resetFetching];
-    ZMTransportRequest *followingRequest = [self.sut requestForSingleRequestSync:self.singleRequestSync];
+    ZMTransportRequest *followingRequest = [self.sut requestForSingleRequestSync:self.singleRequestSync apiVersion:APIVersionV0];
     
     // then
     NSString *expectedURL = [NSString stringWithFormat:@"%@?size=%lu", self.basePath, (unsigned long) self.pageSize];

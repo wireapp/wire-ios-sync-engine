@@ -104,7 +104,7 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
 // MARK: - Single Request Transcoder
 
-    public func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
+    public func request(for sync: ZMSingleRequestSync, apiVersion: APIVersion) -> ZMTransportRequest? {
         switch sync {
         case callConfigRequestSync:
             zmLog.debug("Scheduling request to '/calls/config/v2'")
@@ -115,7 +115,7 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
                                       type: "application/json",
                                       contentDisposition: nil,
                                       shouldCompress: true,
-                                      apiVersion: APIVersion.v0.rawValue)
+                                      apiVersion: apiVersion.rawValue)
 
         case clientDiscoverySync:
             guard

@@ -19,8 +19,8 @@
 import Foundation
 
 fileprivate extension AssetRequestFactory {
-    static func request(for identifier: String, on queue: ZMSGroupQueue, block: @escaping ZMCompletionHandlerBlock) -> ZMTransportRequest {
-        let request = ZMTransportRequest(path: "/assets/v3/\(identifier)", method: .methodDELETE, payload: nil, apiVersion: APIVersion.v0.rawValue)
+    static func request(for identifier: String, on queue: ZMSGroupQueue, apiVersion: APIVersion, block: @escaping ZMCompletionHandlerBlock) -> ZMTransportRequest {
+        let request = ZMTransportRequest(path: "/assets/v3/\(identifier)", method: .methodDELETE, payload: nil, apiVersion: apiVersion.rawValue)
         request.add(ZMCompletionHandler(on: queue, block: block))
         return request
     }
@@ -53,9 +53,9 @@ final public class AssetDeletionRequestStrategy: AbstractRequestStrategy, ZMSing
 
     // MARK: - ZMSingleRequestTranscoder
 
-    public func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
+    public func request(for sync: ZMSingleRequestSync, apiVersion: APIVersion) -> ZMTransportRequest? {
         guard sync == requestSync, let identifier = identifierProvider.nextIdentifierToDelete() else { return nil }
-        return AssetRequestFactory.request(for: identifier, on: managedObjectContext) { [weak self] response in
+        return AssetRequestFactory.request(for: identifier, on: managedObjectContext, apiVersion: apiVersion) { [weak self] response in
             self?.handle(response: response, for: identifier)
         }
     }

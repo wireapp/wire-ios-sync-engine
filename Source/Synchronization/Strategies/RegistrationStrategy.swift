@@ -32,12 +32,12 @@ final class RegistrationStrategy: NSObject {
 }
 
 extension RegistrationStrategy: ZMSingleRequestTranscoder {
-    func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
+    func request(for sync: ZMSingleRequestSync, apiVersion: APIVersion) -> ZMTransportRequest? {
         switch registrationStatus.phase {
         case let .createUser(user):
-            return ZMTransportRequest(path: "/register", method: .methodPOST, payload: user.payload, apiVersion: APIVersion.v0.rawValue)
+            return ZMTransportRequest(path: "/register", method: .methodPOST, payload: user.payload, apiVersion: apiVersion.rawValue)
         case let .createTeam(team):
-            return ZMTransportRequest(path: "/register", method: .methodPOST, payload: team.payload, apiVersion: APIVersion.v0.rawValue)
+            return ZMTransportRequest(path: "/register", method: .methodPOST, payload: team.payload, apiVersion: apiVersion.rawValue)
         default:
             fatal("Generating request for invalid phase: \(registrationStatus.phase)")
         }

@@ -174,7 +174,7 @@ NSTimeInterval ZMSelfStrategyPendingValidationRequestInterval = 5;
     return NO;
 }
 
-- (ZMUpstreamRequest *)requestForUpdatingObject:(ZMManagedObject *)managedObject forKeys:(NSSet *)keys;
+- (ZMUpstreamRequest *)requestForUpdatingObject:(ZMManagedObject *)managedObject forKeys:(NSSet *)keys apiVersion:(APIVersion)apiVersion;
 {
     ZMUser *user = (ZMUser *)managedObject;
     Require(user.isSelfUser);
@@ -182,13 +182,13 @@ NSTimeInterval ZMSelfStrategyPendingValidationRequestInterval = 5;
     if ([keys containsObject:AccentColorValueKey] ||
         [keys containsObject:NameKey] ||
         ([keys containsObject:PreviewProfileAssetIdentifierKey] && [keys containsObject:CompleteProfileAssetIdentifierKey])) {
-        return [self requestForSettingBasicProfileDataOfUser:user changedKeys:keys];
+        return [self requestForSettingBasicProfileDataOfUser:user changedKeys:keys apiVersion:apiVersion];
     }
     ZMTrapUnableToGenerateRequest(keys, self);
     return nil;
 }
 
-- (ZMUpstreamRequest *)requestForSettingBasicProfileDataOfUser:(ZMUser *)user changedKeys:(NSSet *)keys
+- (ZMUpstreamRequest *)requestForSettingBasicProfileDataOfUser:(ZMUser *)user changedKeys:(NSSet *)keys apiVersion:(APIVersion)apiVersion
 {
     NSMutableDictionary *payload = [NSMutableDictionary dictionary];
     
@@ -202,7 +202,7 @@ NSTimeInterval ZMSelfStrategyPendingValidationRequestInterval = 5;
         payload[@"assets"] = [self profilePictureAssetsPayloadForUser:user];
     }
     
-    ZMTransportRequest *request = [ZMTransportRequest requestWithPath:@"/self" method:ZMMethodPUT payload:payload apiVersion:0];
+    ZMTransportRequest *request = [ZMTransportRequest requestWithPath:@"/self" method:ZMMethodPUT payload:payload apiVersion:apiVersion];
     return [[ZMUpstreamRequest alloc] initWithKeys:keys transportRequest:request];
 }
 
@@ -221,7 +221,7 @@ NSTimeInterval ZMSelfStrategyPendingValidationRequestInterval = 5;
       ];
 }
 
-- (ZMUpstreamRequest *)requestForInsertingObject:(ZMManagedObject *)managedObject forKeys:(NSSet *)keys;
+- (ZMUpstreamRequest *)requestForInsertingObject:(ZMManagedObject *)managedObject forKeys:(NSSet *)keys apiVersion:(APIVersion)apiVersion;
 {
     NOT_USED(managedObject);
     NOT_USED(keys);
@@ -252,10 +252,10 @@ NSTimeInterval ZMSelfStrategyPendingValidationRequestInterval = 5;
 @implementation ZMSelfStrategy (SingleRequestTranscoder)
 
 
-- (ZMTransportRequest *)requestForSingleRequestSync:(ZMSingleRequestSync *)sync;
+- (ZMTransportRequest *)requestForSingleRequestSync:(ZMSingleRequestSync *)sync apiVersion:(APIVersion)apiVersion;
 {
     NOT_USED(sync);
-    return [ZMTransportRequest requestGetFromPath:SelfPath apiVersion:0];
+    return [ZMTransportRequest requestGetFromPath:SelfPath apiVersion:apiVersion];
 }
 
 - (void)didReceiveResponse:(ZMTransportResponse *)response forSingleRequest:(ZMSingleRequestSync *)sync;

@@ -61,13 +61,13 @@
 
 #pragma mark - ZMSingleRequestTranscoder
 
-- (ZMTransportRequest *)requestForSingleRequestSync:(__unused ZMSingleRequestSync *)sync;
+- (ZMTransportRequest *)requestForSingleRequestSync:(__unused ZMSingleRequestSync *)sync apiVersion:(APIVersion)apiVersion;
 {
     ZMTransportRequest *request = [[ZMTransportRequest alloc] initWithPath:@"/login/send"
                                                                     method:ZMMethodPOST
                                                                    payload:@{@"phone": self.authenticationStatus.loginPhoneNumberThatNeedsAValidationCode}
                                                             authentication:ZMTransportRequestAuthNone
-                                                                apiVersion:0];
+                                                                apiVersion:apiVersion];
     return request;
 }
 

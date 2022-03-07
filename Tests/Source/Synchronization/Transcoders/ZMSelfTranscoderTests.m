@@ -390,7 +390,7 @@
         
         // when
         NSSet *updatedKeys = changedKeys;
-        ZMUpstreamRequest *request = [(id<ZMUpstreamTranscoder>) self.sut requestForUpdatingObject:selfUser forKeys:updatedKeys];
+        ZMUpstreamRequest *request = [(id<ZMUpstreamTranscoder>) self.sut requestForUpdatingObject:selfUser forKeys:updatedKeys apiVersion:APIVersionV0];
         
         // then
         XCTAssertNotNil(request);
@@ -411,7 +411,7 @@
         ZMUser *selfUser = [ZMUser selfUserInContext:self.syncMOC];
         
         // when
-        ZMUpstreamRequest *request = [(id<ZMUpstreamTranscoder>) self.sut requestForInsertingObject:selfUser forKeys:[NSSet setWithObject:@"name"]];
+        ZMUpstreamRequest *request = [(id<ZMUpstreamTranscoder>) self.sut requestForInsertingObject:selfUser forKeys:[NSSet setWithObject:@"name"] apiVersion:APIVersionV0];
         
         // then
         XCTAssertNil(request);
@@ -425,7 +425,7 @@
         // given
         ZMUser *selfUser = [ZMUser selfUserInContext:self.syncMOC];
         selfUser.name = @"Joe Random User";
-        ZMUpstreamRequest *request = [(id<ZMUpstreamTranscoder>) self.sut requestForInsertingObject:selfUser forKeys:[NSSet setWithObject:@"name"]];
+        ZMUpstreamRequest *request = [(id<ZMUpstreamTranscoder>) self.sut requestForInsertingObject:selfUser forKeys:[NSSet setWithObject:@"name"] apiVersion:APIVersionV0];
         
         // when
         ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:nil HTTPStatus:200 transportSessionError:nil apiVersion:0];
@@ -448,7 +448,7 @@
         user.remoteIdentifier = [NSUUID createUUID];
         
         // when
-        ZMUpstreamRequest *request = [(id<ZMUpstreamTranscoder>) self.sut requestForUpdatingObject:user forKeys:[NSSet setWithObjects:@"name", @"accentColorValue", nil]];
+        ZMUpstreamRequest *request = [(id<ZMUpstreamTranscoder>) self.sut requestForUpdatingObject:user forKeys:[NSSet setWithObjects:@"name", @"accentColorValue", nil] apiVersion:APIVersionV0];
         
         // then
         XCTAssertNil(request);

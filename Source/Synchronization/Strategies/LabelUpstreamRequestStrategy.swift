@@ -64,7 +64,7 @@ public class LabelUpstreamRequestStrategy: AbstractRequestStrategy, ZMContextCha
 
 // MARK: - ZMSingleRequestTranscoder
 
-    public func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
+    public func request(for sync: ZMSingleRequestSync, apiVersion: APIVersion) -> ZMTransportRequest? {
         let fetchRequest = NSFetchRequest<Label>(entityName: Label.entityName())
         let labels = managedObjectContext.fetchOrAssert(request: fetchRequest)
         let labelsToUpload = labels.filter({ !$0.markedForDeletion })
@@ -79,7 +79,7 @@ public class LabelUpstreamRequestStrategy: AbstractRequestStrategy, ZMContextCha
             fatal("Couldn't encode label update: \(error)")
         }
 
-        let request = ZMTransportRequest(path: "/properties/labels", method: .methodPUT, payload: transportPayload as? ZMTransportData, apiVersion: APIVersion.v0.rawValue)
+        let request = ZMTransportRequest(path: "/properties/labels", method: .methodPUT, payload: transportPayload as? ZMTransportData, apiVersion: apiVersion.rawValue)
         request.add(ZMCompletionHandler(on: managedObjectContext, block: { [weak self] (response) in
             self?.didReceive(response, updatedKeys: updatedKeys)
         }))

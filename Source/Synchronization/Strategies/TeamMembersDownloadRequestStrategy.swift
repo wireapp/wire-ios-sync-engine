@@ -48,12 +48,12 @@ public final class TeamMembersDownloadRequestStrategy: AbstractRequestStrategy, 
 
 // MARK: - ZMSingleRequestTranscoder
 
-    public func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
+    public func request(for sync: ZMSingleRequestSync, apiVersion: APIVersion) -> ZMTransportRequest? {
         guard let teamID = ZMUser.selfUser(in: managedObjectContext).teamIdentifier else {
             completeSyncPhase() // Skip sync phase if user doesn't belong to a team
             return nil
         }
-        return ZMTransportRequest(getFromPath: "/teams/\(teamID.transportString())/members", apiVersion: APIVersion.v0.rawValue)
+        return ZMTransportRequest(getFromPath: "/teams/\(teamID.transportString())/members", apiVersion: apiVersion.rawValue)
     }
 
     public func didReceive(_ response: ZMTransportResponse, forSingleRequest sync: ZMSingleRequestSync) {

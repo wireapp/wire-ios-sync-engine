@@ -68,10 +68,10 @@ public final class FeatureFlagRequestStrategy: AbstractRequestStrategy, ZMSingle
 
     // MARK: - ZMSingleRequestTranscoder
 
-    public func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
+    public func request(for sync: ZMSingleRequestSync, apiVersion: APIVersion) -> ZMTransportRequest? {
         switch sync {
         case singleRequestSync:
-            return makeDigitalSignatureFlagRequest()
+            return makeDigitalSignatureFlagRequest(apiVersion: apiVersion)
         default:
             return nil
         }
@@ -95,7 +95,7 @@ public final class FeatureFlagRequestStrategy: AbstractRequestStrategy, ZMSingle
     }
 
     // MARK: - Helpers
-    private func makeDigitalSignatureFlagRequest() -> ZMTransportRequest? {
+    private func makeDigitalSignatureFlagRequest(apiVersion: APIVersion) -> ZMTransportRequest? {
         guard let teamId = ZMUser.selfUser(in: syncContext).teamIdentifier?.uuidString else {
             // Skip sync phase if the user doesn't belong to a team
             if syncStatus.currentSyncPhase == .fetchingFeatureFlags {
@@ -107,7 +107,7 @@ public final class FeatureFlagRequestStrategy: AbstractRequestStrategy, ZMSingle
         return ZMTransportRequest(path: "/teams/\(teamId)/features/digital-signatures",
                                   method: .methodGET,
                                   payload: nil,
-                                  apiVersion: APIVersion.v0.rawValue)
+                                  apiVersion: apiVersion.rawValue)
     }
 
     private func processDigitalSignatureFlagSuccess(with data: Data?) {
