@@ -260,9 +260,7 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
                     let senderUUID = event.senderUUID,
                     let conversationUUID = event.conversationUUID,
                     let clientId = event.senderClientID,
-                    let eventTimestamp = event.timestamp,
-                    let conversationDomain = event.conversationDomain,
-                    let senderDomain = event.senderDomain
+                    let eventTimestamp = event.timestamp
                 else {
                     zmLog.error("ignoring calling message: \(genericMessage.debugDescription)")
                     continue
@@ -282,8 +280,8 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
                     conversationUUID: conversationUUID,
                     senderUUID: senderUUID,
                     clientId: clientId,
-                    conversationDomain: conversationDomain,
-                    senderDomain: senderDomain,
+                    conversationDomain: event.conversationDomain,
+                    senderDomain: event.senderDomain,
                     payload: payload,
                     eventTimestamp: eventTimestamp
                 )
@@ -294,8 +292,8 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
     func processCallEvent(conversationUUID: UUID,
                           senderUUID: UUID,
                           clientId: String,
-                          conversationDomain: String,
-                          senderDomain: String,
+                          conversationDomain: String?,
+                          senderDomain: String?,
                           payload: Data,
                           eventTimestamp: Date) {
         let currentTimestamp = Date().addingTimeInterval(managedObjectContext.serverTimeDelta)
