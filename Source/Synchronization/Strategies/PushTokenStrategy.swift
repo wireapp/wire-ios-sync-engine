@@ -126,7 +126,7 @@ public class PushTokenStrategy: AbstractRequestStrategy, ZMUpstreamTranscoder, Z
             guard let payload = try? JSONDecoder().decode([String: [PushTokenPayload]].self, from: responseData) else { return false }
             guard let tokens = payload["tokens"] else { return false }
 
-            if let _ = tokens.first(where: { $0.client == client.remoteIdentifier && $0.token == pushToken.deviceTokenString }) // We found one token that matches what we have locally
+            if tokens.first(where: { $0.client == client.remoteIdentifier && $0.token == pushToken.deviceTokenString }) != nil // We found one token that matches what we have locally
             {
                 // Clear the flags and we are done
                 client.pushToken = pushToken.resetFlags()

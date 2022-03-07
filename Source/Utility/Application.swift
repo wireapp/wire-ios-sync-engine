@@ -32,7 +32,7 @@ public protocol NotificationSettingsRegistrable {
     var applicationState: UIApplication.State { get }
 
     /// Badge count
-    var applicationIconBadgeNumber : Int { get set }
+    var applicationIconBadgeNumber: Int { get set }
     
     /// Returns YES if the application is currently registered for remote notifications
     var isRegisteredForRemoteNotifications: Bool { get }
