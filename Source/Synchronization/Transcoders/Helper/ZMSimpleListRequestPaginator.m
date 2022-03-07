@@ -69,7 +69,7 @@ ZM_EMPTY_ASSERTING_INIT()
     return self;
 }
 
-- (ZMTransportRequest *)nextRequestForAPIVersion:(ZMAPIVersion)apiVersion
+- (ZMTransportRequest *)nextRequestForAPIVersion:(APIVersion)apiVersion
 {
     if(!self.hasMoreToFetch) {
         return nil;
@@ -82,7 +82,7 @@ ZM_EMPTY_ASSERTING_INIT()
     return self.singleRequestSync.status;
 }
 
-- (ZMTransportRequest *)requestForSingleRequestSync:(ZMSingleRequestSync * __unused)sync
+- (ZMTransportRequest *)requestForSingleRequestSync:(ZMSingleRequestSync * __unused)sync apiVersion:(APIVersion)apiVersion
 {
     if(!self.hasMoreToFetch) {
         return nil;
@@ -103,7 +103,7 @@ ZM_EMPTY_ASSERTING_INIT()
     NSURLComponents *components = [NSURLComponents componentsWithString:self.basePath];
     components.queryItems = queryItems;
     
-    ZMTransportRequest *request = [ZMTransportRequest requestGetFromPath:components.string apiVersion:v0];
+    ZMTransportRequest *request = [ZMTransportRequest requestGetFromPath:components.string apiVersion:apiVersion];
     return request;
 }
 

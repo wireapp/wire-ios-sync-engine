@@ -20,25 +20,25 @@ import Foundation
 
 @objc extension ZMOperationLoop {
 
-    public var currentAPIVersion: ZMAPIVersionWrapper? {
-        guard let current = ZMAPIVersion.current else { return nil }
+    public var currentAPIVersion: APIVersionWrapper? {
+        guard let current = APIVersion.current else { return nil }
         return .init(value: current)
     }
 
 }
 
-/// A helper object to give reference semantics to `ZMAPIVersion`.
+/// A helper object to give reference semantics to `APIVersion`.
 ///
-/// This is needed because the optional type`ZMAPIVersion?` can't be
+/// This is needed because the optional type`APIVersion?` can't be
 /// represented in objc.
 
 @objc
-public class ZMAPIVersionWrapper: NSObject {
+public class APIVersionWrapper: NSObject {
 
     @objc
-    public var value: ZMAPIVersion
+    public var value: APIVersion
 
-    init(value: ZMAPIVersion) {
+    init(value: APIVersion) {
         self.value = value
         super.init()
     }

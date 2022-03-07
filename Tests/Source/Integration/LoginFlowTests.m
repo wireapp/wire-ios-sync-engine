@@ -184,7 +184,7 @@ extern NSTimeInterval DebugLoginFailureTimerOverride;
         NSError *error = [NSError errorWithDomain:ZMTransportSessionErrorDomain code:ZMTransportSessionErrorCodeAuthenticationFailed userInfo:nil];
         [self.mockTransportSession.cookieStorage setAuthenticationCookieData:nil];
         [ZMPersistentCookieStorage deleteAllKeychainItems];
-        return [ZMTransportResponse responseWithPayload:nil HTTPStatus:0 transportSessionError:error apiVersion:v0];
+        return [ZMTransportResponse responseWithPayload:nil HTTPStatus:0 transportSessionError:error apiVersion:0];
     };
     
     // when
@@ -225,7 +225,7 @@ extern NSTimeInterval DebugLoginFailureTimerOverride;
         //  ... but no request after it
         NSError *error = [NSError errorWithDomain:ZMTransportSessionErrorDomain code:ZMTransportSessionErrorCodeAuthenticationFailed userInfo:nil];
         [self.mockTransportSession.cookieStorage setAuthenticationCookieData:nil];
-        return [ZMTransportResponse responseWithPayload:nil HTTPStatus:0 transportSessionError:error apiVersion:v0];
+        return [ZMTransportResponse responseWithPayload:nil HTTPStatus:0 transportSessionError:error apiVersion:0];
     };
     
     // when
@@ -251,7 +251,7 @@ extern NSTimeInterval DebugLoginFailureTimerOverride;
         ZM_STRONG(self);
         NOT_USED(request);
         self.mockTransportSession.disableEnqueueRequests = YES;
-        return [ZMTransportResponse responseWithPayload:nil HTTPStatus:0 transportSessionError:error apiVersion:v0];
+        return [ZMTransportResponse responseWithPayload:nil HTTPStatus:0 transportSessionError:error apiVersion:0];
     };
     DebugLoginFailureTimerOverride = 0.2;
     
@@ -341,7 +341,7 @@ extern NSTimeInterval DebugLoginFailureTimerOverride;
     
     self.mockTransportSession.responseGeneratorBlock = ^ZMTransportResponse*(ZMTransportRequest *request) {
         if([request.path isEqualToString:@"/login/send"]) {
-            return [ZMTransportResponse responseWithPayload:nil HTTPStatus:400 transportSessionError:nil apiVersion:v0];
+            return [ZMTransportResponse responseWithPayload:nil HTTPStatus:400 transportSessionError:nil apiVersion:0];
         }
         return nil;
     };
@@ -453,7 +453,7 @@ extern NSTimeInterval DebugLoginFailureTimerOverride;
         }
         // the user updates the email address (currently does not work in MockTransportsession for some reason)
         if ([request.path isEqualToString:@"/self/email"]) {
-            return [ZMTransportResponse responseWithPayload:nil HTTPStatus:200 transportSessionError:nil apiVersion:v0];
+            return [ZMTransportResponse responseWithPayload:nil HTTPStatus:200 transportSessionError:nil apiVersion:0];
         }
         return nil;
     };
@@ -498,7 +498,7 @@ extern NSTimeInterval DebugLoginFailureTimerOverride;
                 payload = @{@"label" : @"invalid-credentials"};
             }
             runCount++;
-            return [ZMTransportResponse responseWithPayload:payload HTTPStatus:400 transportSessionError:nil apiVersion:v0];
+            return [ZMTransportResponse responseWithPayload:payload HTTPStatus:400 transportSessionError:nil apiVersion:0];
         }
         return nil;
     };
@@ -625,12 +625,12 @@ extern NSTimeInterval DebugLoginFailureTimerOverride;
         if(!didTryToRegister && [request.path isEqualToString:clientsPath] && request.method == ZMMethodPOST) {
             didTryToRegister = YES;
             NSDictionary *tooManyClients = @{@"label" : @"too-many-clients"};
-            return [ZMTransportResponse responseWithPayload:tooManyClients HTTPStatus:400 transportSessionError:nil apiVersion:v0];
+            return [ZMTransportResponse responseWithPayload:tooManyClients HTTPStatus:400 transportSessionError:nil apiVersion:0];
         }
         // we successfully delete the selected client (currently not working with MocktransportSession)
         if(!didDeleteClient && [request.path isEqualToString:[NSString stringWithFormat:@"%@/%@",clientsPath, idToDelete]] && request.method == ZMMethodDELETE) {
             didDeleteClient = YES;
-            return [ZMTransportResponse responseWithPayload:nil HTTPStatus:200 transportSessionError:nil apiVersion:v0];
+            return [ZMTransportResponse responseWithPayload:nil HTTPStatus:200 transportSessionError:nil apiVersion:0];
         }
         return nil;
     };

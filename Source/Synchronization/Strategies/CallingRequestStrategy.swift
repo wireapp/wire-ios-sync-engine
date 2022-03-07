@@ -89,7 +89,7 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
     // MARK: - Methods
 
-    public override func nextRequestIfAllowed(for apiVersion: ZMAPIVersion) -> ZMTransportRequest? {
+    public override func nextRequestIfAllowed(for apiVersion: APIVersion) -> ZMTransportRequest? {
         let request = callConfigRequestSync.nextRequest(for: apiVersion) ??
                       clientDiscoverySync.nextRequest(for: apiVersion) ??
                       messageSync.nextRequest(for: apiVersion)
@@ -104,7 +104,7 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
 // MARK: - Single Request Transcoder
 
-    public func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
+    public func request(for sync: ZMSingleRequestSync, apiVersion: APIVersion) -> ZMTransportRequest? {
         switch sync {
         case callConfigRequestSync:
             zmLog.debug("Scheduling request to '/calls/config/v2'")
@@ -115,7 +115,7 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
                                       type: "application/json",
                                       contentDisposition: nil,
                                       shouldCompress: true,
-                                      apiVersion: .v0)
+                                      apiVersion: apiVersion.rawValue)
 
         case clientDiscoverySync:
             guard

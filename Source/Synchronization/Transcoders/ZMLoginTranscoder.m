@@ -87,7 +87,7 @@ NSTimeInterval DefaultPendingValidationLoginAttemptInterval = 5;
     [self.timedDownstreamSync invalidate];
 }
 
-- (ZMTransportRequest *)nextRequestForAPIVersion:(ZMAPIVersion)apiVersion
+- (ZMTransportRequest *)nextRequestForAPIVersion:(APIVersion)apiVersion
 {
     ZMAuthenticationStatus *authenticationStatus = self.authenticationStatus;
     ZMTransportRequest *request;
@@ -121,17 +121,17 @@ NSTimeInterval DefaultPendingValidationLoginAttemptInterval = 5;
     return @[];
 }
 
-- (ZMTransportRequest *)requestForSingleRequestSync:(ZMSingleRequestSync *)sync
+- (ZMTransportRequest *)requestForSingleRequestSync:(ZMSingleRequestSync *)sync apiVersion:(APIVersion)apiVersion
 {
     if (sync == self.timedDownstreamSync ||
         sync == self.loginWithPhoneNumberSync) {
-        return [self loginRequest];
+        return [self loginRequestForAPIVersion: apiVersion];
     } else {
         return nil;
     }
 }
 
-- (ZMTransportRequest *)loginRequest
+- (ZMTransportRequest *)loginRequestForAPIVersion:(APIVersion)apiVersion
 {
     ZMAuthenticationStatus *authenticationStatus = self.authenticationStatus;
     if (authenticationStatus.currentPhase == ZMAuthenticationPhaseAuthenticated) {
@@ -156,7 +156,7 @@ NSTimeInterval DefaultPendingValidationLoginAttemptInterval = 5;
     if (CookieLabel.current.length != 0) {
         payload[@"label"] = CookieLabel.current.value;
     }
-    return [[ZMTransportRequest alloc] initWithPath:ZMLoginURL method:LoginMethod payload:payload authentication:ZMTransportRequestAuthCreatesCookieAndAccessToken apiVersion:v0];
+    return [[ZMTransportRequest alloc] initWithPath:ZMLoginURL method:LoginMethod payload:payload authentication:ZMTransportRequestAuthCreatesCookieAndAccessToken apiVersion:apiVersion];
 
 }
 

@@ -127,7 +127,7 @@ public final class UnauthenticatedSessionTests_SSO: ZMTBaseTest {
         }
 
         // when
-        transportSession.lastEnqueuedRequest?.complete(with: ZMTransportResponse(payload: payload, httpStatus: statusCode, transportSessionError: nil, apiVersion: .v0))
+        transportSession.lastEnqueuedRequest?.complete(with: ZMTransportResponse(payload: payload, httpStatus: statusCode, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
 
         // then
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))

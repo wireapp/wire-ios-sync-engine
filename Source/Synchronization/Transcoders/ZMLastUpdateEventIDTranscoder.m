@@ -80,7 +80,7 @@
     return self.syncStatus.currentSyncPhase == self.expectedSyncPhase;
 }
 
-- (ZMTransportRequest *)nextRequestIfAllowedForAPIVersion:(ZMAPIVersion)apiVersion
+- (ZMTransportRequest *)nextRequestIfAllowedForAPIVersion:(APIVersion)apiVersion
 {
     if (self.isSyncing && !self.isDownloadingLastUpdateEventID) {
         [self startRequestingLastUpdateEventIDWithoutPersistingIt];
@@ -107,7 +107,7 @@
     // no op
 }
 
-- (ZMTransportRequest *)requestForSingleRequestSync:(ZMSingleRequestSync *)sync
+- (ZMTransportRequest *)requestForSingleRequestSync:(ZMSingleRequestSync *)sync apiVersion:(APIVersion)apiVersion
 {
     NOT_USED(sync);
     NSURLComponents *components = [NSURLComponents componentsWithString:@"/notifications/last"];
@@ -117,7 +117,7 @@
         components.queryItems = @[[NSURLQueryItem queryItemWithName:@"client" value:selfClient.remoteIdentifier]];
     }
     
-    return [ZMTransportRequest requestGetFromPath:components.string apiVersion:v0];
+    return [ZMTransportRequest requestGetFromPath:components.string apiVersion:apiVersion];
 }
 
 - (void)didReceiveResponse:(ZMTransportResponse *)response forSingleRequest:(ZMSingleRequestSync *)sync

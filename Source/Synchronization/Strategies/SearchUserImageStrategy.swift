@@ -88,7 +88,7 @@ public class SearchUserImageStrategy: AbstractRequestStrategy, FederationAware {
         RequestAvailableNotification.notifyNewRequestsAvailable(nil)
     }
 
-    public override func nextRequestIfAllowed(for apiVersion: ZMAPIVersion) -> ZMTransportRequest? {
+    public override func nextRequestIfAllowed(for apiVersion: APIVersion) -> ZMTransportRequest? {
         let request = fetchUserProfilesRequest() ?? fetchAssetRequest()
         request?.setDebugInformationTranscoder(self)
         return request
@@ -143,7 +143,7 @@ public class SearchUserImageStrategy: AbstractRequestStrategy, FederationAware {
             } else {
                 path = "/assets/v3/\(key)"
             }
-            return ZMTransportRequest(getFromPath: path, apiVersion: .v0)
+            return ZMTransportRequest(getFromPath: path, apiVersion: APIVersion.v0.rawValue)
         }
         return nil
     }
@@ -229,7 +229,7 @@ public class SearchUserImageStrategy: AbstractRequestStrategy, FederationAware {
 
     public static func requestForFetchingFullProfile(for usersWithIDs: Set<UUID>, completionHandler: ZMCompletionHandler) -> ZMTransportRequest {
         let usersList = usersWithIDs.map {$0.transportString()}.joined(separator: ",")
-        let request = ZMTransportRequest(getFromPath: userPath + usersList, apiVersion: .v0)
+        let request = ZMTransportRequest(getFromPath: userPath + usersList, apiVersion: APIVersion.v0.rawValue)
         request.add(completionHandler)
         return request
     }

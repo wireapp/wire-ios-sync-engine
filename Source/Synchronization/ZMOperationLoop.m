@@ -140,7 +140,7 @@ static char* const ZMLogTag ZM_UNUSED = "OperationLoop";
             return nil;
         }
 
-        ZMAPIVersionWrapper *apiVersion = [self currentAPIVersion];
+        APIVersionWrapper *apiVersion = [self currentAPIVersion];
 
         if (apiVersion == nil) {
             return nil;

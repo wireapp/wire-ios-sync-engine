@@ -30,7 +30,7 @@ final class RegistationCredentialVerificationStrategy: NSObject {
 }
 
 extension RegistationCredentialVerificationStrategy: ZMSingleRequestTranscoder {
-    func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
+    func request(for sync: ZMSingleRequestSync, apiVersion: APIVersion) -> ZMTransportRequest? {
         let currentStatus = registrationStatus
         var payload: [String: Any]
         var path: String
@@ -49,7 +49,7 @@ extension RegistationCredentialVerificationStrategy: ZMSingleRequestTranscoder {
             fatal("Generating request for invalid phase: \(currentStatus.phase)")
         }
 
-        return ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData, apiVersion: .v0)
+        return ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData, apiVersion: apiVersion.rawValue)
     }
 
     func didReceive(_ response: ZMTransportResponse, forSingleRequest sync: ZMSingleRequestSync) {
@@ -87,7 +87,7 @@ extension RegistationCredentialVerificationStrategy: ZMSingleRequestTranscoder {
 }
 
 extension RegistationCredentialVerificationStrategy: RequestStrategy {
-    func nextRequest(for apiVersion: ZMAPIVersion) -> ZMTransportRequest? {
+    func nextRequest(for apiVersion: APIVersion) -> ZMTransportRequest? {
         switch registrationStatus.phase {
         case .sendActivationCode, .checkActivationCode:
             codeSendingSync.readyForNextRequestIfNotBusy()

@@ -50,7 +50,7 @@
     return self;
 }
 
-- (ZMTransportRequest *)nextRequestForAPIVersion:(ZMAPIVersion)apiVersion
+- (ZMTransportRequest *)nextRequestForAPIVersion:(APIVersion)apiVersion
 {
     if (self.authenticationStatus.currentPhase == ZMAuthenticationPhaseRequestPhoneVerificationCodeForLogin) {
         [self.codeRequestSync readyForNextRequestIfNotBusy];
@@ -61,13 +61,13 @@
 
 #pragma mark - ZMSingleRequestTranscoder
 
-- (ZMTransportRequest *)requestForSingleRequestSync:(__unused ZMSingleRequestSync *)sync;
+- (ZMTransportRequest *)requestForSingleRequestSync:(__unused ZMSingleRequestSync *)sync apiVersion:(APIVersion)apiVersion;
 {
     ZMTransportRequest *request = [[ZMTransportRequest alloc] initWithPath:@"/login/send"
                                                                     method:ZMMethodPOST
                                                                    payload:@{@"phone": self.authenticationStatus.loginPhoneNumberThatNeedsAValidationCode}
                                                             authentication:ZMTransportRequestAuthNone
-                                                                apiVersion:v0];
+                                                                apiVersion:apiVersion];
     return request;
 }
 

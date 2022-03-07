@@ -67,7 +67,7 @@ class CallingRequestStrategyTests: MessagingTest {
 
         // when
         let payload = [ "config": true ]
-        request?.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: .v0))
+        request?.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
 
         // then
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
@@ -120,11 +120,11 @@ class CallingRequestStrategyTests: MessagingTest {
 
         // when
         let badPayload = [ "error": "not found" ]
-        request?.complete(with: ZMTransportResponse(payload: badPayload as ZMTransportData, httpStatus: 412, transportSessionError: nil, apiVersion: .v0))
+        request?.complete(with: ZMTransportResponse(payload: badPayload as ZMTransportData, httpStatus: 412, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
 
         // when
         let payload = [ "config": true ]
-        request?.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: .v0))
+        request?.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
 
         // then
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
@@ -171,7 +171,7 @@ class CallingRequestStrategyTests: MessagingTest {
         XCTAssertEqual(request?.path, "/conversations/\(conversationId.identifier.transportString())/otr/messages")
 
         // When
-        request?.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 412, transportSessionError: nil, apiVersion: .v0))
+        request?.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 412, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
 
         // Then
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
@@ -226,7 +226,7 @@ class CallingRequestStrategyTests: MessagingTest {
         XCTAssertEqual(request?.path, "/conversations/\(domain1)/\(conversationId.identifier.transportString())/proteus/messages")
 
         // When
-        request?.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 412, transportSessionError: nil, apiVersion: .v0))
+        request?.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 412, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
 
         // Then
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))

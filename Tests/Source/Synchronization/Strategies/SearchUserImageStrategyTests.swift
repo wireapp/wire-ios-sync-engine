@@ -170,7 +170,7 @@ extension SearchUserImageStrategyTests {
             userData(previewAssetKey: previewAssetKey2, completeAssetKey: completeAssetKey2, for: searchUser2.remoteIdentifier!)
         ]
 
-        let response = ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: .v0)
+        let response = ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
         // When
         guard let request = sut.nextRequest(for: .v0) else { return XCTFail() }
@@ -189,7 +189,7 @@ extension SearchUserImageStrategyTests {
         // given
         let searchUsers = setupSearchDirectory(userCount: 2)
         searchUsers.forEach({ $0.requestPreviewProfileImage() })
-        let response = ZMTransportResponse(payload: nil, httpStatus: 400, transportSessionError: nil, apiVersion: .v0)
+        let response = ZMTransportResponse(payload: nil, httpStatus: 400, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
         // when
         guard let request = sut.nextRequest(for: .v0) else { return XCTFail() }
@@ -204,7 +204,7 @@ extension SearchUserImageStrategyTests {
         // given
         let searchUsers = setupSearchDirectory(userCount: 2)
         searchUsers.forEach({ $0.requestPreviewProfileImage() })
-        let response = ZMTransportResponse(payload: nil, httpStatus: 500, transportSessionError: nil, apiVersion: .v0)
+        let response = ZMTransportResponse(payload: nil, httpStatus: 500, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
         // when
         guard let request1 = sut.nextRequest(for: .v0) else { return XCTFail() }
@@ -226,7 +226,7 @@ extension SearchUserImageStrategyTests {
             userData(previewAssetKey: UUID().transportString(), for: searchUsers.first!.remoteIdentifier!),
             userData(previewAssetKey: UUID().transportString(), for: searchUsers.last!.remoteIdentifier!)
         ]
-        let response = ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: .v0)
+        let response = ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
         // when
         guard let request1 = sut.nextRequest(for: .v0) else { return XCTFail() }
@@ -320,7 +320,7 @@ extension SearchUserImageStrategyTests {
         searchUser1.update(from: userData(previewAssetKey: assetID1, for: searchUser1.remoteIdentifier!))
         searchUser1.requestPreviewProfileImage()
 
-        let response = ZMTransportResponse(imageData: imageData, httpStatus: 200, transportSessionError: nil, headers: nil, apiVersion: .v0)
+        let response = ZMTransportResponse(imageData: imageData, httpStatus: 200, transportSessionError: nil, headers: nil, apiVersion: APIVersion.v0.rawValue)
 
         // when
         guard let request = sut.nextRequest(for: .v0) else { return XCTFail() }
@@ -341,7 +341,7 @@ extension SearchUserImageStrategyTests {
         searchUser1.update(from: userData(previewAssetKey: assetID1, for: searchUser1.remoteIdentifier!))
         searchUser1.requestPreviewProfileImage()
 
-        let response = ZMTransportResponse(imageData: imageData, httpStatus: 200, transportSessionError: nil, headers: nil, apiVersion: .v0)
+        let response = ZMTransportResponse(imageData: imageData, httpStatus: 200, transportSessionError: nil, headers: nil, apiVersion: APIVersion.v0.rawValue)
 
         // when
         guard let request = sut.nextRequest(for: .v0) else { return XCTFail() }
@@ -360,7 +360,7 @@ extension SearchUserImageStrategyTests {
         let assetID1 = UUID().transportString()
         searchUser1.update(from: userData(previewAssetKey: assetID1, for: searchUser1.remoteIdentifier!))
         searchUser1.requestPreviewProfileImage()
-        let response = ZMTransportResponse(payload: nil, httpStatus: 400, transportSessionError: nil, apiVersion: .v0)
+        let response = ZMTransportResponse(payload: nil, httpStatus: 400, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
         // when
         guard let request = sut.nextRequest(for: .v0) else { return XCTFail() }
@@ -380,7 +380,7 @@ extension SearchUserImageStrategyTests {
         searchUser1.update(from: userData(previewAssetKey: assetID1, for: searchUser1.remoteIdentifier!))
         searchUser1.requestPreviewProfileImage()
 
-        let response = ZMTransportResponse(payload: nil, httpStatus: 500, transportSessionError: nil, apiVersion: .v0)
+        let response = ZMTransportResponse(payload: nil, httpStatus: 500, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
         // when
         guard let request1 = sut.nextRequest(for: .v0) else { return XCTFail() }
@@ -402,7 +402,7 @@ extension SearchUserImageStrategyTests {
         searchUser1.update(from: userData(previewAssetKey: assetID1, for: searchUser1.remoteIdentifier!))
         searchUser1.requestPreviewProfileImage()
 
-        let response = ZMTransportResponse(imageData: imageData, httpStatus: 200, transportSessionError: nil, headers: nil, apiVersion: .v0)
+        let response = ZMTransportResponse(imageData: imageData, httpStatus: 200, transportSessionError: nil, headers: nil, apiVersion: APIVersion.v0.rawValue)
         uiMOC.searchUserObserverCenter.addSearchUser(searchUser1) // This is called when the searchDirectory returns the searchUsers
         let userObserver = UserChangeObserver(user: searchUser1, managedObjectContext: self.uiMOC)!
 
@@ -426,7 +426,7 @@ extension SearchUserImageStrategyTests {
         searchUser1.update(from: userData(previewAssetKey: previewAssetKey, completeAssetKey: completeAssetKey, for: searchUser1.remoteIdentifier!))
         searchUser1.requestCompleteProfileImage()
 
-        let response = ZMTransportResponse(imageData: imageData, httpStatus: 200, transportSessionError: nil, headers: nil, apiVersion: .v0)
+        let response = ZMTransportResponse(imageData: imageData, httpStatus: 200, transportSessionError: nil, headers: nil, apiVersion: APIVersion.v0.rawValue)
         uiMOC.searchUserObserverCenter.addSearchUser(searchUser1) // This is called when the searchDirectory returns the searchUsers
         let userObserver = UserChangeObserver(user: searchUser1, managedObjectContext: self.uiMOC)!
 

@@ -242,7 +242,7 @@ NSUInteger const ZMMissingUpdateEventsTranscoderListPageSize = 500;
     }
 }
 
-- (ZMTransportRequest *)nextRequestIfAllowedForAPIVersion:(ZMAPIVersion)apiVersion
+- (ZMTransportRequest *)nextRequestIfAllowedForAPIVersion:(APIVersion)apiVersion
 {
     /// There are multiple scenarios in which this class will create a new request:
     ///

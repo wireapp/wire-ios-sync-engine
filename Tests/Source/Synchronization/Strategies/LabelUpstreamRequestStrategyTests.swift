@@ -147,7 +147,7 @@ class LabelUpstreamRequestStrategyTests: MessagingTest {
             label2.modifiedKeys = Set(["name"])
             self.syncMOC.saveOrRollback()
             self.sut.objectsDidChange(Set([label2]))
-            request.complete(with: ZMTransportResponse(payload: nil, httpStatus: 201, transportSessionError: nil, apiVersion: .v0))
+            request.complete(with: ZMTransportResponse(payload: nil, httpStatus: 201, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
@@ -170,7 +170,7 @@ class LabelUpstreamRequestStrategyTests: MessagingTest {
         // when
         syncMOC.performGroupedBlockAndWait {
             guard let request = self.sut.nextRequestIfAllowed(for: .v0) else { return XCTFail() }
-            request.complete(with: ZMTransportResponse(payload: nil, httpStatus: 201, transportSessionError: nil, apiVersion: .v0))
+            request.complete(with: ZMTransportResponse(payload: nil, httpStatus: 201, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
@@ -194,7 +194,7 @@ class LabelUpstreamRequestStrategyTests: MessagingTest {
         // when
         syncMOC.performGroupedBlockAndWait {
             guard let request = self.sut.nextRequestIfAllowed(for: .v0) else { return XCTFail() }
-            request.complete(with: ZMTransportResponse(payload: nil, httpStatus: 201, transportSessionError: nil, apiVersion: .v0))
+            request.complete(with: ZMTransportResponse(payload: nil, httpStatus: 201, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 

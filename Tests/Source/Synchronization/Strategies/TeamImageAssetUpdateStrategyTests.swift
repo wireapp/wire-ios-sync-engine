@@ -85,7 +85,7 @@ final class TeamImageAssetUpdateStrategyTests: MessagingTest {
         guard let request = sut.nextRequest(for: .v0) else { return XCTFail("nil request generated") }
 
         // WHEN
-        request.complete(with: ZMTransportResponse(imageData: imageData, httpStatus: 200, transportSessionError: nil, headers: nil, apiVersion: .v0))
+        request.complete(with: ZMTransportResponse(imageData: imageData, httpStatus: 200, transportSessionError: nil, headers: nil, apiVersion: APIVersion.v0.rawValue))
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // THEN
@@ -100,7 +100,7 @@ final class TeamImageAssetUpdateStrategyTests: MessagingTest {
         guard let request = sut.nextRequest(for: .v0) else { return XCTFail("nil request generated") }
 
         // WHEN
-        request.complete(with: ZMTransportResponse(payload: nil, httpStatus: 404, transportSessionError: nil, apiVersion: .v0))
+        request.complete(with: ZMTransportResponse(payload: nil, httpStatus: 404, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // THEN

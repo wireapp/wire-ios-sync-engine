@@ -61,7 +61,7 @@ public class LabelDownstreamRequestStrategy: AbstractRequestStrategy, ZMEventCon
         self.slowSync = ZMSingleRequestSync(singleRequestTranscoder: self, groupQueue: managedObjectContext)
     }
 
-    override public func nextRequestIfAllowed(for apiVersion: ZMAPIVersion) -> ZMTransportRequest? {
+    override public func nextRequestIfAllowed(for apiVersion: APIVersion) -> ZMTransportRequest? {
         guard syncStatus.currentSyncPhase == .fetchingLabels || ZMUser.selfUser(in: managedObjectContext).needsToRefetchLabels else { return nil }
 
         slowSync.readyForNextRequestIfNotBusy()
@@ -129,8 +129,8 @@ public class LabelDownstreamRequestStrategy: AbstractRequestStrategy, ZMEventCon
 
 // MARK: - ZMSingleRequestTranscoder
 
-    public func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
-        return ZMTransportRequest(getFromPath: "/properties/labels", apiVersion: .v0)
+    public func request(for sync: ZMSingleRequestSync, apiVersion: APIVersion) -> ZMTransportRequest? {
+        return ZMTransportRequest(getFromPath: "/properties/labels", apiVersion: apiVersion.rawValue)
     }
 
     public func didReceive(_ response: ZMTransportResponse, forSingleRequest sync: ZMSingleRequestSync) {

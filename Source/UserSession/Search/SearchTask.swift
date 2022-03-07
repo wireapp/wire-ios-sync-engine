@@ -306,7 +306,7 @@ extension SearchTask {
     }
 
     static func searchRequestForUser(withUUID uuid: UUID) -> ZMTransportRequest {
-        return ZMTransportRequest(getFromPath: "/users/\(uuid.transportString())", apiVersion: .v0)
+        return ZMTransportRequest(getFromPath: "/users/\(uuid.transportString())", apiVersion: APIVersion.v0.rawValue)
     }
 
 }
@@ -409,7 +409,7 @@ extension SearchTask {
         url.path = "/search/contacts"
         url.queryItems = [URLQueryItem(name: "q", value: query), URLQueryItem(name: "size", value: String(fetchLimit))]
         let urlStr = url.string?.replacingOccurrences(of: "+", with: "%2B") ?? ""
-        return ZMTransportRequest(getFromPath: urlStr, apiVersion: .v0)
+        return ZMTransportRequest(getFromPath: urlStr, apiVersion: APIVersion.v0.rawValue)
     }
 
     static func fetchTeamMembershipRequest(teamID: UUID, teamMemberIDs: [UUID]) -> ZMTransportRequest {
@@ -417,7 +417,7 @@ extension SearchTask {
         let path = "/teams/\(teamID.transportString())/get-members-by-ids-using-post"
         let payload = ["user_ids": teamMemberIDs.map { $0.transportString() }]
 
-        return ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData, apiVersion: .v0)
+        return ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData, apiVersion: APIVersion.v0.rawValue)
     }
 
 }
@@ -503,7 +503,7 @@ extension SearchTask {
         url.path = "/users"
         url.queryItems = [URLQueryItem(name: "handles", value: handle)]
         let urlStr = url.string?.replacingOccurrences(of: "+", with: "%2B") ?? ""
-        return ZMTransportRequest(getFromPath: urlStr, apiVersion: .v0)
+        return ZMTransportRequest(getFromPath: urlStr, apiVersion: APIVersion.v0.rawValue)
     }
 }
 
@@ -548,7 +548,7 @@ extension SearchTask {
     }
 
     static func searchRequestInDirectory(withHandle handle: String, domain: String) -> ZMTransportRequest {
-        return ZMTransportRequest(getFromPath: "/users/by-handle/\(domain)/\(handle)", apiVersion: .v0)
+        return ZMTransportRequest(getFromPath: "/users/by-handle/\(domain)/\(handle)", apiVersion: APIVersion.v0.rawValue)
     }
 }
 
@@ -601,6 +601,6 @@ extension SearchTask {
             url.queryItems = [URLQueryItem(name: "prefix", value: trimmedQuery)]
         }
         let urlStr = url.string?.replacingOccurrences(of: "+", with: "%2B") ?? ""
-        return ZMTransportRequest(getFromPath: urlStr, apiVersion: .v0)
+        return ZMTransportRequest(getFromPath: urlStr, apiVersion: APIVersion.v0.rawValue)
     }
 }

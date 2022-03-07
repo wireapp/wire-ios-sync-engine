@@ -45,7 +45,7 @@ public final class SignatureRequestStrategy: AbstractRequestStrategy, ZMSingleRe
     }
 
     @objc
-    public override func nextRequestIfAllowed(for apiVersion: ZMAPIVersion) -> ZMTransportRequest? {
+    public override func nextRequestIfAllowed(for apiVersion: APIVersion) -> ZMTransportRequest? {
         guard let signatureStatus = syncContext.signatureStatus else {
             return nil
         }
@@ -77,12 +77,12 @@ public final class SignatureRequestStrategy: AbstractRequestStrategy, ZMSingleRe
 
     // MARK: - ZMSingleRequestTranscoder
 
-    public func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
+    public func request(for sync: ZMSingleRequestSync, apiVersion: APIVersion) -> ZMTransportRequest? {
         switch sync {
         case requestSync:
-            return makeSignatureRequest()
+            return makeSignatureRequest(apiVersion: apiVersion)
         case retrieveSync:
-            return makeRetrieveSignatureRequest()
+            return makeRetrieveSignatureRequest(apiVersion: apiVersion)
         default:
             return nil
         }
@@ -130,7 +130,7 @@ public final class SignatureRequestStrategy: AbstractRequestStrategy, ZMSingleRe
     }
 
     // MARK: - Helpers
-    private func makeSignatureRequest() -> ZMTransportRequest? {
+    private func makeSignatureRequest(apiVersion: APIVersion) -> ZMTransportRequest? {
         guard
             let signatureStatus = syncContext.signatureStatus,
             let encodedHash = signatureStatus.encodedHash,
@@ -146,10 +146,10 @@ public final class SignatureRequestStrategy: AbstractRequestStrategy, ZMSingleRe
         return ZMTransportRequest(path: "/signature/request",
                                   method: .methodPOST,
                                   payload: payload as ZMTransportData,
-                                  apiVersion: .v0)
+                                  apiVersion: apiVersion.rawValue)
     }
 
-    private func makeRetrieveSignatureRequest() -> ZMTransportRequest? {
+    private func makeRetrieveSignatureRequest(apiVersion: APIVersion) -> ZMTransportRequest? {
 
         guard let responseID = signatureResponse?.responseID else {
             return nil
@@ -158,7 +158,7 @@ public final class SignatureRequestStrategy: AbstractRequestStrategy, ZMSingleRe
         return ZMTransportRequest(path: "/signature/pending/\(responseID)",
                                   method: .methodGET,
                                   payload: nil,
-                                  apiVersion: .v0)
+                                  apiVersion: apiVersion.rawValue)
     }
 
     private func processRequestSignatureSuccess(with data: Data?) {
