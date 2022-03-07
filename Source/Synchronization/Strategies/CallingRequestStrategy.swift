@@ -260,7 +260,9 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
                     let senderUUID = event.senderUUID,
                     let conversationUUID = event.conversationUUID,
                     let clientId = event.senderClientID,
-                    let eventTimestamp = event.timestamp
+                    let eventTimestamp = event.timestamp,
+                    let conversationDomain = event.conversationDomain,
+                    let senderDomain = event.senderDomain
                 else {
                     zmLog.error("ignoring calling message: \(genericMessage.debugDescription)")
                     continue
@@ -280,29 +282,31 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
                     conversationUUID: conversationUUID,
                     senderUUID: senderUUID,
                     clientId: clientId,
-                    event: event,
+                    conversationDomain: conversationDomain,
+                    senderDomain: senderDomain,
                     payload: payload,
-                    currentTimestamp: Date().addingTimeInterval(serverTimeDelta),
                     eventTimestamp: eventTimestamp
                 )
             }
         }
     }
 
-    private func processCallEvent(conversationUUID: UUID,
-                                  senderUUID: UUID,
-                                  clientId: String,
-                                  event: ZMUpdateEvent,
-                                  payload: Data,
-                                  currentTimestamp: Date,
-                                  eventTimestamp: Date) {
+    func processCallEvent(conversationUUID: UUID,
+                          senderUUID: UUID,
+                          clientId: String,
+                          conversationDomain: String,
+                          senderDomain: String,
+                          payload: Data,
+                          eventTimestamp: Date) {
+        let currentTimestamp = Date().addingTimeInterval(managedObjectContext.serverTimeDelta)
+
         let conversationId = AVSIdentifier(
             identifier: conversationUUID,
-            domain: useFederationEndpoint ? event.conversationDomain : nil
+            domain: useFederationEndpoint ? conversationDomain : nil
         )
         let userId = AVSIdentifier(
             identifier: senderUUID,
-            domain: useFederationEndpoint ? event.senderDomain : nil
+            domain: useFederationEndpoint ? senderDomain : nil
         )
 
         let callEvent = CallEvent(
