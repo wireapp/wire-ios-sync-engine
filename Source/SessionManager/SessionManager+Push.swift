@@ -46,7 +46,7 @@ public struct PushFromNotificationExtension: Codable {
     let payloadData: Data
     let timestamp: Date
 
-    init? (event: ZMUpdateEvent) {
+    public init? (event: ZMUpdateEvent) {
         guard let conversationId = event.conversationUUID,
               let senderId = event.senderUUID,
               let senderClientID = event.senderClientID,
@@ -132,7 +132,7 @@ extension SessionManager: PKPushRegistryDelegate {
         guard let accountIdString = payload.dictionaryPayload[PushFromNotificationExtensionKeys.accountId] as? String,
               let accountId = UUID(uuidString: accountIdString),
               let account = self.accountManager.account(with: accountId),
-              let dictionaryPayload = payload.dictionaryPayload as? [String : Any],
+              let dictionaryPayload = payload.dictionaryPayload as? [String: Any],
               let pushPayload = PushFromNotificationExtension(dictionaryPayload) else {
                   Logging.push.safePublic("Aborted processing of payload: \(payload)")
                   return completion()
