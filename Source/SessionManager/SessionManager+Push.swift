@@ -41,10 +41,29 @@ public struct PushFromNotificationExtension: Codable {
     let conversationId: UUID
     let senderId: UUID
     let senderClientID: String
-    let conversationDomain: String
-    let senderDomain: String
+    let conversationDomain: String?
+    let senderDomain: String?
     let payloadData: Data
     let timestamp: Date
+
+    init? (event: ZMUpdateEvent) {
+        guard let conversationId = event.conversationUUID,
+              let senderId = event.senderUUID,
+              let senderClientID = event.senderClientID,
+              let timestamp = event.timestamp,
+              let genericMessage = GenericMessage(from: event),
+              let payloadData = genericMessage.calling.content.data(using: .utf8, allowLossyConversion: false)
+        else {
+            return nil
+        }
+        self.conversationId = conversationId
+        self.senderId = senderId
+        self.senderClientID = senderClientID
+        self.conversationDomain = event.conversationDomain
+        self.senderDomain = event.senderDomain
+        self.timestamp = timestamp
+        self.payloadData = payloadData
+    }
 }
 
 protocol PushRegistry {
