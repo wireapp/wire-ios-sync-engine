@@ -62,7 +62,8 @@
     },
     {
       "skippedTests" : [
-        "AvailabilityTests"
+        "AvailabilityTests",
+        "LoginFlowTests_PushToken\/testThatItRegistersThePushTokenWithTheBackend()"
       ],
       "target" : {
         "containerPath" : "container:WireSyncEngine.xcodeproj",

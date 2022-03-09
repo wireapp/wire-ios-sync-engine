@@ -36,7 +36,7 @@ import WireDataModel
 
     // Returns YES if the application is currently registered for remote notifications
     public var isRegisteredForRemoteNotifications: Bool = false
-    
+
     /// Records calls to `setMinimumBackgroundFetchInterval`
     public var minimumBackgroundFetchInverval: TimeInterval = UIApplication.backgroundFetchIntervalNever
 
@@ -136,7 +136,7 @@ extension ApplicationMock {
     @objc func setActive() {
         self.applicationState = .active
     }
-    
+
     public func updateDeviceToken() {
         if let token = deviceToken {
             let pushToken = PushToken.createAPNSToken(from: token)

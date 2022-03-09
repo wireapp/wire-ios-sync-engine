@@ -26,7 +26,7 @@ class LoginFlowTests_PushToken: IntegrationTest {
         self.createSelfUserAndConversation()
     }
 
-    override func tearDown(){
+    override func tearDown() {
         DebugLoginFailureTimerOverride = 0
         super.tearDown()
     }
@@ -36,12 +36,12 @@ class LoginFlowTests_PushToken: IntegrationTest {
         let deviceToken = "asdfasdf".data(using: .utf8)!
         let deviceTokenAsHex = "6173646661736466"
         XCTAssertTrue(self.login())
-        
+
         // when
         let pushToken = PushToken.createAPNSToken(from: deviceToken)
         self.userSession?.setPushToken(pushToken)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        
+
         // then
         let registeredTokens = self.mockTransportSession.pushTokens
         XCTAssertEqual(registeredTokens.count, 1)
