@@ -51,4 +51,21 @@ class ZMAuthenticationStatusTests_PhoneVerification: XCTestCase {
         XCTAssertNotEqual(originalPhone, phone as? String, "Should not have changed original phone")
 
     }
+
+    func testThatItCanRequestEmailVerificationCodeForLoginAfterRequestingTheCode() {
+
+        // GIVEN
+        let originalEmail = "test@wire.com"
+        var email: Any? = originalEmail
+        _ = try? ZMEmailAddressValidator.validateValue(&email)
+
+        // WHEN
+        sut.prepareForRequestingEmailVerificationCode(forLogin: originalEmail)
+
+        // THEN
+        XCTAssertEqual(sut.currentPhase, .requestEmailVerificationCodeForLogin)
+        XCTAssertEqual(sut.loginEmailThatNeedsAValidationCode, email as? String)
+        XCTAssertEqual(originalEmail, email as? String, "Should not have changed original email")
+
+    }
 }
