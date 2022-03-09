@@ -18,7 +18,7 @@
 
 import XCTest
 
-class ZMAuthenticationStatusTests_PhoneVerification: XCTestCase {
+class ZMAuthenticationStatusTests_PhoneAndEmailVerification: XCTestCase {
 
     var sut: ZMAuthenticationStatus!
     var delegate: MockAuthenticationStatusDelegate!
