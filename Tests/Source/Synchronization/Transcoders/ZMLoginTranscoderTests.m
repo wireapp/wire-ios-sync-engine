@@ -395,6 +395,23 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
     }];
 }
 
+- (void) testThatItCallsAccountPendingVerification
+{
+    //GIVEN
+    NSDictionary *content = @{@"code":@403,
+                              @"message":@"Code Authentication Required",
+                              @"label":@"code-authentication-required"};
+    [self.authenticationStatus prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:@"foo@example.com" password:@"12345678"]];
+    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:403 transportSessionError:nil];
+
+    // WHEN
+    [self expectAuthenticationFailedWithError:ZMUserSessionAccountIsPendingVerification after:^{
+        [[self.sut nextRequest] completeWithResponse:response];
+        WaitForAllGroupsToBeEmpty(0.5);
+    }];
+
+}
+
 -(void)testThatItInvalidatesTheCredentialsOnLoginErrorWhenLoggingWithEmail
 {
     // given

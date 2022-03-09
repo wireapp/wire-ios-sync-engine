@@ -291,6 +291,14 @@ static NSString* ZMLogTag ZM_UNUSED = @"Authentication";
     ZMLogDebug(@"current phase: %lu", (unsigned long)self.currentPhase);
 }
 
+- (void)didFailLoginWithEmailBecauseVerificationCodeIsRequired
+{
+    ZMLogDebug(@"%@", NSStringFromSelector(_cmd));
+    NSError *error = [NSError userSessionErrorWithErrorCode:ZMUserSessionAccountIsPendingVerification userInfo:nil];
+    [self.delegate authenticationDidFail: error];
+    ZMLogDebug(@"current phase: %lu", (unsigned long)self.currentPhase);
+}
+
 - (void)didFailLoginBecauseAccountSuspended
 {
     ZMLogDebug(@"%@", NSStringFromSelector(_cmd));
@@ -366,7 +374,8 @@ static NSString* ZMLogTag ZM_UNUSED = @"Authentication";
 {
     if (self.loginCredentials.credentialWithEmail) {
         return [ZMEmailCredentials credentialsWithEmail:self.loginCredentials.email
-                                               password:self.loginCredentials.password];
+                                   password:self.loginCredentials.password
+                                   emailVerificationCode:self.loginCredentials.emailVerificationCode];
     }
     return nil;
 }
