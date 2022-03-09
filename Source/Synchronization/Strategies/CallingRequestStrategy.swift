@@ -268,11 +268,11 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
                 let conversationId = AVSIdentifier(
                     identifier: conversationUUID,
-                    domain: useFederationEndpoint ? event.conversationDomain : nil
+                    domain: event.conversationDomain
                 )
                 let userId = AVSIdentifier(
                     identifier: senderUUID,
-                    domain: useFederationEndpoint ? event.senderDomain : nil
+                    domain: event.senderDomain
                 )
 
                 let callEvent = CallEvent(
