@@ -83,6 +83,7 @@ static NSString* ZMLogTag ZM_UNUSED = @"Authentication";
     
     self.registrationPhoneNumberThatNeedsAValidationCode = nil;
     self.loginPhoneNumberThatNeedsAValidationCode = nil;
+    self.loginEmailThatNeedsAValidationCode = nil;
 
     self.internalLoginCredentials = nil;
     self.registrationPhoneValidationCredentials = nil;
@@ -131,6 +132,11 @@ static NSString* ZMLogTag ZM_UNUSED = @"Authentication";
     if(self.loginPhoneNumberThatNeedsAValidationCode != nil) {
         return ZMAuthenticationPhaseRequestPhoneVerificationCodeForLogin;
     }
+
+    if (self.loginEmailThatNeedsAValidationCode != nil) {
+        return ZMAuthenticationPhaseRequestEmailVerificationCodeForLogin;
+    }
+    
     return ZMAuthenticationPhaseUnauthenticated;
 }
 
@@ -212,6 +218,14 @@ static NSString* ZMLogTag ZM_UNUSED = @"Authentication";
     ZMLogDebug(@"%@", NSStringFromSelector(_cmd));
     [self resetLoginAndRegistrationStatus];
     self.loginPhoneNumberThatNeedsAValidationCode = [ZMPhoneNumberValidator validatePhoneNumber: phone];
+    ZMLogDebug(@"current phase: %lu", (unsigned long)self.currentPhase);
+}
+
+- (void)prepareForRequestingEmailVerificationCodeForLogin:(NSString *)email;
+{
+    ZMLogDebug(@"%@", NSStringFromSelector(_cmd));
+    [self resetLoginAndRegistrationStatus];
+    self.loginEmailThatNeedsAValidationCode = email;
     ZMLogDebug(@"current phase: %lu", (unsigned long)self.currentPhase);
 }
 

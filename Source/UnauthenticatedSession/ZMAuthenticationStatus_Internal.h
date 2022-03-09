@@ -25,6 +25,7 @@
 
 @property (nonatomic, copy) NSString *registrationPhoneNumberThatNeedsAValidationCode;
 @property (nonatomic, copy) NSString *loginPhoneNumberThatNeedsAValidationCode;
+@property (nonatomic, copy) NSString *loginEmailThatNeedsAValidationCode;
 
 @property (nonatomic) ZMCredentials *internalLoginCredentials;
 @property (nonatomic) ZMPhoneCredentials *registrationPhoneValidationCredentials;
