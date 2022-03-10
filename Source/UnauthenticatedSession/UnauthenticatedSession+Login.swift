@@ -70,7 +70,9 @@ extension UnauthenticatedSession {
         return true
     }
 
-    /// Requires an email verification code for login. Returns NO if the email address was invalid
+    /// Triggers a request for an email verification code for login. 
+    ///
+    /// Returns: false if the email address was invalid.
     @objc(requestEmailVerificationCodeForLogin:)
     @discardableResult public func requestEmailVerificationCodeForLogin(email: String) -> Bool {
         do {
