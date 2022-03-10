@@ -20,12 +20,12 @@ import Foundation
 
 extension SessionManager: APIVersionResolverDelegate {
 
-    func apiVersionResolverFailedToResolveVersion(reason: BlacklistReason) {
-        delegate?.sessionManagerDidBlacklistCurrentVersion(reason: reason)
+    public func resolveAPIVersion() {
+        apiVersionResolver.resolveAPIVersion()
     }
 
-    func resolveAPIVersion() {
-        apiVersionResolver.resolveAPIVersion()
+    func apiVersionResolverFailedToResolveVersion(reason: BlacklistReason) {
+        delegate?.sessionManagerDidBlacklistCurrentVersion(reason: reason)
     }
 
 }
