@@ -268,6 +268,18 @@ public final class SessionManager: NSObject, SessionManagerType {
 
     private static var avsLogObserver: AVSLogObserver?
 
+    lazy var apiVersionResolver: APIVersionResolver = {
+        let transportSession = UnauthenticatedTransportSession(
+            environment: environment,
+            reachability: reachability,
+            applicationVersion: appVersion
+        )
+
+        let apiVersionResolver = APIVersionResolver(transportSession: transportSession)
+        apiVersionResolver.delegate = self
+        return apiVersionResolver
+    }()
+
     public override init() {
         fatal("init() not implemented")
     }
