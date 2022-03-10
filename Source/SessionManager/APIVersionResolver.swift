@@ -51,6 +51,8 @@ final class APIVersionResolver {
     private func handleResponse(_ response: ZMTransportResponse) {
         guard response.result == .success else {
             APIVersion.current = .v0
+            APIVersion.domain = "wire.com"
+            APIVersion.isFederationEnabled = false
             return
         }
 
@@ -62,6 +64,8 @@ final class APIVersionResolver {
         }
 
         APIVersion.current = .highestSupportedVersion(in: payload.supported)
+        APIVersion.domain = payload.domain
+        APIVersion.isFederationEnabled = payload.federation
 
         if APIVersion.current == nil {
             guard let maxBackendVersion = payload.supported.max() else {
