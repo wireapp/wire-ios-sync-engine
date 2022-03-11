@@ -242,6 +242,24 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
     XCTAssertEqualObjects(request, expectedRequest);
 }
 
+- (void)testThatItGeneratesALoginRequestWhenTheUserSessionHasCredentialsWithEmailVerificationCodeAndWeAreNotLoggedIn
+{
+    // GIVEN
+    NSDictionary *payload = @{@"email": self.testEmailCredentialsWithVerificationCode.email,
+                              @"password": self.testEmailCredentialsWithVerificationCode.password,
+                              @"verification-code": self.testEmailCredentialsWithVerificationCode.emailVerificationCode,
+                              @"label": CookieLabel.current.value};
+    ZMTransportRequest *expectedRequest = [[ZMTransportRequest alloc] initWithPath:ZMLoginURL method:ZMMethodPOST payload:payload authentication:ZMTransportRequestAuthCreatesCookieAndAccessToken];
+
+    [self.authenticationStatus prepareForLoginWithCredentials:self.testEmailCredentialsWithVerificationCode];
+
+    // WHEN
+    ZMTransportRequest *request = [self.sut nextRequest];
+
+    // THEN
+    XCTAssertEqualObjects(request, expectedRequest);
+}
+
 - (void)testThatItDoesNotGenerateALoginRequestWhenTheUserSessionHasNoCredentials
 {
     // when
