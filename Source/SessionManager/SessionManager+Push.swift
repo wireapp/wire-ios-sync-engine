@@ -27,7 +27,7 @@ public enum PushFromNotificationExtensionKeys: String {
     case fromNotificationExtension
 }
 
-public struct PushFromNotificationExtension: Decodable {
+public struct PushFromNotificationExtension: Codable {
     let conversationId: UUID
     let senderId: UUID
     let senderClientID: String
