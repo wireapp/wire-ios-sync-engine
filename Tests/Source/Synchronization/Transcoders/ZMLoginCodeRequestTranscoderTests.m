@@ -77,7 +77,7 @@
     XCTAssertEqualObjects(request, expectedRequest);
 }
 
--(void)testThatItReturnsExpectedRequestWhenThereIsEmailVerificationCode
+-(void)testThatItReturnsExpectedRequestWhenThereIsEmailThatNeedsVerificationCode
 {
     NSString *email = @"test@wire.com";
     [self.authenticationStatus prepareForRequestingEmailVerificationCodeForLogin:email];
