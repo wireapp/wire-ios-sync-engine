@@ -118,8 +118,10 @@ class UserClientRequestFactoryTests: MessagingTest {
         let payload = try XCTUnwrap(transportRequest.payload?.asDictionary() as? [String: NSObject])
 
         XCTAssertEqual(transportRequest.path, "/clients")
-        guard let password = payload["password"] as? String, password == credentials.password else { return XCTFail("Payload should contain password") }
-        guard let password = payload["verification_code"] as? String, password == credentials.emailVerificationCode else { return XCTFail("Payload should contain verification code") }
+        let password = try XCTUnwrap(payload["password"] as? String)
+        XCTAssertEqual(password, credentials.password)
+        let verificationCode = try XCTUnwrap(payload["verification_code"] as? String)
+        XCTAssertEqual(verificationCode, credentials.emailVerificationCode)
         XCTAssertEqual(transportRequest.method, ZMTransportRequestMethod.methodPOST)
     }
 
