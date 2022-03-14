@@ -69,7 +69,7 @@
 - (ZMTransportRequest *)requestForSingleRequestSync:(__unused ZMSingleRequestSync *)sync;
 {
 
-    if (sync == _emailVerificationCodeRequestSync) {
+    if (sync == self.emailVerificationCodeRequestSync) {
         ZMTransportRequest *emailVerficationCodeRequest = [[ZMTransportRequest alloc] initWithPath:@"/verification-code/send"
                                                                         method:ZMMethodPOST
                                                                        payload:@{@"email": self.authenticationStatus.loginEmailThatNeedsAValidationCode}
