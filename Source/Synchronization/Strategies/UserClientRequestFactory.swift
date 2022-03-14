@@ -63,6 +63,10 @@ public final class UserClientRequestFactory {
             payload["password"] = password
         }
 
+        if let verificationCode = credentials?.emailVerificationCode {
+            payload["verification_code"] = verificationCode
+        }
+
         let request = ZMTransportRequest(path: "/clients", method: ZMTransportRequestMethod.methodPOST, payload: payload as ZMTransportData)
         request.add(storeMaxRangeID(client, maxRangeID: preKeysRangeMax))
         request.add(storeAPSSignalingKeys(client, signalingKeys: signalingKeys))

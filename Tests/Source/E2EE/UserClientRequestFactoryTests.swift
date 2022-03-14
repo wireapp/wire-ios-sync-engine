@@ -97,6 +97,32 @@ class UserClientRequestFactoryTests: MessagingTest {
         XCTAssertNotNil(apnsKeysPayload["mackey"], "Payload should contain apns mac key")
     }
 
+    func testThatItCreatesRegistrationRequestWithEmailVerificationCodeCorrectly() {
+        // given
+        let email = "some@example.com"
+        let password = "gfsgdfgdfgdfgdfg"
+        let verificationCode = "123456"
+        let credentials = ZMEmailCredentials(email: email, password: password, emailVerificationCode: verificationCode)
+
+        let client = UserClient.insertNewObject(in: self.syncMOC)
+        client.remoteIdentifier = "\(client.objectID)"
+
+        // when
+        guard let request = try? sut.registerClientRequest(client, credentials: credentials, cookieLabel: "mycookie") else {
+            XCTFail()
+            return
+        }
+
+        // then
+        guard let transportRequest = request.transportRequest else { return XCTFail("Should return non nil request") }
+        guard let payload = transportRequest.payload?.asDictionary() as? [String: NSObject] else { return XCTFail("Request should contain payload") }
+
+        XCTAssertEqual(transportRequest.path, "/clients")
+        guard let password = payload["password"] as? String, password == credentials.password else { return XCTFail("Payload should contain password") }
+        guard let password = payload["verification_code"] as? String, password == credentials.emailVerificationCode else { return XCTFail("Payload should contain verification code") }
+        XCTAssertEqual(transportRequest.method, ZMTransportRequestMethod.methodPOST)
+    }
+
     func testThatItCreatesRegistrationRequestWithPhoneCredentialsCorrectly() {
         // given
         let client = UserClient.insertNewObject(in: self.syncMOC)
