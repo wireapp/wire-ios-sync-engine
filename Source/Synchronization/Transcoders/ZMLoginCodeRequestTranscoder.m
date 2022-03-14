@@ -71,18 +71,20 @@
 
     if (sync == self.emailVerificationCodeRequestSync) {
         ZMTransportRequest *emailVerficationCodeRequest = [[ZMTransportRequest alloc] initWithPath:@"/verification-code/send"
-                                                                        method:ZMMethodPOST
-                                                                       payload:@{@"email": self.authenticationStatus.loginEmailThatNeedsAValidationCode}
-                                                                authentication:ZMTransportRequestAuthNone];
+                                                                                            method:ZMMethodPOST
+                                                                                           payload:@{@"email": self.authenticationStatus.loginEmailThatNeedsAValidationCode}
+                                                                                    authentication:ZMTransportRequestAuthNone];
         return emailVerficationCodeRequest;
-    } else {
+    } else if (sync == self.phoneVerificationCodeRequestSync) {
 
-    ZMTransportRequest *phoneVerificationCodeRequest = [[ZMTransportRequest alloc] initWithPath:@"/login/send"
-                                                                    method:ZMMethodPOST
-                                                                   payload:@{@"phone": self.authenticationStatus.loginPhoneNumberThatNeedsAValidationCode}
-                                                            authentication:ZMTransportRequestAuthNone];
-    return phoneVerificationCodeRequest;
+        ZMTransportRequest *phoneVerificationCodeRequest = [[ZMTransportRequest alloc] initWithPath:@"/login/send"
+                                                                                             method:ZMMethodPOST
+                                                                                            payload:@{@"phone": self.authenticationStatus.loginPhoneNumberThatNeedsAValidationCode}
+                                                                                     authentication:ZMTransportRequestAuthNone];
+        return phoneVerificationCodeRequest;
     }
+
+    return nil;
 }
 
 - (void)didReceiveResponse:(ZMTransportResponse *)response forSingleRequest:(__unused ZMSingleRequestSync *)sync
