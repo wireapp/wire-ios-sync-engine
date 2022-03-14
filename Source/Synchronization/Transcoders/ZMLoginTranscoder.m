@@ -150,9 +150,10 @@ NSTimeInterval DefaultPendingValidationLoginAttemptInterval = 5;
         payload[@"phone"] = credentials.phoneNumber;
         payload[@"code"] = credentials.phoneNumberVerificationCode;
     }
-    else if (credentials.email != nil && credentials.emailVerificationCode != nil) {
+    else if (credentials.email != nil && credentials.password != nil && credentials.emailVerificationCode != nil) {
         payload[@"email"] = credentials.email;
-        payload[@"verification-code"]  =credentials.emailVerificationCode;
+        payload[@"password"] = credentials.password;
+        payload[@"verification-code"]  = credentials.emailVerificationCode;
     }
     else {
         return nil;
