@@ -17,18 +17,25 @@
 //
 
 import Foundation
-import WireSyncEngine
+import WireDataModel
+
+@testable import WireSyncEngine
 
 /// A mock of Application that records the calls
 @objcMembers public final class ApplicationMock: NSObject {
 
     public var applicationState: UIApplication.State = .active
+    public var deviceToken: Data?
+    public var userSession: ZMUserSession?
 
     /// Records calls to `registerForRemoteNotification`
     public var registerForRemoteNotificationCount: Int = 0
 
     /// The current badge icon number
     public var applicationIconBadgeNumber: Int = 0
+
+    // Returns YES if the application is currently registered for remote notifications
+    public var isRegisteredForRemoteNotifications: Bool = false
 
     /// Records calls to `setMinimumBackgroundFetchInterval`
     public var minimumBackgroundFetchInverval: TimeInterval = UIApplication.backgroundFetchIntervalNever
@@ -43,6 +50,7 @@ extension ApplicationMock: ZMApplication {
     public func registerForRemoteNotifications() {
         self.registerForRemoteNotificationCount += 1
         self.registerForRemoteNotificationsCallback()
+        self.updateDeviceToken()
     }
 
     public func setMinimumBackgroundFetchInterval(_ minimumBackgroundFetchInterval: TimeInterval) {
@@ -127,6 +135,13 @@ extension ApplicationMock {
 
     @objc func setActive() {
         self.applicationState = .active
+    }
+
+    public func updateDeviceToken() {
+        if let token = deviceToken {
+            let pushToken = PushToken.createAPNSToken(from: token)
+            userSession?.setPushToken(pushToken)
+        }
     }
 
 }

@@ -34,6 +34,12 @@ public protocol NotificationSettingsRegistrable {
     /// Badge count
     var applicationIconBadgeNumber: Int { get set }
 
+    /// Returns YES if the application is currently registered for remote notifications
+    var isRegisteredForRemoteNotifications: Bool { get }
+
+    /// To determine if notification settings should be registered
+    @objc optional var shouldRegisterUserNotificationSettings: Bool { get }
+
     /// Register for remote notification
     func registerForRemoteNotifications()
 
