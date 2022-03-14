@@ -114,8 +114,8 @@ class UserClientRequestFactoryTests: MessagingTest {
         }
 
         // then
-        guard let transportRequest = request.transportRequest else { return XCTFail("Should return non nil request") }
-        guard let payload = transportRequest.payload?.asDictionary() as? [String: NSObject] else { return XCTFail("Request should contain payload") }
+        let transportRequest = try XCTUnwrap(request.transportRequest)
+        let payload = try XCTUnwrap(transportRequest.payload?.asDictionary() as? [String: NSObject])
 
         XCTAssertEqual(transportRequest.path, "/clients")
         guard let password = payload["password"] as? String, password == credentials.password else { return XCTFail("Payload should contain password") }
