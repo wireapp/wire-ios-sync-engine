@@ -849,14 +849,46 @@ class WireCallCenterV3Tests: MessagingTest {
     func testThatItMutesMicrophone_WhenHandlingIncomingGroupCall() {
         // given
         let conversationID = AVSIdentifier.stub
-        sut.callSnapshots = callSnapshot(conversationId: conversationID, clients: [])
+        let incomingState = CallState.incoming(video: false, shouldRing: true, degraded: false)
+        let incomingCall = CallSnapshotTestFixture.callSnapshot(conversationId: conversationID, callCenter: sut, clients: [], state: incomingState)
+        sut.callSnapshots = [conversationID: incomingCall]
         sut.muted = false
 
         // when
-        sut.handle(callState: .incoming(video: false, shouldRing: true, degraded: false), conversationId: conversationID)
+        sut.handle(callState: incomingState, conversationId: conversationID)
 
         // then
         XCTAssertTrue(sut.muted)
+    }
+
+    func testThatItDoesntMuteMicrophone_WhenHandlingIncomingGroupCall_WhileAlreadyInACall() {
+        // given
+        let activeCallConversationId = AVSIdentifier.stub
+        let activeCall = CallSnapshotTestFixture.callSnapshot(
+            conversationId: activeCallConversationId,
+            callCenter: sut,
+            clients: [],
+            state: .established
+        )
+
+        let incomingCallConversationId = AVSIdentifier.stub
+        let incomingState = CallState.incoming(video: false, shouldRing: true, degraded: false)
+        let incomingCall = CallSnapshotTestFixture.callSnapshot(
+            conversationId: incomingCallConversationId,
+            callCenter: sut,
+            clients: [],
+            state: incomingState
+        )
+
+        sut.callSnapshots = [activeCallConversationId: activeCall,
+                           incomingCallConversationId: incomingCall]
+        sut.muted = false
+
+        // when
+        sut.handle(callState: incomingState, conversationId: incomingCallConversationId)
+
+        // then
+        XCTAssertFalse(sut.muted)
     }
 }
 

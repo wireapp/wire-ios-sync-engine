@@ -1,6 +1,6 @@
-////
+//
 // Wire
-// Copyright (C) 2019 Wire Swiss GmbH
+// Copyright (C) 2022 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,11 +17,19 @@
 //
 
 import Foundation
-import WireSystem
-import WireUtilities
 
-extension UUID: SafeForLoggingStringConvertible {
-    public var safeForLoggingDescription: String {
-        return transportString().readableHash
+struct CallEventContent: Codable {
+    let type: String
+
+    init?(from data: Data, with decoder: JSONDecoder) {
+        do {
+            self = try decoder.decode(Self.self, from: data)
+        } catch {
+            return nil
+        }
+    }
+
+    var isRemoteMute: Bool {
+        return type == "REMOTEMUTE"
     }
 }

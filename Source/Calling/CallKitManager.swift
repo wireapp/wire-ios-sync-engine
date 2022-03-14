@@ -547,12 +547,14 @@ extension CallClosedReason {
 
     var CXCallEndedReason: CXCallEndedReason {
         switch self {
-        case .timeout:
+        case .timeout, .timeoutECONN:
             return .unanswered
         case .normal, .canceled:
             return .remoteEnded
         case .anweredElsewhere:
             return .answeredElsewhere
+        case .rejectedElsewhere:
+            return .declinedElsewhere
         default:
             return .failed
         }
