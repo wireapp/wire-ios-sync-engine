@@ -224,6 +224,17 @@ static NSString* ZMLogTag ZM_UNUSED = @"HotFix";
                         [ZMHotFixDirectory refetchSelfUser:context];
                         [ZMHotFixDirectory refetchUsers:context];
                      }],
+
+                    /// `NotificationUserInfo` was moved from sync engine to request strategy. Instances of this class were
+                    /// being archived in `ZMLocalNotificationSet`, previously as "WireSyncEngine.NotificationUserInfo".
+                    /// When the app was upgraded, it would try to unarchive these objects as "WireRequestStrategy.NotificationUser.Info",
+                    /// leading to a crash. This patch maps the class name so that `NSKeyedUnarchiver` can successfully unarchive
+                    /// the persisted notifications.
+                    [ZMHotFixPatch
+                     patchWithVersion:@"414.0.1"
+                     patchCode:^(NSManagedObjectContext *context) {
+                        [ZMHotFixDirectory mapNotificationUserInfoClassName:context];
+                     }],
                     ];
     });
     return patches;
