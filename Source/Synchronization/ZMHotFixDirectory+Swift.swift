@@ -275,9 +275,8 @@ import WireRequestStrategy
     }
 
 
-    public static func mapNotificationUserInfoClassName() {
+    public static func mapNotificationUserInfoClassName(_ context: NSManagedObjectContext) {
         NSKeyedUnarchiver.setClass(WireRequestStrategy.NotificationUserInfo.self,
                                    forClassName: "WireSyncEngine.NotificationUserInfo")
-        
     }
 }
