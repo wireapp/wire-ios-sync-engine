@@ -231,7 +231,7 @@ static NSString* ZMLogTag ZM_UNUSED = @"HotFix";
                     /// leading to a crash. This patch maps the class name so that `NSKeyedUnarchiver` can successfully unarchive
                     /// the persisted notifications.
                     [ZMHotFixPatch
-                     patchWithVersion:@"414.0.0"
+                     patchWithVersion:@"414.0.1"
                      patchCode:^(NSManagedObjectContext *context) {
                         [ZMHotFixDirectory mapNotificationUserInfoClassName:context];
                      }],

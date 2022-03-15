@@ -247,13 +247,13 @@ class ZMHotFixTests_Integration: MessagingTest {
         return selfClient
     }
 
-    func testThatItMapsNotificationUserInfoClassName_414_0_0() {
+    func testThatItMapsNotificationUserInfoClassName_414_0_1() {
         var data: Data!
         let object = NotificationUserInfo(storage: ["foo": "bar"])
 
         syncMOC.performGroupedBlock {
             // GIVEN
-            self.syncMOC.setPersistentStoreMetadata("413.0.0", key: "lastSavedVersion")
+            self.syncMOC.setPersistentStoreMetadata("414.0.0", key: "lastSavedVersion")
             self.syncMOC.setPersistentStoreMetadata(NSNumber(value: true), key: "HasHistory")
 
             // This will allow us to archive with the object with the old name.
@@ -268,7 +268,7 @@ class ZMHotFixTests_Integration: MessagingTest {
             // WHEN
             let sut = ZMHotFix(syncMOC: self.syncMOC)
             self.performIgnoringZMLogError {
-                sut!.applyPatches(forCurrentVersion: "414.0.0")
+                sut!.applyPatches(forCurrentVersion: "414.0.1")
             }
         }
 
