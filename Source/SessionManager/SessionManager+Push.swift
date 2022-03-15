@@ -110,7 +110,7 @@ extension SessionManager: PKPushRegistryDelegate {
 
     public func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
 
-        if let fromNotificationExtension = payload.dictionaryPayload[PushFromNotificationExtensionKeys.fromNotificationExtension] as? Bool,
+        if let fromNotificationExtension = payload.dictionaryPayload[PushFromNotificationExtensionKeys.fromNotificationExtension.rawValue] as? Bool,
            fromNotificationExtension == true {
             handleCallPushPayload(payload, completion: completion)
         } else {
@@ -119,7 +119,7 @@ extension SessionManager: PKPushRegistryDelegate {
     }
 
     private func handleCallPushPayload(_ payload: PKPushPayload, completion: @escaping () -> Void) {
-        guard let accountIdString = payload.dictionaryPayload[PushFromNotificationExtensionKeys.accountId] as? String,
+        guard let accountIdString = payload.dictionaryPayload[PushFromNotificationExtensionKeys.accountId.rawValue] as? String,
               let accountId = UUID(uuidString: accountIdString),
               let account = self.accountManager.account(with: accountId),
               let dictionaryPayload = payload.dictionaryPayload as? [String: Any],

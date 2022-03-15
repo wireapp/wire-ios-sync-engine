@@ -283,6 +283,7 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
                     conversationDomain: event.conversationDomain,
                     senderDomain: event.senderDomain,
                     payload: payload,
+                    currentTimestamp: Date().addingTimeInterval(serverTimeDelta),
                     eventTimestamp: eventTimestamp
                 )
             }
@@ -295,8 +296,8 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
                           conversationDomain: String?,
                           senderDomain: String?,
                           payload: Data,
+                          currentTimestamp: Date,
                           eventTimestamp: Date) {
-        let currentTimestamp = Date().addingTimeInterval(managedObjectContext.serverTimeDelta)
 
         let conversationId = AVSIdentifier(
             identifier: conversationUUID,
