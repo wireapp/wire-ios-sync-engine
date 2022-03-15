@@ -97,12 +97,11 @@ class UserClientRequestFactoryTests: MessagingTest {
         XCTAssertNotNil(apnsKeysPayload["mackey"], "Payload should contain apns mac key")
     }
 
-    func testThatItCreatesRegistrationRequestWithEmailVerificationCodeCorrectly() {
+    func testThatItCreatesRegistrationRequestWithEmailVerificationCodeCorrectly() throws {
         // given
-        let email = "some@example.com"
-        let password = "gfsgdfgdfgdfgdfg"
-        let verificationCode = "123456"
-        let credentials = ZMEmailCredentials(email: email, password: password, emailVerificationCode: verificationCode)
+        let credentials = ZMEmailCredentials(email: "some@example.com",
+                                             password: "gfsgdfgdfgdfgdfg",
+                                             emailVerificationCode: "123456")
 
         let client = UserClient.insertNewObject(in: self.syncMOC)
         client.remoteIdentifier = "\(client.objectID)"
