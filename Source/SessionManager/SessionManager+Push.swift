@@ -136,6 +136,7 @@ extension SessionManager: PKPushRegistryDelegate {
                                                                                conversationDomain: pushPayload.conversationDomain,
                                                                                senderDomain: pushPayload.senderDomain,
                                                                                payload: pushPayload.payloadData,
+                                                                               currentTimestamp: Date().addingTimeInterval(userSession.syncContext.serverTimeDelta),
                                                                                eventTimestamp: pushPayload.timestamp)
         })
     }
