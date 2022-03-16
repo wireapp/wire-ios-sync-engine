@@ -17,7 +17,6 @@
 // 
 
 import Foundation
-import WireRequestStrategy
 
 @objc extension ZMHotFixDirectory {
 
@@ -272,10 +271,5 @@ import WireRequestStrategy
         }
 
         context.saveOrRollback()
-    }
-
-    public static func mapNotificationUserInfoClassName(_ context: NSManagedObjectContext) {
-        NSKeyedUnarchiver.setClass(WireRequestStrategy.NotificationUserInfo.self,
-                                   forClassName: "WireSyncEngine.NotificationUserInfo")
     }
 }
