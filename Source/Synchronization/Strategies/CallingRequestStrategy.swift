@@ -416,6 +416,7 @@ extension CallingRequestStrategy {
         ///          "6e323ab31554353b"
         ///       ]
         ///    }
+        ///    ...
         /// }
         ///
         /// When querying the federation enabled endpoint, this will be the response
@@ -428,6 +429,7 @@ extension CallingRequestStrategy {
         ///           ]
         ///       }
         ///    }
+        ///    ...
         /// }
         init(from decoder: Decoder) throws {
             guard let apiVersion = decoder.userInfo[Self.apiVersionKey] as? APIVersion else {
