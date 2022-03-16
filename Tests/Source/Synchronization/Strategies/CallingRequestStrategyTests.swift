@@ -180,7 +180,6 @@ class CallingRequestStrategyTests: MessagingTest {
 
     func testThatItGeneratesClientListRequestAndCallsTheCompletionHandler_Federated() {
         // Given
-        sut.useFederationEndpoint = true
         APIVersion.isFederationEnabled = true
 
         createSelfClient()
@@ -223,12 +222,13 @@ class CallingRequestStrategyTests: MessagingTest {
 
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
-        let request = sut.nextRequest(for: .v0)
+        let request = sut.nextRequest(for: .v1)
         XCTAssertNotNil(request)
-        XCTAssertEqual(request?.path, "/conversations/\(domain1)/\(conversationId.identifier.transportString())/proteus/messages")
+        XCTAssertEqual(request?.apiVersion, APIVersion.v1.rawValue)
+        XCTAssertEqual(request?.path, "/v1/conversations/\(domain1)/\(conversationId.identifier.transportString())/proteus/messages")
 
         // When
-        request?.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 412, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
+        request?.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 412, transportSessionError: nil, apiVersion: APIVersion.v1.rawValue))
 
         // Then
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
