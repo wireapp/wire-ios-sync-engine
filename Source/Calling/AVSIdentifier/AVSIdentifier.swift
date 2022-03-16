@@ -24,7 +24,7 @@ public struct AVSIdentifier: Hashable, Equatable {
 
     public init(identifier: UUID, domain: String?) {
         self.identifier = identifier
-        self.domain = domain
+        self.domain = APIVersion.isFederationEnabled ? domain : nil
     }
 }
 
