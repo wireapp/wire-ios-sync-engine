@@ -122,6 +122,7 @@ extension SessionManager: PKPushRegistryDelegate {
         guard let accountIdString = payload.dictionaryPayload[PushFromNotificationExtensionKeys.accountId.rawValue] as? String,
               let accountId = UUID(uuidString: accountIdString),
               let account = self.accountManager.account(with: accountId),
+              let serverTimeDelta = payload.dictionaryPayload["currentTimestamp"] as? TimeInterval,
               let dictionaryPayload = payload.dictionaryPayload as? [String: Any],
               let pushPayload = PushFromNotificationExtension(dictionaryPayload) else {
                   Logging.push.safePublic("Aborted processing of payload: \(payload)")
@@ -136,7 +137,7 @@ extension SessionManager: PKPushRegistryDelegate {
                                                                                conversationDomain: pushPayload.conversationDomain,
                                                                                senderDomain: pushPayload.senderDomain,
                                                                                payload: pushPayload.payloadData,
-                                                                               currentTimestamp: Date().addingTimeInterval(userSession.syncContext.serverTimeDelta),
+                                                                               currentTimestamp: serverTimeDelta,
                                                                                eventTimestamp: pushPayload.timestamp)
         })
     }

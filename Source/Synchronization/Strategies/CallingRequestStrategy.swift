@@ -283,7 +283,7 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
                     conversationDomain: event.conversationDomain,
                     senderDomain: event.senderDomain,
                     payload: payload,
-                    currentTimestamp: Date().addingTimeInterval(serverTimeDelta),
+                    currentTimestamp: serverTimeDelta,
                     eventTimestamp: eventTimestamp
                 )
             }
@@ -296,9 +296,8 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
                           conversationDomain: String?,
                           senderDomain: String?,
                           payload: Data,
-                          currentTimestamp: Date,
+                          currentTimestamp: TimeInterval,
                           eventTimestamp: Date) {
-
         let conversationId = AVSIdentifier(
             identifier: conversationUUID,
             domain: useFederationEndpoint ? conversationDomain : nil
@@ -310,7 +309,7 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
         let callEvent = CallEvent(
             data: payload,
-            currentTimestamp: currentTimestamp,
+            currentTimestamp: Date().addingTimeInterval(currentTimestamp),
             serverTimestamp: eventTimestamp,
             conversationId: conversationId,
             userId: userId,
