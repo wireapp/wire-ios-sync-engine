@@ -159,11 +159,8 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
             guard let jsonData = response.rawData else { return }
 
-            // TODO: Avoid force unwrapping
-            let key = CodingUserInfoKey(rawValue: "clientDiscoveryDecodingOptions")!
             let apiVersion = APIVersion(rawValue: response.apiVersion)!
-
-            decoder.userInfo = [key: apiVersion]
+            decoder.userInfo = [ClientDiscoveryResponsePayload.apiVersionKey: apiVersion]
 
             do {
                 let payload = try decoder.decode(ClientDiscoveryResponsePayload.self, from: jsonData)
@@ -405,62 +402,77 @@ extension CallingRequestStrategy {
     }
 
     struct ClientDiscoveryResponsePayload: Decodable {
-        static let userInfoKey = CodingUserInfoKey(rawValue: "clientDiscoveryDecodingOptions")!
+        static let apiVersionKey = CodingUserInfoKey(rawValue: "clientDiscoveryDecodingOptions")!
 
         let clients: [AVSClient]
 
-        // TODO: Add comments
-
+        /// This can decode the two types of responses listed below given that v0 uses legacy endpoints and v1 uses federation endpoints
+        ///
+        /// When querying the legacy endpoint, this will be the response
         /// {
         ///    "missing": {
-        ///        "domain1.example.com": {
-        ///            "000600d0-000b-9c1a-000d-a4130002c221": [
-        ///                "60f85e4b15ad3786",
-        ///                "6e323ab31554353b"
-        ///            ]
-        ///        }
+        ///       "000600d0-000b-9c1a-000d-a4130002c221": [
+        ///          "60f85e4b15ad3786",
+        ///          "6e323ab31554353b"
+        ///       ]
+        ///    }
+        /// }
+        ///
+        /// When querying the federation enabled endpoint, this will be the response
+        /// {
+        ///    "missing": {
+        ///       "domain1.example.com": {
+        ///           "000600d0-000b-9c1a-000d-a4130002c221": [
+        ///               "60f85e4b15ad3786",
+        ///               "6e323ab31554353b"
+        ///           ]
+        ///       }
         ///    }
         /// }
         init(from decoder: Decoder) throws {
-            guard let apiVersion = decoder.userInfo[Self.userInfoKey] as? APIVersion else {
-                fatalError()
+            guard let apiVersion = decoder.userInfo[Self.apiVersionKey] as? APIVersion else {
+                fatalError("missing api version")
             }
 
-            var allClients = [AVSClient]()
+            // get the main container from the decoder
             let container = try decoder.container(keyedBy: CodingKeys.self)
-            // the first nested container will have different content depending on the endpoint the response comes from
+
+            // get the nested container keyed by "missing"
+            // it will contain a list of users and their client ids, but depending on the response, it may be segmented by domains
             let nestedContainer = try container.nestedContainer(keyedBy: DynamicKey.self, forKey: .missing)
-            var containerDomainTupleArray = [(container: KeyedDecodingContainer<DynamicKey>, domain: String?)]()
 
-            // populate the tuple array with containers holding user ids
-            switch apiVersion {
-            case .v0:
-                // `nestedContainer` contains all the user ids with no notion of domain
-                containerDomainTupleArray += [(nestedContainer, nil)]
-            case .v1:
-                // `nestedContainer` has further nested containers each dynamically keyed by a domain name.
-                // These containers will contain the user ids of each domain.
-                // So here we extact them and associate the domain name to each.
-                try nestedContainer.allKeys.forEach { domainKey in
-                    let usersContainer = try nestedContainer.nestedContainer(keyedBy: DynamicKey.self, forKey: domainKey)
-                    containerDomainTupleArray += [(usersContainer, domainKey.stringValue)]
-                }
-            }
+            // define the block used below to extract the clients from a container
+            let extractClientsFromContainer = { (container: KeyedDecodingContainer<DynamicKey>, domain: String?) -> [AVSClient] in
+                var clients = [AVSClient]()
 
-            try containerDomainTupleArray.forEach { tuple in
-                let domain = tuple.domain
-
-                try tuple.container.allKeys.forEach { userIdKey in
-                    let clientIds = try nestedContainer.decode([String].self, forKey: userIdKey)
+                try container.allKeys.forEach { userIdKey in
+                    let clientIds = try container.decode([String].self, forKey: userIdKey)
 
                     let identifier = AVSIdentifier(
                         identifier: UUID(uuidString: userIdKey.stringValue)!,
                         domain: domain
                     )
 
-                    allClients += clientIds.compactMap {
+                    clients += clientIds.compactMap {
                         AVSClient(userId: identifier, clientId: $0)
                     }
+                }
+
+                return clients
+            }
+
+            var allClients = [AVSClient]()
+
+            switch apiVersion {
+            case .v0:
+                // `nestedContainer` contains all the user ids with no notion of domain, we can extract clients directly
+               allClients = try extractClientsFromContainer(nestedContainer, nil)
+            case .v1:
+                // `nestedContainer` has further nested containers each dynamically keyed by a domain name.
+                // we need to loop over each container to extract the clients.
+                try nestedContainer.allKeys.forEach { domainKey in
+                    let usersContainer = try nestedContainer.nestedContainer(keyedBy: DynamicKey.self, forKey: domainKey)
+                    allClients += try extractClientsFromContainer(usersContainer, domainKey.stringValue)
                 }
             }
 
