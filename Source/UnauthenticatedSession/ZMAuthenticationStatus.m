@@ -313,6 +313,14 @@ static NSString* ZMLogTag ZM_UNUSED = @"Authentication";
     ZMLogDebug(@"current phase: %lu", (unsigned long)self.currentPhase);
 }
 
+- (void)didFailLoginWithEmailBecauseVerificationCodeIsInvalid
+{
+    ZMLogDebug(@"%@", NSStringFromSelector(_cmd));
+    NSError *error = [NSError userSessionErrorWithErrorCode:ZMUserSessionInvalidEmailVerificationCode userInfo:nil];
+    [self.delegate authenticationDidFail: error];
+    ZMLogDebug(@"current phase: %lu", (unsigned long)self.currentPhase);
+}
+
 - (void)didFailLoginBecauseAccountSuspended
 {
     ZMLogDebug(@"%@", NSStringFromSelector(_cmd));

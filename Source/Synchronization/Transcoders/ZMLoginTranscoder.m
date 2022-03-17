@@ -180,9 +180,10 @@ NSTimeInterval DefaultPendingValidationLoginAttemptInterval = 5;
         
         if ([self isResponseForSuspendedAccount:response]) {
             [authenticationStatus didFailLoginBecauseAccountSuspended];
-        } else if ([self isResponseForEmailVerificationCode:response]){
+        } else if ([self isResponseForMissingEmailVerificationCode:response]){
             [authenticationStatus didFailLoginWithEmailBecauseVerificationCodeIsRequired];
-
+        } else if ([self isResponseForMissingEmailVerificationCode:response]) {
+            [authenticationStatus didFailLoginWithEmailBecauseVerificationCodeIsInvalid];
         }
         else if (sync == self.timedDownstreamSync) {
             
@@ -221,10 +222,16 @@ NSTimeInterval DefaultPendingValidationLoginAttemptInterval = 5;
     return [label isEqualToString:@"pending-activation"];
 }
 
-- (BOOL)isResponseForEmailVerificationCode:(ZMTransportResponse *)response
+- (BOOL)isResponseForMissingEmailVerificationCode:(ZMTransportResponse *)response
 {
     NSString *label = [response.payload asDictionary][@"label"];
     return [label isEqualToString:@"code-authentication-required"];
+}
+
+- (BOOL)isResponseForInvalidEmailVerificationCode:(ZMTransportResponse *)response
+{
+    NSString *label = [response.payload asDictionary][@"label"];
+    return response.HTTPStatus == 403 && [label isEqualToString:@"code-authentication-required"];
 }
 
 - (BOOL)isResponseForSuspendedAccount:(ZMTransportResponse *)response
