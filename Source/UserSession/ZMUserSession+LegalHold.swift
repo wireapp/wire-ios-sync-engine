@@ -40,6 +40,8 @@ extension ZMUserSession {
      */
 
     public func accept(legalHoldRequest: LegalHoldRequest, password: String?, completionHandler: @escaping (_ error: LegalHoldActivationError?) -> Void) {
+        // TODO: Check if completionHandler should be called
+        guard let apiVersion = APIVersion.current else { return }
 
         func complete(error: LegalHoldActivationError?) {
             syncManagedObjectContext.saveOrRollback()
@@ -73,7 +75,7 @@ extension ZMUserSession {
             payload["password"] = password
 
             let path = "/teams/\(teamID.transportString())/legalhold/\(userID.transportString())/approve"
-            let request = ZMTransportRequest(path: path, method: .methodPUT, payload: payload as NSDictionary, apiVersion: APIVersion.v0.rawValue)
+            let request = ZMTransportRequest(path: path, method: .methodPUT, payload: payload as NSDictionary, apiVersion: apiVersion.rawValue)
 
             // 4) Handle the Response
             request.add(ZMCompletionHandler(on: self.syncManagedObjectContext, block: { response in
