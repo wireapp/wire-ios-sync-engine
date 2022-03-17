@@ -17,6 +17,7 @@
 //
 
 @testable import WireSyncEngine
+import WireDataModel
 
 let UserRequestURL = "/users?ids="
 
@@ -39,6 +40,7 @@ class SearchUserImageStrategyTests: MessagingTest {
         sut = nil
         uiMOC.zm_searchUserCache = nil
         mockApplicationStatus = nil
+        APIVersion.domain = nil
         super.tearDown()
     }
 
@@ -244,23 +246,37 @@ extension SearchUserImageStrategyTests {
 
 extension SearchUserImageStrategyTests {
 
-    func testThatNextRequestCreatesARequestForAnAssetID() {
+    func testThatNextRequestCreatesARequestForAnAssetID(apiVersion: APIVersion) {
         // given
-        let searchUser = setupSearchDirectory(userCount: 1).first!
+        let domain = "example.domain.com"
+        APIVersion.domain = domain
         let assetID = UUID().transportString()
+        let searchUser = setupSearchDirectory(userCount: 1).first!
         searchUser.update(from: userData(previewAssetKey: assetID, for: searchUser.remoteIdentifier!))
         searchUser.requestPreviewProfileImage()
 
         // when
-        guard let request = sut.nextRequest(for: .v0) else { return XCTFail() }
+        guard let request = sut.nextRequest(for: apiVersion) else { return XCTFail() }
 
         // then
         XCTAssertNotNil(request)
         XCTAssertEqual(request.method, .methodGET)
         XCTAssertTrue(request.needsAuthentication)
 
-        let expectedPath = "/assets/v3/\(assetID)"
+        let expectedPath: String
+        switch apiVersion {
+        case .v0:
+            expectedPath = "/assets/v3/\(assetID)"
+        case .v1:
+            expectedPath = "/v1/assets/v4/\(domain)/\(assetID)"
+        }
+
         XCTAssertEqual(request.path, expectedPath)
+    }
+
+    func testThatNextRequestCreatesARequestForAnAssetID() {
+        testThatNextRequestCreatesARequestForAnAssetID(apiVersion: .v0)
+        testThatNextRequestCreatesARequestForAnAssetID(apiVersion: .v1)
     }
 
     func testThatNextRequestDoesNotCreatesARequestForAnAssetIDIfTheFirstRequestIsStillRunning() {
@@ -440,5 +456,4 @@ extension SearchUserImageStrategyTests {
         XCTAssertTrue(note.imageMediumDataChanged)
         XCTAssertEqual(note.user as? ZMSearchUser, searchUser1)
     }
-
 }
