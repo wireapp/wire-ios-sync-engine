@@ -281,7 +281,7 @@ class TeamDownloadRequestStrategyTests: MessagingTest {
             let response = ZMTransportResponse(
                 payload: ["label": "no-team-member"] as ZMTransportData,
                 httpStatus: 403,
-                transportSessionError: nil, 
+                transportSessionError: nil,
                 apiVersion: APIVersion.v0.rawValue
             )
 
