@@ -33,7 +33,7 @@ public enum ConversationJoinError: Error {
 }
 
 public enum ConversationFetchError: Error {
-    case unknown, noTeamMember, accessDenied, invalidCode, noConversation
+    case unknown, noTeamMember, accessDenied, invalidCode, noConversation, guestLinksDisabled
 
     init(response: ZMTransportResponse) {
         switch (response.httpStatus, response.payloadLabel()) {
@@ -41,6 +41,7 @@ public enum ConversationFetchError: Error {
         case (403, "access-denied"?): self = .accessDenied
         case (404, "no-conversation-code"?): self = .invalidCode
         case (404, "no-conversation"?): self = .noConversation
+        case (409, "guest-links-disabled"?): self = .guestLinksDisabled
         default: self = .unknown
         }
     }
