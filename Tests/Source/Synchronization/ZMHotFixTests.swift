@@ -246,39 +246,4 @@ class ZMHotFixTests_Integration: MessagingTest {
         context.setPersistentStoreMetadata(selfClient.remoteIdentifier, key: "PersistedClientId")
         return selfClient
     }
-
-    func testThatItMapsNotificationUserInfoClassName_414_0_1() {
-        var data: Data!
-        let object = NotificationUserInfo(storage: ["foo": "bar"])
-
-        syncMOC.performGroupedBlock {
-            // GIVEN
-            self.syncMOC.setPersistentStoreMetadata("414.0.0", key: "lastSavedVersion")
-            self.syncMOC.setPersistentStoreMetadata(NSNumber(value: true), key: "HasHistory")
-
-            // This will allow us to archive with the object with the old name.
-            NSKeyedArchiver.setClassName("WireSyncEngine.NotificationUserInfo", for: NotificationUserInfo.self)
-            guard let archiveData = try? NSKeyedArchiver.archivedData(withRootObject: object, requiringSecureCoding: false) else {
-                XCTFail("could not set up test")
-                return
-            }
-
-            data = archiveData
-
-            // WHEN
-            let sut = ZMHotFix(syncMOC: self.syncMOC)
-            self.performIgnoringZMLogError {
-                sut!.applyPatches(forCurrentVersion: "414.0.1")
-            }
-        }
-
-        XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-
-        syncMOC.performGroupedBlock {
-            // Then
-            let unarchivedObject = NSKeyedUnarchiver.unarchiveObject(with: data) as? NotificationUserInfo
-            XCTAssertNotNil(unarchivedObject)
-            XCTAssertEqual(unarchivedObject, object)
-        }
-    }
 }
