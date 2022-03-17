@@ -271,12 +271,15 @@ extension SearchTask {
 extension SearchTask {
 
     func performUserLookup() {
-        guard case .lookup(let userId) = task else { return }
+        guard
+            case .lookup(let userId) = task,
+            let apiVersion = APIVersion.current
+        else { return }
 
         tasksRemaining += 1
 
         searchContext.performGroupedBlock {
-            let request  = type(of: self).searchRequestForUser(withUUID: userId)
+            let request  = type(of: self).searchRequestForUser(withUUID: userId, apiVersion: apiVersion)
 
             request.add(ZMCompletionHandler(on: self.contextProvider.viewContext, block: { [weak self] (response) in
                 defer {
@@ -305,8 +308,8 @@ extension SearchTask {
 
     }
 
-    static func searchRequestForUser(withUUID uuid: UUID) -> ZMTransportRequest {
-        return ZMTransportRequest(getFromPath: "/users/\(uuid.transportString())", apiVersion: APIVersion.v0.rawValue)
+    static func searchRequestForUser(withUUID uuid: UUID, apiVersion: APIVersion) -> ZMTransportRequest {
+        return ZMTransportRequest(getFromPath: "/users/\(uuid.transportString())", apiVersion: apiVersion.rawValue)
     }
 
 }
@@ -314,12 +317,16 @@ extension SearchTask {
 extension SearchTask {
 
     func performRemoteSearch() {
-        guard case .search(let searchRequest) = task, !searchRequest.searchOptions.isDisjoint(with: [.directory, .teamMembers]) else { return }
+        guard
+            let apiVersion = APIVersion.current,
+            case .search(let searchRequest) = task,
+            !searchRequest.searchOptions.isDisjoint(with: [.directory, .teamMembers])
+        else { return }
 
         tasksRemaining += 1
 
         searchContext.performGroupedBlock {
-            let request = type(of: self).searchRequestInDirectory(withQuery: searchRequest.query)
+            let request = type(of: self).searchRequestInDirectory(withQuery: searchRequest.query, apiVersion: apiVersion)
 
             request.add(ZMCompletionHandler(on: self.contextProvider.viewContext, block: { [weak self] (response) in
 
@@ -354,6 +361,7 @@ extension SearchTask {
         let teamMembersIDs = searchResult.teamMembers.compactMap(\.remoteIdentifier)
 
         guard
+            let apiVersion = APIVersion.current,
             let teamID = ZMUser.selfUser(in: contextProvider.viewContext).team?.remoteIdentifier,
             !teamMembersIDs.isEmpty
         else {
@@ -361,7 +369,7 @@ extension SearchTask {
             return
         }
 
-        let request = type(of: self).fetchTeamMembershipRequest(teamID: teamID, teamMemberIDs: teamMembersIDs)
+        let request = type(of: self).fetchTeamMembershipRequest(teamID: teamID, teamMemberIDs: teamMembersIDs, apiVersion: apiVersion)
 
         request.add(ZMCompletionHandler(on: contextProvider.viewContext, block: { [weak self] (response) in
             guard
@@ -398,7 +406,7 @@ extension SearchTask {
         }
     }
 
-    static func searchRequestInDirectory(withQuery query: String, fetchLimit: Int = 10) -> ZMTransportRequest {
+    static func searchRequestInDirectory(withQuery query: String, fetchLimit: Int = 10, apiVersion: APIVersion) -> ZMTransportRequest {
         var query = query
 
         if query.hasPrefix("@") {
@@ -409,15 +417,15 @@ extension SearchTask {
         url.path = "/search/contacts"
         url.queryItems = [URLQueryItem(name: "q", value: query), URLQueryItem(name: "size", value: String(fetchLimit))]
         let urlStr = url.string?.replacingOccurrences(of: "+", with: "%2B") ?? ""
-        return ZMTransportRequest(getFromPath: urlStr, apiVersion: APIVersion.v0.rawValue)
+        return ZMTransportRequest(getFromPath: urlStr, apiVersion: apiVersion.rawValue)
     }
 
-    static func fetchTeamMembershipRequest(teamID: UUID, teamMemberIDs: [UUID]) -> ZMTransportRequest {
+    static func fetchTeamMembershipRequest(teamID: UUID, teamMemberIDs: [UUID], apiVersion: APIVersion) -> ZMTransportRequest {
 
         let path = "/teams/\(teamID.transportString())/get-members-by-ids-using-post"
         let payload = ["user_ids": teamMemberIDs.map { $0.transportString() }]
 
-        return ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData, apiVersion: APIVersion.v0.rawValue)
+        return ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData, apiVersion: apiVersion.rawValue)
     }
 
 }
@@ -425,12 +433,16 @@ extension SearchTask {
 extension SearchTask {
 
     func performRemoteSearchForTeamUser() {
-        guard case .search(let searchRequest) = task, searchRequest.searchOptions.contains(.directory) else { return }
+        guard
+            let apiVersion = APIVersion.current,
+            case .search(let searchRequest) = task,
+            searchRequest.searchOptions.contains(.directory)
+        else { return }
 
         tasksRemaining += 1
 
         searchContext.performGroupedBlock {
-            let request = type(of: self).searchRequestInDirectory(withHandle: searchRequest.query)
+            let request = type(of: self).searchRequestInDirectory(withHandle: searchRequest.query, apiVersion: apiVersion)
 
             request.add(ZMCompletionHandler(on: self.contextProvider.viewContext, block: { [weak self] (response) in
 
@@ -492,7 +504,7 @@ extension SearchTask {
         }
     }
 
-    static func searchRequestInDirectory(withHandle handle: String) -> ZMTransportRequest {
+    static func searchRequestInDirectory(withHandle handle: String, apiVersion: APIVersion) -> ZMTransportRequest {
         var handle = handle.lowercased()
 
         if handle.hasPrefix("@") {
@@ -503,7 +515,7 @@ extension SearchTask {
         url.path = "/users"
         url.queryItems = [URLQueryItem(name: "handles", value: handle)]
         let urlStr = url.string?.replacingOccurrences(of: "+", with: "%2B") ?? ""
-        return ZMTransportRequest(getFromPath: urlStr, apiVersion: APIVersion.v0.rawValue)
+        return ZMTransportRequest(getFromPath: urlStr, apiVersion: apiVersion.rawValue)
     }
 }
 
@@ -511,6 +523,7 @@ extension SearchTask {
 
     func performRemoteSearchForFederatedUser() {
         guard
+            let apiVersion = APIVersion.current,
             case .search(let searchRequest) = task,
             searchRequest.searchOptions.contains(.federated),
             let (handle, domain) = searchRequest.handleAndDomain
@@ -521,7 +534,7 @@ extension SearchTask {
         tasksRemaining += 1
 
         searchContext.performGroupedBlock {
-            let request = type(of: self).searchRequestInDirectory(withHandle: handle, domain: domain)
+            let request = type(of: self).searchRequestInDirectory(withHandle: handle, domain: domain, apiVersion: apiVersion)
 
             request.add(ZMCompletionHandler(on: self.contextProvider.viewContext, block: { [weak self] (response) in
 
@@ -547,15 +560,19 @@ extension SearchTask {
         }
     }
 
-    static func searchRequestInDirectory(withHandle handle: String, domain: String) -> ZMTransportRequest {
-        return ZMTransportRequest(getFromPath: "/users/by-handle/\(domain)/\(handle)", apiVersion: APIVersion.v0.rawValue)
+    static func searchRequestInDirectory(withHandle handle: String, domain: String, apiVersion: APIVersion) -> ZMTransportRequest {
+        return ZMTransportRequest(getFromPath: "/users/by-handle/\(domain)/\(handle)", apiVersion: apiVersion.rawValue)
     }
 }
 
 extension SearchTask {
 
     func performRemoteSearchForServices() {
-        guard case .search(let searchRequest) = task, searchRequest.searchOptions.contains(.services) else { return }
+        guard
+            let apiVersion = APIVersion.current,
+            case .search(let searchRequest) = task,
+            searchRequest.searchOptions.contains(.services)
+        else { return }
 
         tasksRemaining += 1
 
@@ -563,7 +580,7 @@ extension SearchTask {
             let selfUser = ZMUser.selfUser(in: self.searchContext)
             guard let teamIdentifier = selfUser.team?.remoteIdentifier else { return }
 
-            let request = type(of: self).servicesSearchRequest(teamIdentifier: teamIdentifier, query: searchRequest.query)
+            let request = type(of: self).servicesSearchRequest(teamIdentifier: teamIdentifier, query: searchRequest.query, apiVersion: apiVersion)
 
             request.add(ZMCompletionHandler(on: self.contextProvider.viewContext, block: { [weak self] (response) in
 
@@ -592,7 +609,7 @@ extension SearchTask {
         }
     }
 
-    static func servicesSearchRequest(teamIdentifier: UUID, query: String) -> ZMTransportRequest {
+    static func servicesSearchRequest(teamIdentifier: UUID, query: String, apiVersion: APIVersion) -> ZMTransportRequest {
         var url = URLComponents()
         url.path = "/teams/\(teamIdentifier.transportString())/services/whitelisted"
 
@@ -601,6 +618,6 @@ extension SearchTask {
             url.queryItems = [URLQueryItem(name: "prefix", value: trimmedQuery)]
         }
         let urlStr = url.string?.replacingOccurrences(of: "+", with: "%2B") ?? ""
-        return ZMTransportRequest(getFromPath: urlStr, apiVersion: APIVersion.v0.rawValue)
+        return ZMTransportRequest(getFromPath: urlStr, apiVersion: apiVersion.rawValue)
     }
 }
