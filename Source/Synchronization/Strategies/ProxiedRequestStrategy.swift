@@ -60,7 +60,7 @@ public final class ProxiedRequestStrategy: AbstractRequestStrategy {
 
         if let proxyRequest = status.pendingRequests.popFirst() {
             let fullPath = ProxiedRequestStrategy.BasePath + proxyRequest.type.basePath + proxyRequest.path
-            let request = ZMTransportRequest(path: fullPath, method: proxyRequest.method, payload: nil, apiVersion: apiVersion)
+            let request = ZMTransportRequest(path: fullPath, method: proxyRequest.method, payload: nil, apiVersion: apiVersion.rawValue)
             if proxyRequest.type == .soundcloud {
                 request.doesNotFollowRedirects = true
             }
