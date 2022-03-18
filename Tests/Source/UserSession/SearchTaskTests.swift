@@ -976,7 +976,7 @@ class SearchTaskTests: DatabaseTest {
 
     func testThatItTrimsThePrefixQuery() throws {
         // when
-        let task = SearchTask.servicesSearchRequest(teamIdentifier: self.teamIdentifier, query: "Search query ")
+        let task = SearchTask.servicesSearchRequest(teamIdentifier: self.teamIdentifier, query: "Search query ", apiVersion: .v0)
         // then
         let components = URLComponents(url: task.URL, resolvingAgainstBaseURL: false)
 
@@ -988,7 +988,7 @@ class SearchTaskTests: DatabaseTest {
 
     func testThatItDoesNotAddPrefixQueryIfItIsEmpty() {
         // when
-        let task = SearchTask.servicesSearchRequest(teamIdentifier: self.teamIdentifier, query: "")
+        let task = SearchTask.servicesSearchRequest(teamIdentifier: self.teamIdentifier, query: "", apiVersion: .v0)
         // then
         let components = URLComponents(url: task.URL, resolvingAgainstBaseURL: false)
 

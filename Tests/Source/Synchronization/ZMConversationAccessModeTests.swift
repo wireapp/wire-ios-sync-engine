@@ -51,7 +51,7 @@ public class ZMConversationAccessModeTests: MessagingTest {
         selfUser(options: SelfUserOptions(team: .teamA))
         let conversation = self.conversation(options: ConversationOptions(hasRemoteId: true, team: .teamA, isGroup: true))
         // when
-        let request = WireSyncEngine.WirelessRequestFactory.set(allowGuests: true, for: conversation)
+        let request = WireSyncEngine.WirelessRequestFactory.set(allowGuests: true, for: conversation, apiVersion: .v0)
         // then
         XCTAssertEqual(request.method, .methodPUT)
         XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/access")
@@ -68,7 +68,7 @@ public class ZMConversationAccessModeTests: MessagingTest {
         selfUser(options: SelfUserOptions(team: .teamA))
         let conversation = self.conversation(options: ConversationOptions(hasRemoteId: true, team: .teamA, isGroup: true))
         // when
-        let request = WireSyncEngine.WirelessRequestFactory.fetchLinkRequest(for: conversation)
+        let request = WireSyncEngine.WirelessRequestFactory.fetchLinkRequest(for: conversation, apiVersion: .v0)
         // then
         XCTAssertEqual(request.method, .methodGET)
         XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/code")
@@ -80,7 +80,7 @@ public class ZMConversationAccessModeTests: MessagingTest {
         selfUser(options: SelfUserOptions(team: .teamA))
         let conversation = self.conversation(options: ConversationOptions(hasRemoteId: true, team: .teamA, isGroup: true))
         // when
-        let request = WireSyncEngine.WirelessRequestFactory.createLinkRequest(for: conversation)
+        let request = WireSyncEngine.WirelessRequestFactory.createLinkRequest(for: conversation, apiVersion: .v0)
         // then
         XCTAssertEqual(request.method, .methodPOST)
         XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/code")
@@ -92,7 +92,7 @@ public class ZMConversationAccessModeTests: MessagingTest {
         selfUser(options: SelfUserOptions(team: .teamA))
         let conversation = self.conversation(options: ConversationOptions(hasRemoteId: true, team: .teamA, isGroup: true))
         // when
-        let request = WireSyncEngine.WirelessRequestFactory.deleteLinkRequest(for: conversation)
+        let request = WireSyncEngine.WirelessRequestFactory.deleteLinkRequest(for: conversation, apiVersion: .v0)
         // then
         XCTAssertEqual(request.method, .methodDELETE)
         XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/code")
