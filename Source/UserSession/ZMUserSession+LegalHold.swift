@@ -27,6 +27,7 @@ public enum LegalHoldActivationError: Error, Equatable {
     case invalidPassword
     case couldNotEstablishSession
     case invalidState
+    case missingAPIVersion
 }
 
 extension ZMUserSession {
@@ -40,8 +41,6 @@ extension ZMUserSession {
      */
 
     public func accept(legalHoldRequest: LegalHoldRequest, password: String?, completionHandler: @escaping (_ error: LegalHoldActivationError?) -> Void) {
-        // TODO: Check if completionHandler should be called
-        guard let apiVersion = APIVersion.current else { return }
 
         func complete(error: LegalHoldActivationError?) {
             syncManagedObjectContext.saveOrRollback()
@@ -49,6 +48,10 @@ extension ZMUserSession {
             DispatchQueue.main.async {
                 completionHandler(error)
             }
+        }
+
+        guard let apiVersion = APIVersion.current else {
+            return complete(error: .missingAPIVersion)
         }
 
         syncManagedObjectContext.performGroupedBlock {
