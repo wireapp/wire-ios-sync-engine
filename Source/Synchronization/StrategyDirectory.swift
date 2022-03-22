@@ -42,8 +42,7 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
          pushMessageHandler: PushMessageHandler,
          flowManager: FlowManagerType,
          updateEventProcessor: UpdateEventProcessor,
-         localNotificationDispatcher: LocalNotificationDispatcher,
-         supportFederation: Bool) {
+         localNotificationDispatcher: LocalNotificationDispatcher) {
 
         self.strategies = Self.buildStrategies(contextProvider: contextProvider,
                                                applicationStatusDirectory: applicationStatusDirectory,

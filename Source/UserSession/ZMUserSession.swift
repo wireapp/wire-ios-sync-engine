@@ -231,10 +231,9 @@ public class ZMUserSession: NSObject {
         coreDataStack.syncContext.performGroupedBlockAndWait {
             coreDataStack.syncContext.analytics = analytics
             coreDataStack.syncContext.zm_userInterface = coreDataStack.viewContext
-            coreDataStack.syncContext.zm_isFederationEnabled = configuration.supportFederation
         }
+
         coreDataStack.viewContext.zm_sync = coreDataStack.syncContext
-        coreDataStack.viewContext.zm_isFederationEnabled = configuration.supportFederation
 
         self.application = application
         self.appVersion = appVersion
@@ -261,7 +260,7 @@ public class ZMUserSession: NSObject {
             self.configureTransportSession()
             self.applicationStatusDirectory = self.createApplicationStatusDirectory()
             self.updateEventProcessor = eventProcessor ?? self.createUpdateEventProcessor()
-            self.strategyDirectory = strategyDirectory ?? self.createStrategyDirectory(supportFederation: configuration.supportFederation)
+            self.strategyDirectory = strategyDirectory ?? self.createStrategyDirectory()
             self.syncStrategy = syncStrategy ?? self.createSyncStrategy()
             self.operationLoop = operationLoop ?? self.createOperationLoop()
             self.urlActionProcessors = self.createURLActionProcessors()
@@ -308,15 +307,14 @@ public class ZMUserSession: NSObject {
 
     }
 
-    private func createStrategyDirectory(supportFederation: Bool) -> StrategyDirectoryProtocol {
+    private func createStrategyDirectory() -> StrategyDirectoryProtocol {
         return StrategyDirectory(contextProvider: coreDataStack,
                                  applicationStatusDirectory: applicationStatusDirectory!,
                                  cookieStorage: transportSession.cookieStorage,
                                  pushMessageHandler: localNotificationDispatcher!,
                                  flowManager: flowManager,
                                  updateEventProcessor: updateEventProcessor!,
-                                 localNotificationDispatcher: localNotificationDispatcher!,
-                                 supportFederation: supportFederation)
+                                 localNotificationDispatcher: localNotificationDispatcher!)
     }
 
     private func createUpdateEventProcessor() -> EventProcessor {
