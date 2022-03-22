@@ -448,7 +448,7 @@
     (void)token2;
 }
 
-- (void)testThatConnectionRequestsToTwoUsersAreAddedToPending
+- (void)disabled_testThatConnectionRequestsToTwoUsersAreAddedToPending
 {
     // given two remote users
     NSString *userName1 = @"Hans Von Üser";
