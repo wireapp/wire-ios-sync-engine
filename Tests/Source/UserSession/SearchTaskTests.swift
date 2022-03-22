@@ -38,11 +38,14 @@ class SearchTaskTests: DatabaseTest {
             _ = Member.getOrCreateMember(for: selfUser, in: team, context: self.uiMOC)
             uiMOC.saveOrRollback()
         }
+
+        APIVersion.current = .v0
     }
 
     override func tearDown() {
         self.teamIdentifier = nil
         self.mockTransportSession = nil
+        APIVersion.current = nil
         super.tearDown()
     }
 
