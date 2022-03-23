@@ -357,6 +357,7 @@ static NSString* ZMLogTag ZM_UNUSED = @"Authentication";
     ZMLogDebug(@"%@", NSStringFromSelector(_cmd));
     [self.delegate loginCodeRequestDidSucceed];
     self.loginPhoneNumberThatNeedsAValidationCode = nil;
+    self.loginEmailThatNeedsAValidationCode = nil;
     ZMLogDebug(@"current phase: %lu", (unsigned long)self.currentPhase);
 }
 
@@ -364,6 +365,7 @@ static NSString* ZMLogTag ZM_UNUSED = @"Authentication";
 {
     ZMLogDebug(@"%@", NSStringFromSelector(_cmd));
     self.loginPhoneNumberThatNeedsAValidationCode = nil;
+    self.loginEmailThatNeedsAValidationCode = nil;
     [self.delegate loginCodeRequestDidFail: error];
     ZMLogDebug(@"current phase: %lu", (unsigned long)self.currentPhase);
 }
