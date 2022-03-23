@@ -58,7 +58,11 @@ extension ZMConversation {
             return completion(.failure(WirelessLinkError.invalidOperation))
         }
 
-        let request = WirelessRequestFactory.fetchLinkRequest(for: self)
+        guard let apiVersion = APIVersion.current else {
+            return completion(.failure(WirelessLinkError.unknown))
+        }
+
+        let request = WirelessRequestFactory.fetchLinkRequest(for: self, apiVersion: apiVersion)
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
             if response.httpStatus == 200,
                 let uri = response.payload?.asDictionary()?[ZMConversation.TransportKey.uri] as? String {
@@ -101,7 +105,11 @@ extension ZMConversation {
             return completion(.failure(WirelessLinkError.invalidOperation))
         }
 
-        let request = WirelessRequestFactory.createLinkRequest(for: self)
+        guard let apiVersion = APIVersion.current else {
+            return completion(.failure(WirelessLinkError.unknown))
+        }
+
+        let request = WirelessRequestFactory.createLinkRequest(for: self, apiVersion: apiVersion)
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
             if response.httpStatus == 201,
                 let payload = response.payload,
@@ -136,7 +144,11 @@ extension ZMConversation {
             return completion(.failure(WirelessLinkError.invalidOperation))
         }
 
-        let request = WirelessRequestFactory.deleteLinkRequest(for: self)
+        guard let apiVersion = APIVersion.current else {
+            return completion(.failure(WirelessLinkError.unknown))
+        }
+
+        let request = WirelessRequestFactory.deleteLinkRequest(for: self, apiVersion: apiVersion)
 
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
             if response.httpStatus == 200 {
@@ -157,7 +169,11 @@ extension ZMConversation {
             return completion(.failure(WirelessLinkError.invalidOperation))
         }
 
-        let request = WirelessRequestFactory.set(allowGuests: allowGuests, for: self)
+        guard let apiVersion = APIVersion.current else {
+            return completion(.failure(WirelessLinkError.unknown))
+        }
+
+        let request = WirelessRequestFactory.set(allowGuests: allowGuests, for: self, apiVersion: apiVersion)
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
             if let payload = response.payload,
                 let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: nil) {
@@ -184,33 +200,33 @@ extension ZMConversation {
 }
 
 internal struct WirelessRequestFactory {
-    static func fetchLinkRequest(for conversation: ZMConversation) -> ZMTransportRequest {
+    static func fetchLinkRequest(for conversation: ZMConversation, apiVersion: APIVersion) -> ZMTransportRequest {
         guard let identifier = conversation.remoteIdentifier?.transportString() else {
             fatal("conversation is not yet inserted on the backend")
         }
-        return .init(getFromPath: "/conversations/\(identifier)/code", apiVersion: APIVersion.v0.rawValue)
+        return .init(getFromPath: "/conversations/\(identifier)/code", apiVersion: apiVersion.rawValue)
     }
 
-    static func createLinkRequest(for conversation: ZMConversation) -> ZMTransportRequest {
+    static func createLinkRequest(for conversation: ZMConversation, apiVersion: APIVersion) -> ZMTransportRequest {
         guard let identifier = conversation.remoteIdentifier?.transportString() else {
             fatal("conversation is not yet inserted on the backend")
         }
-        return .init(path: "/conversations/\(identifier)/code", method: .methodPOST, payload: nil, apiVersion: APIVersion.v0.rawValue)
+        return .init(path: "/conversations/\(identifier)/code", method: .methodPOST, payload: nil, apiVersion: apiVersion.rawValue)
     }
 
-    static func deleteLinkRequest(for conversation: ZMConversation) -> ZMTransportRequest {
+    static func deleteLinkRequest(for conversation: ZMConversation, apiVersion: APIVersion) -> ZMTransportRequest {
         guard let identifier = conversation.remoteIdentifier?.transportString() else {
             fatal("conversation is not yet inserted on the backend")
         }
-        return .init(path: "/conversations/\(identifier)/code", method: .methodDELETE, payload: nil, apiVersion: APIVersion.v0.rawValue)
+        return .init(path: "/conversations/\(identifier)/code", method: .methodDELETE, payload: nil, apiVersion: apiVersion.rawValue)
     }
 
-    static func set(allowGuests: Bool, for conversation: ZMConversation) -> ZMTransportRequest {
+    static func set(allowGuests: Bool, for conversation: ZMConversation, apiVersion: APIVersion) -> ZMTransportRequest {
         guard let identifier = conversation.remoteIdentifier?.transportString() else {
             fatal("conversation is not yet inserted on the backend")
         }
         let payload = [ "access": ConversationAccessMode.value(forAllowGuests: allowGuests).stringValue as Any,
                         "access_role": ConversationAccessRole.value(forAllowGuests: allowGuests).rawValue]
-        return .init(path: "/conversations/\(identifier)/access", method: .methodPUT, payload: payload as ZMTransportData, apiVersion: APIVersion.v0.rawValue)
+        return .init(path: "/conversations/\(identifier)/access", method: .methodPUT, payload: payload as ZMTransportData, apiVersion: apiVersion.rawValue)
     }
 }

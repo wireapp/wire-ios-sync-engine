@@ -64,11 +64,6 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
                 return []
             }
         })
-
-        strategies.forEach { strategy in
-            var federationAwareStrategy = strategy as? FederationAware
-            federationAwareStrategy?.useFederationEndpoint = supportFederation
-        }
     }
 
     deinit {
