@@ -182,9 +182,11 @@ NSTimeInterval DefaultPendingValidationLoginAttemptInterval = 5;
             [authenticationStatus didFailLoginBecauseAccountSuspended];
         } else if ([self isResponseForMissingEmailVerificationCode:response]){
             [authenticationStatus didFailLoginWithEmailBecauseVerificationCodeIsRequired];
-        } else if ([self isResponseForMissingEmailVerificationCode:response]) {
+        } else if ([self isResponseForInvalidEmailVerificationCode:response]) {
             [authenticationStatus didFailLoginWithEmailBecauseVerificationCodeIsInvalid];
         }
+
+
         else if (sync == self.timedDownstreamSync) {
             
             if ([self isResponseForPendingEmailActionvation:response]) {
@@ -231,7 +233,7 @@ NSTimeInterval DefaultPendingValidationLoginAttemptInterval = 5;
 - (BOOL)isResponseForInvalidEmailVerificationCode:(ZMTransportResponse *)response
 {
     NSString *label = [response.payload asDictionary][@"label"];
-    return response.HTTPStatus == 403 && [label isEqualToString:@"code-authentication-required"];
+    return response.HTTPStatus == 403 && [label isEqualToString:@"code-authentication-failed"];
 }
 
 - (BOOL)isResponseForSuspendedAccount:(ZMTransportResponse *)response
