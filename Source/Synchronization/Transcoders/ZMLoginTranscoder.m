@@ -142,7 +142,12 @@ NSTimeInterval DefaultPendingValidationLoginAttemptInterval = 5;
         return nil;
     }
     NSMutableDictionary *payload = [NSMutableDictionary dictionary];
-    if (credentials.email != nil && credentials.password != nil) {
+    if (credentials.emailVerificationCode != nil && credentials.email != nil && credentials.password != nil) {
+       payload[@"email"] = credentials.email;
+       payload[@"password"] = credentials.password;
+       payload[@"verification-code"]  = credentials.emailVerificationCode;
+    }
+    else if (credentials.email != nil && credentials.password != nil) {
         payload[@"email"] = credentials.email;
         payload[@"password"] = credentials.password;
     }

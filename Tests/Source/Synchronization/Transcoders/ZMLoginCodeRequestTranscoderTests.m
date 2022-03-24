@@ -77,6 +77,17 @@
     XCTAssertEqualObjects(request, expectedRequest);
 }
 
+-(void)testThatItReturnsExpectedRequestWhenThereIsEmailThatNeedsVerificationCode
+{
+    NSString *email = @"test@wire.com";
+    [self.authenticationStatus prepareForRequestingEmailVerificationCodeForLogin:email];
+
+    ZMTransportRequest *expectedRequest = [[ZMTransportRequest alloc] initWithPath:@"/verification-code/send" method:ZMMethodPOST payload:@{@"email": email} authentication:ZMTransportRequestAuthNone];
+
+    ZMTransportRequest *request = [self.sut nextRequest];
+    XCTAssertEqualObjects(request, expectedRequest);
+}
+
 - (void)testThatItInformTheAuthCenterThatTheCodeWasReceived
 {
     // given

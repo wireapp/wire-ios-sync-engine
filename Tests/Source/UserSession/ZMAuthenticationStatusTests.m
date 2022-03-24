@@ -83,6 +83,7 @@
     
     XCTAssertNil(self.sut.registrationPhoneNumberThatNeedsAValidationCode);
     XCTAssertNil(self.sut.loginPhoneNumberThatNeedsAValidationCode);
+    XCTAssertNil(self.sut.loginEmailThatNeedsAValidationCode);
     XCTAssertNil(self.sut.loginCredentials);
     XCTAssertNil(self.sut.registrationPhoneValidationCredentials);
 }
