@@ -192,7 +192,7 @@
     XCTAssertNil(self.sut.loginPhoneNumberThatNeedsAValidationCode);
 }
 
-- (void)testThatItResetsWhenFailingTheRequestForEmailVerificationLoginCode
+- (void)testThatItResetsWhenEmailIsInvalidAndFailingTheRequestForEmailVerificationLoginCode
 {
     // given
     NSError *error = [NSError userSessionErrorWithErrorCode:ZMUserSessionInvalidEmail userInfo:nil];
