@@ -466,23 +466,6 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
 
 }
 
-- (void) testThatItCallsInvalidEmailVerificationCode
-{
-    //GIVEN
-    NSDictionary *content = @{@"code":@403,
-                              @"message":@"Code Authentication Failed",
-                              @"label":@"code-authentication-failed"};
-    [self.authenticationStatus prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:@"foo@example.com" password:@"12345678" emailVerificationCode:@"123457"]];
-    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:403 transportSessionError:nil];
-
-    // WHEN
-    [self expectAuthenticationFailedWithError:ZMUserSessionInvalidEmailVerificationCode after:^{
-        [[self.sut nextRequest] completeWithResponse:response];
-        WaitForAllGroupsToBeEmpty(0.5);
-    }];
-
-}
-
 -(void)testThatItInvalidatesTheCredentialsOnLoginErrorWhenLoggingWithEmail
 {
     // given
