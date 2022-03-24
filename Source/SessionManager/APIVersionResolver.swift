@@ -49,6 +49,8 @@ final class APIVersionResolver {
     }
 
     private func handleResponse(_ response: ZMTransportResponse) {
+        return blacklistApp(reason: .clientAPIVersionObsolete)
+
         guard response.result == .success else {
             APIVersion.current = .v0
             APIVersion.domain = "wire.com"
