@@ -161,6 +161,20 @@
     XCTAssertNil(self.sut.loginPhoneNumberThatNeedsAValidationCode);
 }
 
+- (void)testThatItResetsWhenCompletingTheRequestForEmailVerificationLoginCode
+{
+    // when
+    [self.sut prepareForRequestingEmailVerificationCodeForLogin:@"@test@wire.com"];
+    [self.sut didCompleteRequestForLoginCodeSuccessfully];
+    WaitForAllGroupsToBeEmpty(0.5);
+
+    // then
+    XCTAssertEqual(self.delegate.authenticationDidSucceedEvents, 1);
+    XCTAssertEqual(self.delegate.authenticationDidFailEvents.count, 0);
+    XCTAssertEqual(self.sut.currentPhase, ZMAuthenticationPhaseUnauthenticated);
+    XCTAssertNil(self.sut.loginEmailThatNeedsAValidationCode);
+}
+
 - (void)testThatItResetsWhenFailingTheRequestForPhoneLoginCode
 {
     // given
@@ -176,6 +190,23 @@
     XCTAssertEqual(self.delegate.authenticationDidFailEvents[0].code, ZMUserSessionInvalidPhoneNumber);
     XCTAssertEqual(self.sut.currentPhase, ZMAuthenticationPhaseUnauthenticated);
     XCTAssertNil(self.sut.loginPhoneNumberThatNeedsAValidationCode);
+}
+
+- (void)testThatItResetsWhenEmailIsInvalidAndFailingTheRequestForEmailVerificationLoginCode
+{
+    // given
+    NSError *error = [NSError userSessionErrorWithErrorCode:ZMUserSessionInvalidEmail userInfo:nil];
+
+    // when
+    [self.sut prepareForRequestingEmailVerificationCodeForLogin:@"test@wire.com"];
+    [self.sut didFailRequestForLoginCode:error];
+    WaitForAllGroupsToBeEmpty(0.5);
+
+    // then
+    XCTAssertEqual(self.delegate.authenticationDidFailEvents.count, 1);
+    XCTAssertEqual(self.delegate.authenticationDidFailEvents[0].code, ZMUserSessionInvalidEmail);
+    XCTAssertEqual(self.sut.currentPhase, ZMAuthenticationPhaseUnauthenticated);
+    XCTAssertNil(self.sut.loginEmailThatNeedsAValidationCode);
 }
 
 - (void)testThatItResetsWhenFailingEmailLogin

@@ -106,6 +106,7 @@ typedef NS_ENUM(NSUInteger, ZMAuthenticationPhase) {
 - (void)didFailLoginWithEmail:(BOOL)invalidCredentials;
 - (void)didFailLoginBecauseAccountSuspended;
 - (void)didFailLoginWithEmailBecauseVerificationCodeIsRequired;
+- (void)didFailLoginWithEmailBecauseVerificationCodeIsInvalid;
 - (void)didTimeoutLoginForCredentials:(ZMCredentials *)credentials;
 
 @end

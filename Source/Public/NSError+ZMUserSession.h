@@ -42,6 +42,8 @@ typedef NS_ENUM(NSUInteger, ZMUserSessionErrorCode) {
     ZMUserSessionInvalidEmail,
     /// The phone number verification code inserted is not valid
     ZMUserSessionInvalidPhoneNumberVerificationCode,
+    /// The email verification code inserted is not valid
+    ZMUserSessionInvalidEmailVerificationCode,
     /// The registration failed, but we don't know why
     ZMUserSessionRegistrationDidFailWithUnknownError,
     /// There is already a recent request to get the activation code for registration/login
