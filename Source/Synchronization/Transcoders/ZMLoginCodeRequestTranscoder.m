@@ -48,6 +48,7 @@
         self.phoneVerificationCodeRequestSync = [[ZMSingleRequestSync alloc] initWithSingleRequestTranscoder:self groupQueue:groupQueue];
         self.emailVerificationCodeRequestSync = [[ZMSingleRequestSync alloc] initWithSingleRequestTranscoder:self groupQueue:groupQueue];
         [self.phoneVerificationCodeRequestSync readyForNextRequest];
+        [self.emailVerificationCodeRequestSync readyForNextRequest];
     }
     return self;
 }
