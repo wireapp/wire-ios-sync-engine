@@ -273,35 +273,6 @@ extern NSTimeInterval DebugLoginFailureTimerOverride;
 
 @end
 
-
-@implementation LoginFlowTests (PushToken)
-
-- (void)testThatItRegistersThePushTokenWithTheBackend;
-{
-    // given
-    NSData *deviceToken = [@"asdfasdf" dataUsingEncoding:NSUTF8StringEncoding];
-    NSString *deviceTokenAsHex = @"6173646661736466";
-    XCTAssertTrue([self login]);
-    
-    // then
-    XCTAssertTrue([self.pushRegistry.desiredPushTypes containsObject:PKPushTypeVoIP]);
-    
-    // when
-    [self.pushRegistry updatePushToken:deviceToken];
-    WaitForAllGroupsToBeEmpty(0.5);
-    
-    // then
-    NSDictionary *registeredTokens = self.mockTransportSession.pushTokens;
-    XCTAssertEqual(registeredTokens.count, 1u);
-    NSDictionary *registeredToken = registeredTokens[deviceTokenAsHex];
-    XCTAssertEqualObjects(registeredToken[@"token"], deviceTokenAsHex);
-    XCTAssertNotNil(registeredToken[@"app"]);
-    XCTAssertTrue([registeredToken[@"app"] hasPrefix:@"com.wire."]);
-}
-
-@end
-
-
 @implementation LoginFlowTests (PhoneLogin)
 
 - (void)testThatWeCanLogInWithPhoneNumber

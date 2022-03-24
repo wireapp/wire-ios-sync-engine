@@ -51,7 +51,7 @@ public class ZMConversationAccessModeTests: MessagingTest {
         selfUser(options: SelfUserOptions(team: .teamA))
         let conversation = self.conversation(options: ConversationOptions(hasRemoteId: true, team: .teamA, isGroup: true))
         // when
-        let request = WireSyncEngine.WirelessRequestFactory.set(allowGuests: true, for: conversation)
+        let request = WireSyncEngine.WirelessRequestFactory.setAccessRoles(allowGuests: true, allowServices: false, for: conversation)
         // then
         XCTAssertEqual(request.method, .methodPUT)
         XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/access")
@@ -61,6 +61,8 @@ public class ZMConversationAccessModeTests: MessagingTest {
         XCTAssertEqual(Set(payload["access"] as! [String]), Set(["invite", "code"]))
         XCTAssertNotNil(payload["access_role"])
         XCTAssertEqual(payload["access_role"], "non_activated")
+        XCTAssertNotNil(payload["access_role_v2"])
+        XCTAssertEqual(Set(payload["access_role_v2"] as! [String]), Set(["team_member", "non_team_member", "guest"]))
     }
 
     func testThatItGeneratesCorrectFetchLinkRequest() {

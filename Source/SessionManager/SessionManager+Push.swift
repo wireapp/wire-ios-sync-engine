@@ -20,6 +20,8 @@ import Foundation
 import PushKit
 import UserNotifications
 
+private let pushLog = ZMSLog(tag: "Push")
+
 protocol PushRegistry {
 
     var delegate: PKPushRegistryDelegate? { get set }
@@ -52,7 +54,8 @@ extension SessionManager: PKPushRegistryDelegate {
 
         // give new push token to all running sessions
         backgroundUserSessions.values.forEach({ userSession in
-            userSession.setPushKitToken(pushCredentials.token)
+            let pushToken = PushToken.createVOIPToken(from: pushCredentials.token)
+            userSession.setPushToken(pushToken)
         })
     }
 
@@ -143,8 +146,15 @@ extension SessionManager: PKPushRegistryDelegate {
     public func updatePushToken(for session: ZMUserSession) {
         session.managedObjectContext.performGroupedBlock { [weak session] in
             // Refresh the tokens if needed
-            if let token = self.pushRegistry.pushToken(for: .voIP) {
-                session?.setPushKitToken(token)
+            if #available(iOS 13.0, *), !self.configuration.useLegacyPushNotifications {
+                pushLog.safePublic("creating standard push token")
+                self.application.registerForRemoteNotifications()
+            } else {
+                if let token = self.pushRegistry.pushToken(for: .voIP) {
+                    pushLog.safePublic("creating voip push token")
+                    let pushToken = PushToken.createVOIPToken(from: token)
+                    session?.setPushToken(pushToken)
+                }
             }
         }
     }
@@ -206,4 +216,14 @@ extension SessionManager {
         self.presentationDelegate?.showConnectionRequest(userId: userId)
     }
 
+}
+
+extension SessionManager {
+    public func updateDeviceToken(_ deviceToken: Data) {
+        let pushToken = PushToken.createAPNSToken(from: deviceToken)
+        // give new device token to all running sessions
+        self.backgroundUserSessions.values.forEach({ userSession in
+            userSession.setPushToken(pushToken)
+        })
+    }
 }

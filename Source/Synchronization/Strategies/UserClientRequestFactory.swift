@@ -14,7 +14,7 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see http://www.gnu.org/licenses/.
-// 
+//
 
 import Foundation
 import WireCryptobox
@@ -61,6 +61,10 @@ public final class UserClientRequestFactory {
 
         if let password = credentials?.password {
             payload["password"] = password
+        }
+
+        if let verificationCode = credentials?.emailVerificationCode {
+            payload["verification_code"] = verificationCode
         }
 
         let request = ZMTransportRequest(path: "/clients", method: ZMTransportRequestMethod.methodPOST, payload: payload as ZMTransportData)
