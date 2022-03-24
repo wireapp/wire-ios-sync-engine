@@ -75,11 +75,6 @@ public class SessionManagerConfiguration: NSObject, NSCopying, Codable {
 
     public var legacyAppLockConfig: AppLockController.LegacyConfig?
 
-    /// If set to true federation will be supported if the backend also supports it.
-    ///
-    /// The default value of this property is `false`
-    public var supportFederation: Bool
-
     // MARK: - Init
 
     public init(
@@ -91,8 +86,7 @@ public class SessionManagerConfiguration: NSObject, NSCopying, Codable {
         authenticateAfterReboot: Bool = false,
         failedPasswordThresholdBeforeWipe: Int? = nil,
         encryptionAtRestIsEnabledByDefault: Bool = false,
-        legacyAppLockConfig: AppLockController.LegacyConfig? = nil,
-        supportFederation: Bool = false) {
+        legacyAppLockConfig: AppLockController.LegacyConfig? = nil) {
 
         self.wipeOnCookieInvalid = wipeOnCookieInvalid
         self.blacklistDownloadInterval = blacklistDownloadInterval
@@ -103,7 +97,6 @@ public class SessionManagerConfiguration: NSObject, NSCopying, Codable {
         self.failedPasswordThresholdBeforeWipe = failedPasswordThresholdBeforeWipe
         self.encryptionAtRestEnabledByDefault = encryptionAtRestIsEnabledByDefault
         self.legacyAppLockConfig = legacyAppLockConfig
-        self.supportFederation = supportFederation
     }
 
     required public init(from decoder: Decoder) throws {
@@ -117,7 +110,6 @@ public class SessionManagerConfiguration: NSObject, NSCopying, Codable {
         failedPasswordThresholdBeforeWipe = try container.decodeIfPresent(Int.self, forKey: .failedPasswordThresholdBeforeWipe)
         encryptionAtRestEnabledByDefault = try container.decode(Bool.self, forKey: .encryptionAtRestEnabledByDefault)
         legacyAppLockConfig = try container.decodeIfPresent(AppLockController.LegacyConfig.self, forKey: .legacyAppLockConfig)
-        supportFederation = try container.decodeIfPresent(Bool.self, forKey: .supportFederation) ?? false
     }
 
     // MARK: - Methods
@@ -132,8 +124,7 @@ public class SessionManagerConfiguration: NSObject, NSCopying, Codable {
             authenticateAfterReboot: authenticateAfterReboot,
             failedPasswordThresholdBeforeWipe: failedPasswordThresholdBeforeWipe,
             encryptionAtRestIsEnabledByDefault: encryptionAtRestEnabledByDefault,
-            legacyAppLockConfig: legacyAppLockConfig,
-            supportFederation: supportFederation
+            legacyAppLockConfig: legacyAppLockConfig
         )
 
         return copy
@@ -167,7 +158,6 @@ extension SessionManagerConfiguration {
         case failedPasswordThresholdBeforeWipe
         case encryptionAtRestEnabledByDefault
         case legacyAppLockConfig
-        case supportFederation
     }
 
 }
