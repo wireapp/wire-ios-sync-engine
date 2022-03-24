@@ -37,7 +37,7 @@ extension ServiceUser {
               let provider = UUID(uuidString: providerIdentifier),
               let service = UUID(uuidString: serviceIdentifier)
         else {
-                return nil
+            return nil
         }
 
         return ServiceUserData(provider: provider,
@@ -59,9 +59,9 @@ public final class ServiceProvider: NSObject {
               let email       = payload["email"] as? String,
               let url         = payload["url"] as? String,
               let description = payload["description"] as? String
-            else {
-                return nil
-            }
+        else {
+            return nil
+        }
         self.identifier  = identifier
         self.name        = name
         self.email       = email
@@ -88,9 +88,9 @@ public final class ServiceDetails: NSObject {
               let description         = payload["description"] as? String,
               let assets              = payload["assets"] as? [[String: Any]],
               let tags                = payload["tags"] as? [String]
-            else {
-                return nil
-            }
+        else {
+            return nil
+        }
 
         self.serviceIdentifier  = serviceIdentifier
         self.providerIdentifier = providerIdentifier
@@ -142,12 +142,12 @@ public extension ServiceUser {
         request.add(ZMCompletionHandler(on: userSession.managedObjectContext, block: { (response) in
 
             guard response.httpStatus == 200,
-                let responseDictionary = response.payload?.asDictionary(),
-                let provider = ServiceProvider(payload: responseDictionary) else {
-                    zmLog.error("Wrong response for fetching a provider: \(response)")
-                    completion(nil)
-                    return
-            }
+                  let responseDictionary = response.payload?.asDictionary(),
+                  let provider = ServiceProvider(payload: responseDictionary) else {
+                      zmLog.error("Wrong response for fetching a provider: \(response)")
+                      completion(nil)
+                      return
+                  }
 
             completion(provider)
         }))
@@ -165,12 +165,12 @@ public extension ServiceUser {
         request.add(ZMCompletionHandler(on: userSession.managedObjectContext, block: { (response) in
 
             guard response.httpStatus == 200,
-                let responseDictionary = response.payload?.asDictionary(),
-                let serviceDetails = ServiceDetails(payload: responseDictionary) else {
-                    zmLog.error("Wrong response for fetching a service: \(response)")
-                    completion(nil)
-                    return
-            }
+                  let responseDictionary = response.payload?.asDictionary(),
+                  let serviceDetails = ServiceDetails(payload: responseDictionary) else {
+                      zmLog.error("Wrong response for fetching a service: \(response)")
+                      completion(nil)
+                      return
+                  }
 
             completion(serviceDetails)
         }))
@@ -208,6 +208,8 @@ public extension ServiceUser {
         conversation.conversationType = .group
         conversation.creator = selfUser
         conversation.team = selfUser.team
+        conversation.allowServices = true
+
 
         var onCreatedRemotelyToken: NSObjectProtocol?
         _ = onCreatedRemotelyToken // remove warning
@@ -223,14 +225,14 @@ public extension ServiceUser {
                              eventProcessor: eventProcessor,
                              contextProvider: contextProvider,
                              completionHandler: { (result) in
-                                switch result {
-                                case .success:
-                                    completionHandler(.success(conversation))
-                                case .failure(let error):
-                                    completionHandler(.failure(error))
-                                }
+                switch result {
+                case .success:
+                    completionHandler(.success(conversation))
+                case .failure(let error):
+                    completionHandler(.failure(error))
+                }
 
-                                onCreatedRemotelyToken = nil
+                onCreatedRemotelyToken = nil
             })
         }
 
@@ -306,9 +308,9 @@ public extension ZMConversation {
                   let responseDictionary = response.payload?.asDictionary(),
                   let userAddEventPayload = responseDictionary["event"] as? ZMTransportData,
                   let event = ZMUpdateEvent(fromEventStreamPayload: userAddEventPayload, uuid: nil) else {
-                    completionHandler(.failure(AddBotError(response: response)))
-                    return
-            }
+                      completionHandler(.failure(AddBotError(response: response)))
+                      return
+                  }
 
             completionHandler(.success)
 
