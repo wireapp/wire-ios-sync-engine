@@ -472,7 +472,7 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
     NSDictionary *content = @{@"code":@403,
                               @"message":@"Code Authentication Failed",
                               @"label":@"code-authentication-failed"};
-    [self.authenticationStatus prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:@"foo@example.com" password:@"12345678" emailVerificationCode:@""]];
+    [self.authenticationStatus prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:@"foo@example.com" password:@"12345678" emailVerificationCode:@"123457"]];
     ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:403 transportSessionError:nil];
 
     // WHEN

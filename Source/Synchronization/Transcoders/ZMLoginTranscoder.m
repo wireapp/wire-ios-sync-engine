@@ -185,8 +185,6 @@ NSTimeInterval DefaultPendingValidationLoginAttemptInterval = 5;
         } else if ([self isResponseForInvalidEmailVerificationCode:response]) {
             [authenticationStatus didFailLoginWithEmailBecauseVerificationCodeIsInvalid];
         }
-
-
         else if (sync == self.timedDownstreamSync) {
             
             if ([self isResponseForPendingEmailActionvation:response]) {
