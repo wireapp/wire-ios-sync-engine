@@ -101,6 +101,7 @@ NSTimeInterval DefaultPendingValidationLoginAttemptInterval = 5;
         [self.loginWithPhoneNumberSync readyForNextRequestIfNotBusy];
         return [self.loginWithPhoneNumberSync nextRequest];
     }
+    
     if(authenticationStatus.currentPhase == ZMAuthenticationPhaseLoginWithEmail) {
         [self.timedDownstreamSync readyForNextRequestIfNotBusy];
         request = [self.timedDownstreamSync nextRequest];
@@ -145,7 +146,7 @@ NSTimeInterval DefaultPendingValidationLoginAttemptInterval = 5;
     if (credentials.emailVerificationCode != nil && credentials.email != nil && credentials.password != nil) {
        payload[@"email"] = credentials.email;
        payload[@"password"] = credentials.password;
-       payload[@"verification-code"]  = credentials.emailVerificationCode;
+       payload[@"verification_code"]  = credentials.emailVerificationCode;
     }
     else if (credentials.email != nil && credentials.password != nil) {
         payload[@"email"] = credentials.email;
