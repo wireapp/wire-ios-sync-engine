@@ -73,7 +73,9 @@
     if (sync == self.emailVerificationCodeRequestSync) {
         ZMTransportRequest *emailVerficationCodeRequest = [[ZMTransportRequest alloc] initWithPath:@"/verification-code/send"
                                                                                             method:ZMMethodPOST
-                                                                                           payload:@{@"email": self.authenticationStatus.loginEmailThatNeedsAValidationCode}
+                                                                                           payload:@{@"email": self.authenticationStatus.loginEmailThatNeedsAValidationCode,
+                                                                                                     @"action": @"login"
+                                                                                                   }
                                                                                     authentication:ZMTransportRequestAuthNone];
         return emailVerficationCodeRequest;
     } else if (sync == self.phoneVerificationCodeRequestSync) {
