@@ -101,7 +101,6 @@ NSTimeInterval DefaultPendingValidationLoginAttemptInterval = 5;
         [self.loginWithPhoneNumberSync readyForNextRequestIfNotBusy];
         return [self.loginWithPhoneNumberSync nextRequest];
     }
-    
     if(authenticationStatus.currentPhase == ZMAuthenticationPhaseLoginWithEmail) {
         [self.timedDownstreamSync readyForNextRequestIfNotBusy];
         request = [self.timedDownstreamSync nextRequest];
