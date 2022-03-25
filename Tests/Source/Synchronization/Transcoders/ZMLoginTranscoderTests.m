@@ -247,7 +247,7 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
     // GIVEN
     NSDictionary *payload = @{@"email": self.testEmailCredentialsWithVerificationCode.email,
                               @"password": self.testEmailCredentialsWithVerificationCode.password,
-                              @"verification-code": self.testEmailCredentialsWithVerificationCode.emailVerificationCode,
+                              @"verification_code": self.testEmailCredentialsWithVerificationCode.emailVerificationCode,
                               @"label": CookieLabel.current.value};
     ZMTransportRequest *expectedRequest = [[ZMTransportRequest alloc] initWithPath:ZMLoginURL method:ZMMethodPOST payload:payload authentication:ZMTransportRequestAuthCreatesCookieAndAccessToken];
 
