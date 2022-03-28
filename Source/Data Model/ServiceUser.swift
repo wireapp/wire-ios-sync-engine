@@ -210,7 +210,6 @@ public extension ServiceUser {
         conversation.team = selfUser.team
         conversation.allowServices = true
 
-
         var onCreatedRemotelyToken: NSObjectProtocol?
         _ = onCreatedRemotelyToken // remove warning
 
