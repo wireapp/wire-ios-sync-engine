@@ -181,7 +181,7 @@ extension ZMConversation {
         let request = WirelessRequestFactory.setAccessRoles(allowGuests: allowGuests, allowServices: allowServices, for: self)
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
             if let payload = response.payload,
-                let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: nil) {
+               let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: nil) {
                 self.allowGuests = allowGuests
                 self.allowServices = allowServices
                 // Process `conversation.access-update` event
@@ -211,6 +211,13 @@ internal struct WirelessRequestFactory {
             fatal("conversation is not yet inserted on the backend")
         }
         return .init(getFromPath: "/conversations/\(identifier)/code")
+    }
+
+    static func guestLinkStatusRequest(for conversation: ZMConversation) -> ZMTransportRequest {
+        guard let identifier = conversation.remoteIdentifier?.transportString() else {
+            fatal("conversation is not yet inserted on the backend")
+        }
+        return .init(getFromPath: "/conversations/\(identifier)/features/conversationGuestLinks")
     }
 
     static func createLinkRequest(for conversation: ZMConversation) -> ZMTransportRequest {
