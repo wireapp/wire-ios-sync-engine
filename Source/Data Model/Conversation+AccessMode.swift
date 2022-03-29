@@ -138,20 +138,21 @@ extension ZMConversation {
         userSession.transportSession.enqueueOneTime(request)
     }
 
-    /// Checks the status of the guest link. If it's either enabled or disabled
-    public func checkGuestLinkStatus(in userSession: ZMUserSession, _ completion: @escaping (Result<Bool>) -> Void) {
+    /// Checks if a guest link can be generated or not
+    public func canGenerateGuestLink(in userSession: ZMUserSession, _ completion: @escaping (Result<Bool>) -> Void) {
 
-        let request = WirelessRequestFactory.guestLinkStatusRequest(for: self)
+        let request = WirelessRequestFactory.guestLinkFeatureStatusRequest(for: self)
 
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
             switch response.httpStatus {
             case 200:
-                if let payload = response.payload?.asDictionary(),
-                   let data = payload["status"] as? String {
-                    completion(.success(data == "enabled"))
-                } else {
-                    completion(.failure(WirelessLinkError.invalidResponse))
+                guard let payload = response.payload?.asDictionary(),
+                      let data = payload["status"] as? String
+                else {
+                    return completion(.failure(WirelessLinkError.invalidResponse))
                 }
+                return completion(.success(data == "enabled"))
+                
             case 404:
                 let error = WirelessLinkError(response: response) ?? .unknown
                 zmLog.error("Could not check guest link status: \(error)")
@@ -243,7 +244,7 @@ internal struct WirelessRequestFactory {
         return .init(getFromPath: "/conversations/\(identifier)/code")
     }
 
-    static func guestLinkStatusRequest(for conversation: ZMConversation) -> ZMTransportRequest {
+    static func guestLinkFeatureStatusRequest(for conversation: ZMConversation) -> ZMTransportRequest {
         guard let identifier = conversation.remoteIdentifier?.transportString() else {
             fatal("conversation is not yet inserted on the backend")
         }

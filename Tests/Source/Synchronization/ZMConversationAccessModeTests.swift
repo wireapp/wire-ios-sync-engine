@@ -83,7 +83,7 @@ public class ZMConversationAccessModeTests: MessagingTest {
         let conversation = self.conversation(options: ConversationOptions(hasRemoteId: true, team: .teamA, isGroup: true))
 
         // WHEN
-        let request = WireSyncEngine.WirelessRequestFactory.guestLinkStatusRequest(for: conversation)
+        let request = WireSyncEngine.WirelessRequestFactory.guestLinkFeatureStatusRequest(for: conversation)
 
         // then
         XCTAssertEqual(request.method, .methodGET)
