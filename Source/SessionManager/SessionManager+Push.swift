@@ -19,43 +19,9 @@
 import Foundation
 import PushKit
 import UserNotifications
+import WireRequestStrategy
 
 private let pushLog = ZMSLog(tag: "Push")
-
-public enum PushFromNotificationExtensionKeys: String {
-    case accountId
-    case fromNotificationExtension
-    case currentTimestamp
-}
-
-public struct PushFromNotificationExtension: Codable {
-    let conversationId: UUID
-    let senderId: UUID
-    let senderClientID: String
-    let conversationDomain: String?
-    let senderDomain: String?
-    let payloadData: Data
-    let timestamp: Date
-
-    public init? (event: ZMUpdateEvent) {
-        guard let conversationId = event.conversationUUID,
-              let senderId = event.senderUUID,
-              let senderClientID = event.senderClientID,
-              let timestamp = event.timestamp,
-              let genericMessage = GenericMessage(from: event),
-              let payloadData = genericMessage.calling.content.data(using: .utf8, allowLossyConversion: false)
-        else {
-            return nil
-        }
-        self.conversationId = conversationId
-        self.senderId = senderId
-        self.senderClientID = senderClientID
-        self.conversationDomain = event.conversationDomain
-        self.senderDomain = event.senderDomain
-        self.timestamp = timestamp
-        self.payloadData = payloadData
-    }
-}
 
 protocol PushRegistry {
 
@@ -110,37 +76,36 @@ extension SessionManager: PKPushRegistryDelegate {
     }
 
     public func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
-
-        if let fromNotificationExtension = payload.dictionaryPayload[PushFromNotificationExtensionKeys.fromNotificationExtension.rawValue] as? Bool,
-           fromNotificationExtension == true {
-            handleCallPushPayload(payload, completion: completion)
+        if let voipPushPayload = VOIPPushPayload(payload: payload) {
+            handleCallPushPayload(voipPushPayload, completion: completion)
         } else {
             handleLegacyPushPayload(payload, for: type, completion: completion)
         }
     }
 
-    private func handleCallPushPayload(_ payload: PKPushPayload, completion: @escaping () -> Void) {
-        guard let accountIdString = payload.dictionaryPayload[PushFromNotificationExtensionKeys.accountId.rawValue] as? String,
-              let accountId = UUID(uuidString: accountIdString),
-              let account = self.accountManager.account(with: accountId),
-              let serverTimeDelta = payload.dictionaryPayload["currentTimestamp"] as? TimeInterval,
-              let dictionaryPayload = payload.dictionaryPayload as? [String: Any],
-              let pushPayload = PushFromNotificationExtension(dictionaryPayload) else {
-                  Logging.push.safePublic("Aborted processing of payload: \(payload)")
-                  return completion()
-              }
+    private func handleCallPushPayload(_ payload: VOIPPushPayload, completion: @escaping () -> Void) {
+        guard let account = accountManager.account(with: payload.accountID) else {
+            Logging.push.safePublic("Aborted processing of call push payload because an account couldn't be found.")
+            completion()
+            return
+        }
 
-        withSession(for: account, perform: { userSession in
-            Logging.push.safePublic("Forwarding push payload to user session with account \(account.userIdentifier)")
-            userSession.syncStrategy?.callingRequestStrategy?.processCallEvent(conversationUUID: pushPayload.conversationId,
-                                                                               senderUUID: pushPayload.senderId,
-                                                                               clientId: pushPayload.senderClientID,
-                                                                               conversationDomain: pushPayload.conversationDomain,
-                                                                               senderDomain: pushPayload.senderDomain,
-                                                                               payload: pushPayload.payloadData,
-                                                                               currentTimestamp: serverTimeDelta,
-                                                                               eventTimestamp: pushPayload.timestamp)
-        })
+        withSession(for: account) { userSession in
+            Logging.push.safePublic("Forwarding call push payload to user session with account \(account.userIdentifier)")
+
+            let processor = userSession.syncStrategy?.callingRequestStrategy
+
+            processor?.processCallEvent(
+                conversationUUID: payload.conversationID,
+                senderUUID: payload.senderID,
+                clientId: payload.senderClientID,
+                conversationDomain: payload.conversationDomain,
+                senderDomain: payload.senderDomain,
+                payload: payload.data,
+                currentTimestamp: payload.serverTimeDelta,
+                eventTimestamp: payload.timestamp
+            )
+        }
     }
 
     private func handleLegacyPushPayload(_ payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
@@ -295,4 +260,16 @@ extension SessionManager {
             userSession.setPushToken(pushToken)
         })
     }
+}
+
+private extension VOIPPushPayload {
+
+    init?(payload: PKPushPayload) {
+        guard let dict = payload.dictionaryPayload as? [String: Any] else {
+            return nil
+        }
+
+        self.init(from: dict)
+    }
+
 }
