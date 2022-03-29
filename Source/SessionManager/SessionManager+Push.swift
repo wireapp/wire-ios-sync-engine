@@ -53,19 +53,32 @@ extension SessionManager: PKPushRegistryDelegate {
 
         Logging.push.safePublic("PushKit token was updated: \(pushCredentials)")
 
-        // give new push token to all running sessions
-        backgroundUserSessions.values.forEach({ userSession in
+        guard configuration.useLegacyPushNotifications else {
+            // Do nothing: we still register for voip pushes even when using standard
+            // apns push tokens. This is so the app can receive "fake" voip pushes from
+            // the extension. We don't want to use the voip push token because we should
+            // be using the standard apns token instead.
+            return
+        }
+
+        // Give new push token to all running sessions.
+        backgroundUserSessions.values.forEach { userSession in
             let pushToken = PushToken.createVOIPToken(from: pushCredentials.token)
             userSession.setPushToken(pushToken)
-        })
+        }
     }
 
     public func pushRegistry(_ registry: PKPushRegistry, didInvalidatePushTokenFor type: PKPushType) {
-        guard type == .voIP else { return }
+        guard
+            type == .voIP,
+            configuration.useLegacyPushNotifications
+        else {
+            return
+        }
 
         Logging.push.safePublic("PushKit token was invalidated")
 
-        // delete push token from all running sessions
+        // Delete push token from all running sessions.
         backgroundUserSessions.values.forEach({ userSession in
             userSession.deletePushKitToken()
         })
