@@ -146,13 +146,15 @@ extension ZMConversation {
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
             switch response.httpStatus {
             case 200:
-                guard let payload = response.payload?.asDictionary(),
-                      let data = payload["status"] as? String
+                guard 
+                    let payload = response.payload?.asDictionary(),
+                    let data = payload["status"] as? String
                 else {
                     return completion(.failure(WirelessLinkError.invalidResponse))
                 }
+
                 return completion(.success(data == "enabled"))
-                
+
             case 404:
                 let error = WirelessLinkError(response: response) ?? .unknown
                 zmLog.error("Could not check guest link status: \(error)")
