@@ -146,7 +146,7 @@ extension ZMConversation {
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
             switch response.httpStatus {
             case 200:
-                guard 
+                guard
                     let payload = response.payload?.asDictionary(),
                     let data = payload["status"] as? String
                 else {
