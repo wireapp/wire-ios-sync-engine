@@ -89,6 +89,70 @@ class ConversationTests_Guests: IntegrationTest {
         XCTAssertEqual(request.method, .methodPOST)
     }
 
+    func testThatItSendsRequestToFetchTheGuestLinkStatus() {
+        // given
+        mockTransportSession.performRemoteChanges { _ in
+            self.groupConversationWithWholeTeam.guestLinkFeatureStatus = "enabled"
+        }
+        XCTAssert(login())
+
+        let conversation = self.conversation(for: self.groupConversationWithWholeTeam)!
+
+        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
+        mockTransportSession?.resetReceivedRequests()
+
+        // when
+        conversation.canGenerateGuestLink(in: self.userSession!) { result in
+            switch result {
+            case .success:
+                XCTAssertEqual(self.groupConversationWithWholeTeam.guestLinkFeatureStatus, "enabled")
+            case .failure:
+                XCTFail()
+            }
+        }
+
+        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
+
+        // then
+        XCTAssertEqual(mockTransportSession.receivedRequests().count, 1)
+        guard let request = mockTransportSession.receivedRequests().first else { return }
+        XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/features/conversationGuestLinks")
+        XCTAssertEqual(request.method, .methodGET)
+
+    }
+
+    func testThatItSendsRequestToFetchTheGuestLinkStatus_AndFailsWhenGuestLinkStatusIsMissing() {
+        // given
+        mockTransportSession.performRemoteChanges { _ in
+            self.groupConversationWithWholeTeam.guestLinkFeatureStatus = nil
+        }
+        XCTAssert(login())
+
+        let conversation = self.conversation(for: self.groupConversationWithWholeTeam)!
+
+        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
+        mockTransportSession?.resetReceivedRequests()
+
+        // when
+        conversation.canGenerateGuestLink(in: self.userSession!) { result in
+            switch result {
+            case .success:
+                XCTFail()
+            case .failure:
+                break
+            }
+        }
+
+        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
+
+        // then
+        XCTAssertEqual(mockTransportSession.receivedRequests().count, 1)
+        guard let request = mockTransportSession.receivedRequests().first else { return }
+        XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/features/conversationGuestLinks")
+        XCTAssertEqual(request.method, .methodGET)
+
+    }
+
     func testThatItSendsRequestToSetModeIfLegacyWhenFetchingTheLink() {
         // given
         mockTransportSession.performRemoteChanges { _ in
