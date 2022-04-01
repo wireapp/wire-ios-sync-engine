@@ -38,14 +38,17 @@ fileprivate extension ZMConversation {
 
 public enum WirelessLinkError: Error {
     case noCode
+    case invalidResponse
     case invalidOperation
     case guestLinksDisabled
+    case noConversation
     case unknown
 
     init?(response: ZMTransportResponse) {
         switch (response.httpStatus, response.payloadLabel()) {
         case (403, "invalid-op"?): self = .invalidOperation
         case (404, "no-conversation-code"?): self = .noCode
+        case (404, "no-conversation"?): self = .noConversation
         case (409, "guest-links-disabled"?): self = .guestLinksDisabled
         case (400..<499, _): self = .unknown
         default: return nil
@@ -66,7 +69,7 @@ extension ZMConversation {
         let request = WirelessRequestFactory.fetchLinkRequest(for: self)
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
             if response.httpStatus == 200,
-                let uri = response.payload?.asDictionary()?[ZMConversation.TransportKey.uri] as? String {
+               let uri = response.payload?.asDictionary()?[ZMConversation.TransportKey.uri] as? String {
                 completion(.success(uri))
             } else if response.httpStatus == 404 {
                 completion(.success(nil))
@@ -109,9 +112,9 @@ extension ZMConversation {
         let request = WirelessRequestFactory.createLinkRequest(for: self)
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
             if response.httpStatus == 201,
-                let payload = response.payload,
-                let data = payload.asDictionary()?[ZMConversation.TransportKey.data] as? [String: Any],
-                let uri = data[ZMConversation.TransportKey.uri] as? String {
+               let payload = response.payload,
+               let data = payload.asDictionary()?[ZMConversation.TransportKey.data] as? [String: Any],
+               let uri = data[ZMConversation.TransportKey.uri] as? String {
 
                 completion(.success(uri))
 
@@ -122,8 +125,8 @@ extension ZMConversation {
                     }
                 }
             } else if response.httpStatus == 200,
-                let payload = response.payload?.asDictionary(),
-                let uri = payload[ZMConversation.TransportKey.uri] as? String {
+                      let payload = response.payload?.asDictionary(),
+                      let uri = payload[ZMConversation.TransportKey.uri] as? String {
                 completion(.success(uri))
             } else {
                 let error = WirelessLinkError(response: response) ?? .unknown
@@ -133,6 +136,36 @@ extension ZMConversation {
         })
 
         userSession.transportSession.enqueueOneTime(request)
+    }
+
+    /// Checks if a guest link can be generated or not
+    public func canGenerateGuestLink(in userSession: ZMUserSession, _ completion: @escaping (Result<Bool>) -> Void) {
+
+        let request = WirelessRequestFactory.guestLinkFeatureStatusRequest(for: self)
+
+        request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
+            switch response.httpStatus {
+            case 200:
+                guard
+                    let payload = response.payload?.asDictionary(),
+                    let data = payload["status"] as? String
+                else {
+                    return completion(.failure(WirelessLinkError.invalidResponse))
+                }
+
+                return completion(.success(data == "enabled"))
+
+            case 404:
+                let error = WirelessLinkError(response: response) ?? .unknown
+                zmLog.error("Could not check guest link status: \(error)")
+                completion(.failure(error))
+            default:
+                completion(.failure(WirelessLinkError.unknown))
+            }
+        })
+
+        userSession.transportSession.enqueueOneTime(request)
+
     }
 
     /// Deletes the existing wireless link.
@@ -181,7 +214,7 @@ extension ZMConversation {
         let request = WirelessRequestFactory.setAccessRoles(allowGuests: allowGuests, allowServices: allowServices, for: self)
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
             if let payload = response.payload,
-                let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: nil) {
+               let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: nil) {
                 self.allowGuests = allowGuests
                 self.allowServices = allowServices
                 // Process `conversation.access-update` event
@@ -211,6 +244,13 @@ internal struct WirelessRequestFactory {
             fatal("conversation is not yet inserted on the backend")
         }
         return .init(getFromPath: "/conversations/\(identifier)/code")
+    }
+
+    static func guestLinkFeatureStatusRequest(for conversation: ZMConversation) -> ZMTransportRequest {
+        guard let identifier = conversation.remoteIdentifier?.transportString() else {
+            fatal("conversation is not yet inserted on the backend")
+        }
+        return .init(getFromPath: "/conversations/\(identifier)/features/conversationGuestLinks")
     }
 
     static func createLinkRequest(for conversation: ZMConversation) -> ZMTransportRequest {

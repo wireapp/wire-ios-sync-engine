@@ -142,7 +142,12 @@ NSTimeInterval DefaultPendingValidationLoginAttemptInterval = 5;
         return nil;
     }
     NSMutableDictionary *payload = [NSMutableDictionary dictionary];
-    if (credentials.email != nil && credentials.password != nil) {
+    if (credentials.emailVerificationCode != nil && credentials.email != nil && credentials.password != nil) {
+       payload[@"email"] = credentials.email;
+       payload[@"password"] = credentials.password;
+       payload[@"verification_code"]  = credentials.emailVerificationCode;
+    }
+    else if (credentials.email != nil && credentials.password != nil) {
         payload[@"email"] = credentials.email;
         payload[@"password"] = credentials.password;
     }
@@ -175,6 +180,10 @@ NSTimeInterval DefaultPendingValidationLoginAttemptInterval = 5;
         
         if ([self isResponseForSuspendedAccount:response]) {
             [authenticationStatus didFailLoginBecauseAccountSuspended];
+        } else if ([self isResponseForMissingEmailVerificationCode:response]){
+            [authenticationStatus didFailLoginWithEmailBecauseVerificationCodeIsRequired];
+        } else if ([self isResponseForInvalidEmailVerificationCode:response]) {
+            [authenticationStatus didFailLoginWithEmailBecauseVerificationCodeIsInvalid];
         }
         else if (sync == self.timedDownstreamSync) {
             
@@ -211,6 +220,18 @@ NSTimeInterval DefaultPendingValidationLoginAttemptInterval = 5;
 {
     NSString *label = [response.payload asDictionary][@"label"];
     return [label isEqualToString:@"pending-activation"];
+}
+
+- (BOOL)isResponseForMissingEmailVerificationCode:(ZMTransportResponse *)response
+{
+    NSString *label = [response.payload asDictionary][@"label"];
+    return [label isEqualToString:@"code-authentication-required"];
+}
+
+- (BOOL)isResponseForInvalidEmailVerificationCode:(ZMTransportResponse *)response
+{
+    NSString *label = [response.payload asDictionary][@"label"];
+    return response.HTTPStatus == 403 && [label isEqualToString:@"code-authentication-failed"];
 }
 
 - (BOOL)isResponseForSuspendedAccount:(ZMTransportResponse *)response

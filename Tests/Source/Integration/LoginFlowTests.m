@@ -326,6 +326,27 @@ extern NSTimeInterval DebugLoginFailureTimerOverride;
     XCTAssertEqual(self.mockTransportSession.receivedRequests.count, 1u);
 }
 
+- (void)testThatItNotifiesIfTheEmailVerificationLoginCodeCanNotBeRequested
+{
+    // given
+    NSString *email = @"test@wire.com";
+
+    self.mockTransportSession.responseGeneratorBlock = ^ZMTransportResponse*(ZMTransportRequest *request) {
+        if([request.path isEqualToString:@"/verification-code/send"]) {
+            return [ZMTransportResponse responseWithPayload:nil HTTPStatus:403 transportSessionError:nil];
+        }
+        return nil;
+    };
+
+    // when
+    [self.unauthenticatedSession requestEmailVerificationCodeForLogin:email];
+    WaitForAllGroupsToBeEmpty(0.5);
+
+    // then
+    XCTAssertTrue(self.mockLoginDelegete.didCallLoginCodeRequestDidFail);
+    XCTAssertEqual(self.mockTransportSession.receivedRequests.count, 1u);
+}
+
 - (void)testThatItNotifiesIfTheLoginFails
 {
     // given

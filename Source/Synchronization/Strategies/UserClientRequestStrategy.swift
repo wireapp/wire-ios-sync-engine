@@ -309,7 +309,9 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
                     }
                 case "too-many-clients":
                     errorCode = .canNotRegisterMoreClients
-                case "invalid-credentials":
+                case "invalid-credentials",
+                    "code-authentication-failed",
+                    "code-authentication-required":
                     errorCode = .invalidCredentials
                 default:
                     break

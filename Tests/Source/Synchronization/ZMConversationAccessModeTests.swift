@@ -77,6 +77,20 @@ public class ZMConversationAccessModeTests: MessagingTest {
         XCTAssertNil(request.payload)
     }
 
+    func testThatItGeneratesGuestLinkStatusRequest() {
+        // GIVEN
+        selfUser(options: SelfUserOptions(team: .teamA))
+        let conversation = self.conversation(options: ConversationOptions(hasRemoteId: true, team: .teamA, isGroup: true))
+
+        // WHEN
+        let request = WireSyncEngine.WirelessRequestFactory.guestLinkFeatureStatusRequest(for: conversation)
+
+        // then
+        XCTAssertEqual(request.method, .methodGET)
+        XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/features/conversationGuestLinks")
+        XCTAssertNil(request.payload)
+    }
+
     func testThatItGeneratesCorrectCreateLinkRequest() {
         // given
         selfUser(options: SelfUserOptions(team: .teamA))
@@ -125,6 +139,19 @@ public class ZMConversationAccessModeTests: MessagingTest {
 
         // then
         XCTAssertEqual(error, .noCode)
+    }
+
+    func testThatItParsesNoConversationErrorResponse() {
+        // GIVEN
+        let response = ZMTransportResponse(payload: ["label": "no-conversation"] as ZMTransportData,
+                                           httpStatus: 404,
+                                           transportSessionError: nil)
+
+        // WHEN
+        let error = WirelessLinkError(response: response)
+
+        // THEN
+        XCTAssertEqual(error, .noConversation)
     }
 
     func testThatItParsesGuestLinksDisabledErrorResponse() {

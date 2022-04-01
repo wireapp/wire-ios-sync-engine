@@ -1,20 +1,20 @@
-// 
+//
 // Wire
 // Copyright (C) 2016 Wire Swiss GmbH
-// 
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see http://www.gnu.org/licenses/.
-// 
+//
 
 @import WireDataModel;
 
@@ -34,6 +34,7 @@
 
 static NSString * const TestEmail = @"bar@example.com";
 static NSString * const TestPassword = @"super-secure-password-sijovhjs987y";
+static NSString * const TestEmailVerificationCode = @"123456";
 
 static NSString * const TestPhoneNumber = @"+7123456789";
 static NSString * const TestPhoneCode = @"123456";
@@ -67,6 +68,7 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
 @property (nonatomic) id mockApplicationStatusDirectory;
 
 @property (nonatomic) ZMCredentials *testEmailCredentials;
+@property (nonatomic) ZMCredentials *testEmailCredentialsWithVerificationCode;
 @property (nonatomic) ZMCredentials *testPhoneNumberCredentials;
 @property (nonatomic) NSTimeInterval originalLoginTimerInterval;
 @property (nonatomic) id mockLocale;
@@ -85,21 +87,23 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
     self.groupQueue = [[DispatchGroupQueue alloc] initWithQueue:dispatch_get_main_queue()];
     self.mockAuthenticationStatusDelegate = [[MockAuthenticationStatusDelegate alloc] init];
     self.originalLoginTimerInterval = DefaultPendingValidationLoginAttemptInterval;
-    
+
     self.authenticationStatus = [[ZMAuthenticationStatus alloc] initWithDelegate:self.mockAuthenticationStatusDelegate
-                                          groupQueue:self.groupQueue
-                                      userInfoParser:self.mockUserInfoParser];
+                                                                      groupQueue:self.groupQueue
+                                                                  userInfoParser:self.mockUserInfoParser];
 
     self.mockClientRegistrationStatus = [OCMockObject niceMockForClass:[ZMClientRegistrationStatus class]];
-    
+
     self.mockLocale = [OCMockObject niceMockForClass:[NSLocale class]];
     [[[self.mockLocale stub] andReturn:[NSLocale localeWithLocaleIdentifier:@"fr_FR"]] currentLocale];
 
 
     self.sut = [[ZMLoginTranscoder alloc] initWithGroupQueue:self.groupQueue
                                         authenticationStatus:self.authenticationStatus];
-    
+
     self.testEmailCredentials = [ZMEmailCredentials credentialsWithEmail:TestEmail password:TestPassword];
+    self.testEmailCredentialsWithVerificationCode = [ZMEmailCredentials credentialsWithEmail:TestEmail password:TestPassword emailVerificationCode:TestEmailVerificationCode];
+
     self.testPhoneNumberCredentials = [ZMPhoneCredentials credentialsWithPhoneNumber:TestPhoneNumber verificationCode:TestPhoneCode];
 }
 
@@ -119,13 +123,13 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
 {
     // given
     ZMLoginTranscoder *sut = [[ZMLoginTranscoder alloc] initWithGroupQueue:self.groupQueue authenticationStatus:self.authenticationStatus];
-    
+
     // then
     XCTAssertNotNil(sut.timedDownstreamSync);
     XCTAssertEqualObjects(sut.timedDownstreamSync.groupQueue, self.groupQueue);
     XCTAssertEqualObjects(sut.timedDownstreamSync.transcoder, sut);
     XCTAssertEqual(sut.timedDownstreamSync.timeInterval, 0);
-    
+
     // after
     [sut tearDown];
 }
@@ -134,10 +138,10 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
 {
     id mockAuthStatus = [OCMockObject partialMockForObject:self.authenticationStatus];
     [[[mockAuthStatus expect] andForwardToRealObject] loginSucceededWithResponse:OCMOCK_ANY];
-    
+
     // when
     block();
-    
+
     //then
     [mockAuthStatus verify];
 }
@@ -163,10 +167,10 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
         XCTAssertNil(error);
         notified = YES;
     }];
-    
+
     // when
     block();
-    
+
     //then
     XCTAssert(notified);
     token = nil;
@@ -182,10 +186,10 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
         XCTAssertEqual((ZMUserSessionErrorCode)error.code, code);
         notified = YES;
     }];
-    
+
     // when
     block();
-    
+
     //then
     XCTAssert(notified);
     token = nil;
@@ -199,7 +203,7 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
 {
     // when
     ZMTransportRequest *request = [self.sut nextRequest];
-    
+
     // then
     XCTAssertNil(request);
 }
@@ -212,12 +216,12 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
                               @"password": self.testEmailCredentials.password,
                               @"label": CookieLabel.current.value};
     ZMTransportRequest *expectedRequest = [[ZMTransportRequest alloc] initWithPath:ZMLoginURL method:ZMMethodPOST payload:payload authentication:ZMTransportRequestAuthCreatesCookieAndAccessToken];
-    
+
     [self.authenticationStatus prepareForLoginWithCredentials:self.testEmailCredentials];
 
     // when
     ZMTransportRequest *request = [self.sut nextRequest];
-    
+
     // then
     XCTAssertEqualObjects(request, expectedRequest);
 }
@@ -230,11 +234,29 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
                               @"label": CookieLabel.current.value};
     ZMTransportRequest *expectedRequest = [[ZMTransportRequest alloc] initWithPath:ZMLoginURL method:ZMMethodPOST payload:payload authentication:ZMTransportRequestAuthCreatesCookieAndAccessToken];
     [self.authenticationStatus prepareForLoginWithCredentials:self.testPhoneNumberCredentials];
-    
+
     // when
     ZMTransportRequest *request = [self.sut nextRequest];
-    
+
     // then
+    XCTAssertEqualObjects(request, expectedRequest);
+}
+
+- (void)testThatItGeneratesALoginRequestWhenTheUserSessionHasCredentialsWithEmailVerificationCodeAndWeAreNotLoggedIn
+{
+    // GIVEN
+    NSDictionary *payload = @{@"email": self.testEmailCredentialsWithVerificationCode.email,
+                              @"password": self.testEmailCredentialsWithVerificationCode.password,
+                              @"verification_code": self.testEmailCredentialsWithVerificationCode.emailVerificationCode,
+                              @"label": CookieLabel.current.value};
+    ZMTransportRequest *expectedRequest = [[ZMTransportRequest alloc] initWithPath:ZMLoginURL method:ZMMethodPOST payload:payload authentication:ZMTransportRequestAuthCreatesCookieAndAccessToken];
+
+    [self.authenticationStatus prepareForLoginWithCredentials:self.testEmailCredentialsWithVerificationCode];
+
+    // WHEN
+    ZMTransportRequest *request = [self.sut nextRequest];
+
+    // THEN
     XCTAssertEqualObjects(request, expectedRequest);
 }
 
@@ -242,7 +264,7 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
 {
     // when
     ZMTransportRequest *request = [self.sut nextRequest];
-    
+
     // then
     XCTAssertNil(request);
 }
@@ -251,10 +273,10 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
 {
     // given
     [self.authenticationStatus setAuthenticationCookieData:[@"foo" dataUsingEncoding:NSUTF8StringEncoding]];
-    
+
     // when
     ZMTransportRequest *request = [self.sut nextRequest];
-    
+
     // then
     XCTAssertNil(request);
 }
@@ -271,12 +293,12 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
     NSDictionary *content = @{@"access_token": @"61184561417968870ce708ed0c319206914bc56db444d01227a63f9b9849045f.1.1401213378.a.3bc5750a-b965-40f8-aff2-831e9b5ac2e9.846754296078244309",
                               @"expires_in": @604800,
                               @"token_type": @"Bearer"
-                              };
+    };
     [self.authenticationStatus prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:@"foo@example.com" password:@"12345678"]];
     ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:200 transportSessionError:nil];
-    
+
     // when
-    
+
     [self expectAuthenticationSucceedAfter:^{
         [[self.sut nextRequest] completeWithResponse:response];
         WaitForAllGroupsToBeEmpty(0.5);
@@ -289,7 +311,7 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
     NSDictionary *content = @{@"access_token": @"61184561417968870ce708ed0c319206914bc56db444d01227a63f9b9849045f.1.1401213378.a.3bc5750a-b965-40f8-aff2-831e9b5ac2e9.846754296078244309",
                               @"expires_in": @604800,
                               @"token_type": @"Bearer"
-                              };
+    };
     [self.authenticationStatus prepareForLoginWithCredentials:[ZMPhoneCredentials credentialsWithPhoneNumber:@"+49123456789" verificationCode:@"123456"]];
     ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:200 transportSessionError:nil];
 
@@ -308,9 +330,41 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
                               @"label":@"invalid-credentials"};
     [self.authenticationStatus prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:@"foo@example.com" password:@"12345678"]];
     ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:403 transportSessionError:nil];
-    
+
     // when
     [self expectAuthenticationFailedWithError:ZMUserSessionInvalidCredentials after:^{
+        [[self.sut nextRequest] completeWithResponse:response];
+        WaitForAllGroupsToBeEmpty(0.5);
+    }];
+}
+
+-(void)testThatItCallsAuthenticationFailOnEmailVerificationCodeNeeded
+{
+    // GIVEN
+    NSDictionary *content = @{@"code":@403,
+                              @"message":@"Code Authentication Required",
+                              @"label":@"code-authentication-required"};
+    [self.authenticationStatus prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:@"foo@example.com" password:@"12345678"]];
+    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:403 transportSessionError:nil];
+
+    // WHEN
+    [self expectAuthenticationFailedWithError:ZMUserSessionAccountIsPendingVerification after:^{
+        [[self.sut nextRequest] completeWithResponse:response];
+        WaitForAllGroupsToBeEmpty(0.5);
+    }];
+}
+
+-(void)testThatItCallsAuthenticationFailOnInvalidEmailVerificationCode
+{
+    // GIVEN
+    NSDictionary *content = @{@"code":@403,
+                              @"message":@"Code Authentication Failed",
+                              @"label":@"code-authentication-failed"};
+    [self.authenticationStatus prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:@"foo@example.com" password:@"12345678" emailVerificationCode: @"1234567"]];
+    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:403 transportSessionError:nil];
+
+    // WHEN
+    [self expectAuthenticationFailedWithError:ZMUserSessionInvalidEmailVerificationCode after:^{
         [[self.sut nextRequest] completeWithResponse:response];
         WaitForAllGroupsToBeEmpty(0.5);
     }];
@@ -322,10 +376,10 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
     NSDictionary *content = @{@"code":@403,
                               @"message":@"Invalid login credentials",
                               @"label":@"invalid-credentials"};
-    
+
     ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:403 transportSessionError:nil];
     [self.authenticationStatus prepareForLoginWithCredentials:[ZMPhoneCredentials credentialsWithPhoneNumber:@"+4912345678" verificationCode:@"123456"]];
-    
+
     // when
     [self expectAuthenticationFailedWithError:ZMUserSessionInvalidCredentials after:^{
         [[self.sut nextRequest] completeWithResponse:response];
@@ -354,7 +408,7 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
                               @"label":@"pending-activation"};
     [self.authenticationStatus prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:@"foo@example.com" password:@"12345678"]];
     ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:403 transportSessionError:nil];
-    
+
     // when
     [self expectAuthenticationFailedWithError:ZMUserSessionAccountIsPendingActivation after:^{
         [[self.sut nextRequest] completeWithResponse:response];
@@ -370,7 +424,7 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
                               @"label":@"suspended"};
     [self.authenticationStatus prepareForLoginWithCredentials:[ZMPhoneCredentials credentialsWithPhoneNumber:@"+4912345678" verificationCode:@"123456"]];
     ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:403 transportSessionError:nil];
-    
+
     // when
     [self expectAuthenticationFailedWithError:ZMUserSessionAccountSuspended after:^{
         [[self.sut nextRequest] completeWithResponse:response];
@@ -387,12 +441,29 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
                               @"label":@"suspended"};
     [self.authenticationStatus prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:@"foo@example.com" password:@"12345678"]];
     ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:403 transportSessionError:nil];
-    
+
     // when
     [self expectAuthenticationFailedWithError:ZMUserSessionAccountSuspended after:^{
         [[self.sut nextRequest] completeWithResponse:response];
         WaitForAllGroupsToBeEmpty(0.5);
     }];
+}
+
+- (void) testThatItCallsAccountPendingVerification
+{
+    //GIVEN
+    NSDictionary *content = @{@"code":@403,
+                              @"message":@"Code Authentication Required",
+                              @"label":@"code-authentication-required"};
+    [self.authenticationStatus prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:@"foo@example.com" password:@"12345678"]];
+    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:403 transportSessionError:nil];
+
+    // WHEN
+    [self expectAuthenticationFailedWithError:ZMUserSessionAccountIsPendingVerification after:^{
+        [[self.sut nextRequest] completeWithResponse:response];
+        WaitForAllGroupsToBeEmpty(0.5);
+    }];
+
 }
 
 -(void)testThatItInvalidatesTheCredentialsOnLoginErrorWhenLoggingWithEmail
@@ -401,16 +472,16 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
     NSDictionary *content = @{@"code":@403,
                               @"message":@"Invalid login credentials",
                               @"label":@"invalid-credentials"};
-    
+
     ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:403 transportSessionError:nil];
     [self.authenticationStatus prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:@"foo@example.com" password:@"12345678"]];
-    
+
     // when
     [self expectAuthenticationFailedWithError:ZMUserSessionInvalidCredentials after:^{
         [[self.sut nextRequest] completeWithResponse:response];
         WaitForAllGroupsToBeEmpty(0.5);
     }];
-    
+
     // then
     XCTAssertEqual(self.authenticationStatus.currentPhase, ZMAuthenticationPhaseUnauthenticated);
     XCTAssertNil(self.authenticationStatus.loginCredentials);
@@ -425,13 +496,13 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
                               @"label":@"invalid-credentials"};
     [self.authenticationStatus prepareForLoginWithCredentials:[ZMPhoneCredentials credentialsWithPhoneNumber:@"+49123456789" verificationCode:@"12345678"]];
     ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:403 transportSessionError:nil];
-    
+
     // when
     [self expectAuthenticationFailedWithError:ZMUserSessionInvalidCredentials after:^{
         [[self.sut nextRequest] completeWithResponse:response];
         WaitForAllGroupsToBeEmpty(0.5);
     }];
-    
+
     // then
     XCTAssertEqual(self.authenticationStatus.currentPhase, ZMAuthenticationPhaseUnauthenticated);
     XCTAssertNil(self.authenticationStatus.loginCredentials);
@@ -443,10 +514,10 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
     NSDictionary *content = @{@"access_token": @"61184561417968870ce708ed0c319206914bc56db444d01227a63f9b9849045f.1.1401213378.a.3bc5750a-b965-40f8-aff2-831e9b5ac2e9.846754296078244309",
                               @"expires_in": @604800,
                               @"token_type": @"Bearer"
-                              };
+    };
     [self.authenticationStatus prepareForLoginWithCredentials:[ZMPhoneCredentials credentialsWithPhoneNumber:@"+49123456789" verificationCode:@"12345678"]];
     ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:200 transportSessionError:nil];
-    
+
     // when
     [self expectAuthenticationSucceedAfter:^{
         [[self.sut nextRequest] completeWithResponse:response];
@@ -455,7 +526,7 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
         [self.authenticationStatus setAuthenticationCookieData:[@"foo" dataUsingEncoding:NSUTF8StringEncoding]];
         WaitForAllGroupsToBeEmpty(0.5);
     }];
-    
+
     // then
     XCTAssertEqual(self.authenticationStatus.currentPhase, ZMAuthenticationPhaseAuthenticated);
     XCTAssertNotNil(self.authenticationStatus.loginCredentials);
@@ -468,10 +539,10 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
     NSDictionary *content = @{@"access_token": @"61184561417968870ce708ed0c319206914bc56db444d01227a63f9b9849045f.1.1401213378.a.3bc5750a-b965-40f8-aff2-831e9b5ac2e9.846754296078244309",
                               @"expires_in": @604800,
                               @"token_type": @"Bearer"
-                              };
+    };
     [self.authenticationStatus prepareForLoginWithCredentials:[ZMEmailCredentials credentialsWithEmail:@"foo@example.com" password:@"12345678"]];
     ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:content HTTPStatus:200 transportSessionError:nil];
-    
+
     // when
     [self expectAuthenticationSucceedAfter:^{
         [[self.sut nextRequest] completeWithResponse:response];
@@ -480,7 +551,7 @@ extern NSTimeInterval DefaultPendingValidationLoginAttemptInterval;
         [self.authenticationStatus setAuthenticationCookieData:[@"foo" dataUsingEncoding:NSUTF8StringEncoding]];
         WaitForAllGroupsToBeEmpty(0.5);
     }];
-    
+
     // then
     XCTAssertEqual(self.authenticationStatus.currentPhase, ZMAuthenticationPhaseAuthenticated);
     XCTAssertNotNil(self.authenticationStatus.loginCredentials);
