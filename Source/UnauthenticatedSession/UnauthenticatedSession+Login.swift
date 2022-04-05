@@ -69,4 +69,24 @@ extension UnauthenticatedSession {
         }
         return true
     }
+
+    /// Triggers a request for an email verification code for login. 
+    ///
+    /// Returns: false if the email address was invalid.
+    @objc(requestEmailVerificationCodeForLogin:)
+    @discardableResult public func requestEmailVerificationCodeForLogin(email: String) -> Bool {
+        do {
+            var email: String? = email
+            _ = try ZMUser.validate(emailAddress: &email)
+        } catch {
+            return false
+        }
+
+        authenticationErrorIfNotReachable {
+            self.authenticationStatus.prepareForRequestingEmailVerificationCode(forLogin: email)
+            RequestAvailableNotification.notifyNewRequestsAvailable(nil)
+        }
+        return true
+
+    }
 }

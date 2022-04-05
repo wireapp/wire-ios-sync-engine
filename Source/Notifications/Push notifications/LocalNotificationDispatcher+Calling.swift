@@ -21,15 +21,17 @@ import Foundation
 extension LocalNotificationDispatcher {
 
     func process(callState: CallState, in conversation: ZMConversation, caller: ZMUser) {
-        // missed call notification are handled separately
-        // but if call was answered elsewhere then proceed
-        switch callState {
-        case .terminating(reason: let reason):
-            switch reason {
-            case .anweredElsewhere, .rejectedElsewhere: break
-            default: return
-            }
-        default: break
+        // Missed call notification are handled separately, except if call was answered
+        // elsewhere for 1-1 conversations.
+        switch (callState, conversation.conversationType) {
+        case (.terminating(.anweredElsewhere), .oneOnOne):
+            break
+        case (.terminating(.rejectedElsewhere), .oneOnOne):
+            break
+        case (.terminating, _):
+            return
+        default:
+            break
         }
 
         let note = ZMLocalNotification(callState: callState, conversation: conversation, caller: caller, moc: syncMOC)

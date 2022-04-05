@@ -19,6 +19,20 @@
 import WireDataModel
 @testable import WireSyncEngine
 
+// MARK: - Mocks
+
+@objc class FakeGroupQueue: NSObject, ZMSGroupQueue {
+
+    var dispatchGroup: ZMSDispatchGroup! {
+        return nil
+    }
+
+    func performGroupedBlock(_ block : @escaping () -> Void) {
+        block()
+    }
+
+}
+
 class AssetDeletionStatusTests: MessagingTest {
 
     private var sut: AssetDeletionStatus!

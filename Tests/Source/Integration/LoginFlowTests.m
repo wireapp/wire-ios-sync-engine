@@ -273,35 +273,6 @@ extern NSTimeInterval DebugLoginFailureTimerOverride;
 
 @end
 
-
-@implementation LoginFlowTests (PushToken)
-
-- (void)testThatItRegistersThePushTokenWithTheBackend;
-{
-    // given
-    NSData *deviceToken = [@"asdfasdf" dataUsingEncoding:NSUTF8StringEncoding];
-    NSString *deviceTokenAsHex = @"6173646661736466";
-    XCTAssertTrue([self login]);
-    
-    // then
-    XCTAssertTrue([self.pushRegistry.desiredPushTypes containsObject:PKPushTypeVoIP]);
-    
-    // when
-    [self.pushRegistry updatePushToken:deviceToken];
-    WaitForAllGroupsToBeEmpty(0.5);
-    
-    // then
-    NSDictionary *registeredTokens = self.mockTransportSession.pushTokens;
-    XCTAssertEqual(registeredTokens.count, 1u);
-    NSDictionary *registeredToken = registeredTokens[deviceTokenAsHex];
-    XCTAssertEqualObjects(registeredToken[@"token"], deviceTokenAsHex);
-    XCTAssertNotNil(registeredToken[@"app"]);
-    XCTAssertTrue([registeredToken[@"app"] hasPrefix:@"com.wire."]);
-}
-
-@end
-
-
 @implementation LoginFlowTests (PhoneLogin)
 
 - (void)testThatWeCanLogInWithPhoneNumber
@@ -348,6 +319,27 @@ extern NSTimeInterval DebugLoginFailureTimerOverride;
     
     // when
     [self.unauthenticatedSession requestPhoneVerificationCodeForLogin:phone];
+    WaitForAllGroupsToBeEmpty(0.5);
+
+    // then
+    XCTAssertTrue(self.mockLoginDelegete.didCallLoginCodeRequestDidFail);
+    XCTAssertEqual(self.mockTransportSession.receivedRequests.count, 1u);
+}
+
+- (void)testThatItNotifiesIfTheEmailVerificationLoginCodeCanNotBeRequested
+{
+    // given
+    NSString *email = @"test@wire.com";
+
+    self.mockTransportSession.responseGeneratorBlock = ^ZMTransportResponse*(ZMTransportRequest *request) {
+        if([request.path isEqualToString:@"/verification-code/send"]) {
+            return [ZMTransportResponse responseWithPayload:nil HTTPStatus:403 transportSessionError:nil];
+        }
+        return nil;
+    };
+
+    // when
+    [self.unauthenticatedSession requestEmailVerificationCodeForLogin:email];
     WaitForAllGroupsToBeEmpty(0.5);
 
     // then

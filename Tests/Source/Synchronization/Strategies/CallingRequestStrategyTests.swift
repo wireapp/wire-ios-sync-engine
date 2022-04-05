@@ -18,7 +18,7 @@
 
 import Foundation
 import WireRequestStrategy
-import WireSyncEngine
+@testable import WireSyncEngine
 
 class CallingRequestStrategyTests: MessagingTest {
 
@@ -37,6 +37,13 @@ class CallingRequestStrategyTests: MessagingTest {
             clientRegistrationDelegate: mockRegistrationDelegate,
             flowManager: FlowManagerMock(),
             callEventStatus: CallEventStatus()
+        )
+        sut.callCenter = WireCallCenterV3Mock(
+            userId: .stub,
+            clientId: UUID().transportString(),
+            uiMOC: uiMOC,
+            flowManager: FlowManagerMock(),
+            transport: WireCallCenterTransportMock()
         )
     }
 
@@ -403,6 +410,37 @@ class CallingRequestStrategyTests: MessagingTest {
         XCTAssertTrue(userClient.establishSessionWithClient(client, usingPreKey: try! userClient.keysStore.lastPreKey()))
 
         return client
+    }
+
+    // MARK: - Event processing
+
+    func testThatItAsksCallCenterToMute_WhenReceivingRemoteMuteEvent() {
+        // GIVEN
+        let json = ["type": "REMOTEMUTE"]
+        let data = try! JSONSerialization.data(withJSONObject: json, options: [])
+        let content = String(data: data, encoding: .utf8)!
+        let message = GenericMessage(content: Calling(content: content))
+        let text = try? message.serializedData().base64String()
+        let payload = [
+            "conversation": UUID().transportString(),
+            "data": [
+                "sender": UUID().transportString(),
+                "text": text
+            ],
+            "from": UUID().transportString(),
+            "time": Date().transportString(),
+            "type": "conversation.otr-message-add"
+        ] as [String: Any]
+
+        let updateEvent = ZMUpdateEvent(fromEventStreamPayload: payload as ZMTransportData, uuid: UUID())!
+
+        sut.callCenter?.muted = false
+
+        // WHEN
+        sut.processEventsWhileInBackground([updateEvent])
+
+        // THEN
+        XCTAssertTrue(sut.callCenter?.muted ?? false)
     }
 
 }

@@ -47,6 +47,14 @@ public enum CallClosedReason: Int32 {
     case securityDegraded
     /// Call was closed because the client version is blacklisted for that call
     case outdatedClient
+    /// Call was closed due to an error in data channel connection
+    case datachannel
+    /// Call timed out
+    case timeoutECONN
+    /// Call was closed because no one joined
+    case noOneJoined
+    /// Call was closed because everyone left
+    case everyoneLeft
     /// Call was closed for an unknown reason. This is most likely a bug.
     case unknown
 
@@ -80,6 +88,14 @@ public enum CallClosedReason: Int32 {
             self = .stillOngoing
         case WCALL_REASON_OUTDATED_CLIENT:
             self = .outdatedClient
+        case WCALL_REASON_TIMEOUT_ECONN:
+            self = .timeoutECONN
+        case WCALL_REASON_DATACHANNEL:
+            self = .datachannel
+        case WCALL_REASON_NOONE_JOINED:
+            self = .noOneJoined
+        case WCALL_REASON_EVERYONE_LEFT:
+            self = .everyoneLeft
         default:
             self = .unknown
         }
@@ -110,6 +126,14 @@ public enum CallClosedReason: Int32 {
             return WCALL_REASON_ERROR
         case .outdatedClient:
             return WCALL_REASON_OUTDATED_CLIENT
+        case .timeoutECONN:
+            return WCALL_REASON_TIMEOUT_ECONN
+        case .datachannel:
+            return WCALL_REASON_DATACHANNEL
+        case .noOneJoined:
+            return WCALL_REASON_NOONE_JOINED
+        case .everyoneLeft:
+            return WCALL_REASON_EVERYONE_LEFT
         case .unknown:
             return WCALL_REASON_ERROR
         }

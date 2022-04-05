@@ -1129,8 +1129,9 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
 
         self.prepareSession(for: account)
 
-        let payload: [AnyHashable: Any] = ["data": [
-            "user": currentUserIdentifier.transportString()
+        let payload: [AnyHashable: Any] = [
+            "data": [
+                "user": currentUserIdentifier.transportString()
             ]
         ]
 
@@ -1157,8 +1158,9 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
 
         self.prepareSession(for: account)
 
-        let payload: [AnyHashable: Any] = ["data": [
-            "user": currentUserIdentifier.transportString()
+        let payload: [AnyHashable: Any] = [
+            "data": [
+                "user": currentUserIdentifier.transportString()
             ]
         ]
 
@@ -1180,6 +1182,7 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
         XCTAssertNotNil(userSession1)
         XCTAssertNotNil(userSession2)
         XCTAssertEqual(userSession1, userSession2)
+
         // CLEANUP
         self.sessionManager!.tearDownAllBackgroundSessions()
     }
