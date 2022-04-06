@@ -42,7 +42,6 @@ public class SearchTask {
                                                         teamMembers: [],
                                                         addressBook: [],
                                                         directory: [],
-                                                        federation: .success([]),
                                                         conversations: [],
                                                         services: [])
 
@@ -142,7 +141,6 @@ extension SearchTask {
                                           teamMembers: copiedTeamMembers.compactMap(\.user).map { ZMSearchUser(contextProvider: self.contextProvider, user: $0)},
                                           addressBook: [],
                                           directory: [],
-                                          federation: .success([]),
                                           conversations: [],
                                           services: [])
 
@@ -180,7 +178,6 @@ extension SearchTask {
                                           teamMembers: searchTeamMembers,
                                           addressBook: [],
                                           directory: [],
-                                          federation: .success([]),
                                           conversations: conversations,
                                           services: [])
 
@@ -476,7 +473,6 @@ extension SearchTask {
                                 teamMembers: prevResult.teamMembers,
                                 addressBook: prevResult.addressBook,
                                 directory: result.directory + prevResult.directory,
-                                federation: prevResult.federation,
                                 conversations: prevResult.conversations,
                                 services: prevResult.services
                             )

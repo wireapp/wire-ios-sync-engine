@@ -1078,38 +1078,6 @@ class SearchTaskTests: DatabaseTest {
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
     }
 
-    func testThatItCallsCompletionHandlerForFederatedUserSearch_WhenDomainIsUnavailable() {
-        // given
-        let resultArrived = expectation(description: "received result")
-
-        mockTransportSession.performRemoteChanges { (remoteChanges) in
-            let mockUser = remoteChanges.insertUser(withName: "John Doe")
-            mockUser.handle = "john"
-            mockUser.domain = "example.com"
-        }
-
-        let searchRequest = SearchRequest(query: "john@example.com", searchOptions: .federated)
-        let task = SearchTask(request: searchRequest,
-                              searchContext: searchMOC,
-                              contextProvider: coreDataStack!,
-                              transportSession: mockTransportSession)
-
-        // expect
-        task.onResult { (result, _) in
-            resultArrived.fulfill()
-
-            if case .failure(let error) = result.federation {
-                XCTAssertEqual(error, .domainTemporarilyNotAvailable)
-            } else {
-                XCTFail()
-            }
-        }
-
-        // when
-        task.performRemoteSearch()
-        XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
-    }
-
     func testThatItCallsCompletionHandlerForFederatedUserSearch_WhenUserDoesntExist() {
         // given
         let resultArrived = expectation(description: "received result")
