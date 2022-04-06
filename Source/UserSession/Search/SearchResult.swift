@@ -34,19 +34,15 @@ public struct SearchResult {
 
 extension SearchResult {
 
-    public init?(payload: [AnyHashable: Any], query: String, searchOptions: SearchOptions, contextProvider: ContextProvider) {
+    public init?(payload: [AnyHashable: Any], query: SearchRequest.Query, searchOptions: SearchOptions, contextProvider: ContextProvider) {
         guard let documents = payload["documents"] as? [[String: Any]] else {
             return nil
         }
 
-        let isHandleQuery = query.hasPrefix("@")
-        let queryWithoutAtSymbol = (isHandleQuery ? String(query[query.index(after: query.startIndex)...]) : query).lowercased()
-
         let filteredDocuments = documents.filter { (document) -> Bool in
             let name = document["name"] as? String
             let handle = document["handle"] as? String
-
-            return !isHandleQuery || name?.hasPrefix("@") ?? true || handle?.contains(queryWithoutAtSymbol) ?? false
+            return !query.isHandleQuery || name?.hasPrefix("@") ?? true || handle?.contains(query.string.lowercased()) ?? false
         }
 
         let searchUsers = ZMSearchUser.searchUsers(from: filteredDocuments, contextProvider: contextProvider)

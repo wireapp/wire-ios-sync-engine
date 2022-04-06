@@ -1034,18 +1034,19 @@ class SearchTaskTests: DatabaseTest {
 
     // MARK: Federated search
 
-    func testThatItSendsAFederatedUserSearchRequest() {
+    func testThatItSendsAFederatedUserSearchRequest() throws {
         // given
         let searchRequest = SearchRequest(query: "john@example.com", searchOptions: .federated)
         let task = SearchTask(request: searchRequest, searchContext: searchMOC, contextProvider: coreDataStack!, transportSession: mockTransportSession)
 
         // when
-        task.performRemoteSearchForFederatedUser()
+        task.performRemoteSearch()
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
-        let requestPath = mockTransportSession.receivedRequests().first?.path
-        XCTAssertEqual(requestPath, "/users/by-handle/example.com/john")
+        let request = try XCTUnwrap(mockTransportSession.receivedRequests().first)
+        XCTAssertEqual(request.method, .methodGET)
+        XCTAssertEqual(request.path, "/search/contacts?q=john&domain=example.com&size=10")
     }
 
     func testThatItCallsCompletionHandlerForFederatedUserSearch_WhenUserExists() {
@@ -1069,11 +1070,11 @@ class SearchTaskTests: DatabaseTest {
         // expect
         task.onResult { (result, _) in
             resultArrived.fulfill()
-            XCTAssertEqual(try! result.federation.get().first?.name, "John Doe")
+            XCTAssertEqual(result.directory.first?.name, "John Doe")
         }
 
         // when
-        task.performRemoteSearchForFederatedUser()
+        task.performRemoteSearch()
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
     }
 
@@ -1105,7 +1106,7 @@ class SearchTaskTests: DatabaseTest {
         }
 
         // when
-        task.performRemoteSearchForFederatedUser()
+        task.performRemoteSearch()
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
     }
 
@@ -1123,11 +1124,11 @@ class SearchTaskTests: DatabaseTest {
         // expect
         task.onResult { (result, _) in
             resultArrived.fulfill()
-            XCTAssertEqual(try! result.federation.get(), [])
+            XCTAssertTrue(result.directory.isEmpty)
         }
 
         // when
-        task.performRemoteSearchForFederatedUser()
+        task.performRemoteSearch()
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
     }
 
