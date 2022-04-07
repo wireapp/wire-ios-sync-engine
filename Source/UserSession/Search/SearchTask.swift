@@ -336,7 +336,11 @@ extension SearchTask {
                     return
                 }
 
-                self?.completeRemoteSearch(searchResult: result)
+                if searchRequest.searchOptions.contains(.teamMembers) {
+                    self?.performTeamMembershipLookup(on: result, searchRequest: searchRequest)
+                } else {
+                    self?.completeRemoteSearch(searchResult: result)
+                }
             }))
 
             request.add(ZMTaskCreatedHandler(on: self.searchContext, block: { [weak self] (taskIdentifier) in
@@ -397,7 +401,7 @@ extension SearchTask {
 
     static func searchRequestInDirectory(withRequest searchRequest: SearchRequest, fetchLimit: Int = 10) -> ZMTransportRequest {
         var queryItems = [URLQueryItem]()
-        queryItems.append(URLQueryItem(name: "q", value: searchRequest.normalizedQuery))
+        queryItems.append(URLQueryItem(name: "q", value: searchRequest.query.string))
 
         if let searchDomain = searchRequest.searchDomain {
             queryItems.append(URLQueryItem(name: "domain", value: searchDomain))

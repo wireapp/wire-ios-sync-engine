@@ -814,7 +814,7 @@ class SearchTaskTests: DatabaseTest {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
-        XCTAssertEqual(mockTransportSession.receivedRequests().first?.path, "/search/contacts?q=Steve%20O'Hara%20%26%20S%C3%B6hne&size=10")
+        XCTAssertEqual(mockTransportSession.receivedRequests().first?.path, "/search/contacts?q=steve%20o'hara%20%26%20s%C3%B6hne&size=10")
     }
 
     func testThatItDoesNotSendASearchRequestIfSeachingLocally() {
@@ -840,7 +840,7 @@ class SearchTaskTests: DatabaseTest {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
-        XCTAssertEqual(mockTransportSession.receivedRequests().first?.path, "/search/contacts?q=foo%2Bbar@example.com&size=10")
+        XCTAssertEqual(mockTransportSession.receivedRequests().first?.path, "/search/contacts?q=foo%2Bbar&domain=example.com&size=10")
     }
 
     func testThatItEncodesUnsafeCharactersInRequest() {
@@ -858,7 +858,7 @@ class SearchTaskTests: DatabaseTest {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
-        XCTAssertEqual(mockTransportSession.receivedRequests().first?.path, "/search/contacts?q=$%26%2B,/:;%3D?@&size=10")
+        XCTAssertEqual(mockTransportSession.receivedRequests().first?.path, "/search/contacts?q=$%26%2B,/:;%3D?&size=10")
     }
 
     func testThatItCallsCompletionHandlerForDirectorySearch() {
@@ -903,7 +903,7 @@ class SearchTaskTests: DatabaseTest {
 
         // then
         XCTAssertEqual(mockTransportSession.receivedRequests().count, 2)
-        XCTAssertEqual(mockTransportSession.receivedRequests().first?.path, "/search/contacts?q=User&size=10")
+        XCTAssertEqual(mockTransportSession.receivedRequests().first?.path, "/search/contacts?q=user&size=10")
         XCTAssertEqual(mockTransportSession.receivedRequests().last?.path, "/teams/\(teamIdentifier.transportString())/get-members-by-ids-using-post")
     }
 
@@ -948,7 +948,7 @@ class SearchTaskTests: DatabaseTest {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
-        XCTAssertEqual(mockTransportSession.receivedRequests().first?.path, "/teams/\(teamIdentifier.transportString())/services/whitelisted?prefix=Steve%20O'Hara%20%26%20S%C3%B6hne")
+        XCTAssertEqual(mockTransportSession.receivedRequests().first?.path, "/teams/\(teamIdentifier.transportString())/services/whitelisted?prefix=steve%20o'hara%20%26%20s%C3%B6hne")
     }
 
     func testThatItCallsCompletionHandlerForServicesSearch() {
