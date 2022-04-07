@@ -120,9 +120,8 @@ private extension SearchRequest {
 
         let domain = components.element(atIndex: 1)
 
-        if text.hasPrefix("@") {
-            let handle = String(text.dropFirst())
-            return (.exactHandle(handle), domain)
+        if searchString.hasPrefix("@") {
+            return (.exactHandle(text), domain)
         } else {
             return (.fullTextSearch(text), domain)
         }

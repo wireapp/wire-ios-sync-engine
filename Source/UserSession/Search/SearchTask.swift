@@ -165,7 +165,7 @@ extension SearchTask {
 
             let connectedUsers = request.searchOptions.contains(.contacts) ? self.connectedUsers(matchingQuery: request.normalizedQuery) : []
             let teamMembers = request.searchOptions.contains(.teamMembers) ? self.teamMembers(matchingQuery: request.normalizedQuery, team: team, searchOptions: request.searchOptions) : []
-            let conversations = request.searchOptions.contains(.conversations) ? self.conversations(matchingQuery: request.query.string) : []
+            let conversations = request.searchOptions.contains(.conversations) ? self.conversations(matchingQuery: request.query) : []
 
             self.contextProvider.viewContext.performGroupedBlock {
 
@@ -234,19 +234,19 @@ extension SearchTask {
         return searchContext.fetchOrAssert(request: fetchRequest) as? [ZMUser] ?? []
     }
 
-    func conversations(matchingQuery query: String) -> [ZMConversation] {
+    func conversations(matchingQuery query: SearchRequest.Query) -> [ZMConversation] {
         /// TODO: use the interface with tean param?
-        let fetchRequest = ZMConversation.sortedFetchRequest(with: ZMConversation.predicate(forSearchQuery: query, selfUser: ZMUser.selfUser(in: searchContext)))
+        let fetchRequest = ZMConversation.sortedFetchRequest(with: ZMConversation.predicate(forSearchQuery: query.string, selfUser: ZMUser.selfUser(in: searchContext)))
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: ZMNormalizedUserDefinedNameKey, ascending: true)]
 
         var conversations = searchContext.fetchOrAssert(request: fetchRequest) as? [ZMConversation] ?? []
 
-        if query.hasPrefix("@") {
+        if query.isHandleQuery {
             // if we are searching for a username only include conversations with matching displayName
-            conversations = conversations.filter { $0.displayName.contains(query)}
+            conversations = conversations.filter { $0.displayName.contains(query.string) }
         }
 
-        let matchingPredicate = ZMConversation.userDefinedNamePredicate(forSearch: query)
+        let matchingPredicate = ZMConversation.userDefinedNamePredicate(forSearch: query.string)
         var matching: [ZMConversation] = []
         var nonMatching: [ZMConversation] = []
 
