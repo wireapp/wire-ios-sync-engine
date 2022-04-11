@@ -35,7 +35,7 @@ class PushTokenStrategyTests: MessagingTest {
         return deviceTokenB.zmHexEncodedString()
     }
 
-    let identifier = "com.wire.zclient"
+    let identifier = "com.wire.WireSyncEngine-Test-Host"
     let transportTypeNormal = "APNS"
     let transportTypeVOIP = "APNS_VOIP"
 
@@ -57,7 +57,7 @@ class PushTokenStrategyTests: MessagingTest {
 
     @discardableResult func insertPushKitToken(isRegistered: Bool, shouldBeDeleted: Bool = false, shouldBeDownloaded: Bool = false) -> [String: String] {
         let client = ZMUser.selfUser(in: self.syncMOC).selfClient()
-        var token = PushToken(deviceToken: deviceTokenB, appIdentifier: identifier, transportType: transportTypeVOIP, isRegistered: isRegistered)
+        var token = PushToken(deviceToken: deviceTokenB, pushTokenType: .voip, isRegistered: isRegistered)
         token.isMarkedForDeletion = shouldBeDeleted
         token.isMarkedForDownload = shouldBeDownloaded
         client?.pushToken = token
@@ -168,7 +168,7 @@ extension PushTokenStrategyTests {
             guard let payloadDictionary = request.payload as? [String: String] else { XCTFail(); return }
 
             let expectedPayload = ["token": "0c11633011485c4558615009045b022d565e0c380a5330444d3a0f4b185a014a",
-                                   "app": "com.wire.zclient",
+                                   "app": "com.wire.WireSyncEngine-Test-Host",
                                    "transport": "APNS_VOIP",
                                    "client": (ZMUser.selfUser(in: self.syncMOC).selfClient()?.remoteIdentifier)!]
 

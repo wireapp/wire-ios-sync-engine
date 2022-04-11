@@ -26,6 +26,8 @@ import UserNotifications
 import WireDataModel
 
 private let log = ZMSLog(tag: "SessionManager")
+private let pushLog = ZMSLog(tag: "Push")
+
 public typealias LaunchOptions = [UIApplication.LaunchOptionsKey: Any]
 
 public extension Bundle {
@@ -420,15 +422,24 @@ public final class SessionManager: NSObject, SessionManagerType {
 
         super.init()
 
-        // register for voIP push notifications
-        self.pushRegistry.delegate = self
-        let pkPushTypeSet: Set<PKPushType> = [PKPushType.voIP]
-        self.pushRegistry.desiredPushTypes = pkPushTypeSet
-
+        registerForVoipPushNotificationsIfNeeded()
         deleteAccountToken = AccountDeletedNotification.addObserver(observer: self, queue: groupQueue)
         callCenterObserverToken = WireCallCenterV3.addGlobalCallStateObserver(observer: self)
 
         checkJailbreakIfNeeded()
+    }
+
+    //  For iOS earlier than 13 we should register for voip push notifications
+    private func registerForVoipPushNotificationsIfNeeded() {
+        guard #available(iOS 13.0, *),
+        !configuration.useLegacyPushNotifications else {
+            pushLog.safePublic("registering for voip push token")
+            // register for voIP push notifications
+            self.pushRegistry.delegate = self
+            let pkPushTypeSet: Set<PKPushType> = [PKPushType.voIP]
+            self.pushRegistry.desiredPushTypes = pkPushTypeSet
+            return
+        }
     }
 
     public func start(launchOptions: LaunchOptions) {
@@ -741,8 +752,30 @@ public final class SessionManager: NSObject, SessionManagerType {
         backgroundUserSessions[account.userIdentifier] = userSession
         userSession.useConstantBitRateAudio = useConstantBitRateAudio
         userSession.usePackagingFeatureConfig = usePackagingFeatureConfig
-        updatePushToken(for: userSession)
+        updateOrMigratePushToken(session: userSession)
         registerObservers(account: account, session: userSession)
+    }
+
+    // The restrictions for using voip push notifications are only enforced from iOS 13.
+    // For clients running iOS 13 and above, if the token type does not match the useLegacyPushNotifications flag,
+    // we should delete the token and generate a new one when upgrading the client OS or app version.
+    private func updateOrMigratePushToken(session userSession: ZMUserSession) {
+        var isIOS13: Bool {
+            if #available(iOS 13.0, *) {
+                return true
+            } else {
+                return false
+            }
+        }
+        let hasLegacyToken = userSession.selfUserClient?.pushToken?.tokenType == .voip
+        let shouldHaveLegacyToken = !isIOS13 || configuration.useLegacyPushNotifications
+
+        if shouldHaveLegacyToken != hasLegacyToken {
+            pushLog.safePublic("deleting push token")
+            userSession.deletePushKitToken()
+        }
+
+        updatePushToken(for: userSession)
     }
 
     private func deleteMessagesOlderThanRetentionLimit(contextProvider: ContextProvider) {
@@ -761,14 +794,16 @@ public final class SessionManager: NSObject, SessionManagerType {
 
     // Creates the user session for @c account given, calls @c completion when done.
     private func startBackgroundSession(for account: Account, with coreDataStack: CoreDataStack) -> ZMUserSession {
-        let sessionConfig = ZMUserSession.Configuration(appLockConfig: configuration.legacyAppLockConfig)
+        let sessionConfig = ZMUserSession.Configuration(
+            appLockConfig: configuration.legacyAppLockConfig,
+            useLegacyPushNotifications: configuration.useLegacyPushNotifications
+        )
 
         guard let newSession = authenticatedSessionFactory.session(for: account,
                                                                    coreDataStack: coreDataStack,
                                                                    configuration: sessionConfig) else {
             preconditionFailure("Unable to create session for \(account)")
         }
-
         self.configure(session: newSession, for: account)
         self.deleteMessagesOlderThanRetentionLimit(contextProvider: coreDataStack)
         self.updateSystemBootTimeIfNeeded()

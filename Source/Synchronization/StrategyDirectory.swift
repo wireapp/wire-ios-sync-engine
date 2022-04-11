@@ -42,7 +42,8 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
          pushMessageHandler: PushMessageHandler,
          flowManager: FlowManagerType,
          updateEventProcessor: UpdateEventProcessor,
-         localNotificationDispatcher: LocalNotificationDispatcher) {
+         localNotificationDispatcher: LocalNotificationDispatcher,
+         useLegacyPushNotifications: Bool) {
 
         self.strategies = Self.buildStrategies(contextProvider: contextProvider,
                                                applicationStatusDirectory: applicationStatusDirectory,
@@ -50,7 +51,8 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
                                                pushMessageHandler: pushMessageHandler,
                                                flowManager: flowManager,
                                                updateEventProcessor: updateEventProcessor,
-                                               localNotificationDispatcher: localNotificationDispatcher)
+                                               localNotificationDispatcher: localNotificationDispatcher,
+                                               useLegacyPushNotifications: useLegacyPushNotifications)
 
         self.requestStrategies = strategies.compactMap({ $0 as? RequestStrategy})
         self.eventConsumers = strategies.compactMap({ $0 as? ZMEventConsumer })
@@ -79,7 +81,8 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
                                 pushMessageHandler: PushMessageHandler,
                                 flowManager: FlowManagerType,
                                 updateEventProcessor: UpdateEventProcessor,
-                                localNotificationDispatcher: LocalNotificationDispatcher) -> [Any] {
+                                localNotificationDispatcher: LocalNotificationDispatcher,
+                                useLegacyPushNotifications: Bool) -> [Any] {
 
         let syncMOC = contextProvider.syncContext
         let strategies: [Any] = [
@@ -99,7 +102,8 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
                 applicationStatus: applicationStatusDirectory,
                 pushNotificationStatus: applicationStatusDirectory.pushNotificationStatus,
                 syncStatus: applicationStatusDirectory.syncStatus,
-                operationStatus: applicationStatusDirectory.operationStatus),
+                operationStatus: applicationStatusDirectory.operationStatus,
+                useLegacyPushNotifications: useLegacyPushNotifications),
             FetchingClientRequestStrategy(
                 withManagedObjectContext: syncMOC,
                 applicationStatus: applicationStatusDirectory),

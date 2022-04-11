@@ -817,7 +817,7 @@ class SearchTaskTests: DatabaseTest {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
-        XCTAssertEqual(mockTransportSession.receivedRequests().first?.path, "/search/contacts?q=Steve%20O'Hara%20%26%20S%C3%B6hne&size=10")
+        XCTAssertEqual(mockTransportSession.receivedRequests().first?.path, "/search/contacts?q=steve%20o'hara%20%26%20s%C3%B6hne&size=10")
     }
 
     func testThatItDoesNotSendASearchRequestIfSeachingLocally() {
@@ -843,7 +843,7 @@ class SearchTaskTests: DatabaseTest {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
-        XCTAssertEqual(mockTransportSession.receivedRequests().first?.path, "/search/contacts?q=foo%2Bbar@example.com&size=10")
+        XCTAssertEqual(mockTransportSession.receivedRequests().first?.path, "/search/contacts?q=foo%2Bbar&domain=example.com&size=10")
     }
 
     func testThatItEncodesUnsafeCharactersInRequest() {
@@ -861,7 +861,7 @@ class SearchTaskTests: DatabaseTest {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
-        XCTAssertEqual(mockTransportSession.receivedRequests().first?.path, "/search/contacts?q=$%26%2B,/:;%3D?@&size=10")
+        XCTAssertEqual(mockTransportSession.receivedRequests().first?.path, "/search/contacts?q=$%26%2B,/:;%3D?&size=10")
     }
 
     func testThatItCallsCompletionHandlerForDirectorySearch() {
@@ -906,7 +906,7 @@ class SearchTaskTests: DatabaseTest {
 
         // then
         XCTAssertEqual(mockTransportSession.receivedRequests().count, 2)
-        XCTAssertEqual(mockTransportSession.receivedRequests().first?.path, "/search/contacts?q=User&size=10")
+        XCTAssertEqual(mockTransportSession.receivedRequests().first?.path, "/search/contacts?q=user&size=10")
         XCTAssertEqual(mockTransportSession.receivedRequests().last?.path, "/teams/\(teamIdentifier.transportString())/get-members-by-ids-using-post")
     }
 
@@ -951,7 +951,7 @@ class SearchTaskTests: DatabaseTest {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
-        XCTAssertEqual(mockTransportSession.receivedRequests().first?.path, "/teams/\(teamIdentifier.transportString())/services/whitelisted?prefix=Steve%20O'Hara%20%26%20S%C3%B6hne")
+        XCTAssertEqual(mockTransportSession.receivedRequests().first?.path, "/teams/\(teamIdentifier.transportString())/services/whitelisted?prefix=steve%20o'hara%20%26%20s%C3%B6hne")
     }
 
     func testThatItCallsCompletionHandlerForServicesSearch() {
@@ -1037,18 +1037,19 @@ class SearchTaskTests: DatabaseTest {
 
     // MARK: Federated search
 
-    func testThatItSendsAFederatedUserSearchRequest() {
+    func testThatItSendsAFederatedUserSearchRequest() throws {
         // given
         let searchRequest = SearchRequest(query: "john@example.com", searchOptions: .federated)
         let task = SearchTask(request: searchRequest, searchContext: searchMOC, contextProvider: coreDataStack!, transportSession: mockTransportSession)
 
         // when
-        task.performRemoteSearchForFederatedUser()
+        task.performRemoteSearch()
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
-        let requestPath = mockTransportSession.receivedRequests().first?.path
-        XCTAssertEqual(requestPath, "/users/by-handle/example.com/john")
+        let request = try XCTUnwrap(mockTransportSession.receivedRequests().first)
+        XCTAssertEqual(request.method, .methodGET)
+        XCTAssertEqual(request.path, "/search/contacts?q=john&domain=example.com&size=10")
     }
 
     func testThatItCallsCompletionHandlerForFederatedUserSearch_WhenUserExists() {
@@ -1072,43 +1073,11 @@ class SearchTaskTests: DatabaseTest {
         // expect
         task.onResult { (result, _) in
             resultArrived.fulfill()
-            XCTAssertEqual(try! result.federation.get().first?.name, "John Doe")
+            XCTAssertEqual(result.directory.first?.name, "John Doe")
         }
 
         // when
-        task.performRemoteSearchForFederatedUser()
-        XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
-    }
-
-    func testThatItCallsCompletionHandlerForFederatedUserSearch_WhenDomainIsUnavailable() {
-        // given
-        let resultArrived = expectation(description: "received result")
-
-        mockTransportSession.performRemoteChanges { (remoteChanges) in
-            let mockUser = remoteChanges.insertUser(withName: "John Doe")
-            mockUser.handle = "john"
-            mockUser.domain = "example.com"
-        }
-
-        let searchRequest = SearchRequest(query: "john@example.com", searchOptions: .federated)
-        let task = SearchTask(request: searchRequest,
-                              searchContext: searchMOC,
-                              contextProvider: coreDataStack!,
-                              transportSession: mockTransportSession)
-
-        // expect
-        task.onResult { (result, _) in
-            resultArrived.fulfill()
-
-            if case .failure(let error) = result.federation {
-                XCTAssertEqual(error, .domainTemporarilyNotAvailable)
-            } else {
-                XCTFail()
-            }
-        }
-
-        // when
-        task.performRemoteSearchForFederatedUser()
+        task.performRemoteSearch()
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
     }
 
@@ -1126,11 +1095,11 @@ class SearchTaskTests: DatabaseTest {
         // expect
         task.onResult { (result, _) in
             resultArrived.fulfill()
-            XCTAssertEqual(try! result.federation.get(), [])
+            XCTAssertTrue(result.directory.isEmpty)
         }
 
         // when
-        task.performRemoteSearchForFederatedUser()
+        task.performRemoteSearch()
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
     }
 

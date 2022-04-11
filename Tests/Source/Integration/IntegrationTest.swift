@@ -105,6 +105,7 @@ extension IntegrationTest {
         WireCallCenterV3Factory.wireCallCenterClass = WireCallCenterV3IntegrationMock.self
         mockTransportSession.cookieStorage.deleteKeychainItems()
         createSessionManager()
+        mockTransportSession.useLegaclyPushNotifications = sessionManager!.configuration.useLegacyPushNotifications
     }
 
     func setupTimers() {

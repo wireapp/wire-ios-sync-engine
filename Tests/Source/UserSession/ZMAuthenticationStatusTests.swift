@@ -18,7 +18,7 @@
 
 import XCTest
 
-class ZMAuthenticationStatusTests_PhoneVerification: XCTestCase {
+class ZMAuthenticationStatusTests_PhoneAndEmailVerification: XCTestCase {
 
     var sut: ZMAuthenticationStatus!
     var delegate: MockAuthenticationStatusDelegate!
@@ -49,6 +49,23 @@ class ZMAuthenticationStatusTests_PhoneVerification: XCTestCase {
         XCTAssertEqual(sut.currentPhase, .requestPhoneVerificationCodeForLogin)
         XCTAssertEqual(sut.loginPhoneNumberThatNeedsAValidationCode, phone as? String)
         XCTAssertNotEqual(originalPhone, phone as? String, "Should not have changed original phone")
+
+    }
+
+    func testThatItCanRequestEmailVerificationCodeForLoginAfterRequestingTheCode() {
+
+        // GIVEN
+        let originalEmail = "test@wire.com"
+        var email: Any? = originalEmail
+        _ = try? ZMEmailAddressValidator.validateValue(&email)
+
+        // WHEN
+        sut.prepareForRequestingEmailVerificationCode(forLogin: originalEmail)
+
+        // THEN
+        XCTAssertEqual(sut.currentPhase, .requestEmailVerificationCodeForLogin)
+        XCTAssertEqual(sut.loginEmailThatNeedsAValidationCode, email as? String)
+        XCTAssertEqual(originalEmail, email as? String, "Should not have changed original email")
 
     }
 }

@@ -260,7 +260,7 @@ public class ZMUserSession: NSObject {
             self.configureTransportSession()
             self.applicationStatusDirectory = self.createApplicationStatusDirectory()
             self.updateEventProcessor = eventProcessor ?? self.createUpdateEventProcessor()
-            self.strategyDirectory = strategyDirectory ?? self.createStrategyDirectory()
+            self.strategyDirectory = strategyDirectory ?? self.createStrategyDirectory(useLegacyPushNotifications: configuration.useLegacyPushNotifications)
             self.syncStrategy = syncStrategy ?? self.createSyncStrategy()
             self.operationLoop = operationLoop ?? self.createOperationLoop()
             self.urlActionProcessors = self.createURLActionProcessors()
@@ -307,14 +307,15 @@ public class ZMUserSession: NSObject {
 
     }
 
-    private func createStrategyDirectory() -> StrategyDirectoryProtocol {
+    private func createStrategyDirectory(useLegacyPushNotifications: Bool) -> StrategyDirectoryProtocol {
         return StrategyDirectory(contextProvider: coreDataStack,
                                  applicationStatusDirectory: applicationStatusDirectory!,
                                  cookieStorage: transportSession.cookieStorage,
                                  pushMessageHandler: localNotificationDispatcher!,
                                  flowManager: flowManager,
                                  updateEventProcessor: updateEventProcessor!,
-                                 localNotificationDispatcher: localNotificationDispatcher!)
+                                 localNotificationDispatcher: localNotificationDispatcher!,
+                                 useLegacyPushNotifications: useLegacyPushNotifications)
     }
 
     private func createUpdateEventProcessor() -> EventProcessor {
@@ -325,11 +326,11 @@ public class ZMUserSession: NSObject {
 
     private func createApplicationStatusDirectory() -> ApplicationStatusDirectory {
         let applicationStatusDirectory = ApplicationStatusDirectory(withManagedObjectContext: self.syncManagedObjectContext,
-                                                                     cookieStorage: transportSession.cookieStorage,
-                                                                     requestCancellation: transportSession,
-                                                                     application: application,
-                                                                     syncStateDelegate: self,
-                                                                     analytics: analytics)
+                                                                    cookieStorage: transportSession.cookieStorage,
+                                                                    requestCancellation: transportSession,
+                                                                    application: application,
+                                                                    syncStateDelegate: self,
+                                                                    analytics: analytics)
 
         applicationStatusDirectory.clientRegistrationStatus.prepareForClientRegistration()
         self.hasCompletedInitialSync = !applicationStatusDirectory.syncStatus.isSlowSyncing

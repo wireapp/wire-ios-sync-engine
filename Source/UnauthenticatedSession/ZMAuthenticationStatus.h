@@ -55,6 +55,7 @@ typedef NS_ENUM(NSUInteger, ZMAuthenticationPhase) {
     ZMAuthenticationPhaseLoginWithEmail,
     ZMAuthenticationPhaseWaitingToImportBackup,
     ZMAuthenticationPhaseRequestPhoneVerificationCodeForLogin,
+    ZMAuthenticationPhaseRequestEmailVerificationCodeForLogin,
     ZMAuthenticationPhaseVerifyPhone,
     ZMAuthenticationPhaseAuthenticated
 };
@@ -63,6 +64,7 @@ typedef NS_ENUM(NSUInteger, ZMAuthenticationPhase) {
 
 @property (nonatomic, readonly, copy) NSString *registrationPhoneNumberThatNeedsAValidationCode;
 @property (nonatomic, readonly, copy) NSString *loginPhoneNumberThatNeedsAValidationCode;
+@property (nonatomic, readonly, copy) NSString *loginEmailThatNeedsAValidationCode;
 
 @property (nonatomic, readonly) ZMCredentials *loginCredentials;
 @property (nonatomic, readonly) ZMPhoneCredentials *registrationPhoneValidationCredentials;
@@ -86,6 +88,7 @@ typedef NS_ENUM(NSUInteger, ZMAuthenticationPhase) {
 - (void)prepareForLoginWithCredentials:(ZMCredentials *)credentials;
 - (void)continueAfterBackupImportStep;
 - (void)prepareForRequestingPhoneVerificationCodeForLogin:(NSString *)phone;
+- (void)prepareForRequestingEmailVerificationCodeForLogin:(NSString *)email;
 
 - (void)didCompleteRequestForLoginCodeSuccessfully;
 - (void)didFailRequestForLoginCode:(NSError *)error;
@@ -102,6 +105,8 @@ typedef NS_ENUM(NSUInteger, ZMAuthenticationPhase) {
 - (void)didFailLoginWithEmailBecausePendingValidation;
 - (void)didFailLoginWithEmail:(BOOL)invalidCredentials;
 - (void)didFailLoginBecauseAccountSuspended;
+- (void)didFailLoginWithEmailBecauseVerificationCodeIsRequired;
+- (void)didFailLoginWithEmailBecauseVerificationCodeIsInvalid;
 - (void)didTimeoutLoginForCredentials:(ZMCredentials *)credentials;
 
 @end
