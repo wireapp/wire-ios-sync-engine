@@ -242,6 +242,10 @@ public final class SessionManager: NSObject, SessionManagerType {
         didSet {
             authenticatedSessionFactory.environment = environment
             unauthenticatedSessionFactory.environment = environment
+
+            // We need a new resolver for the new backend environment.
+            apiVersionResolver = createAPIVersionResolver()
+            resolveAPIVersion()
         }
     }
 
@@ -268,17 +272,7 @@ public final class SessionManager: NSObject, SessionManagerType {
 
     private static var avsLogObserver: AVSLogObserver?
 
-    lazy var apiVersionResolver: APIVersionResolver = {
-        let transportSession = UnauthenticatedTransportSession(
-            environment: environment,
-            reachability: reachability,
-            applicationVersion: appVersion
-        )
-
-        let apiVersionResolver = APIVersionResolver(transportSession: transportSession)
-        apiVersionResolver.delegate = self
-        return apiVersionResolver
-    }()
+    var apiVersionResolver: APIVersionResolver?
 
     public override init() {
         fatal("init() not implemented")

@@ -21,7 +21,23 @@ import Foundation
 extension SessionManager: APIVersionResolverDelegate {
 
     public func resolveAPIVersion() {
-        apiVersionResolver.resolveAPIVersion()
+        if apiVersionResolver == nil {
+            apiVersionResolver = createAPIVersionResolver()
+        }
+
+        apiVersionResolver!.resolveAPIVersion()
+    }
+
+    func createAPIVersionResolver() -> APIVersionResolver {
+        let transportSession = UnauthenticatedTransportSession(
+            environment: environment,
+            reachability: reachability,
+            applicationVersion: appVersion
+        )
+
+        let apiVersionResolver = APIVersionResolver(transportSession: transportSession)
+        apiVersionResolver.delegate = self
+        return apiVersionResolver
     }
 
     func apiVersionResolverFailedToResolveVersion(reason: BlacklistReason) {
