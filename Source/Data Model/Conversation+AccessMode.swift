@@ -214,7 +214,7 @@ extension ZMConversation {
             return completion(.failure(WirelessLinkError.unknown))
         }
 
-        setAllowGuestsAndServices(allowGuests: allowGuests, allowServices: self.allowServices, apiVersion: apiVersion, in: userSession, completion)
+        setAllowGuestsAndServices(allowGuests: allowGuests, allowServices: self.allowServices, in: userSession, apiVersion: apiVersion, completion)
     }
 
     /// Changes the conversation access mode to allow services.
@@ -227,13 +227,13 @@ extension ZMConversation {
             return completion(.failure(SetAllowServicesError.unknown))
         }
 
-        setAllowGuestsAndServices(allowGuests: self.allowGuests, allowServices: allowServices, apiVersion: apiVersion, in: userSession, completion)
+        setAllowGuestsAndServices(allowGuests: self.allowGuests, allowServices: allowServices, in: userSession, apiVersion: apiVersion, completion)
 
     }
 
     /// Changes the conversation access mode to allow services.
     private func setAllowGuestsAndServices(allowGuests: Bool, allowServices: Bool, in userSession: ZMUserSession, apiVersion: APIVersion, _ completion: @escaping (VoidResult) -> Void) {
-        let request = WirelessRequestFactory.setAccessRoles(allowGuests: allowGuests, allowServices: allowServices, for: self, apiVersion: APIVersion)
+        let request = WirelessRequestFactory.setAccessRoles(allowGuests: allowGuests, allowServices: allowServices, for: self, apiVersion: apiVersion)
 
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
             if let payload = response.payload,
