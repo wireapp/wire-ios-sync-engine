@@ -51,6 +51,7 @@ class CallingRequestStrategyTests: MessagingTest {
         sut = nil
         mockRegistrationDelegate = nil
         mockApplicationStatus = nil
+        APIVersion.isFederationEnabled = false
         super.tearDown()
     }
 
@@ -69,12 +70,12 @@ class CallingRequestStrategyTests: MessagingTest {
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
         XCTAssertEqual(request?.path, "/calls/config/v2")
 
         // when
         let payload = [ "config": true ]
-        request?.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil))
+        request?.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
 
         // then
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
@@ -87,11 +88,11 @@ class CallingRequestStrategyTests: MessagingTest {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // when
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
         XCTAssertNotNil(request)
 
         // then
-        let secondRequest = sut.nextRequest()
+        let secondRequest = sut.nextRequest(for: .v0)
         XCTAssertNil(secondRequest)
     }
 
@@ -102,7 +103,7 @@ class CallingRequestStrategyTests: MessagingTest {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // when
-        guard let request = sut.nextRequest() else { return XCTFail() }
+        guard let request = sut.nextRequest(for: .v0) else { return XCTFail() }
 
         // then
         XCTAssertTrue(request.shouldCompress)
@@ -122,16 +123,16 @@ class CallingRequestStrategyTests: MessagingTest {
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
         XCTAssertEqual(request?.path, "/calls/config/v2")
 
         // when
         let badPayload = [ "error": "not found" ]
-        request?.complete(with: ZMTransportResponse(payload: badPayload as ZMTransportData, httpStatus: 412, transportSessionError: nil))
+        request?.complete(with: ZMTransportResponse(payload: badPayload as ZMTransportData, httpStatus: 412, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
 
         // when
         let payload = [ "config": true ]
-        request?.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil))
+        request?.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
 
         // then
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
@@ -173,12 +174,12 @@ class CallingRequestStrategyTests: MessagingTest {
 
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
         XCTAssertNotNil(request)
         XCTAssertEqual(request?.path, "/conversations/\(conversationId.identifier.transportString())/otr/messages")
 
         // When
-        request?.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 412, transportSessionError: nil))
+        request?.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 412, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
 
         // Then
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
@@ -186,7 +187,7 @@ class CallingRequestStrategyTests: MessagingTest {
 
     func testThatItGeneratesClientListRequestAndCallsTheCompletionHandler_Federated() {
         // Given
-        sut.useFederationEndpoint = true
+        APIVersion.isFederationEnabled = true
 
         createSelfClient()
 
@@ -228,12 +229,13 @@ class CallingRequestStrategyTests: MessagingTest {
 
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v1)
         XCTAssertNotNil(request)
-        XCTAssertEqual(request?.path, "/conversations/\(domain1)/\(conversationId.identifier.transportString())/proteus/messages")
+        XCTAssertEqual(request?.apiVersion, APIVersion.v1.rawValue)
+        XCTAssertEqual(request?.path, "/v1/conversations/\(domain1)/\(conversationId.identifier.transportString())/proteus/messages")
 
         // When
-        request?.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 412, transportSessionError: nil))
+        request?.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 412, transportSessionError: nil, apiVersion: APIVersion.v1.rawValue))
 
         // Then
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
@@ -249,10 +251,10 @@ class CallingRequestStrategyTests: MessagingTest {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // Then
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
         XCTAssertNotNil(request)
 
-        let secondRequest = sut.nextRequest()
+        let secondRequest = sut.nextRequest(for: .v0)
         XCTAssertNil(secondRequest)
     }
 
@@ -299,7 +301,7 @@ class CallingRequestStrategyTests: MessagingTest {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         syncMOC.performGroupedBlock {
-            nextRequest = self.sut.nextRequest()
+            nextRequest = self.sut.nextRequest(for: .v0)
         }
 
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
@@ -368,7 +370,7 @@ class CallingRequestStrategyTests: MessagingTest {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         syncMOC.performGroupedBlock {
-            nextRequest = self.sut.nextRequest()
+            nextRequest = self.sut.nextRequest(for: .v0)
         }
 
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))

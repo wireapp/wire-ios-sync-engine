@@ -43,7 +43,6 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
          flowManager: FlowManagerType,
          updateEventProcessor: UpdateEventProcessor,
          localNotificationDispatcher: LocalNotificationDispatcher,
-         supportFederation: Bool,
          useLegacyPushNotifications: Bool) {
 
         self.strategies = Self.buildStrategies(contextProvider: contextProvider,
@@ -66,11 +65,6 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
                 return []
             }
         })
-
-        strategies.forEach { strategy in
-            var federationAwareStrategy = strategy as? FederationAware
-            federationAwareStrategy?.useFederationEndpoint = supportFederation
-        }
     }
 
     deinit {

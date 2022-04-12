@@ -113,10 +113,10 @@ extension UserClientRequestStrategyTests {
             // when
             self.clientRegistrationStatus.prepareForClientRegistration()
 
-            let request = self.sut.nextRequest()
+            let request = self.sut.nextRequest(for: .v0)
 
             // then
-            let expectedRequest = try! self.sut.requestsFactory.registerClientRequest(client, credentials: self.fakeCredentialsProvider.emailCredentials(), cookieLabel: "mycookie").transportRequest!
+            let expectedRequest = try! self.sut.requestsFactory.registerClientRequest(client, credentials: self.fakeCredentialsProvider.emailCredentials(), cookieLabel: "mycookie", apiVersion: .v0).transportRequest!
 
             AssertOptionalNotNil(request, "Should return request if there is inserted UserClient object") { request in
                 XCTAssertNotNil(request.payload, "Request should contain payload")
@@ -136,8 +136,8 @@ extension UserClientRequestStrategyTests {
             // when
             self.clientRegistrationStatus.prepareForClientRegistration()
 
-            _ = self.sut.nextRequest()
-            let nextRequest = self.sut.nextRequest()
+            _ = self.sut.nextRequest(for: .v0)
+            let nextRequest = self.sut.nextRequest(for: .v0)
 
             // then
             XCTAssertNil(nextRequest, "Should return request only if UserClient object inserted")
@@ -153,8 +153,8 @@ extension UserClientRequestStrategyTests {
 
             let remoteIdentifier = "superRandomIdentifer"
             let payload = ["id": remoteIdentifier]
-            let response = ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil)
-            let request = self.sut.request(forInserting: client, forKeys: Set())
+            let response = ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
+            let request = self.sut.request(forInserting: client, forKeys: Set(), apiVersion: .v0)
 
             // when
             self.sut.updateInsertedObject(client, request: request!, response: response)
@@ -183,8 +183,8 @@ extension UserClientRequestStrategyTests {
             XCTAssertEqual(maxID_before, 0)
 
             self.sut.notifyChangeTrackers(client)
-            guard let request = self.sut.nextRequest() else { return XCTFail() }
-            let response = ZMTransportResponse(payload: ["id": "fakeRemoteID"] as ZMTransportData, httpStatus: 200, transportSessionError: nil)
+            guard let request = self.sut.nextRequest(for: .v0) else { return XCTFail() }
+            let response = ZMTransportResponse(payload: ["id": "fakeRemoteID"] as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
             // when
             request.complete(with: response)
@@ -213,8 +213,8 @@ extension UserClientRequestStrategyTests {
             XCTAssertNil(client.apsVerificationKey)
 
             self.sut.notifyChangeTrackers(client)
-            guard let request = self.sut.nextRequest() else { return XCTFail() }
-            let response = ZMTransportResponse(payload: ["id": "fakeRemoteID"] as ZMTransportData, httpStatus: 200, transportSessionError: nil)
+            guard let request = self.sut.nextRequest(for: .v0) else { return XCTFail() }
+            let response = ZMTransportResponse(payload: ["id": "fakeRemoteID"] as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
             // when
             request.complete(with: response)
@@ -237,8 +237,8 @@ extension UserClientRequestStrategyTests {
             let client = self.createSelfClient(self.syncMOC)
             self.sut.notifyChangeTrackers(client)
 
-            guard let request = self.sut.nextRequest() else { return XCTFail() }
-            let response = ZMTransportResponse(payload: ["id": "fakeRemoteID"] as ZMTransportData, httpStatus: 200, transportSessionError: nil)
+            guard let request = self.sut.nextRequest(for: .v0) else { return XCTFail() }
+            let response = ZMTransportResponse(payload: ["id": "fakeRemoteID"] as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
             // when
             request.complete(with: response)
@@ -258,9 +258,9 @@ extension UserClientRequestStrategyTests {
             let client = self.createSelfClient(self.syncMOC)
             self.sut.notifyChangeTrackers(client)
 
-            guard let request = self.sut.nextRequest() else { return XCTFail() }
+            guard let request = self.sut.nextRequest(for: .v0) else { return XCTFail() }
             let responsePayload = ["code": 403, "message": "Re-authentication via password required", "label": "missing-auth"] as [String: Any]
-            let response = ZMTransportResponse(payload: responsePayload as ZMTransportData, httpStatus: 403, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: responsePayload as ZMTransportData, httpStatus: 403, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
             // when
             request.complete(with: response)
@@ -289,9 +289,9 @@ extension UserClientRequestStrategyTests {
             let client = self.createSelfClient(self.syncMOC)
             self.sut.notifyChangeTrackers(client)
 
-            guard let request = self.sut.nextRequest() else { return XCTFail() }
+            guard let request = self.sut.nextRequest(for: .v0) else { return XCTFail() }
             let responsePayload = ["code": 403, "message": "Re-authentication via password required", "label": "missing-auth"] as [String: Any]
-            let response = ZMTransportResponse(payload: responsePayload as ZMTransportData, httpStatus: 403, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: responsePayload as ZMTransportData, httpStatus: 403, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
             // when
             request.complete(with: response)
@@ -324,12 +324,12 @@ extension UserClientRequestStrategyTests {
             let selfUser = ZMUser.selfUser(in: self.syncMOC)
             selfUser.remoteIdentifier = UUID.create()
 
-            guard let request = self.sut.nextRequest() else {
+            guard let request = self.sut.nextRequest(for: .v0) else {
                 XCTFail()
                 return
             }
             let responsePayload = ["code": 403, "message": "Too many clients", "label": "too-many-clients"] as [String: Any]
-            let response = ZMTransportResponse(payload: responsePayload as ZMTransportData?, httpStatus: 403, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: responsePayload as ZMTransportData?, httpStatus: 403, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
             _ = NSError(domain: NSError.ZMUserSessionErrorDomain, code: Int(ZMUserSessionErrorCode.canNotRegisterMoreClients.rawValue), userInfo: nil)
 
@@ -366,13 +366,13 @@ extension UserClientRequestStrategyTests {
             self.sut.notifyChangeTrackers(client)
 
             // when
-            guard let request = self.sut.nextRequest() else {
+            guard let request = self.sut.nextRequest(for: .v0) else {
                 XCTFail()
                 return
             }
 
             // then
-            let expectedRequest = try! self.sut.requestsFactory.updateClientPreKeysRequest(client).transportRequest
+            let expectedRequest = try! self.sut.requestsFactory.updateClientPreKeysRequest(client, apiVersion: .v0).transportRequest
 
             AssertOptionalNotNil(request, "Should return request if there is inserted UserClient object") { request in
                 XCTAssertNotNil(request.payload, "Request should contain payload")
@@ -400,7 +400,7 @@ extension UserClientRequestStrategyTests {
             self.sut.notifyChangeTrackers(client)
 
             // then
-            XCTAssertNil(self.sut.nextRequest())
+            XCTAssertNil(self.sut.nextRequest(for: .v0))
         }
     }
 
@@ -419,7 +419,7 @@ extension UserClientRequestStrategyTests {
             self.sut.notifyChangeTrackers(client)
 
             // when
-            let request = self.sut.nextRequest()
+            let request = self.sut.nextRequest(for: .v0)
 
             // then
             XCTAssertNil(request, "Should not return request if there are enouth keys left")
@@ -437,7 +437,7 @@ extension UserClientRequestStrategyTests {
             let expectedNumberOfKeys = client.numberOfKeysRemaining + Int32(self.sut.requestsFactory.keyCount)
 
             // when
-            let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
             let userClientNumberOfKeysRemainingKeySet: Set<String> = [ZMUserClientNumberOfKeysRemainingKey]
             _ = self.sut.updateUpdatedObject(client, requestUserInfo: nil, response: response, keysToParse: userClientNumberOfKeysRemainingKeySet)
 
@@ -473,10 +473,10 @@ extension UserClientRequestStrategyTests {
 
         syncMOC.performGroupedBlockAndWait {
             // given
-            let nextResponse = ZMTransportResponse(payload: self.payloadForClients() as ZMTransportData?, httpStatus: 200, transportSessionError: nil)
+            let nextResponse = ZMTransportResponse(payload: self.payloadForClients() as ZMTransportData?, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
             // when
-            _ = self.sut.nextRequest()
+            _ = self.sut.nextRequest(for: .v0)
             self.sut.didReceive(nextResponse, forSingleRequest: self.sut.fetchAllClientsSync)
 
             // then
@@ -499,14 +499,14 @@ extension UserClientRequestStrategyTests {
             // given
             selfClient = self.createSelfClient()
             selfUser = ZMUser.selfUser(in: self.syncMOC)
-            let nextResponse = ZMTransportResponse(payload: self.payloadForClients() as ZMTransportData?, httpStatus: 200, transportSessionError: nil)
+            let nextResponse = ZMTransportResponse(payload: self.payloadForClients() as ZMTransportData?, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
             newClient = UserClient.insertNewObject(in: self.syncMOC)
             newClient.user = selfUser
             newClient.remoteIdentifier = "deleteme"
             self.syncMOC.saveOrRollback()
 
             // when
-            _ = self.sut.nextRequest()
+            _ = self.sut.nextRequest(for: .v0)
             self.sut.didReceive(nextResponse, forSingleRequest: self.sut.fetchAllClientsSync)
         }
 
@@ -543,7 +543,7 @@ extension UserClientRequestStrategyTests {
             clients[0].markForDeletion()
             self.sut.notifyChangeTrackers(clients[0])
 
-            let nextRequest = self.sut.nextRequest()
+            let nextRequest = self.sut.nextRequest(for: .v0)
 
             // then
             AssertOptionalNotNil(nextRequest) {
@@ -568,7 +568,7 @@ extension UserClientRequestStrategyTests {
             client.user = ZMUser.selfUser(in: self.syncMOC)
             self.syncMOC.saveOrRollback()
 
-            let response = ZMTransportResponse(payload: [:] as ZMTransportData, httpStatus: 200, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: [:] as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
             // when
             let userClientMarkedToDeleteKeySet: Set<String> = [ZMUserClientMarkedToDeleteKey]
@@ -606,13 +606,13 @@ extension UserClientRequestStrategyTests {
             self.sut.contextChangeTrackers.forEach {
                 $0.objectsDidChange(existingClientSet)
             }
-            let request = self.sut.nextRequest()
+            let request = self.sut.nextRequest(for: .v0)
 
             // then
             XCTAssertNotNil(request)
 
             // and when
-            let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
             request?.complete(with: response)
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
@@ -645,9 +645,9 @@ extension UserClientRequestStrategyTests {
             }
 
             // when
-            let request = self.sut.nextRequest()
+            let request = self.sut.nextRequest(for: .v0)
             XCTAssertNotNil(request)
-            let badResponse = ZMTransportResponse(payload: ["label": "bad-request"] as ZMTransportData, httpStatus: 400, transportSessionError: nil)
+            let badResponse = ZMTransportResponse(payload: ["label": "bad-request"] as ZMTransportData, httpStatus: 400, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
             request?.complete(with: badResponse)
         }
@@ -655,9 +655,9 @@ extension UserClientRequestStrategyTests {
 
         // and when
         syncMOC.performGroupedBlock {
-            let secondRequest = self.sut.nextRequest()
+            let secondRequest = self.sut.nextRequest(for: .v0)
             XCTAssertNotNil(secondRequest)
-            let success = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil)
+            let success = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
             secondRequest?.complete(with: success)
         }
@@ -665,7 +665,7 @@ extension UserClientRequestStrategyTests {
 
         // and when
         syncMOC.performGroupedBlock {
-            let thirdRequest = self.sut.nextRequest()
+            let thirdRequest = self.sut.nextRequest(for: .v0)
             XCTAssertNil(thirdRequest)
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.2))
@@ -688,13 +688,13 @@ extension UserClientRequestStrategyTests {
             self.sut.contextChangeTrackers.forEach {
                 $0.objectsDidChange(existingClientSet)
             }
-            let request = self.sut.nextRequest()
+            let request = self.sut.nextRequest(for: .v0)
 
             // then
             XCTAssertNotNil(request)
 
             // and when
-            let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
             request?.complete(with: response)
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
@@ -724,9 +724,9 @@ extension UserClientRequestStrategyTests {
             }
 
             // when
-            let request = self.sut.nextRequest()
+            let request = self.sut.nextRequest(for: .v0)
             XCTAssertNotNil(request)
-            let badResponse = ZMTransportResponse(payload: ["label": "bad-request"] as ZMTransportData, httpStatus: 400, transportSessionError: nil)
+            let badResponse = ZMTransportResponse(payload: ["label": "bad-request"] as ZMTransportData, httpStatus: 400, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
             request?.complete(with: badResponse)
         }
@@ -734,9 +734,9 @@ extension UserClientRequestStrategyTests {
 
         // and when
         syncMOC.performGroupedBlock {
-            let secondRequest = self.sut.nextRequest()
+            let secondRequest = self.sut.nextRequest(for: .v0)
             XCTAssertNotNil(secondRequest)
-            let success = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil)
+            let success = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
             secondRequest?.complete(with: success)
         }
@@ -744,7 +744,7 @@ extension UserClientRequestStrategyTests {
 
         // and when
         syncMOC.performGroupedBlock {
-            let thirdRequest = self.sut.nextRequest()
+            let thirdRequest = self.sut.nextRequest(for: .v0)
             XCTAssertNil(thirdRequest)
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.2))

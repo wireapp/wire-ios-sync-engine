@@ -108,6 +108,11 @@ public class ZMUserSession: NSObject {
         return featureService.fetchConversationGuestLinks()
     }
 
+    public var classifiedDomainsFeature: Feature.ClassifiedDomains {
+        let featureService = FeatureService(context: coreDataStack.viewContext)
+        return featureService.fetchClassifiedDomains()
+    }
+
     public var hasCompletedInitialSync: Bool = false
 
     public var topConversationsDirectory: TopConversationsDirectory
@@ -231,10 +236,9 @@ public class ZMUserSession: NSObject {
         coreDataStack.syncContext.performGroupedBlockAndWait {
             coreDataStack.syncContext.analytics = analytics
             coreDataStack.syncContext.zm_userInterface = coreDataStack.viewContext
-            coreDataStack.syncContext.zm_isFederationEnabled = configuration.supportFederation
         }
+
         coreDataStack.viewContext.zm_sync = coreDataStack.syncContext
-        coreDataStack.viewContext.zm_isFederationEnabled = configuration.supportFederation
 
         self.application = application
         self.appVersion = appVersion
@@ -261,8 +265,7 @@ public class ZMUserSession: NSObject {
             self.configureTransportSession()
             self.applicationStatusDirectory = self.createApplicationStatusDirectory()
             self.updateEventProcessor = eventProcessor ?? self.createUpdateEventProcessor()
-            self.strategyDirectory = strategyDirectory ?? self.createStrategyDirectory(supportFederation: configuration.supportFederation,
-                                                                                       useLegacyPushNotifications: configuration.useLegacyPushNotifications)
+            self.strategyDirectory = strategyDirectory ?? self.createStrategyDirectory(useLegacyPushNotifications: configuration.useLegacyPushNotifications)
             self.syncStrategy = syncStrategy ?? self.createSyncStrategy()
             self.operationLoop = operationLoop ?? self.createOperationLoop()
             self.urlActionProcessors = self.createURLActionProcessors()
@@ -309,7 +312,7 @@ public class ZMUserSession: NSObject {
 
     }
 
-    private func createStrategyDirectory(supportFederation: Bool, useLegacyPushNotifications: Bool) -> StrategyDirectoryProtocol {
+    private func createStrategyDirectory(useLegacyPushNotifications: Bool) -> StrategyDirectoryProtocol {
         return StrategyDirectory(contextProvider: coreDataStack,
                                  applicationStatusDirectory: applicationStatusDirectory!,
                                  cookieStorage: transportSession.cookieStorage,
@@ -317,7 +320,6 @@ public class ZMUserSession: NSObject {
                                  flowManager: flowManager,
                                  updateEventProcessor: updateEventProcessor!,
                                  localNotificationDispatcher: localNotificationDispatcher!,
-                                 supportFederation: supportFederation,
                                  useLegacyPushNotifications: useLegacyPushNotifications)
     }
 
@@ -554,6 +556,7 @@ extension ZMUserSession: ZMSyncStateDelegate {
         featureService.enqueueBackendRefresh(for: .conferenceCalling)
         featureService.enqueueBackendRefresh(for: .selfDeletingMessages)
         featureService.enqueueBackendRefresh(for: .conversationGuestLinks)
+        featureService.enqueueBackendRefresh(for: .classifiedDomains)
 
     }
 

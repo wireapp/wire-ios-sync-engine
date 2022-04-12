@@ -192,7 +192,7 @@
 
     self.mockTransportSession.responseGeneratorBlock = ^ZMTransportResponse *(ZMTransportRequest *request) {
         if ([request.path isEqualToString:@"/assets/v3"]) {
-            return [ZMTransportResponse responseWithPayload:nil HTTPStatus:400 transportSessionError:nil];
+            return [ZMTransportResponse responseWithPayload:nil HTTPStatus:400 transportSessionError:nil apiVersion:0];
         }
         return nil;
     };
@@ -408,7 +408,7 @@
     self.mockTransportSession.responseGeneratorBlock = ^ZMTransportResponse *(ZMTransportRequest *request) {
         // We fail the thumbnail asset upload
         if ([request.path isEqualToString:@"/assets/v3"]) {
-            return [ZMTransportResponse responseWithPayload:nil HTTPStatus:400 transportSessionError:nil];
+            return [ZMTransportResponse responseWithPayload:nil HTTPStatus:400 transportSessionError:nil apiVersion:0];
         }
         return nil;
     };
@@ -459,7 +459,7 @@
     self.mockTransportSession.responseGeneratorBlock = ^ZMTransportResponse *(ZMTransportRequest *request) {
         // We fail the second post to `/assets/v3`, which is the upload of the full asset
         if ([request.path isEqualToString:@"/assets/v3"] && ++assetUploadCounter == 2) {
-            return [ZMTransportResponse responseWithPayload:nil HTTPStatus:400 transportSessionError:nil];
+            return [ZMTransportResponse responseWithPayload:nil HTTPStatus:400 transportSessionError:nil apiVersion:0];
         }
         return nil;
     };
@@ -512,7 +512,7 @@
     self.mockTransportSession.responseGeneratorBlock = ^ZMTransportResponse *(ZMTransportRequest *request) {
         // We fail the post to `/otr/messages`, which is the upload of the full asset generic message
         if ([request.path isEqualToString:genericMessagePath] && ++genericMessageUploadCount == 1) {
-            return [ZMTransportResponse responseWithPayload:nil HTTPStatus:400 transportSessionError:nil];
+            return [ZMTransportResponse responseWithPayload:nil HTTPStatus:400 transportSessionError:nil apiVersion:0];
         }
         return nil;
     };

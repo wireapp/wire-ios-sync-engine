@@ -27,6 +27,7 @@ public enum LegalHoldActivationError: Error, Equatable {
     case invalidPassword
     case couldNotEstablishSession
     case invalidState
+    case missingAPIVersion
 }
 
 extension ZMUserSession {
@@ -47,6 +48,10 @@ extension ZMUserSession {
             DispatchQueue.main.async {
                 completionHandler(error)
             }
+        }
+
+        guard let apiVersion = APIVersion.current else {
+            return complete(error: .missingAPIVersion)
         }
 
         syncManagedObjectContext.performGroupedBlock {
@@ -73,7 +78,7 @@ extension ZMUserSession {
             payload["password"] = password
 
             let path = "/teams/\(teamID.transportString())/legalhold/\(userID.transportString())/approve"
-            let request = ZMTransportRequest(path: path, method: .methodPUT, payload: payload as NSDictionary)
+            let request = ZMTransportRequest(path: path, method: .methodPUT, payload: payload as NSDictionary, apiVersion: apiVersion.rawValue)
 
             // 4) Handle the Response
             request.add(ZMCompletionHandler(on: self.syncManagedObjectContext, block: { response in

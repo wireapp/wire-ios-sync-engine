@@ -54,7 +54,7 @@ class RegistrationStrategyTests: MessagingTest {
     // MARK: - Idle state
 
     func testThatItDoesNotGenerateRequestWhenPhaseIsNone() {
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
         XCTAssertNil(request)
     }
 
@@ -65,12 +65,12 @@ class RegistrationStrategyTests: MessagingTest {
         let path = "/register"
         let payload = team.payload
 
-        let transportRequest = ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData)
+        let transportRequest = ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData, apiVersion: APIVersion.v0.rawValue)
         registrationStatus.phase = .createTeam(team: team)
 
         // when
 
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
 
         // then
         XCTAssertNotNil(request)
@@ -82,11 +82,11 @@ class RegistrationStrategyTests: MessagingTest {
         let path = "/register"
         let payload = user.payload
 
-        let transportRequest = ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData)
+        let transportRequest = ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData, apiVersion: APIVersion.v0.rawValue)
         registrationStatus.phase = .createUser(user: user)
 
         // when
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
 
         // then
         XCTAssertNotNil(request)
@@ -96,7 +96,7 @@ class RegistrationStrategyTests: MessagingTest {
     func testThatItNotifiesStatusAfterSuccessfulResponseToTeamCreate() {
         // given
         registrationStatus.phase = .createTeam(team: team)
-        let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil)
+        let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
         // when
         XCTAssertEqual(registrationStatus.successCalled, 0)
@@ -109,7 +109,7 @@ class RegistrationStrategyTests: MessagingTest {
     func testThatItNotifiesStatusAfterSuccessfulResponseToUserCreate() {
         // given
         registrationStatus.phase = .createUser(user: user)
-        let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil)
+        let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
         // when
         XCTAssertEqual(registrationStatus.successCalled, 0)
@@ -125,7 +125,7 @@ class RegistrationStrategyTests: MessagingTest {
         // given
         registrationStatus.phase = .createTeam(team: team)
         let cookie = "zuid=wjCWn1Y1pBgYrFCwuU7WK2eHpAVY8Ocu-rUAWIpSzOcvDVmYVc9Xd6Ovyy-PktFkamLushbfKgBlIWJh6ZtbAA==.1721442805.u.7eaaa023.08326f5e-3c0f-4247-a235-2b4d93f921a4; Expires=Sun, 21-Jul-2024 09:06:45 GMT; Domain=wire.com; HttpOnly; Secure"
-        let response = ZMTransportResponse(payload: ["user": UUID.create().transportString()] as ZMTransportData, httpStatus: 200, transportSessionError: nil, headers: ["Set-Cookie": cookie])
+        let response = ZMTransportResponse(payload: ["user": UUID.create().transportString()] as ZMTransportData, httpStatus: 200, transportSessionError: nil, headers: ["Set-Cookie": cookie], apiVersion: APIVersion.v0.rawValue)
 
         // when
         XCTAssertEqual(userInfoParser.upgradeToAuthenticatedSessionCallCount, 0)

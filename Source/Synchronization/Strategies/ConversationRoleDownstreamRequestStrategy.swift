@@ -64,8 +64,8 @@ public final class ConversationRoleDownstreamRequestStrategy: AbstractRequestStr
 
     }
 
-    public override func nextRequestIfAllowed() -> ZMTransportRequest? {
-        return downstreamSync.nextRequest()
+    public override func nextRequestIfAllowed(for apiVersion: APIVersion) -> ZMTransportRequest? {
+        return downstreamSync.nextRequest(for: apiVersion)
     }
 
     public var contextChangeTrackers: [ZMContextChangeTracker] {
@@ -78,15 +78,22 @@ public final class ConversationRoleDownstreamRequestStrategy: AbstractRequestStr
 
     static let requestPath = "/conversations"
 
-    public static func getRolesRequest(in conversationIdentifier: UUID) -> ZMTransportRequest {
+    public static func getRolesRequest(in conversationIdentifier: UUID, apiVersion: APIVersion) -> ZMTransportRequest {
         let path = requestPath + "/" + conversationIdentifier.transportString() + "/roles"
-        return ZMTransportRequest(getFromPath: path)
+        return ZMTransportRequest(getFromPath: path, apiVersion: apiVersion.rawValue)
     }
 
-    public func request(forFetching object: ZMManagedObject!, downstreamSync: ZMObjectSync!) -> ZMTransportRequest! {
-        guard downstreamSync as? ZMDownstreamObjectSync == self.downstreamSync,
-              let conversation = object as? ZMConversation else { fatal("Wrong sync or object for: \(object.safeForLoggingDescription)") }
-        return conversation.remoteIdentifier.map(ConversationRoleDownstreamRequestStrategy.getRolesRequest)
+    public func request(forFetching object: ZMManagedObject!, downstreamSync: ZMObjectSync!, apiVersion: APIVersion) -> ZMTransportRequest! {
+        guard
+            downstreamSync as? ZMDownstreamObjectSync == self.downstreamSync,
+            let conversation = object as? ZMConversation
+        else {
+            fatal("Wrong sync or object for: \(object.safeForLoggingDescription)")
+        }
+
+        return conversation.remoteIdentifier.map {
+            ConversationRoleDownstreamRequestStrategy.getRolesRequest(in: $0, apiVersion: apiVersion)
+        }
     }
 
     public func delete(_ object: ZMManagedObject!, with response: ZMTransportResponse!, downstreamSync: ZMObjectSync!) {

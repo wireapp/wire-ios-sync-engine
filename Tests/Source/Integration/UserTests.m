@@ -119,7 +119,7 @@
         ZM_STRONG(self);
         if ([request.path containsString:clientsPath]) {
             id <ZMTransportData> payload = [self payloadForUserClientsWithIDs:[NSSet setWithObjects:firstIdentifier, secondIdentifier, nil]];
-            return [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil];
+            return [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil apiVersion:0];
         }
         return nil;
     };
@@ -143,7 +143,7 @@
         ZM_STRONG(self);
         if ([request.path containsString:clientsPath]) {
             id <ZMTransportData> payload = [self payloadForUserClientsWithIDs:[NSSet setWithObjects:secondIdentifier, thirdIdentifier, nil]];
-            return [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil];
+            return [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil apiVersion:0];
         }
         return nil;
     };

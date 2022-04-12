@@ -75,12 +75,6 @@ public class SessionManagerConfiguration: NSObject, NSCopying, Codable {
 
     public var legacyAppLockConfig: AppLockController.LegacyConfig?
 
-    /// If set to true federation will be supported if the backend also supports it.
-    ///
-    /// The default value of this property is `false`
-
-    public var supportFederation: Bool
-
     /// If set to true voip pushes are used. If set to false, standard apns pushes
     /// are used in conjunction with the notification service extension.
 
@@ -98,7 +92,6 @@ public class SessionManagerConfiguration: NSObject, NSCopying, Codable {
         failedPasswordThresholdBeforeWipe: Int? = nil,
         encryptionAtRestIsEnabledByDefault: Bool = false,
         legacyAppLockConfig: AppLockController.LegacyConfig? = nil,
-        supportFederation: Bool = false,
         useLegacyPushNotifications: Bool = true) {
 
         self.wipeOnCookieInvalid = wipeOnCookieInvalid
@@ -110,7 +103,6 @@ public class SessionManagerConfiguration: NSObject, NSCopying, Codable {
         self.failedPasswordThresholdBeforeWipe = failedPasswordThresholdBeforeWipe
         self.encryptionAtRestEnabledByDefault = encryptionAtRestIsEnabledByDefault
         self.legacyAppLockConfig = legacyAppLockConfig
-        self.supportFederation = supportFederation
         self.useLegacyPushNotifications = useLegacyPushNotifications
     }
 
@@ -125,7 +117,6 @@ public class SessionManagerConfiguration: NSObject, NSCopying, Codable {
         failedPasswordThresholdBeforeWipe = try container.decodeIfPresent(Int.self, forKey: .failedPasswordThresholdBeforeWipe)
         encryptionAtRestEnabledByDefault = try container.decode(Bool.self, forKey: .encryptionAtRestEnabledByDefault)
         legacyAppLockConfig = try container.decodeIfPresent(AppLockController.LegacyConfig.self, forKey: .legacyAppLockConfig)
-        supportFederation = try container.decodeIfPresent(Bool.self, forKey: .supportFederation) ?? false
         useLegacyPushNotifications = try container.decodeIfPresent(Bool.self, forKey: .useLegacyPushNotifications) ?? true
     }
 
@@ -142,7 +133,6 @@ public class SessionManagerConfiguration: NSObject, NSCopying, Codable {
             failedPasswordThresholdBeforeWipe: failedPasswordThresholdBeforeWipe,
             encryptionAtRestIsEnabledByDefault: encryptionAtRestEnabledByDefault,
             legacyAppLockConfig: legacyAppLockConfig,
-            supportFederation: supportFederation,
             useLegacyPushNotifications: useLegacyPushNotifications
         )
 
@@ -177,7 +167,6 @@ extension SessionManagerConfiguration {
         case failedPasswordThresholdBeforeWipe
         case encryptionAtRestEnabledByDefault
         case legacyAppLockConfig
-        case supportFederation
         case useLegacyPushNotifications
 
     }

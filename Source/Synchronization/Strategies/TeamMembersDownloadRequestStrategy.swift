@@ -38,22 +38,22 @@ public final class TeamMembersDownloadRequestStrategy: AbstractRequestStrategy, 
         sync = ZMSingleRequestSync(singleRequestTranscoder: self, groupQueue: managedObjectContext)
     }
 
-    override public func nextRequestIfAllowed() -> ZMTransportRequest? {
+    override public func nextRequestIfAllowed(for apiVersion: APIVersion) -> ZMTransportRequest? {
         guard syncStatus.currentSyncPhase == .fetchingTeamMembers else { return nil }
 
         sync.readyForNextRequestIfNotBusy()
 
-        return sync.nextRequest()
+        return sync.nextRequest(for: apiVersion)
     }
 
 // MARK: - ZMSingleRequestTranscoder
 
-    public func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
+    public func request(for sync: ZMSingleRequestSync, apiVersion: APIVersion) -> ZMTransportRequest? {
         guard let teamID = ZMUser.selfUser(in: managedObjectContext).teamIdentifier else {
             completeSyncPhase() // Skip sync phase if user doesn't belong to a team
             return nil
         }
-        return ZMTransportRequest(getFromPath: "/teams/\(teamID.transportString())/members")
+        return ZMTransportRequest(getFromPath: "/teams/\(teamID.transportString())/members", apiVersion: apiVersion.rawValue)
     }
 
     public func didReceive(_ response: ZMTransportResponse, forSingleRequest sync: ZMSingleRequestSync) {

@@ -66,7 +66,7 @@
 - (void)injectLastUpdateEventID:(NSString *)updateEventID
 {
     NSDictionary *payload = @{ @"id" : updateEventID };
-    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil];
+    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil apiVersion:0];
     [self.sut didReceiveResponse:response forSingleRequest:self.downstreamSync];
 }
 
@@ -142,27 +142,27 @@
     // expect
     [[(id)self.downstreamSync expect] readyForNextRequest];
     [[(id)self.downstreamSync expect] resetCompletionState];
-    [[(id)self.downstreamSync expect] nextRequest];
+    [[(id)self.downstreamSync expect] nextRequestForAPIVersion:APIVersionV0];
 
     // when
     self.mockSyncStatus.mockPhase = SyncPhaseFetchingLastUpdateEventID;
-    XCTAssertNil([self.sut nextRequest]);
+    XCTAssertNil([self.sut nextRequestForAPIVersion:APIVersionV0]);
 }
 
 - (void)testThatItForwardsNextRequestToTheSingleRequestSync
 {
     // given
-    ZMTransportRequest *dummyRequest = [ZMTransportRequest requestGetFromPath:@"abc"];
+    ZMTransportRequest *dummyRequest = [ZMTransportRequest requestGetFromPath:@"abc" apiVersion:0];
     self.mockSyncStatus.mockPhase = SyncPhaseFetchingLastUpdateEventID;
     [(ZMSingleRequestSync *)[[(id)self.downstreamSync stub] andReturnValue:OCMOCK_VALUE(ZMSingleRequestCompleted)] status];
 
     // expect
     [[(id)self.downstreamSync expect] readyForNextRequest];
     [[(id)self.downstreamSync expect] resetCompletionState];
-    [[[(id)self.downstreamSync expect] andReturn:dummyRequest] nextRequest];
+    [[[(id)self.downstreamSync expect] andReturn:dummyRequest] nextRequestForAPIVersion:APIVersionV0];
     
     // when
-    ZMTransportRequest *request = [self.sut nextRequest];
+    ZMTransportRequest *request = [self.sut nextRequestForAPIVersion:APIVersionV0];
     
     // then
     XCTAssertEqual(request, dummyRequest);
@@ -199,7 +199,7 @@
 - (void)testThatTheLastUpdateEventIDIsNotPersistedIfTheResponseIsAPermanentError
 {
     // given
-    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:nil HTTPStatus:400 transportSessionError:nil];
+    ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:nil HTTPStatus:400 transportSessionError:nil apiVersion:0];
     [self.sut didReceiveResponse:response forSingleRequest:self.downstreamSync];
     
     // when
@@ -212,7 +212,7 @@
 - (void)testThatItEncodesTheRightRequestWithoutClient
 {
     // when
-    ZMTransportRequest *request = [self.sut requestForSingleRequestSync:self.downstreamSync];
+    ZMTransportRequest *request = [self.sut requestForSingleRequestSync:self.downstreamSync apiVersion:APIVersionV0];
     
     // then
     XCTAssertNotNil(request);
@@ -227,7 +227,7 @@
     XCTAssertNotNil(selfClient);
     
     // when
-    ZMTransportRequest *request = [self.sut requestForSingleRequestSync:self.downstreamSync];
+    ZMTransportRequest *request = [self.sut requestForSingleRequestSync:self.downstreamSync apiVersion:APIVersionV0];
     
     // then
     XCTAssertNotNil(request);

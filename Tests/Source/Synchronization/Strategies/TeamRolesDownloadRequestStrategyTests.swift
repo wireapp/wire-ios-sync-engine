@@ -89,7 +89,7 @@ class TeamRolesDownloadRequestStrategyTests: MessagingTest {
     }
 
     func testThatItDoesNotGenerateARequestInitially() {
-        XCTAssertNil(sut.nextRequest())
+        XCTAssertNil(sut.nextRequest(for: .v0))
     }
 
     func testThatItDoesNotCreateARequestIfThereIsNoTeamNeedingToBeUpdated() {
@@ -104,7 +104,7 @@ class TeamRolesDownloadRequestStrategyTests: MessagingTest {
             self.boostrapChangeTrackers(with: team)
 
             // then
-            XCTAssertNil(self.sut.nextRequest())
+            XCTAssertNil(self.sut.nextRequest(for: .v0))
         }
     }
 
@@ -120,7 +120,7 @@ class TeamRolesDownloadRequestStrategyTests: MessagingTest {
             self.boostrapChangeTrackers(with: team)
 
             // then
-            guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
+            guard let request = self.sut.nextRequest(for: .v0) else { return XCTFail("No request generated") }
             XCTAssertEqual(request.method, .methodGET)
             XCTAssertEqual(request.path, "/teams/\(team.remoteIdentifier!.transportString())/conversations/roles")
         }
@@ -136,10 +136,10 @@ class TeamRolesDownloadRequestStrategyTests: MessagingTest {
             team.remoteIdentifier = .create()
             team.needsToDownloadRoles = true
             self.boostrapChangeTrackers(with: team)
-            guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
+            guard let request = self.sut.nextRequest(for: .v0) else { return XCTFail("No request generated") }
 
             // when
-            let response = ZMTransportResponse(payload: self.sampleResponse as ZMTransportData, httpStatus: 200, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: self.sampleResponse as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
             request.complete(with: response)
         }
 
@@ -175,10 +175,10 @@ class TeamRolesDownloadRequestStrategyTests: MessagingTest {
             team.remoteIdentifier = .create()
             team.needsToDownloadRoles = true
             self.boostrapChangeTrackers(with: team)
-            guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
+            guard let request = self.sut.nextRequest(for: .v0) else { return XCTFail("No request generated") }
 
             // when
-            let response = ZMTransportResponse(payload: self.sampleResponse as ZMTransportData, httpStatus: 200, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: self.sampleResponse as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
             request.complete(with: response)
         }
 
@@ -197,10 +197,10 @@ class TeamRolesDownloadRequestStrategyTests: MessagingTest {
             team.remoteIdentifier = .create()
             team.needsToDownloadRoles = true
             self.boostrapChangeTrackers(with: team)
-            guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
+            guard let request = self.sut.nextRequest(for: .v0) else { return XCTFail("No request generated") }
 
             // when
-            let response = ZMTransportResponse(payload: self.sampleResponse as ZMTransportData, httpStatus: 200, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: self.sampleResponse as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
             request.complete(with: response)
         }
 
@@ -217,7 +217,7 @@ class TeamRolesDownloadRequestStrategyTests: MessagingTest {
             self.mockSyncStatus.mockPhase = .fetchingTeamRoles
 
             // when
-            let request = self.sut.nextRequest()
+            let request = self.sut.nextRequest(for: .v0)
 
             // then
             XCTAssertNil(request)
@@ -236,10 +236,10 @@ class TeamRolesDownloadRequestStrategyTests: MessagingTest {
             self.mockApplicationStatus.mockSynchronizationState = .online
             self.boostrapChangeTrackers(with: team)
 
-            guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
+            guard let request = self.sut.nextRequest(for: .v0) else { return XCTFail("No request generated") }
 
             // when
-            let response = ZMTransportResponse(payload: self.sampleResponse as ZMTransportData, httpStatus: 200, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: self.sampleResponse as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
             request.complete(with: response)
         }
 
@@ -248,7 +248,7 @@ class TeamRolesDownloadRequestStrategyTests: MessagingTest {
         syncMOC.performGroupedBlockAndWait {
             // then
             self.boostrapChangeTrackers(with: team)
-            XCTAssertNil(self.sut.nextRequest())
+            XCTAssertNil(self.sut.nextRequest(for: .v0))
         }
     }
 
@@ -262,13 +262,14 @@ class TeamRolesDownloadRequestStrategyTests: MessagingTest {
             team.remoteIdentifier = teamId
             team.needsToDownloadRoles = true
             self.boostrapChangeTrackers(with: team)
-            guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
+            guard let request = self.sut.nextRequest(for: .v0) else { return XCTFail("No request generated") }
 
             // when
             let response = ZMTransportResponse(
                 payload: ["label": "no-team-member"] as ZMTransportData,
                 httpStatus: 403,
-                transportSessionError: nil
+                transportSessionError: nil,
+                apiVersion: APIVersion.v0.rawValue
             )
 
             // when

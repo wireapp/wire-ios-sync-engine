@@ -150,7 +150,7 @@ class UserHandleTests: IntegrationTest {
 
         self.mockTransportSession.responseGeneratorBlock = { req in
             if req.path == "/self/handle" {
-                return ZMTransportResponse(payload: nil, httpStatus: 400, transportSessionError: nil)
+                return ZMTransportResponse(payload: nil, httpStatus: 400, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
             }
             return nil
         }

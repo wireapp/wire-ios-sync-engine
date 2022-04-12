@@ -50,8 +50,10 @@ public class ZMConversationAccessModeTests: MessagingTest {
         // given
         selfUser(options: SelfUserOptions(team: .teamA))
         let conversation = self.conversation(options: ConversationOptions(hasRemoteId: true, team: .teamA, isGroup: true))
+
         // when
-        let request = WireSyncEngine.WirelessRequestFactory.setAccessRoles(allowGuests: true, allowServices: false, for: conversation)
+        let request = WireSyncEngine.WirelessRequestFactory.setAccessRoles(allowGuests: true, allowServices: false, for: conversation, apiVersion: .v0)
+
         // then
         XCTAssertEqual(request.method, .methodPUT)
         XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/access")
@@ -70,7 +72,7 @@ public class ZMConversationAccessModeTests: MessagingTest {
         selfUser(options: SelfUserOptions(team: .teamA))
         let conversation = self.conversation(options: ConversationOptions(hasRemoteId: true, team: .teamA, isGroup: true))
         // when
-        let request = WireSyncEngine.WirelessRequestFactory.fetchLinkRequest(for: conversation)
+        let request = WireSyncEngine.WirelessRequestFactory.fetchLinkRequest(for: conversation, apiVersion: .v0)
         // then
         XCTAssertEqual(request.method, .methodGET)
         XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/code")
@@ -83,7 +85,7 @@ public class ZMConversationAccessModeTests: MessagingTest {
         let conversation = self.conversation(options: ConversationOptions(hasRemoteId: true, team: .teamA, isGroup: true))
 
         // WHEN
-        let request = WireSyncEngine.WirelessRequestFactory.guestLinkFeatureStatusRequest(for: conversation)
+        let request = WireSyncEngine.WirelessRequestFactory.guestLinkFeatureStatusRequest(for: conversation, apiVersion: .v0)
 
         // then
         XCTAssertEqual(request.method, .methodGET)
@@ -96,7 +98,7 @@ public class ZMConversationAccessModeTests: MessagingTest {
         selfUser(options: SelfUserOptions(team: .teamA))
         let conversation = self.conversation(options: ConversationOptions(hasRemoteId: true, team: .teamA, isGroup: true))
         // when
-        let request = WireSyncEngine.WirelessRequestFactory.createLinkRequest(for: conversation)
+        let request = WireSyncEngine.WirelessRequestFactory.createLinkRequest(for: conversation, apiVersion: .v0)
         // then
         XCTAssertEqual(request.method, .methodPOST)
         XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/code")
@@ -108,7 +110,7 @@ public class ZMConversationAccessModeTests: MessagingTest {
         selfUser(options: SelfUserOptions(team: .teamA))
         let conversation = self.conversation(options: ConversationOptions(hasRemoteId: true, team: .teamA, isGroup: true))
         // when
-        let request = WireSyncEngine.WirelessRequestFactory.deleteLinkRequest(for: conversation)
+        let request = WireSyncEngine.WirelessRequestFactory.deleteLinkRequest(for: conversation, apiVersion: .v0)
         // then
         XCTAssertEqual(request.method, .methodDELETE)
         XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/code")
@@ -119,7 +121,8 @@ public class ZMConversationAccessModeTests: MessagingTest {
         // given
         let response = ZMTransportResponse(payload: ["label": "invalid-op"] as ZMTransportData,
                                            httpStatus: 403,
-                                           transportSessionError: nil)
+                                           transportSessionError: nil,
+                                           apiVersion: APIVersion.v0.rawValue)
 
         // when
         let error = WirelessLinkError(response: response)
@@ -132,7 +135,8 @@ public class ZMConversationAccessModeTests: MessagingTest {
         // given
         let response = ZMTransportResponse(payload: ["label": "no-conversation-code"] as ZMTransportData,
                                            httpStatus: 404,
-                                           transportSessionError: nil)
+                                           transportSessionError: nil,
+                                           apiVersion: APIVersion.v0.rawValue)
 
         // when
         let error = WirelessLinkError(response: response)
@@ -145,7 +149,8 @@ public class ZMConversationAccessModeTests: MessagingTest {
         // GIVEN
         let response = ZMTransportResponse(payload: ["label": "no-conversation"] as ZMTransportData,
                                            httpStatus: 404,
-                                           transportSessionError: nil)
+                                           transportSessionError: nil,
+                                           apiVersion: APIVersion.v0.rawValue)
 
         // WHEN
         let error = WirelessLinkError(response: response)
@@ -158,7 +163,8 @@ public class ZMConversationAccessModeTests: MessagingTest {
         // given
         let response = ZMTransportResponse(payload: ["label": "guest-links-disabled"] as ZMTransportData,
                                            httpStatus: 409,
-                                           transportSessionError: nil)
+                                           transportSessionError: nil,
+                                           apiVersion: APIVersion.v0.rawValue)
 
         // when
         let error = WirelessLinkError(response: response)

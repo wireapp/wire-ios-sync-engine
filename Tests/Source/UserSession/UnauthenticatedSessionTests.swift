@@ -283,7 +283,7 @@ fileprivate extension ZMTransportResponse {
     convenience init(headers: [String: String], payload: [String: String]) throws {
         let httpResponse = HTTPURLResponse(url: URL(string: "/")!, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: headers)!
         let data = try JSONSerialization.data(withJSONObject: payload, options: [])
-        self.init(httpurlResponse: httpResponse, data: data, error: nil)
+        self.init(httpurlResponse: httpResponse, data: data, error: nil, apiVersion: APIVersion.v0.rawValue)
     }
 
 }

@@ -74,7 +74,7 @@ class FeatureFlagRequestStrategyTests: MessagingTest {
             // WHEN
             guard
                 let teamId = self.selfUser.teamIdentifier?.uuidString,
-                let request = self.sut.nextRequest()
+                let request = self.sut.nextRequest(for: .v0)
             else {
                 return XCTFail()
             }
@@ -91,7 +91,7 @@ class FeatureFlagRequestStrategyTests: MessagingTest {
 
             guard
                 let teamId = self.selfUser.teamIdentifier?.uuidString,
-                let request = self.sut.nextRequest()
+                let request = self.sut.nextRequest(for: .v0)
             else {
                 return XCTFail()
             }
@@ -105,7 +105,8 @@ class FeatureFlagRequestStrategyTests: MessagingTest {
                                               headerFields: nil)!
             let response = ZMTransportResponse(httpurlResponse: urlResponse,
                                                data: data,
-                                               error: nil)
+                                               error: nil,
+                                               apiVersion: APIVersion.v0.rawValue)
             request.complete(with: response)
         }
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
@@ -120,14 +121,15 @@ class FeatureFlagRequestStrategyTests: MessagingTest {
         syncMOC.performGroupedBlockAndWait {
             // GIVEN
             self.mockSyncStatus.mockPhase = .fetchingFeatureFlags
-            guard let request = self.sut.nextRequest() else {
+            guard let request = self.sut.nextRequest(for: .v0) else {
                 return XCTFail()
             }
 
             // WHEN
             request.complete(with: ZMTransportResponse(payload: nil,
                                                        httpStatus: 404,
-                                                       transportSessionError: nil))
+                                                       transportSessionError: nil,
+                                                       apiVersion: APIVersion.v0.rawValue))
         }
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
@@ -157,7 +159,7 @@ class FeatureFlagRequestStrategyTests: MessagingTest {
         }
 
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        let request = sut.nextRequestIfAllowed()
+        let request = sut.nextRequestIfAllowed(for: .v0)
         XCTAssertNotNil(request)
         XCTAssertEqual(request?.path, "/teams/\(teamId)/features/digital-signatures")
         XCTAssertEqual(request?.method, .methodGET)

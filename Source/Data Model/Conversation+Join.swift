@@ -64,7 +64,10 @@ extension ZMConversation {
                             contextProvider: ContextProvider,
                             completion: @escaping (Result<ZMConversation>) -> Void) {
 
-        let request = ConversationJoinRequestFactory.requestForJoinConversation(key: key, code: code)
+        guard let request = ConversationJoinRequestFactory.requestForJoinConversation(key: key, code: code) else {
+            return completion(.failure(ConversationJoinError.unknown))
+        }
+
         let syncContext = contextProvider.syncContext
         let viewContext = contextProvider.viewContext
 
@@ -155,17 +158,21 @@ struct ConversationJoinRequestFactory {
 
     static let joinConversationsPath = "/conversations/join"
 
-    static func requestForJoinConversation(key: String, code: String) -> ZMTransportRequest {
+    static func requestForJoinConversation(key: String, code: String) -> ZMTransportRequest? {
+        guard let apiVersion = APIVersion.current else { return nil }
+
         let path = joinConversationsPath
         let payload: [String: Any] = [
             URLQueryItem.Key.conversationKey: key,
             URLQueryItem.Key.conversationCode: code
         ]
 
-        return ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData)
+        return ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData, apiVersion: apiVersion.rawValue)
     }
 
     static func requestForGetConversation(key: String, code: String) -> ZMTransportRequest? {
+        guard let apiVersion = APIVersion.current else { return nil }
+
         var url = URLComponents()
         url.path = joinConversationsPath
         url.queryItems = [URLQueryItem(name: URLQueryItem.Key.conversationKey, value: key),
@@ -174,7 +181,7 @@ struct ConversationJoinRequestFactory {
             return nil
         }
 
-        return ZMTransportRequest(path: urlString, method: .methodGET, payload: nil)
+        return ZMTransportRequest(path: urlString, method: .methodGET, payload: nil, apiVersion: apiVersion.rawValue)
     }
 
 }

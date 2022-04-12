@@ -54,7 +54,7 @@ public protocol SessionManagerDelegate: SessionActivationObserver {
                                        userSessionCanBeTornDown: @escaping () -> Void)
     func sessionManagerWillMigrateAccount(userSessionCanBeTornDown: @escaping () -> Void)
     func sessionManagerDidFailToLoadDatabase()
-    func sessionManagerDidBlacklistCurrentVersion()
+    func sessionManagerDidBlacklistCurrentVersion(reason: BlacklistReason)
     func sessionManagerDidBlacklistJailbrokenDevice()
 
     var isInAuthenticatedAppState: Bool { get }
@@ -244,6 +244,10 @@ public final class SessionManager: NSObject, SessionManagerType {
         didSet {
             authenticatedSessionFactory.environment = environment
             unauthenticatedSessionFactory.environment = environment
+
+            // We need a new resolver for the new backend environment.
+            apiVersionResolver = createAPIVersionResolver()
+            resolveAPIVersion()
         }
     }
 
@@ -269,6 +273,8 @@ public final class SessionManager: NSObject, SessionManagerType {
     }
 
     private static var avsLogObserver: AVSLogObserver?
+
+    var apiVersionResolver: APIVersionResolver?
 
     public override init() {
         fatal("init() not implemented")
@@ -327,7 +333,7 @@ public final class SessionManager: NSObject, SessionManagerType {
 
                     if blacklisted {
                         self.isAppVersionBlacklisted = true
-                        self.delegate?.sessionManagerDidBlacklistCurrentVersion()
+                        self.delegate?.sessionManagerDidBlacklistCurrentVersion(reason: .appVersionBlacklisted)
                         // When the application version is blacklisted we don't want have a
                         // transition to any other state in the UI, so we won't inform it
                         // anymore by setting the delegate to nil.
@@ -790,7 +796,6 @@ public final class SessionManager: NSObject, SessionManagerType {
     private func startBackgroundSession(for account: Account, with coreDataStack: CoreDataStack) -> ZMUserSession {
         let sessionConfig = ZMUserSession.Configuration(
             appLockConfig: configuration.legacyAppLockConfig,
-            supportFederation: configuration.supportFederation,
             useLegacyPushNotifications: configuration.useLegacyPushNotifications
         )
 

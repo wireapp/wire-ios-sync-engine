@@ -65,7 +65,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         let credentials = ZMEmailCredentials(email: "some@example.com", password: "123")
 
         // when
-        guard let request = try? sut.registerClientRequest(client, credentials: credentials, cookieLabel: "mycookie") else {
+        guard let request = try? sut.registerClientRequest(client, credentials: credentials, cookieLabel: "mycookie", apiVersion: .v0) else {
             XCTFail()
             return
         }
@@ -107,7 +107,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         client.remoteIdentifier = "\(client.objectID)"
 
         // when
-        guard let request = try? sut.registerClientRequest(client, credentials: credentials, cookieLabel: "mycookie") else {
+        guard let request = try? sut.registerClientRequest(client, credentials: credentials, cookieLabel: "mycookie", apiVersion: .v0) else {
             XCTFail()
             return
         }
@@ -131,7 +131,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         // when
         let upstreamRequest: ZMUpstreamRequest
         do {
-            upstreamRequest = try sut.registerClientRequest(client, credentials: nil, cookieLabel: "mycookie")
+            upstreamRequest = try sut.registerClientRequest(client, credentials: nil, cookieLabel: "mycookie", apiVersion: .v0)
         } catch {
             return XCTFail("error should be nil \(error)")
 
@@ -171,7 +171,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         let credentials = ZMEmailCredentials(email: "some@example.com", password: "123")
 
         // when
-        let request = try? sut.registerClientRequest(client, credentials: credentials, cookieLabel: "mycookie")
+        let request = try? sut.registerClientRequest(client, credentials: credentials, cookieLabel: "mycookie", apiVersion: .v0)
 
         XCTAssertNil(request, "Should not return request if client fails to generate prekeys")
     }
@@ -184,7 +184,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         let credentials = ZMEmailCredentials(email: "some@example.com", password: "123")
 
         // when
-        let request = try? sut.registerClientRequest(client, credentials: credentials, cookieLabel: "mycookie")
+        let request = try? sut.registerClientRequest(client, credentials: credentials, cookieLabel: "mycookie", apiVersion: .v0)
 
         XCTAssertNil(request, "Should not return request if client fails to generate last prekey")
     }
@@ -196,7 +196,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         client.remoteIdentifier = UUID.create().transportString()
 
         // when
-        let request = try! sut.updateClientPreKeysRequest(client)
+        let request = try! sut.updateClientPreKeysRequest(client, apiVersion: .v0)
 
         AssertOptionalNotNil(request.transportRequest, "Should return non nil request") { request in
 
@@ -224,7 +224,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         client.preKeysRangeMax = 400
 
         // when
-        let request = try! sut.updateClientPreKeysRequest(client)
+        let request = try! sut.updateClientPreKeysRequest(client, apiVersion: .v0)
 
         AssertOptionalNotNil(request.transportRequest, "Should return non nil request") { request in
 
@@ -253,7 +253,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         client.remoteIdentifier = UUID.create().transportString()
 
         // when
-        let request = try? sut.updateClientPreKeysRequest(client)
+        let request = try? sut.updateClientPreKeysRequest(client, apiVersion: .v0)
 
         XCTAssertNil(request, "Should not return request if client fails to generate prekeys")
     }
@@ -264,7 +264,7 @@ class UserClientRequestFactoryTests: MessagingTest {
 
         // when
         do {
-            _ = try sut.updateClientPreKeysRequest(client)
+            _ = try sut.updateClientPreKeysRequest(client, apiVersion: .v0)
         } catch let error {
             XCTAssertNotNil(error, "Should not return request if client does not have remoteIdentifier")
         }
@@ -282,7 +282,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         self.syncMOC.saveOrRollback()
 
         // when
-        let nextRequest = sut.deleteClientRequest(client, credentials: credentials)
+        let nextRequest = sut.deleteClientRequest(client, credentials: credentials, apiVersion: .v0)
 
         // then
         AssertOptionalNotNil(nextRequest) {

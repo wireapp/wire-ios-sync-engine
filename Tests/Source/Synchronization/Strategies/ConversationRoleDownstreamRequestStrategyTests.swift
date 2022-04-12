@@ -76,7 +76,7 @@ final class ConversationRoleDownstreamRequestStrategyTests: MessagingTest {
             self.boostrapChangeTrackers(with: convo1)
 
             // then
-            guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
+            guard let request = self.sut.nextRequest(for: .v0) else { return XCTFail("No request generated") }
             XCTAssertEqual(request.method, .methodGET)
             XCTAssertEqual(request.path, "/conversations/\(convo1.remoteIdentifier!.transportString())/roles")
         }
@@ -105,7 +105,7 @@ final class ConversationRoleDownstreamRequestStrategyTests: MessagingTest {
             self.boostrapChangeTrackers(with: convo1)
 
             // when
-            let request = self.sut.nextRequest()
+            let request = self.sut.nextRequest(for: .v0)
 
             // then
             XCTAssertNil(request)
@@ -121,10 +121,11 @@ final class ConversationRoleDownstreamRequestStrategyTests: MessagingTest {
             self.boostrapChangeTrackers(with: convo1!)
 
             // when
-            guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
+            guard let request = self.sut.nextRequest(for: .v0) else { return XCTFail("No request generated") }
             request.complete(with: ZMTransportResponse(payload: self.sampleRolesPayload as ZMTransportData,
                                                        httpStatus: 200,
-                                                       transportSessionError: nil))
+                                                       transportSessionError: nil,
+                                                       apiVersion: APIVersion.v0.rawValue))
         }
 
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.2))
@@ -151,10 +152,11 @@ final class ConversationRoleDownstreamRequestStrategyTests: MessagingTest {
             self.boostrapChangeTrackers(with: convo1!)
 
             // when
-            guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
+            guard let request = self.sut.nextRequest(for: .v0) else { return XCTFail("No request generated") }
             request.complete(with: ZMTransportResponse(payload: nil,
                                                        httpStatus: 404,
-                                                       transportSessionError: nil))
+                                                       transportSessionError: nil,
+                                                       apiVersion: APIVersion.v0.rawValue))
         }
 
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.2))

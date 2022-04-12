@@ -34,6 +34,7 @@ class DeepLinkURLActionProcessorTests: DatabaseTest {
         sut = WireSyncEngine.DeepLinkURLActionProcessor(contextProvider: coreDataStack!,
                                                         transportSession: mockTransportSession,
                                                         eventProcessor: mockUpdateEventProcessor)
+        APIVersion.current = .v0
     }
 
     override func tearDown() {
@@ -41,6 +42,7 @@ class DeepLinkURLActionProcessorTests: DatabaseTest {
         sut = nil
         mockTransportSession = nil
         mockUpdateEventProcessor = nil
+        APIVersion.current = nil
         super.tearDown()
     }
 
@@ -113,7 +115,7 @@ class DeepLinkURLActionProcessorTests: DatabaseTest {
 
         // then
         XCTAssertEqual(mockUpdateEventProcessor.processedEvents.count, 1)
-        XCTAssertEqual(mockUpdateEventProcessor.processedEvents.first!.type, .conversationMemberJoin)
+        XCTAssertEqual(mockUpdateEventProcessor.processedEvents.first?.type, .conversationMemberJoin)
         XCTAssertEqual(presentationDelegate.completedURLActionCalls.count, 1)
         XCTAssertEqual(presentationDelegate.completedURLActionCalls.first, action)
     }

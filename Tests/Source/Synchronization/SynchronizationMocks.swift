@@ -336,7 +336,7 @@ public class MockRequestStrategy: NSObject, RequestStrategy {
         }
     }
     public var nextRequestCalled = false
-    public func nextRequest() -> ZMTransportRequest? {
+    public func nextRequest(for apiVersion: APIVersion) -> ZMTransportRequest? {
         nextRequestCalled = true
         return mockRequestQueue.popLast()
     }

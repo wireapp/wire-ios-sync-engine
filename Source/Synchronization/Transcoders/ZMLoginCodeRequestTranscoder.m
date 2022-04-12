@@ -53,37 +53,38 @@
     return self;
 }
 
-- (ZMTransportRequest *)nextRequest
+- (ZMTransportRequest *)nextRequestForAPIVersion:(APIVersion)apiVersion
 {
     if (self.authenticationStatus.currentPhase == ZMAuthenticationPhaseRequestPhoneVerificationCodeForLogin) {
         [self.phoneVerificationCodeRequestSync readyForNextRequestIfNotBusy];
-        return [self.phoneVerificationCodeRequestSync nextRequest];
+        return [self.phoneVerificationCodeRequestSync nextRequestForAPIVersion:apiVersion];
     } else if (self.authenticationStatus.currentPhase == ZMAuthenticationPhaseRequestEmailVerificationCodeForLogin) {
         [self.emailVerificationCodeRequestSync readyForNextRequestIfNotBusy];
-        return [self.emailVerificationCodeRequestSync nextRequest];
+        return [self.emailVerificationCodeRequestSync nextRequestForAPIVersion:apiVersion];
     }
     return nil;
 }
 
 #pragma mark - ZMSingleRequestTranscoder
 
-- (ZMTransportRequest *)requestForSingleRequestSync:(__unused ZMSingleRequestSync *)sync;
+- (ZMTransportRequest *)requestForSingleRequestSync:(__unused ZMSingleRequestSync *)sync apiVersion:(APIVersion)apiVersion;
 {
-
     if (sync == self.emailVerificationCodeRequestSync) {
         ZMTransportRequest *emailVerficationCodeRequest = [[ZMTransportRequest alloc] initWithPath:@"/verification-code/send"
                                                                                             method:ZMMethodPOST
                                                                                            payload:@{@"email": self.authenticationStatus.loginEmailThatNeedsAValidationCode,
                                                                                                      @"action": @"login"
                                                                                                    }
-                                                                                    authentication:ZMTransportRequestAuthNone];
+                                                                                    authentication:ZMTransportRequestAuthNone
+                                                                                        apiVersion:apiVersion];
         return emailVerficationCodeRequest;
     } else if (sync == self.phoneVerificationCodeRequestSync) {
 
         ZMTransportRequest *phoneVerificationCodeRequest = [[ZMTransportRequest alloc] initWithPath:@"/login/send"
                                                                                              method:ZMMethodPOST
                                                                                             payload:@{@"phone": self.authenticationStatus.loginPhoneNumberThatNeedsAValidationCode}
-                                                                                     authentication:ZMTransportRequestAuthNone];
+                                                                                     authentication:ZMTransportRequestAuthNone
+                                                                                         apiVersion:apiVersion];
         return phoneVerificationCodeRequest;
     }
 

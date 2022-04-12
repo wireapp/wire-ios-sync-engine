@@ -38,11 +38,14 @@ extension ZMConversation {
 
     /// Enable or disable read receipts in a group conversation
     public func setEnableReadReceipts(_ enabled: Bool, in userSession: ZMUserSession, _ completion: @escaping (VoidResult) -> Void) {
+        guard let apiVersion = APIVersion.current else {
+            return completion(.failure(ReadReceiptModeError.unknown))
+        }
         guard conversationType == .group else { return  completion(.failure(ReadReceiptModeError.invalidOperation))}
         guard let conversationId = remoteIdentifier?.transportString() else { return completion(.failure(ReadReceiptModeError.noConversation)) }
 
         let payload = ["receipt_mode": enabled ? 1 : 0] as ZMTransportData
-        let request = ZMTransportRequest(path: "/conversations/\(conversationId)/receipt-mode", method: .methodPUT, payload: payload)
+        let request = ZMTransportRequest(path: "/conversations/\(conversationId)/receipt-mode", method: .methodPUT, payload: payload, apiVersion: apiVersion.rawValue)
 
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
             if response.httpStatus == 200, let event = response.updateEvent {

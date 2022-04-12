@@ -73,7 +73,7 @@ class OTRTests: IntegrationTest {
         self.mockTransportSession.responseGeneratorBlock = { response in
             if response.path.contains("/clients/") && response.payload?.asDictionary()?["sigkeys"] != nil {
                 didReregister = true
-                return ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 200, transportSessionError: nil)
+                return ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
             }
             return nil
         }
@@ -108,12 +108,12 @@ class OTRTests: IntegrationTest {
                     tryCount += 1
                     guard let mac = macKey, let enc = encKey else { XCTFail("No signaling keys in payload"); return nil }
                     (firstMac, firstEnc) = (mac, enc)
-                    return ZMTransportResponse(payload: ["label": "bad-request"] as ZMTransportData, httpStatus: 400, transportSessionError: nil)
+                    return ZMTransportResponse(payload: ["label": "bad-request"] as ZMTransportData, httpStatus: 400, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
                 }
                 tryCount += 1
                 XCTAssertNotEqual(macKey, firstMac)
                 XCTAssertNotEqual(encKey, firstEnc)
-                return ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 200, transportSessionError: nil)
+                return ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
             }
             return nil
         }

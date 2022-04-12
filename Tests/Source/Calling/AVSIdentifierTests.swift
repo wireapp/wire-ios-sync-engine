@@ -25,9 +25,17 @@ class AVSIdentifierTests: XCTestCase {
     let uuid = UUID()
     let domain = "wire.com"
 
+    override func tearDown() {
+        APIVersion.isFederationEnabled = false
+        super.tearDown()
+    }
+
     func testProperties_WhenCreatedFromSerializedString_WithUUIDAndDomain() {
-        // When
+        // Given
+        APIVersion.isFederationEnabled = true
         let serializedString = "\(uuid.transportString())@\(domain)"
+
+        // When
         let sut = AVSIdentifier(string: serializedString)
 
         // Then
@@ -64,5 +72,32 @@ class AVSIdentifierTests: XCTestCase {
         XCTAssertNil(AVSIdentifier(string: "invalidUUID@domain.com"))
         XCTAssertNil(AVSIdentifier(string: "UUID@domain.com@something"))
         XCTAssertNil(AVSIdentifier(string: ""))
+    }
+
+    func testThatItIgnoresDomain_WhenFederationIsDisabled() {
+        // Given
+        APIVersion.isFederationEnabled = false
+        let uuid = UUID()
+
+        // When
+        let sut = AVSIdentifier(identifier: uuid, domain: "example.domain.com")
+
+        // Then
+        XCTAssertNil(sut.domain)
+        XCTAssertEqual(sut.identifier, uuid)
+    }
+
+    func testThatItDoesntIgnoreDomain_WhenFederationIsEnabled() {
+        // Given
+        APIVersion.isFederationEnabled = true
+        let uuid = UUID()
+        let domain = "example.domain.com"
+
+        // When
+        let sut = AVSIdentifier(identifier: uuid, domain: domain)
+
+        // Then
+        XCTAssertEqual(sut.domain, domain)
+        XCTAssertEqual(sut.identifier, uuid)
     }
 }

@@ -104,7 +104,7 @@ public final class ServiceDetails: NSObject {
 }
 
 public extension ServiceUserData {
-    fileprivate func requestToAddService(to conversation: ZMConversation) -> ZMTransportRequest {
+    fileprivate func requestToAddService(to conversation: ZMConversation, apiVersion: APIVersion) -> ZMTransportRequest {
         guard let remoteIdentifier = conversation.remoteIdentifier
         else {
             fatal("conversation is not synced with the backend")
@@ -116,17 +116,17 @@ public extension ServiceUserData {
                                      "service": self.service.transportString(),
                                      "locale": NSLocale.formattedLocaleIdentifier()!]
 
-        return ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData)
+        return ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData, apiVersion: apiVersion.rawValue)
     }
 
-    fileprivate func requestToFetchProvider() -> ZMTransportRequest {
+    fileprivate func requestToFetchProvider(apiVersion: APIVersion) -> ZMTransportRequest {
         let path = "/providers/\(provider.transportString())/"
-        return ZMTransportRequest(path: path, method: .methodGET, payload: nil)
+        return ZMTransportRequest(path: path, method: .methodGET, payload: nil, apiVersion: apiVersion.rawValue)
     }
 
-    fileprivate func requestToFetchDetails() -> ZMTransportRequest {
+    fileprivate func requestToFetchDetails(apiVersion: APIVersion) -> ZMTransportRequest {
         let path = "/providers/\(provider.transportString())/services/\(service.transportString())"
-        return ZMTransportRequest(path: path, method: .methodGET, payload: nil)
+        return ZMTransportRequest(path: path, method: .methodGET, payload: nil, apiVersion: apiVersion.rawValue)
     }
 }
 
@@ -137,7 +137,11 @@ public extension ServiceUser {
             fatal("Not a service user")
         }
 
-        let request = serviceUserData.requestToFetchProvider()
+        guard let apiVersion = APIVersion.current else {
+            return completion(nil)
+        }
+
+        let request = serviceUserData.requestToFetchProvider(apiVersion: apiVersion)
 
         request.add(ZMCompletionHandler(on: userSession.managedObjectContext, block: { (response) in
 
@@ -160,7 +164,11 @@ public extension ServiceUser {
             fatal("Not a service user")
         }
 
-        let request = serviceUserData.requestToFetchDetails()
+        guard let apiVersion = APIVersion.current else {
+            return completion(nil)
+        }
+
+        let request = serviceUserData.requestToFetchDetails(apiVersion: apiVersion)
 
         request.add(ZMCompletionHandler(on: userSession.managedObjectContext, block: { (response) in
 
@@ -248,6 +256,7 @@ public enum AddBotError: Int, Error {
     case botNotResponding
     /// The bot rejected to be added to the conversation.
     case botRejected
+    case missingAPIVersion
 }
 
 public enum AddBotResult {
@@ -299,7 +308,11 @@ public extension ZMConversation {
             return
         }
 
-        let request = serviceUserData.requestToAddService(to: self)
+        guard let apiVersion = APIVersion.current else {
+            return completionHandler(.failure(AddBotError.missingAPIVersion))
+        }
+
+        let request = serviceUserData.requestToAddService(to: self, apiVersion: apiVersion)
 
         request.add(ZMCompletionHandler(on: contextProvider.viewContext, block: { [weak contextProvider] (response) in
 

@@ -56,9 +56,12 @@ extension UnauthenticatedSession {
     /// - parameter completion: The result closure with the sso settings
 
     public func fetchSSOSettings(completion: @escaping (Result<SSOSettings>) -> Void) {
+        guard let apiVersion = APIVersion.current else {
+            return completion(.failure(SSOSettingsError.unknown))
+        }
 
         let path = "/sso/settings"
-        let request = ZMTransportRequest(path: path, method: .methodGET, payload: nil)
+        let request = ZMTransportRequest(path: path, method: .methodGET, payload: nil, apiVersion: apiVersion.rawValue)
 
         request.add(ZMCompletionHandler(on: operationLoop.operationQueue!, block: { (response) in
 

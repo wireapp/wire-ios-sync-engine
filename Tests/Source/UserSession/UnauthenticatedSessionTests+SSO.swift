@@ -38,6 +38,7 @@ public final class UnauthenticatedSessionTests_SSO: ZMTBaseTest {
                                      delegate: mockDelegate,
                                      authenticationStatusDelegate: mockAuthenticationStatusDelegate)
         sut.groupQueue.add(dispatchGroup)
+        APIVersion.current = .v0
     }
 
     public override func tearDown() {
@@ -46,6 +47,7 @@ public final class UnauthenticatedSessionTests_SSO: ZMTBaseTest {
         transportSession = nil
         mockDelegate = nil
         reachability = nil
+        APIVersion.current = nil
         super.tearDown()
     }
 
@@ -127,7 +129,7 @@ public final class UnauthenticatedSessionTests_SSO: ZMTBaseTest {
         }
 
         // when
-        transportSession.lastEnqueuedRequest?.complete(with: ZMTransportResponse(payload: payload, httpStatus: statusCode, transportSessionError: nil))
+        transportSession.lastEnqueuedRequest?.complete(with: ZMTransportResponse(payload: payload, httpStatus: statusCode, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
 
         // then
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))

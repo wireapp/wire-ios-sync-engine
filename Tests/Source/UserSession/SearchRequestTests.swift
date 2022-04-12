@@ -61,6 +61,9 @@ class SearchRequestTests: MessagingTest {
 
         // with leading whitespace
         try assertHandleAndDomain(from: " john@example.com ", handle: "john", domain: "example.com")
+
+        // with whitespace in the middle
+        try assertHandleAndDomain(from: " john@ example.com abc", handle: "john", domain: "example.comabc")
     }
 
     func testThatItDoesntParseHandleAndDomain_WhenQueryIsIncomplete() throws {
