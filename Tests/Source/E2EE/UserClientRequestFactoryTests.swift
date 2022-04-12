@@ -107,7 +107,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         client.remoteIdentifier = "\(client.objectID)"
 
         // when
-        guard let request = try? sut.registerClientRequest(client, credentials: credentials, cookieLabel: "mycookie") else {
+        guard let request = try? sut.registerClientRequest(client, credentials: credentials, cookieLabel: "mycookie", apiVersion: .v0) else {
             XCTFail()
             return
         }

@@ -333,7 +333,7 @@ extern NSTimeInterval DebugLoginFailureTimerOverride;
 
     self.mockTransportSession.responseGeneratorBlock = ^ZMTransportResponse*(ZMTransportRequest *request) {
         if([request.path isEqualToString:@"/verification-code/send"]) {
-            return [ZMTransportResponse responseWithPayload:nil HTTPStatus:403 transportSessionError:nil];
+            return [ZMTransportResponse responseWithPayload:nil HTTPStatus:403 transportSessionError:nil apiVersion:APIVersionV0];
         }
         return nil;
     };

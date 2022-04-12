@@ -85,7 +85,7 @@ public class ZMConversationAccessModeTests: MessagingTest {
         let conversation = self.conversation(options: ConversationOptions(hasRemoteId: true, team: .teamA, isGroup: true))
 
         // WHEN
-        let request = WireSyncEngine.WirelessRequestFactory.guestLinkFeatureStatusRequest(for: conversation)
+        let request = WireSyncEngine.WirelessRequestFactory.guestLinkFeatureStatusRequest(for: conversation, apiVersion: .v0)
 
         // then
         XCTAssertEqual(request.method, .methodGET)
@@ -149,7 +149,8 @@ public class ZMConversationAccessModeTests: MessagingTest {
         // GIVEN
         let response = ZMTransportResponse(payload: ["label": "no-conversation"] as ZMTransportData,
                                            httpStatus: 404,
-                                           transportSessionError: nil)
+                                           transportSessionError: nil,
+                                           apiVersion: APIVersion.v0.rawValue)
 
         // WHEN
         let error = WirelessLinkError(response: response)

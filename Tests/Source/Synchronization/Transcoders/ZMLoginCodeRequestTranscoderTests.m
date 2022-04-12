@@ -83,9 +83,13 @@
     NSString *loginAction = @"login";
     [self.authenticationStatus prepareForRequestingEmailVerificationCodeForLogin:email];
 
-    ZMTransportRequest *expectedRequest = [[ZMTransportRequest alloc] initWithPath:@"/verification-code/send" method:ZMMethodPOST payload:@{@"email": email, @"action": loginAction} authentication:ZMTransportRequestAuthNone];
+    ZMTransportRequest *expectedRequest = [[ZMTransportRequest alloc] initWithPath:@"/verification-code/send"
+                                                                            method:ZMMethodPOST
+                                                                           payload:@{@"email": email, @"action": loginAction}
+                                                                    authentication:ZMTransportRequestAuthNone
+                                                                        apiVersion:APIVersionV0];
 
-    ZMTransportRequest *request = [self.sut nextRequest];
+    ZMTransportRequest *request = [self.sut nextRequestForAPIVersion:APIVersionV0];
     XCTAssertEqualObjects(request, expectedRequest);
 }
 
