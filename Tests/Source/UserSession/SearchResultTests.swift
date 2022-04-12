@@ -45,7 +45,7 @@ class SearchResultTests: DatabaseTest {
             ]]
 
         // when
-        let result = SearchResult(payload: payload, query: "", searchOptions: [.directory], contextProvider: coreDataStack!)
+        let result = SearchResult(payload: payload, query: .fullTextSearch(""), searchOptions: [.directory], contextProvider: coreDataStack!)
 
         // then
         XCTAssertEqual(result?.directory.count, 1)
@@ -78,7 +78,7 @@ class SearchResultTests: DatabaseTest {
             ]]
 
         // when
-        let result = SearchResult(payload: payload, query: "", searchOptions: [.directory], contextProvider: coreDataStack!)
+        let result = SearchResult(payload: payload, query: .fullTextSearch(""), searchOptions: [.directory], contextProvider: coreDataStack!)
 
         // then
         XCTAssertEqual(result?.directory.count, 1)
@@ -99,7 +99,7 @@ class SearchResultTests: DatabaseTest {
             ]]
 
         // when
-        let result = SearchResult(payload: payload, query: name, searchOptions: [.directory], contextProvider: coreDataStack!)
+        let result = SearchResult(payload: payload, query: .fullTextSearch(name), searchOptions: [.directory], contextProvider: coreDataStack!)
 
         // then
         XCTAssertEqual(result?.directory.count, 2)
@@ -121,7 +121,7 @@ class SearchResultTests: DatabaseTest {
             ]]
 
         // when
-        let result = SearchResult(payload: payload, query: "@\(name)", searchOptions: [.directory], contextProvider: coreDataStack!)!
+        let result = SearchResult(payload: payload, query: .exactHandle(name), searchOptions: [.directory], contextProvider: coreDataStack!)!
 
         // then
         XCTAssertEqual(result.directory.count, 1)
@@ -148,7 +148,7 @@ class SearchResultTests: DatabaseTest {
 
         // when
         let result = SearchResult(payload: payload,
-                                  query: "",
+                                  query: .fullTextSearch(""),
                                   searchOptions: [.directory, .teamMembers],
                                   contextProvider: coreDataStack!)
 
@@ -177,7 +177,7 @@ class SearchResultTests: DatabaseTest {
 
         // when
         let result = SearchResult(payload: payload,
-                                  query: "",
+                                  query: .fullTextSearch(""),
                                   searchOptions: [.directory, .teamMembers, .excludeNonActiveTeamMembers],
                                   contextProvider: coreDataStack!)
 
@@ -204,7 +204,7 @@ class SearchResultTests: DatabaseTest {
              "accent_id": 4]]]
 
         var result = SearchResult(payload: payload,
-                                  query: "",
+                                  query: .fullTextSearch(""),
                                   searchOptions: [.directory, .teamMembers],
                                   contextProvider: coreDataStack!)
 
@@ -242,7 +242,7 @@ class SearchResultTests: DatabaseTest {
              "accent_id": 4]]]
 
         var result = SearchResult(payload: payload,
-                                  query: "",
+                                  query: .fullTextSearch(""),
                                   searchOptions: [.directory, .teamMembers],
                                   contextProvider: coreDataStack!)
 
@@ -277,7 +277,7 @@ class SearchResultTests: DatabaseTest {
              "accent_id": 4]]]
 
         var result = SearchResult(payload: payload,
-                                  query: "",
+                                  query: .fullTextSearch(""),
                                   searchOptions: [.directory, .teamMembers],
                                   contextProvider: coreDataStack!)
 
@@ -313,7 +313,7 @@ class SearchResultTests: DatabaseTest {
              "accent_id": 4]]]
 
         var result = SearchResult(payload: payload,
-                                  query: "",
+                                  query: .fullTextSearch(""),
                                   searchOptions: [.directory, .teamMembers],
                                   contextProvider: coreDataStack!)
 

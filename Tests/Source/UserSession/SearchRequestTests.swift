@@ -19,6 +19,7 @@
 import Foundation
 
 @testable import WireSyncEngine
+import XCTest
 
 class SearchRequestTests: MessagingTest {
 
@@ -31,7 +32,7 @@ class SearchRequestTests: MessagingTest {
         let request = SearchRequest(query: tooLongString, searchOptions: [])
 
         // then
-        XCTAssertEqual(request.query, croppedString)
+        XCTAssertEqual(request.query.string, croppedString)
     }
 
     func testThatItNormalizesTheQuery() {
@@ -66,7 +67,6 @@ class SearchRequestTests: MessagingTest {
     }
 
     func testThatItDoesntParseHandleAndDomain_WhenQueryIsIncomplete() throws {
-
         // missing domain
         assertHandleAndDomainIsNil(from: "@john")
 
@@ -79,24 +79,36 @@ class SearchRequestTests: MessagingTest {
 
     // MARK: - Helpers
 
-    func assertHandleAndDomain(from query: String,
-                               handle expectedHandle: String,
-                               domain expectedDomain: String) throws {
+    func assertHandleAndDomain(
+        from query: String,
+        handle expectedHandle: String,
+        domain expectedDomain: String,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) throws {
         // when
         let request = SearchRequest(query: query, searchOptions: [])
 
         // then
-        let (handle, domain) = try XCTUnwrap(request.handleAndDomain)
-        XCTAssertEqual(handle, expectedHandle)
-        XCTAssertEqual(domain, expectedDomain)
+        XCTAssertEqual(request.query.string, expectedHandle, file: file, line: line)
+        XCTAssertEqual(request.searchDomain, expectedDomain, file: file, line: line)
     }
 
-    func assertHandleAndDomainIsNil(from query: String) {
+    func assertHandleAndDomainIsNil(
+        from query: String,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
         // when
         let request = SearchRequest(query: query, searchOptions: [])
 
         // then
-        XCTAssertNil(request.handleAndDomain)
+        switch (request.query, request.searchDomain) {
+        case (.exactHandle, _):
+            XCTFail("expected full text search query", file: file, line: line)
+        case (.fullTextSearch, let domain):
+            XCTAssertNil(domain, file: file, line: line)
+        }
     }
 
 }
