@@ -60,35 +60,71 @@ extension SearchOptions {
 
 public struct SearchRequest {
 
-    let maxQueryLength = 200
+    public enum Query {
+        case exactHandle(String)
+        case fullTextSearch(String)
+
+        var isHandleQuery: Bool {
+            switch self {
+            case .exactHandle:
+                return true
+            case .fullTextSearch:
+                return false
+            }
+        }
+
+        var string: String {
+            switch self {
+            case .exactHandle(let handle):
+                return handle
+            case .fullTextSearch(let text):
+                return text
+            }
+        }
+
+    }
+
+    var team: Team?
+    let query: Query
+    let searchDomain: String?
+    let searchOptions: SearchOptions
 
     public init(query: String, searchOptions: SearchOptions, team: Team? = nil) {
-        self.query = query.truncated(at: maxQueryLength)
+        let (query, searchDomain) = Self.parseQuery(query)
+        self.query = query
+        self.searchDomain = searchDomain
         self.searchOptions = searchOptions
         self.team = team
     }
 
-    var team: Team?
-    let query: String
-    let searchOptions: SearchOptions
-
     var normalizedQuery: String {
-        return query.normalizedAndTrimmed()
+        query.string.normalizedAndTrimmed()
     }
 
-    var handleAndDomain: (String, String)? {
-        let components = query.split(separator: "@")
-            .map({ String($0).trimmingCharacters(in: .whitespaces).lowercased() })
-            .filter({ !$0.isEmpty })
+}
 
-        guard
-            let handle = components.element(atIndex: 0),
-            let domain = components.element(atIndex: 1)
-        else {
-            return nil
+private extension SearchRequest {
+
+    static let maxQueryLength = 200
+
+    static func parseQuery(_ searchString: String) -> (Query, domain: String?) {
+        let components = searchString
+            .truncated(at: maxQueryLength)
+            .split(separator: "@")
+            .map { String($0).trimmingCharacters(in: .whitespaces).lowercased() }
+            .filter { !$0.isEmpty }
+
+        guard let text = components.element(atIndex: 0) else {
+            return (.fullTextSearch(""), domain: nil)
         }
 
-        return (String(handle), String(domain))
+        let domain = components.element(atIndex: 1)
+
+        if searchString.hasPrefix("@") {
+            return (.exactHandle(text), domain)
+        } else {
+            return (.fullTextSearch(text), domain)
+        }
     }
 
 }
