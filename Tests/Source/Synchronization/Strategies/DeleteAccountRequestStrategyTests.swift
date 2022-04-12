@@ -41,7 +41,7 @@ class DeleteAccountRequestStrategyTests: MessagingTest, AccountDeletedObserver {
     }
 
     func testThatItGeneratesNoRequestsIfTheStatusIsEmpty() {
-        XCTAssertNil(self.sut.nextRequest())
+        XCTAssertNil(self.sut.nextRequest(for: .v0))
     }
 
     func testThatItGeneratesARequest() {
@@ -50,7 +50,7 @@ class DeleteAccountRequestStrategyTests: MessagingTest, AccountDeletedObserver {
         self.uiMOC.setPersistentStoreMetadata(NSNumber(value: true), key: DeleteAccountRequestStrategy.userDeletionInitiatedKey)
 
         // when
-        let request: ZMTransportRequest? = self.sut.nextRequest()
+        let request: ZMTransportRequest? = self.sut.nextRequest(for: .v0)
 
         // then
         if let request = request {
@@ -68,8 +68,8 @@ class DeleteAccountRequestStrategyTests: MessagingTest, AccountDeletedObserver {
         self.uiMOC.setPersistentStoreMetadata(NSNumber(value: true), key: DeleteAccountRequestStrategy.userDeletionInitiatedKey)
 
         // when
-        let request1: ZMTransportRequest? = self.sut.nextRequest()
-        let request2: ZMTransportRequest? = self.sut.nextRequest()
+        let request1: ZMTransportRequest? = self.sut.nextRequest(for: .v0)
+        let request2: ZMTransportRequest? = self.sut.nextRequest(for: .v0)
 
         // then
         XCTAssertNotNil(request1)
@@ -85,8 +85,8 @@ class DeleteAccountRequestStrategyTests: MessagingTest, AccountDeletedObserver {
         observers.append(AccountDeletedNotification.addObserver(observer: self, queue: DispatchGroupQueue(queue: .main)))
 
         // when
-        let request1: ZMTransportRequest! = self.sut.nextRequest()
-        request1.complete(with: ZMTransportResponse(payload: NSDictionary(), httpStatus: 201, transportSessionError: nil))
+        let request1: ZMTransportRequest! = self.sut.nextRequest(for: .v0)
+        request1.complete(with: ZMTransportResponse(payload: NSDictionary(), httpStatus: 201, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
 
         // then
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))

@@ -85,7 +85,7 @@ class TeamMembersDownloadRequestStrategyTests: MessagingTest {
     }
 
     func testThatItDoesNotGenerateARequestInitially() {
-        XCTAssertNil(sut.nextRequest())
+        XCTAssertNil(sut.nextRequest(for: .v0))
     }
 
     func testThatItCreatesRequestToFetchTeamMembers() {
@@ -99,7 +99,7 @@ class TeamMembersDownloadRequestStrategyTests: MessagingTest {
             selfUser.teamIdentifier = teamID
 
             // when
-            let request = self.sut.nextRequest()
+            let request = self.sut.nextRequest(for: .v0)
 
             // then
             XCTAssertNotNil(request)
@@ -115,7 +115,7 @@ class TeamMembersDownloadRequestStrategyTests: MessagingTest {
             self.mockSyncStatus.mockPhase = .fetchingTeamMembers
 
             // when
-            let request = self.sut.nextRequest()
+            let request = self.sut.nextRequest(for: .v0)
 
             // then
             XCTAssertNil(request)
@@ -132,10 +132,10 @@ class TeamMembersDownloadRequestStrategyTests: MessagingTest {
             self.mockSyncStatus.mockPhase = .fetchingTeamMembers
             _ = self.createTeam()
 
-            guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
+            guard let request = self.sut.nextRequest(for: .v0) else { return XCTFail("No request generated") }
 
             // when
-            let response = ZMTransportResponse(payload: self.sampleResponseForSmallTeam as ZMTransportData, httpStatus: 200, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: self.sampleResponseForSmallTeam as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
             request.complete(with: response)
         }
 
@@ -143,7 +143,7 @@ class TeamMembersDownloadRequestStrategyTests: MessagingTest {
 
         syncMOC.performGroupedBlockAndWait {
             // then
-            XCTAssertNil(self.sut.nextRequest())
+            XCTAssertNil(self.sut.nextRequest(for: .v0))
             XCTAssertTrue(self.mockSyncStatus.didCallFinishCurrentSyncPhase)
         }
     }
@@ -157,10 +157,10 @@ class TeamMembersDownloadRequestStrategyTests: MessagingTest {
             self.mockSyncStatus.mockPhase = .fetchingTeamMembers
             team = self.createTeam()
 
-            guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
+            guard let request = self.sut.nextRequest(for: .v0) else { return XCTFail("No request generated") }
 
             // when
-            let response = ZMTransportResponse(payload: self.sampleResponseForSmallTeam as ZMTransportData, httpStatus: 200, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: self.sampleResponseForSmallTeam as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
             request.complete(with: response)
         }
 
@@ -181,10 +181,10 @@ class TeamMembersDownloadRequestStrategyTests: MessagingTest {
             self.mockSyncStatus.mockPhase = .fetchingTeamMembers
             team = self.createTeam()
 
-            guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
+            guard let request = self.sut.nextRequest(for: .v0) else { return XCTFail("No request generated") }
 
             // when
-            let response = ZMTransportResponse(payload: self.sampleResponseForLargeTeam as ZMTransportData, httpStatus: 200, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: self.sampleResponseForLargeTeam as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
             request.complete(with: response)
         }
 

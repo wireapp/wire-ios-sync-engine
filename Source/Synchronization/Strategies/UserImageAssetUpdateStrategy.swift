@@ -36,15 +36,13 @@ internal enum AssetTransportError: Error {
     }
 }
 
-public final class UserImageAssetUpdateStrategy: AbstractRequestStrategy, ZMContextChangeTrackerSource, ZMSingleRequestTranscoder, ZMDownstreamTranscoder, FederationAware {
+public final class UserImageAssetUpdateStrategy: AbstractRequestStrategy, ZMContextChangeTrackerSource, ZMSingleRequestTranscoder, ZMDownstreamTranscoder {
     internal let requestFactory = AssetRequestFactory()
     internal var upstreamRequestSyncs = [ProfileImageSize: ZMSingleRequestSync]()
     internal var deleteRequestSync: ZMSingleRequestSync?
     internal var downstreamRequestSyncs = [ProfileImageSize: ZMDownstreamObjectSyncWithWhitelist]()
     internal let moc: NSManagedObjectContext
     internal weak var imageUploadStatus: UserProfileImageUploadStatusProtocol?
-
-    public var useFederationEndpoint = false
 
     fileprivate var observers: [Any] = []
 
@@ -129,10 +127,10 @@ public final class UserImageAssetUpdateStrategy: AbstractRequestStrategy, ZMCont
         }
     }
 
-    public override func nextRequestIfAllowed() -> ZMTransportRequest? {
+    public override func nextRequestIfAllowed(for apiVersion: APIVersion) -> ZMTransportRequest? {
         for size in ProfileImageSize.allSizes {
             let requestSync = downstreamRequestSyncs[size]
-            if let request = requestSync?.nextRequest() {
+            if let request = requestSync?.nextRequest(for: apiVersion) {
                 return request
             }
         }
@@ -142,12 +140,12 @@ public final class UserImageAssetUpdateStrategy: AbstractRequestStrategy, ZMCont
         // There are assets added for deletion
         if updateStatus.hasAssetToDelete() {
             deleteRequestSync?.readyForNextRequestIfNotBusy()
-            return deleteRequestSync?.nextRequest()
+            return deleteRequestSync?.nextRequest(for: apiVersion)
         }
 
         let sync = ProfileImageSize.allSizes.filter(updateStatus.hasImageToUpload).compactMap { upstreamRequestSyncs[$0] }.first
         sync?.readyForNextRequestIfNotBusy()
-        return sync?.nextRequest()
+        return sync?.nextRequest(for: apiVersion)
     }
 
     // MARK: - ZMContextChangeTrackerSource
@@ -158,7 +156,7 @@ public final class UserImageAssetUpdateStrategy: AbstractRequestStrategy, ZMCont
 
     // MARK: - ZMDownstreamTranscoder
 
-    public func request(forFetching object: ZMManagedObject!, downstreamSync: ZMObjectSync!) -> ZMTransportRequest! {
+    public func request(forFetching object: ZMManagedObject!, downstreamSync: ZMObjectSync!, apiVersion: APIVersion) -> ZMTransportRequest! {
         guard let whitelistSync = downstreamSync as? ZMDownstreamObjectSyncWithWhitelist else { return nil }
         guard let user = object as? ZMUser else { return nil }
         guard let size = size(for: whitelistSync) else { return nil }
@@ -171,13 +169,20 @@ public final class UserImageAssetUpdateStrategy: AbstractRequestStrategy, ZMCont
             remoteId = user.completeProfileAssetIdentifier
         }
         guard let assetId = remoteId else { return nil }
+
         let path: String
-        if useFederationEndpoint, let domain = user.domain {
-            path = "/assets/v4/\(domain)/\(assetId)"
-        } else {
+        switch apiVersion {
+        case .v0:
             path = "/assets/v3/\(assetId)"
+        case .v1:
+            guard let domain = user.domain ?? APIVersion.domain else {
+                return nil
+            }
+
+            path = "/assets/v4/\(domain)/\(assetId)"
         }
-        return ZMTransportRequest.imageGet(fromPath: path)
+
+        return ZMTransportRequest.imageGet(fromPath: path, apiVersion: apiVersion.rawValue)
     }
 
     public func delete(_ object: ZMManagedObject!, with response: ZMTransportResponse!, downstreamSync: ZMObjectSync!) {
@@ -201,15 +206,15 @@ public final class UserImageAssetUpdateStrategy: AbstractRequestStrategy, ZMCont
 
     // MARK: - ZMSingleRequestTranscoder
 
-    public func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
+    public func request(for sync: ZMSingleRequestSync, apiVersion: APIVersion) -> ZMTransportRequest? {
         if let size = size(for: sync), let image = imageUploadStatus?.consumeImage(for: size) {
-            let request = requestFactory.upstreamRequestForAsset(withData: image, shareable: true, retention: .eternal)
+            let request = requestFactory.upstreamRequestForAsset(withData: image, shareable: true, retention: .eternal, apiVersion: apiVersion)
             request?.addContentDebugInformation("Uploading to /assets/V3: [\(size)]  [\(image)] ")
             return request
         } else if sync === deleteRequestSync {
             if let assetId = imageUploadStatus?.consumeAssetToDelete() {
                 let path = "/assets/v3/\(assetId)"
-                return ZMTransportRequest(path: path, method: .methodDELETE, payload: nil)
+                return ZMTransportRequest(path: path, method: .methodDELETE, payload: nil, apiVersion: apiVersion.rawValue)
             }
         }
         return nil

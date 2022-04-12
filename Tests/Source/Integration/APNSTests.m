@@ -66,7 +66,7 @@
         NSString *path = [NSString stringWithFormat:@"/notifications?size=500&since=%@&client=%@", lastNotificationId.transportString ,selfUser.selfClient.remoteIdentifier];
         if ([request.path isEqualToString:path] && request.method == ZMMethodGET) {
             [fetchingExpectation fulfill];
-            return [ZMTransportResponse responseWithPayload:notificationStreamPayload HTTPStatus:200 transportSessionError:nil];
+            return [ZMTransportResponse responseWithPayload:notificationStreamPayload HTTPStatus:200 transportSessionError:nil apiVersion:0];
         };
         return nil;
     };
@@ -121,9 +121,9 @@
         if ([request.path isEqualToString:path] && request.method == ZMMethodGET) {
             if (++requestCount == 2) {
                 [fetchingExpectation fulfill];
-                return [ZMTransportResponse responseWithPayload:notificationStreamPayload HTTPStatus:200 transportSessionError:nil];
+                return [ZMTransportResponse responseWithPayload:notificationStreamPayload HTTPStatus:200 transportSessionError:nil apiVersion:0];
             } else {
-                return [ZMTransportResponse responseWithTransportSessionError:NSError.tryAgainLaterError];
+                return [ZMTransportResponse responseWithTransportSessionError:NSError.tryAgainLaterError apiVersion:0];
             }
         };
         return nil;

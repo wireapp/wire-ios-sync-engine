@@ -185,7 +185,7 @@ public class TypingStrategy: AbstractRequestStrategy, TearDownCapable, ZMEventCo
         }
     }
 
-    public override func nextRequestIfAllowed() -> ZMTransportRequest? {
+    public override func nextRequestIfAllowed(for apiVersion: APIVersion) -> ZMTransportRequest? {
         guard let typingEvent = typingEventQueue.nextEvent(),
               let conversation = managedObjectContext.object(with: typingEvent.objectID) as? ZMConversation,
               let remoteIdentifier = conversation.remoteIdentifier
@@ -193,7 +193,7 @@ public class TypingStrategy: AbstractRequestStrategy, TearDownCapable, ZMEventCo
 
         let path = "/conversations/\(remoteIdentifier.transportString())/typing"
         let payload = [StatusKey: typingEvent.isTyping ? StartedKey : StoppedKey]
-        let request = ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData)
+        let request = ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData, apiVersion: apiVersion.rawValue)
         request.setDebugInformationTranscoder(self)
 
         return request

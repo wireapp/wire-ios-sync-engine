@@ -55,7 +55,7 @@ extension UserProfileUpdateRequestStrategyTests {
         self.mockApplicationStatus.mockSynchronizationState = .unauthenticated
 
         // THEN
-        XCTAssertNil(self.sut.nextRequest())
+        XCTAssertNil(self.sut.nextRequest(for: .v0))
 
     }
 
@@ -65,7 +65,7 @@ extension UserProfileUpdateRequestStrategyTests {
         // already authenticated in setup
 
         // THEN
-        XCTAssertNil(self.sut.nextRequest())
+        XCTAssertNil(self.sut.nextRequest(for: .v0))
     }
 
     func testThatItCreatesARequestToRequestAPhoneVerificationCode() {
@@ -76,10 +76,10 @@ extension UserProfileUpdateRequestStrategyTests {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
 
         // THEN
-        let expected = ZMTransportRequest(path: "/self/phone", method: .methodPUT, payload: ["phone": phone] as NSDictionary)
+        let expected = ZMTransportRequest(path: "/self/phone", method: .methodPUT, payload: ["phone": phone] as NSDictionary, apiVersion: APIVersion.v0.rawValue)
         XCTAssertEqual(request, expected)
     }
 
@@ -92,14 +92,14 @@ extension UserProfileUpdateRequestStrategyTests {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
 
         // THEN
         let expected = ZMTransportRequest(path: "/activate", method: .methodPOST, payload: [
             "phone": credentials.phoneNumber!,
             "code": credentials.phoneNumberVerificationCode!,
             "dryrun": false
-            ] as NSDictionary)
+            ] as NSDictionary, apiVersion: APIVersion.v0.rawValue)
         XCTAssertEqual(request, expected)
     }
 
@@ -112,14 +112,14 @@ extension UserProfileUpdateRequestStrategyTests {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
 
         // THEN
         let expected = ZMTransportRequest(path: "/activate", method: .methodPOST, payload: [
             "phone": credentials.phoneNumber!,
             "code": credentials.phoneNumberVerificationCode!,
             "dryrun": false
-            ] as NSDictionary)
+            ] as NSDictionary, apiVersion: APIVersion.v0.rawValue)
         XCTAssertEqual(request, expected)
     }
 
@@ -131,12 +131,12 @@ extension UserProfileUpdateRequestStrategyTests {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
 
         // THEN
         let expected = ZMTransportRequest(path: "/self/password", method: .methodPUT, payload: [
             "new_password": credentials.password!
-            ] as NSDictionary)
+            ] as NSDictionary, apiVersion: APIVersion.v0.rawValue)
         XCTAssertEqual(request, expected)
     }
 
@@ -151,7 +151,7 @@ extension UserProfileUpdateRequestStrategyTests {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
 
         // THEN
         XCTAssertEqual(request?.path, "/access/self/email")
@@ -171,7 +171,7 @@ extension UserProfileUpdateRequestStrategyTests {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
 
         // THEN
         XCTAssertEqual(request?.path, "/self/phone")
@@ -188,12 +188,12 @@ extension UserProfileUpdateRequestStrategyTests {
         self.userProfileUpdateStatus.didUpdatePasswordSuccessfully()
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
 
         // THEN
         let expected = ZMTransportRequest(path: "/access/self/email", method: .methodPUT, payload: [
             "email": credentials.email!
-            ] as NSDictionary)
+            ] as NSDictionary, apiVersion: APIVersion.v0.rawValue)
         XCTAssertEqual(request, expected)
 
     }
@@ -206,10 +206,10 @@ extension UserProfileUpdateRequestStrategyTests {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
 
         // THEN
-        let expected = ZMTransportRequest(path: "/users/handles/\(handle)", method: .methodHEAD, payload: nil)
+        let expected = ZMTransportRequest(path: "/users/handles/\(handle)", method: .methodHEAD, payload: nil, apiVersion: APIVersion.v0.rawValue)
         XCTAssertEqual(request, expected)
     }
 
@@ -221,11 +221,11 @@ extension UserProfileUpdateRequestStrategyTests {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
 
         // THEN
         let payload: NSDictionary = ["handle": handle]
-        let expected = ZMTransportRequest(path: "/self/handle", method: .methodPUT, payload: payload)
+        let expected = ZMTransportRequest(path: "/self/handle", method: .methodPUT, payload: payload, apiVersion: APIVersion.v0.rawValue)
         XCTAssertEqual(request, expected)
     }
 
@@ -240,7 +240,7 @@ extension UserProfileUpdateRequestStrategyTests {
         }
 
         // WHEN
-        let possibleRequest = self.sut.nextRequest()
+        let possibleRequest = self.sut.nextRequest(for: .v0)
 
         // THEN
         guard let request = possibleRequest else {
@@ -273,7 +273,7 @@ extension UserProfileUpdateRequestStrategyTests {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
         request?.complete(with: self.successResponse())
 
         // THEN
@@ -289,7 +289,7 @@ extension UserProfileUpdateRequestStrategyTests {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
         request?.complete(with: self.invalidPhoneNumberResponse())
 
         // THEN
@@ -307,7 +307,7 @@ extension UserProfileUpdateRequestStrategyTests {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
         request?.complete(with: self.badRequestResponse())
 
         // THEN
@@ -325,7 +325,7 @@ extension UserProfileUpdateRequestStrategyTests {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
         request?.complete(with: self.keyExistsResponse())
 
         // THEN
@@ -344,7 +344,7 @@ extension UserProfileUpdateRequestStrategyTests {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
         request?.complete(with: self.successResponse())
 
         // THEN
@@ -360,7 +360,7 @@ extension UserProfileUpdateRequestStrategyTests {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
         request?.complete(with: self.errorResponse())
 
         // THEN
@@ -379,7 +379,7 @@ extension UserProfileUpdateRequestStrategyTests {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
         request?.complete(with: self.successResponse())
 
         // THEN
@@ -395,7 +395,7 @@ extension UserProfileUpdateRequestStrategyTests {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
         request?.complete(with: self.invalidCredentialsResponse())
 
         // THEN
@@ -411,7 +411,7 @@ extension UserProfileUpdateRequestStrategyTests {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
         request?.complete(with: self.errorResponse())
 
         // THEN
@@ -428,7 +428,7 @@ extension UserProfileUpdateRequestStrategyTests {
         self.userProfileUpdateStatus.didUpdatePasswordSuccessfully()
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
         request?.complete(with: self.successResponse())
 
         // THEN
@@ -445,7 +445,7 @@ extension UserProfileUpdateRequestStrategyTests {
         self.userProfileUpdateStatus.didUpdatePasswordSuccessfully()
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
         request?.complete(with: self.invalidEmailResponse())
 
         // THEN
@@ -464,7 +464,7 @@ extension UserProfileUpdateRequestStrategyTests {
         self.userProfileUpdateStatus.didUpdatePasswordSuccessfully()
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
         request?.complete(with: self.keyExistsResponse())
 
         // THEN
@@ -483,7 +483,7 @@ extension UserProfileUpdateRequestStrategyTests {
         self.userProfileUpdateStatus.didUpdatePasswordSuccessfully()
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
         request?.complete(with: self.errorResponse())
 
         // THEN
@@ -504,7 +504,7 @@ extension UserProfileUpdateRequestStrategyTests {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
         request?.complete(with: self.successResponse())
 
         // THEN
@@ -522,7 +522,7 @@ extension UserProfileUpdateRequestStrategyTests {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
         XCTAssertNotNil(request)
         request?.complete(with: self.successResponse())
 
@@ -542,7 +542,7 @@ extension UserProfileUpdateRequestStrategyTests {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
         request?.complete(with: self.lastIdentityResponse())
 
         // THEN
@@ -562,7 +562,7 @@ extension UserProfileUpdateRequestStrategyTests {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
         request?.complete(with: self.errorResponse())
 
         // THEN
@@ -581,7 +581,7 @@ extension UserProfileUpdateRequestStrategyTests {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
         request?.complete(with: self.successResponse(path: request?.path))
 
         // THEN
@@ -597,7 +597,7 @@ extension UserProfileUpdateRequestStrategyTests {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
         request?.complete(with: self.notFoundResponse(path: request!.path))
 
         // THEN
@@ -613,7 +613,7 @@ extension UserProfileUpdateRequestStrategyTests {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
         request?.complete(with: self.errorResponse(path: request?.path))
 
         // THEN
@@ -630,7 +630,7 @@ extension UserProfileUpdateRequestStrategyTests {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
         request?.complete(with: self.successResponse())
 
         // THEN
@@ -646,7 +646,7 @@ extension UserProfileUpdateRequestStrategyTests {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
         request?.complete(with: self.errorResponse())
 
         // THEN
@@ -662,7 +662,7 @@ extension UserProfileUpdateRequestStrategyTests {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
         request?.complete(with: self.keyExistsResponse())
 
         // THEN
@@ -683,9 +683,9 @@ extension UserProfileUpdateRequestStrategyTests {
         let expectedHandle = handles[5]
 
         // WHEN
-        let request = self.sut.nextRequest()
+        let request = self.sut.nextRequest(for: .v0)
         let handlesInResponse = [handles[5], handles[9], handles[10]]
-        request?.complete(with: ZMTransportResponse(payload: handlesInResponse as NSArray, httpStatus: 200, transportSessionError: nil))
+        request?.complete(with: ZMTransportResponse(payload: handlesInResponse as NSArray, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
 
         // THEN
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
@@ -699,8 +699,8 @@ extension UserProfileUpdateRequestStrategyTests {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
         // WHEN
-        let request = self.sut.nextRequest()
-        request?.complete(with: ZMTransportResponse(payload: [] as NSArray, httpStatus: 200, transportSessionError: nil))
+        let request = self.sut.nextRequest(for: .v0)
+        request?.complete(with: ZMTransportResponse(payload: [] as NSArray, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
 
         // THEN
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
@@ -715,7 +715,7 @@ extension UserProfileUpdateRequestStrategyTests {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.2))
 
         // WHEN
-        guard let request = self.sut.nextRequest() else {
+        guard let request = self.sut.nextRequest(for: .v0) else {
             XCTFail()
             return
         }
@@ -738,7 +738,8 @@ extension UserProfileUpdateRequestStrategyTests {
         return ZMTransportResponse(payload: nil,
                                    httpStatus: 400,
                                    transportSessionError: nil,
-                                   headers: nil
+                                   headers: nil,
+                                   apiVersion: APIVersion.v0.rawValue
         )
     }
 
@@ -750,44 +751,51 @@ extension UserProfileUpdateRequestStrategyTests {
         return ZMTransportResponse(payload: nil,
                                    httpStatus: 404,
                                    transportSessionError: nil,
-                                   headers: nil
+                                   headers: nil,
+                                   apiVersion: APIVersion.v0.rawValue
         )
     }
 
     func badRequestResponse() -> ZMTransportResponse {
         return ZMTransportResponse(payload: ["label": "bad-request"] as NSDictionary,
                                    httpStatus: 400,
-                                   transportSessionError: nil)
+                                   transportSessionError: nil,
+                                   apiVersion: APIVersion.v0.rawValue)
     }
 
     func keyExistsResponse() -> ZMTransportResponse {
         return ZMTransportResponse(payload: ["label": "key-exists"] as NSDictionary,
                                    httpStatus: 409,
-                                   transportSessionError: nil)
+                                   transportSessionError: nil,
+                                   apiVersion: APIVersion.v0.rawValue)
     }
 
     func invalidPhoneNumberResponse() -> ZMTransportResponse {
         return ZMTransportResponse(payload: ["label": "invalid-phone"] as NSDictionary,
                                    httpStatus: 400,
-                                   transportSessionError: nil)
+                                   transportSessionError: nil,
+                                   apiVersion: APIVersion.v0.rawValue)
     }
 
     func lastIdentityResponse() -> ZMTransportResponse {
         return ZMTransportResponse(payload: ["label": "last-identity"] as NSDictionary,
                                    httpStatus: 403,
-                                   transportSessionError: nil)
+                                   transportSessionError: nil,
+                                   apiVersion: APIVersion.v0.rawValue)
     }
 
     func invalidEmailResponse() -> ZMTransportResponse {
         return ZMTransportResponse(payload: ["label": "invalid-email"] as NSDictionary,
                                    httpStatus: 400,
-                                   transportSessionError: nil)
+                                   transportSessionError: nil,
+                                   apiVersion: APIVersion.v0.rawValue)
     }
 
     func invalidCredentialsResponse() -> ZMTransportResponse {
         return ZMTransportResponse(payload: ["label": "invalid-credentials"] as NSDictionary,
                                    httpStatus: 403,
-                                   transportSessionError: nil)
+                                   transportSessionError: nil,
+                                   apiVersion: APIVersion.v0.rawValue)
     }
 
     func successResponse(path: String? = nil) -> ZMTransportResponse {
@@ -798,7 +806,8 @@ extension UserProfileUpdateRequestStrategyTests {
             payload: nil,
             httpStatus: 200,
             transportSessionError: nil,
-            headers: nil
+            headers: nil,
+            apiVersion: APIVersion.v0.rawValue
         )
     }
 }
@@ -808,7 +817,7 @@ extension ZMTransportResponse {
     convenience init(originalUrl: URL, httpStatus: Int, error: Error?) {
         let headers = ["Content-Type": "application/json"]
         let httpResponse = HTTPURLResponse(url: originalUrl, statusCode: httpStatus, httpVersion: nil, headerFields: headers)
-        self.init(httpurlResponse: httpResponse!, data: nil, error: error)
+        self.init(httpurlResponse: httpResponse!, data: nil, error: error, apiVersion: APIVersion.v0.rawValue)
     }
 
 }

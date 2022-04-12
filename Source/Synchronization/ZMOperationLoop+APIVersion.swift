@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2020 Wire Swiss GmbH
+// Copyright (C) 2022 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,27 +17,31 @@
 //
 
 import Foundation
+import WireDataModel
 
-public extension ZMUserSession {
+@objc extension ZMOperationLoop {
 
-    /// An object used to configure a user session.
+    public var currentAPIVersion: APIVersionWrapper? {
+        guard let current = APIVersion.current else { return nil }
+        return .init(value: current)
+    }
 
-    final class Configuration: NSObject {
+}
 
-        // MARK: - Properties
+/// A helper object to give reference semantics to `APIVersion`.
+///
+/// This is needed because the optional type`APIVersion?` can't be
+/// represented in objc.
 
-        public let appLockConfig: AppLockController.LegacyConfig?
-        public let useLegacyPushNotifications: Bool
+@objc
+public class APIVersionWrapper: NSObject {
 
-        // MARK: - Life cycle
+    @objc
+    public var value: APIVersion
 
-        public init(appLockConfig: AppLockController.LegacyConfig? = nil,
-                    useLegacyPushNotifications: Bool = true) {
-
-            self.appLockConfig = appLockConfig
-            self.useLegacyPushNotifications = useLegacyPushNotifications
-        }
-
+    init(value: APIVersion) {
+        self.value = value
+        super.init()
     }
 
 }

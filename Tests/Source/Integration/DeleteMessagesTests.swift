@@ -159,7 +159,7 @@ class DeleteMessagesTests: ConversationTestsBase {
             guard request.path == "/conversations/\(self.selfToUser1Conversation.identifier)/otr/messages" else { return nil }
             if requestCount < 4 {
                 requestCount += 1
-                return ZMTransportResponse(transportSessionError: NSError.tryAgainLaterError() as Error)
+                return ZMTransportResponse(transportSessionError: NSError.tryAgainLaterError() as Error, apiVersion: APIVersion.v0.rawValue)
             }
 
             return nil

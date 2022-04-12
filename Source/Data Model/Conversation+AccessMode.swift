@@ -66,7 +66,11 @@ extension ZMConversation {
             return completion(.failure(WirelessLinkError.invalidOperation))
         }
 
-        let request = WirelessRequestFactory.fetchLinkRequest(for: self)
+        guard let apiVersion = APIVersion.current else {
+            return completion(.failure(WirelessLinkError.unknown))
+        }
+
+        let request = WirelessRequestFactory.fetchLinkRequest(for: self, apiVersion: apiVersion)
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
             if response.httpStatus == 200,
                let uri = response.payload?.asDictionary()?[ZMConversation.TransportKey.uri] as? String {
@@ -109,7 +113,11 @@ extension ZMConversation {
             return completion(.failure(WirelessLinkError.invalidOperation))
         }
 
-        let request = WirelessRequestFactory.createLinkRequest(for: self)
+        guard let apiVersion = APIVersion.current else {
+            return completion(.failure(WirelessLinkError.unknown))
+        }
+
+        let request = WirelessRequestFactory.createLinkRequest(for: self, apiVersion: apiVersion)
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
             if response.httpStatus == 201,
                let payload = response.payload,
@@ -140,8 +148,11 @@ extension ZMConversation {
 
     /// Checks if a guest link can be generated or not
     public func canGenerateGuestLink(in userSession: ZMUserSession, _ completion: @escaping (Result<Bool>) -> Void) {
+        guard let apiVersion = APIVersion.current else {
+            return completion(.failure(WirelessLinkError.unknown))
+        }
 
-        let request = WirelessRequestFactory.guestLinkFeatureStatusRequest(for: self)
+        let request = WirelessRequestFactory.guestLinkFeatureStatusRequest(for: self, apiVersion: apiVersion)
 
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
             switch response.httpStatus {
@@ -174,7 +185,11 @@ extension ZMConversation {
             return completion(.failure(WirelessLinkError.invalidOperation))
         }
 
-        let request = WirelessRequestFactory.deleteLinkRequest(for: self)
+        guard let apiVersion = APIVersion.current else {
+            return completion(.failure(WirelessLinkError.unknown))
+        }
+
+        let request = WirelessRequestFactory.deleteLinkRequest(for: self, apiVersion: apiVersion)
 
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
             if response.httpStatus == 200 {
@@ -195,7 +210,11 @@ extension ZMConversation {
             return completion(.failure(WirelessLinkError.invalidOperation))
         }
 
-        setAllowGuestsAndServices(allowGuests: allowGuests, allowServices: self.allowServices, in: userSession, completion)
+        guard let apiVersion = APIVersion.current else {
+            return completion(.failure(WirelessLinkError.unknown))
+        }
+
+        setAllowGuestsAndServices(allowGuests: allowGuests, allowServices: self.allowServices, in: userSession, apiVersion: apiVersion, completion)
     }
 
     /// Changes the conversation access mode to allow services.
@@ -204,14 +223,18 @@ extension ZMConversation {
             return completion(.failure(SetAllowServicesError.invalidOperation))
         }
 
-        setAllowGuestsAndServices(allowGuests: self.allowGuests, allowServices: allowServices, in: userSession, completion)
+        guard let apiVersion = APIVersion.current else {
+            return completion(.failure(SetAllowServicesError.unknown))
+        }
+
+        setAllowGuestsAndServices(allowGuests: self.allowGuests, allowServices: allowServices, in: userSession, apiVersion: apiVersion, completion)
 
     }
 
     /// Changes the conversation access mode to allow services.
-    private func setAllowGuestsAndServices(allowGuests: Bool, allowServices: Bool, in userSession: ZMUserSession, _ completion: @escaping (VoidResult) -> Void) {
+    private func setAllowGuestsAndServices(allowGuests: Bool, allowServices: Bool, in userSession: ZMUserSession, apiVersion: APIVersion, _ completion: @escaping (VoidResult) -> Void) {
+        let request = WirelessRequestFactory.setAccessRoles(allowGuests: allowGuests, allowServices: allowServices, for: self, apiVersion: apiVersion)
 
-        let request = WirelessRequestFactory.setAccessRoles(allowGuests: allowGuests, allowServices: allowServices, for: self)
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
             if let payload = response.payload,
                let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: nil) {
@@ -239,35 +262,35 @@ extension ZMConversation {
 }
 
 internal struct WirelessRequestFactory {
-    static func fetchLinkRequest(for conversation: ZMConversation) -> ZMTransportRequest {
+    static func fetchLinkRequest(for conversation: ZMConversation, apiVersion: APIVersion) -> ZMTransportRequest {
         guard let identifier = conversation.remoteIdentifier?.transportString() else {
             fatal("conversation is not yet inserted on the backend")
         }
-        return .init(getFromPath: "/conversations/\(identifier)/code")
+        return .init(getFromPath: "/conversations/\(identifier)/code", apiVersion: apiVersion.rawValue)
     }
 
-    static func guestLinkFeatureStatusRequest(for conversation: ZMConversation) -> ZMTransportRequest {
+    static func guestLinkFeatureStatusRequest(for conversation: ZMConversation, apiVersion: APIVersion) -> ZMTransportRequest {
         guard let identifier = conversation.remoteIdentifier?.transportString() else {
             fatal("conversation is not yet inserted on the backend")
         }
-        return .init(getFromPath: "/conversations/\(identifier)/features/conversationGuestLinks")
+        return .init(getFromPath: "/conversations/\(identifier)/features/conversationGuestLinks", apiVersion: apiVersion.rawValue)
     }
 
-    static func createLinkRequest(for conversation: ZMConversation) -> ZMTransportRequest {
+    static func createLinkRequest(for conversation: ZMConversation, apiVersion: APIVersion) -> ZMTransportRequest {
         guard let identifier = conversation.remoteIdentifier?.transportString() else {
             fatal("conversation is not yet inserted on the backend")
         }
-        return .init(path: "/conversations/\(identifier)/code", method: .methodPOST, payload: nil)
+        return .init(path: "/conversations/\(identifier)/code", method: .methodPOST, payload: nil, apiVersion: apiVersion.rawValue)
     }
 
-    static func deleteLinkRequest(for conversation: ZMConversation) -> ZMTransportRequest {
+    static func deleteLinkRequest(for conversation: ZMConversation, apiVersion: APIVersion) -> ZMTransportRequest {
         guard let identifier = conversation.remoteIdentifier?.transportString() else {
             fatal("conversation is not yet inserted on the backend")
         }
-        return .init(path: "/conversations/\(identifier)/code", method: .methodDELETE, payload: nil)
+        return .init(path: "/conversations/\(identifier)/code", method: .methodDELETE, payload: nil, apiVersion: apiVersion.rawValue)
     }
 
-    static func setAccessRoles(allowGuests: Bool, allowServices: Bool, for conversation: ZMConversation) -> ZMTransportRequest {
+        static func setAccessRoles(allowGuests: Bool, allowServices: Bool, for conversation: ZMConversation, apiVersion: APIVersion) -> ZMTransportRequest {
         guard let identifier = conversation.remoteIdentifier?.transportString() else {
             fatal("conversation is not yet inserted on the backend")
         }
@@ -293,7 +316,8 @@ internal struct WirelessRequestFactory {
             "access_role": ConversationAccessRole.fromAccessRoleV2(accessRoles).rawValue,
             "access_role_v2": accessRoles.map(\.rawValue)
         ]
-        return .init(path: "/conversations/\(identifier)/access", method: .methodPUT, payload: payload as ZMTransportData)
+
+        return .init(path: "/conversations/\(identifier)/access", method: .methodPUT, payload: payload as ZMTransportData, apiVersion: apiVersion.rawValue)
     }
 
 }

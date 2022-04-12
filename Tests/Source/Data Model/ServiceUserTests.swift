@@ -316,7 +316,7 @@ final class ServiceUserTests: IntegrationTest {
 
     func testThatItDetectsTheConversationFullResponse() {
         // GIVEN
-        let response = ZMTransportResponse(payload: nil, httpStatus: 403, transportSessionError: nil)
+        let response = ZMTransportResponse(payload: nil, httpStatus: 403, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
         // WHEN
         let error = AddBotError(response: response)
         // THEN
@@ -325,7 +325,7 @@ final class ServiceUserTests: IntegrationTest {
 
     func testThatItDetectsBotRejectedResponse() {
         // GIVEN
-        let response = ZMTransportResponse(payload: nil, httpStatus: 419, transportSessionError: nil)
+        let response = ZMTransportResponse(payload: nil, httpStatus: 419, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
         // WHEN
         let error = AddBotError(response: response)
         // THEN
@@ -334,7 +334,7 @@ final class ServiceUserTests: IntegrationTest {
 
     func testThatItDetectsBotNotResponding() {
         // GIVEN
-        let response = ZMTransportResponse(payload: nil, httpStatus: 502, transportSessionError: nil)
+        let response = ZMTransportResponse(payload: nil, httpStatus: 502, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
         // WHEN
         let error = AddBotError(response: response)
         // THEN
@@ -343,7 +343,7 @@ final class ServiceUserTests: IntegrationTest {
 
     func testThatItDetectsGeneralError() {
         // GIVEN
-        let response = ZMTransportResponse(payload: nil, httpStatus: 500, transportSessionError: nil)
+        let response = ZMTransportResponse(payload: nil, httpStatus: 500, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
         // WHEN
         let error = AddBotError(response: response)
         // THEN

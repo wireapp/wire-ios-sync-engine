@@ -55,12 +55,12 @@ public final class ProxiedRequestStrategy: AbstractRequestStrategy {
         super.init(withManagedObjectContext: moc, applicationStatus: applicationStatus)
     }
 
-    public override func nextRequestIfAllowed() -> ZMTransportRequest? {
+    public override func nextRequestIfAllowed(for apiVersion: APIVersion) -> ZMTransportRequest? {
         guard let status = self.requestsStatus else { return nil }
 
         if let proxyRequest = status.pendingRequests.popFirst() {
             let fullPath = ProxiedRequestStrategy.BasePath + proxyRequest.type.basePath + proxyRequest.path
-            let request = ZMTransportRequest(path: fullPath, method: proxyRequest.method, payload: nil)
+            let request = ZMTransportRequest(path: fullPath, method: proxyRequest.method, payload: nil, apiVersion: apiVersion.rawValue)
             if proxyRequest.type == .soundcloud {
                 request.doesNotFollowRedirects = true
             }

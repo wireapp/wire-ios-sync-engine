@@ -647,7 +647,7 @@ extension IntegrationTest: SessionManagerDelegate {
         userSessionCanBeTornDown?()
     }
 
-    public func sessionManagerDidBlacklistCurrentVersion() {
+    public func sessionManagerDidBlacklistCurrentVersion(reason: BlacklistReason) {
         // no-op
     }
 

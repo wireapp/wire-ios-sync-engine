@@ -77,11 +77,15 @@ extension ZMConversation {
 struct ConversationDeletionRequestFactory {
 
     static func requestForDeletingTeamConversation(_ conversation: ZMConversation) -> ZMTransportRequest? {
-        guard let conversationId = conversation.remoteIdentifier, let teamRemoteIdentifier = conversation.teamRemoteIdentifier else { return nil }
+        guard
+            let apiVersion = APIVersion.current,
+            let conversationId = conversation.remoteIdentifier,
+            let teamRemoteIdentifier = conversation.teamRemoteIdentifier
+        else { return nil }
 
         let path = "/teams/\(teamRemoteIdentifier.transportString())/conversations/\(conversationId.transportString())"
 
-        return ZMTransportRequest(path: path, method: .methodDELETE, payload: nil)
+        return ZMTransportRequest(path: path, method: .methodDELETE, payload: nil, apiVersion: apiVersion.rawValue)
     }
 
 }

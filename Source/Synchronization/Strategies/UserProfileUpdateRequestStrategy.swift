@@ -67,47 +67,47 @@ public class UserProfileUpdateRequestStrategy: AbstractRequestStrategy, ZMSingle
         self.handleSuggestionSearchSync = ZMSingleRequestSync(singleRequestTranscoder: self, groupQueue: managedObjectContext)
     }
 
-    @objc public override func nextRequestIfAllowed() -> ZMTransportRequest? {
+    @objc public override func nextRequestIfAllowed(for apiVersion: APIVersion) -> ZMTransportRequest? {
 
         if self.userProfileUpdateStatus.currentlyRequestingPhoneVerificationCode {
             self.phoneCodeRequestSync.readyForNextRequestIfNotBusy()
-            return self.phoneCodeRequestSync.nextRequest()
+            return self.phoneCodeRequestSync.nextRequest(for: apiVersion)
         }
 
         if self.userProfileUpdateStatus.currentlySettingPhone {
             self.phoneUpdateSync.readyForNextRequestIfNotBusy()
-            return self.phoneUpdateSync.nextRequest()
+            return self.phoneUpdateSync.nextRequest(for: apiVersion)
         }
 
         if self.userProfileUpdateStatus.currentlySettingEmail ||
             self.userProfileUpdateStatus.currentlyChangingEmail {
             self.emailUpdateSync.readyForNextRequestIfNotBusy()
-            return self.emailUpdateSync.nextRequest()
+            return self.emailUpdateSync.nextRequest(for: apiVersion)
         }
 
         if self.userProfileUpdateStatus.currentlyRemovingPhoneNumber {
             self.phoneNumberDeleteSync.readyForNextRequestIfNotBusy()
-            return self.phoneNumberDeleteSync.nextRequest()
+            return self.phoneNumberDeleteSync.nextRequest(for: apiVersion)
         }
 
         if self.userProfileUpdateStatus.currentlySettingPassword {
             self.passwordUpdateSync.readyForNextRequestIfNotBusy()
-            return self.passwordUpdateSync.nextRequest()
+            return self.passwordUpdateSync.nextRequest(for: apiVersion)
         }
 
         if self.userProfileUpdateStatus.currentlyCheckingHandleAvailability {
             self.handleCheckSync.readyForNextRequestIfNotBusy()
-            return self.handleCheckSync.nextRequest()
+            return self.handleCheckSync.nextRequest(for: apiVersion)
         }
 
         if self.userProfileUpdateStatus.currentlySettingHandle {
             self.handleSetSync.readyForNextRequestIfNotBusy()
-            return self.handleSetSync.nextRequest()
+            return self.handleSetSync.nextRequest(for: apiVersion)
         }
 
         if self.userProfileUpdateStatus.currentlyGeneratingHandleSuggestion {
             self.handleSuggestionSearchSync.readyForNextRequestIfNotBusy()
-            return self.handleSuggestionSearchSync.nextRequest()
+            return self.handleSuggestionSearchSync.nextRequest(for: apiVersion)
         }
 
         return nil
@@ -115,14 +115,14 @@ public class UserProfileUpdateRequestStrategy: AbstractRequestStrategy, ZMSingle
 
     // MARK: - ZMSingleRequestTranscoder
 
-    public func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
+    public func request(for sync: ZMSingleRequestSync, apiVersion: APIVersion) -> ZMTransportRequest? {
         switch sync {
 
         case self.phoneCodeRequestSync:
             let payload: NSDictionary = [
                 "phone": self.userProfileUpdateStatus.phoneNumberForWhichCodeIsRequested!
             ]
-            return ZMTransportRequest(path: "/self/phone", method: .methodPUT, payload: payload)
+            return ZMTransportRequest(path: "/self/phone", method: .methodPUT, payload: payload, apiVersion: apiVersion.rawValue)
 
         case self.phoneUpdateSync:
             let payload: NSDictionary = [
@@ -130,30 +130,30 @@ public class UserProfileUpdateRequestStrategy: AbstractRequestStrategy, ZMSingle
                 "code": self.userProfileUpdateStatus.phoneNumberToSet!.phoneNumberVerificationCode!,
                 "dryrun": false
             ]
-            return ZMTransportRequest(path: "/activate", method: .methodPOST, payload: payload)
+            return ZMTransportRequest(path: "/activate", method: .methodPOST, payload: payload, apiVersion: apiVersion.rawValue)
 
         case self.phoneNumberDeleteSync:
-            return ZMTransportRequest(path: "/self/phone", method: .methodDELETE, payload: nil)
+            return ZMTransportRequest(path: "/self/phone", method: .methodDELETE, payload: nil, apiVersion: apiVersion.rawValue)
 
         case self.passwordUpdateSync:
             let payload: NSDictionary = [
                 "new_password": self.userProfileUpdateStatus.passwordToSet!
             ]
-            return ZMTransportRequest(path: "/self/password", method: .methodPUT, payload: payload)
+            return ZMTransportRequest(path: "/self/password", method: .methodPUT, payload: payload, apiVersion: apiVersion.rawValue)
 
         case self.emailUpdateSync:
             let payload: NSDictionary = [
                 "email": self.userProfileUpdateStatus.emailToSet!
             ]
-            return ZMTransportRequest(path: "/access/self/email", method: .methodPUT, payload: payload, authentication: .needsCookieAndAccessToken)
+            return ZMTransportRequest(path: "/access/self/email", method: .methodPUT, payload: payload, authentication: .needsCookieAndAccessToken, apiVersion: apiVersion.rawValue)
 
         case self.handleCheckSync:
             let handle = self.userProfileUpdateStatus.handleToCheck!
-            return ZMTransportRequest(path: "/users/handles/\(handle)", method: .methodHEAD, payload: nil)
+            return ZMTransportRequest(path: "/users/handles/\(handle)", method: .methodHEAD, payload: nil, apiVersion: apiVersion.rawValue)
 
         case self.handleSetSync:
             let payload: NSDictionary = ["handle": self.userProfileUpdateStatus.handleToSet!]
-            return ZMTransportRequest(path: "/self/handle", method: .methodPUT, payload: payload)
+            return ZMTransportRequest(path: "/self/handle", method: .methodPUT, payload: payload, apiVersion: apiVersion.rawValue)
 
         case self.handleSuggestionSearchSync:
             guard let handlesToCheck = self.userProfileUpdateStatus.suggestedHandlesToCheck else {
@@ -163,7 +163,7 @@ public class UserProfileUpdateRequestStrategy: AbstractRequestStrategy, ZMSingle
                     "handles": handlesToCheck,
                     "return": 1
                 ] as NSDictionary
-            return ZMTransportRequest(path: "/users/handles", method: .methodPOST, payload: payload)
+            return ZMTransportRequest(path: "/users/handles", method: .methodPOST, payload: payload, apiVersion: apiVersion.rawValue)
 
         default:
             return nil

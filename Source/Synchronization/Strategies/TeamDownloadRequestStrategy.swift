@@ -114,12 +114,12 @@ public final class TeamDownloadRequestStrategy: AbstractRequestStrategy, ZMConte
                                        groupQueue: managedObjectContext)
     }
 
-    public override func nextRequestIfAllowed() -> ZMTransportRequest? {
+    public override func nextRequestIfAllowed(for apiVersion: APIVersion) -> ZMTransportRequest? {
         if isSyncing {
             slowSync.readyForNextRequestIfNotBusy()
-            return slowSync.nextRequest()
+            return slowSync.nextRequest(for: apiVersion)
         } else {
-            return downstreamSync.nextRequest()
+            return downstreamSync.nextRequest(for: apiVersion)
         }
     }
 
@@ -215,8 +215,8 @@ public final class TeamDownloadRequestStrategy: AbstractRequestStrategy, ZMConte
 
     // MARK: - ZMSingleRequestTranscoder
 
-    public func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
-        return TeamDownloadRequestFactory.getTeamsRequest
+    public func request(for sync: ZMSingleRequestSync, apiVersion: APIVersion) -> ZMTransportRequest? {
+        return TeamDownloadRequestFactory.getTeamsRequest(apiVersion: apiVersion)
     }
 
     public func didReceive(_ response: ZMTransportResponse, forSingleRequest sync: ZMSingleRequestSync) {
@@ -235,9 +235,9 @@ public final class TeamDownloadRequestStrategy: AbstractRequestStrategy, ZMConte
 
     // MARK: - ZMDownstreamTranscoder
 
-    public func request(forFetching object: ZMManagedObject!, downstreamSync: ZMObjectSync!) -> ZMTransportRequest! {
+    public func request(forFetching object: ZMManagedObject!, downstreamSync: ZMObjectSync!, apiVersion: APIVersion) -> ZMTransportRequest! {
         guard downstreamSync as? ZMDownstreamObjectSync == self.downstreamSync, let team = object as? Team else { fatal("Wrong sync or object for: \(object.safeForLoggingDescription)") }
-        return team.remoteIdentifier.map { TeamDownloadRequestFactory.getRequest(for: $0) }
+        return team.remoteIdentifier.map { TeamDownloadRequestFactory.getRequest(for: [$0], apiVersion: apiVersion) }
     }
 
     public func update(_ object: ZMManagedObject!, with response: ZMTransportResponse!, downstreamSync: ZMObjectSync!) {

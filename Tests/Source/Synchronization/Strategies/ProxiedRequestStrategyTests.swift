@@ -40,7 +40,7 @@ class ProxiedRequestStrategyTests: MessagingTest {
     }
 
     func testThatItGeneratesNoRequestsIfTheStatusIsEmpty() {
-        XCTAssertNil(self.sut.nextRequest())
+        XCTAssertNil(self.sut.nextRequest(for: .v0))
     }
 
     func testThatItGeneratesAGiphyRequest() {
@@ -49,7 +49,7 @@ class ProxiedRequestStrategyTests: MessagingTest {
         requestsStatus.add(request: ProxyRequest(type: .giphy, path: "/foo/bar", method: .methodGET, callback: { (_, _, _) -> Void in return}))
 
         // when
-        let request: ZMTransportRequest? = self.sut.nextRequest()
+        let request: ZMTransportRequest? = self.sut.nextRequest(for: .v0)
 
         // then
         if let request = request {
@@ -67,7 +67,7 @@ class ProxiedRequestStrategyTests: MessagingTest {
         requestsStatus.add(request: ProxyRequest(type: .soundcloud, path: "/foo/bar", method: .methodGET, callback: { (_, _, _) -> Void in return}))
 
         // when
-        let request: ZMTransportRequest? = self.sut.nextRequest()
+        let request: ZMTransportRequest? = self.sut.nextRequest(for: .v0)
 
         // then
         if let request = request {
@@ -86,7 +86,7 @@ class ProxiedRequestStrategyTests: MessagingTest {
         requestsStatus.add(request: ProxyRequest(type: .youTube, path: "/foo/bar", method: .methodGET, callback: { (_, _, _) -> Void in return}))
 
         // when
-        let request: ZMTransportRequest? = self.sut.nextRequest()
+        let request: ZMTransportRequest? = self.sut.nextRequest(for: .v0)
 
         // then
         if let request = request {
@@ -104,8 +104,8 @@ class ProxiedRequestStrategyTests: MessagingTest {
         requestsStatus.add(request: ProxyRequest(type: .giphy, path: "/foo/bar1", method: .methodGET, callback: { (_, _, _) -> Void in return}))
 
         // when
-        let request1: ZMTransportRequest? = self.sut.nextRequest()
-        let request2: ZMTransportRequest? = self.sut.nextRequest()
+        let request1: ZMTransportRequest? = self.sut.nextRequest(for: .v0)
+        let request2: ZMTransportRequest? = self.sut.nextRequest(for: .v0)
 
         // then
         XCTAssertNotNil(request1)
@@ -124,7 +124,7 @@ class ProxiedRequestStrategyTests: MessagingTest {
             ]
         )!
 
-        let response = ZMTransportResponse(httpurlResponse: HTTPResponse, data: data, error: error)
+        let response = ZMTransportResponse(httpurlResponse: HTTPResponse, data: data, error: error, apiVersion: APIVersion.v0.rawValue)
         let expectation = self.expectation(description: "Callback invoked")
 
         requestsStatus.add(request: ProxyRequest(type: .giphy, path: "/foo/bar1", method: .methodGET, callback: { responseData, responseURLResponse, responseError in
@@ -137,7 +137,7 @@ class ProxiedRequestStrategyTests: MessagingTest {
         }))
 
         // when
-        let request: ZMTransportRequest? = self.sut.nextRequest()
+        let request: ZMTransportRequest? = self.sut.nextRequest(for: .v0)
         if let request = request {
             request.complete(with: response)
         }
@@ -154,7 +154,7 @@ class ProxiedRequestStrategyTests: MessagingTest {
         requestsStatus.add(request: ProxyRequest(type: .giphy, path: "/foo/bar1", method: .methodGET, callback: { (_, _, _) -> Void in return}))
 
         // when
-        let request: ZMTransportRequest? = self.sut.nextRequest()
+        let request: ZMTransportRequest? = self.sut.nextRequest(for: .v0)
 
         // then
         if let request = request {
@@ -173,7 +173,7 @@ class ProxiedRequestStrategyTests: MessagingTest {
         // given
         let proxyRequest = ProxyRequest(type: .giphy, path: "/foo/bar1", method: .methodGET, callback: { (_, _, _) -> Void in return})
         requestsStatus.add(request: proxyRequest)
-        let request: ZMTransportRequest? = self.sut.nextRequest()
+        let request: ZMTransportRequest? = self.sut.nextRequest(for: .v0)
 
         // when
         request?.callTaskCreationHandlers(withIdentifier: 1, sessionIdentifier: "123")

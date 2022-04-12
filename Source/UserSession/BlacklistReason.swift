@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2020 Wire Swiss GmbH
+// Copyright (C) 2022 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,26 +18,13 @@
 
 import Foundation
 
-public extension ZMUserSession {
+public enum BlacklistReason {
+    /// The app version is too old to be supported or has been explicitly blacklisted
+    case appVersionBlacklisted
 
-    /// An object used to configure a user session.
+    /// The API versions supported by the client are too old in comparison to the ones supported by the backend
+    case clientAPIVersionObsolete
 
-    final class Configuration: NSObject {
-
-        // MARK: - Properties
-
-        public let appLockConfig: AppLockController.LegacyConfig?
-        public let useLegacyPushNotifications: Bool
-
-        // MARK: - Life cycle
-
-        public init(appLockConfig: AppLockController.LegacyConfig? = nil,
-                    useLegacyPushNotifications: Bool = true) {
-
-            self.appLockConfig = appLockConfig
-            self.useLegacyPushNotifications = useLegacyPushNotifications
-        }
-
-    }
-
+    /// The API versions supported by the backend are too old in comparison to the ones supported by the client
+    case backendAPIVersionObsolete
 }

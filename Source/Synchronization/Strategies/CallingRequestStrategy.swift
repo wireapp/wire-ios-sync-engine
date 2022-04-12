@@ -21,7 +21,7 @@ import WireRequestStrategy
 import WireDataModel
 
 @objcMembers
-public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequestTranscoder, ZMContextChangeTracker, ZMContextChangeTrackerSource, ZMEventConsumer, FederationAware {
+public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequestTranscoder, ZMContextChangeTracker, ZMContextChangeTrackerSource, ZMEventConsumer {
 
     // MARK: - Private Properties
 
@@ -44,17 +44,6 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
     // MARK: - Internal Properties
 
     var callCenter: WireCallCenterV3?
-
-    // MARK: - Public Properties
-
-    public var useFederationEndpoint: Bool {
-        get {
-            messageSync.isFederationEndpointAvailable
-        }
-        set {
-            messageSync.isFederationEndpointAvailable = newValue
-        }
-    }
 
     // MARK: - Init
 
@@ -92,10 +81,10 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
     // MARK: - Methods
 
-    public override func nextRequestIfAllowed() -> ZMTransportRequest? {
-        let request = callConfigRequestSync.nextRequest() ??
-                      clientDiscoverySync.nextRequest() ??
-                      messageSync.nextRequest()
+    public override func nextRequestIfAllowed(for apiVersion: APIVersion) -> ZMTransportRequest? {
+        let request = callConfigRequestSync.nextRequest(for: apiVersion) ??
+                      clientDiscoverySync.nextRequest(for: apiVersion) ??
+                      messageSync.nextRequest(for: apiVersion)
 
         request?.forceToVoipSession()
         return request
@@ -105,9 +94,9 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
         messageSync.expireMessages(withDependency: conversation)
     }
 
-// MARK: - Single Request Transcoder
+    // MARK: - Single Request Transcoder
 
-    public func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
+    public func request(for sync: ZMSingleRequestSync, apiVersion: APIVersion) -> ZMTransportRequest? {
         switch sync {
         case callConfigRequestSync:
             zmLog.debug("Scheduling request to '/calls/config/v2'")
@@ -117,7 +106,8 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
                                       binaryData: nil,
                                       type: "application/json",
                                       contentDisposition: nil,
-                                      shouldCompress: true)
+                                      shouldCompress: true,
+                                      apiVersion: apiVersion.rawValue)
 
         case clientDiscoverySync:
             guard
@@ -131,19 +121,12 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
             let factory = ClientMessageRequestFactory()
 
-            if useFederationEndpoint {
-                guard let domain = request.domain else {
-                    zmLog.error("Could not create request: missing domain")
-                    return nil
-                }
-
-                return factory.upstreamRequestForFetchingClients(conversationId: request.conversationId,
-                                                                 domain: domain,
-                                                                 selfClient: selfClient)
-            } else {
-                return factory.upstreamRequestForFetchingClients(conversationId: request.conversationId,
-                                                                 selfClient: selfClient)
-            }
+            return factory.upstreamRequestForFetchingClients(
+                conversationId: request.conversationId,
+                domain: request.domain,
+                selfClient: selfClient,
+                apiVersion: apiVersion
+            )
 
         default:
             return nil
@@ -179,16 +162,12 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
             guard let jsonData = response.rawData else { return }
 
+            let apiVersion = APIVersion(rawValue: response.apiVersion)!
+            decoder.userInfo = [ClientDiscoveryResponsePayload.apiVersionKey: apiVersion]
+
             do {
-                var clients = [AVSClient]()
-
-                if useFederationEndpoint {
-                    clients = try decodeFederatedClientDiscovery(jsonData: jsonData)
-                } else {
-                    clients = try decodeClientDiscovery(jsonData: jsonData)
-                }
-
-                clientDiscoveryRequest?.completion(clients)
+                let payload = try decoder.decode(ClientDiscoveryResponsePayload.self, from: jsonData)
+                clientDiscoveryRequest?.completion(payload.clients)
             } catch {
                 zmLog.error("Could not parse client discovery response: \(error.localizedDescription)")
             }
@@ -196,18 +175,6 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
         default:
             break
         }
-    }
-
-    private func decodeClientDiscovery(jsonData: Data) throws -> [AVSClient] {
-        let payload = try decoder.decode(ClientDiscoveryResponsePayload.self, from: jsonData)
-
-        return payload.clients
-    }
-
-    private func decodeFederatedClientDiscovery(jsonData: Data) throws -> [AVSClient] {
-        let payload = try decoder.decode(FederatedClientDiscoveryResponsePayload.self, from: jsonData)
-
-        return payload.clients
     }
 
     // MARK: - Context Change Tracker
@@ -298,11 +265,11 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
                                   eventTimestamp: Date) {
         let conversationId = AVSIdentifier(
             identifier: conversationUUID,
-            domain: useFederationEndpoint ? event.conversationDomain : nil
+            domain: event.conversationDomain
         )
         let userId = AVSIdentifier(
             identifier: senderUUID,
-            domain: useFederationEndpoint ? event.senderDomain : nil
+            domain: event.senderDomain
         )
 
         let callEvent = CallEvent(
@@ -463,62 +430,80 @@ extension CallingRequestStrategy {
 
     }
 
-    struct FederatedClientDiscoveryResponsePayload: Decodable {
+    struct ClientDiscoveryResponsePayload: Decodable {
+        static let apiVersionKey = CodingUserInfoKey(rawValue: "clientDiscoveryDecodingOptions")!
+
         let clients: [AVSClient]
 
+        /// This can decode the two types of responses listed below given that v0 uses legacy endpoints and v1 uses federation endpoints
+        ///
+        /// When querying the legacy endpoint, this will be the response
+        /// {
+        ///    "missing": {
+        ///       "000600d0-000b-9c1a-000d-a4130002c221": [
+        ///          "60f85e4b15ad3786",
+        ///          "6e323ab31554353b"
+        ///       ]
+        ///    }
+        ///    ...
+        /// }
+        ///
+        /// When querying the federation enabled endpoint, this will be the response
+        /// {
+        ///    "missing": {
+        ///       "domain1.example.com": {
+        ///           "000600d0-000b-9c1a-000d-a4130002c221": [
+        ///               "60f85e4b15ad3786",
+        ///               "6e323ab31554353b"
+        ///           ]
+        ///       }
+        ///    }
+        ///    ...
+        /// }
         init(from decoder: Decoder) throws {
-            var allClients = [AVSClient]()
+            guard let apiVersion = decoder.userInfo[Self.apiVersionKey] as? APIVersion else {
+                fatalError("missing api version")
+            }
+
+            // get the main container from the decoder
             let container = try decoder.container(keyedBy: CodingKeys.self)
-            let domainsContainer = try container.nestedContainer(keyedBy: DynamicKey.self, forKey: .missing)
 
-            try domainsContainer.allKeys.forEach { domainKey in
-                var domainClients = [AVSClient]()
-                let usersContainer = try domainsContainer.nestedContainer(keyedBy: DynamicKey.self, forKey: domainKey)
+            // get the nested container keyed by "missing"
+            // it will contain a list of users and their client ids, but depending on the response, it may be segmented by domains
+            let nestedContainer = try container.nestedContainer(keyedBy: DynamicKey.self, forKey: .missing)
 
-                try usersContainer.allKeys.forEach { userIdKey in
-                    let clientIds = try usersContainer.decode([String].self, forKey: userIdKey)
+            // define the block used below to extract the clients from a container
+            let extractClientsFromContainer = { (container: KeyedDecodingContainer<DynamicKey>, domain: String?) -> [AVSClient] in
+                var clients = [AVSClient]()
+
+                try container.allKeys.forEach { userIdKey in
+                    let clientIds = try container.decode([String].self, forKey: userIdKey)
 
                     let identifier = AVSIdentifier(
                         identifier: UUID(uuidString: userIdKey.stringValue)!,
-                        domain: domainKey.stringValue
+                        domain: domain
                     )
 
-                    domainClients += clientIds.compactMap {
+                    clients += clientIds.compactMap {
                         AVSClient(userId: identifier, clientId: $0)
                     }
                 }
 
-                allClients += domainClients
+                return clients
             }
-
-            clients = allClients
-        }
-
-        enum CodingKeys: String, CodingKey {
-            case missing
-        }
-    }
-
-    struct ClientDiscoveryResponsePayload: Decodable {
-
-        let clients: [AVSClient]
-
-        init(from decoder: Decoder) throws {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
-            let nestedContainer = try container.nestedContainer(keyedBy: DynamicKey.self, forKey: .missing)
 
             var allClients = [AVSClient]()
 
-            try nestedContainer.allKeys.forEach { userIdKey in
-                let clientIds = try nestedContainer.decode([String].self, forKey: userIdKey)
-
-                let identifier = AVSIdentifier(
-                    identifier: UUID(uuidString: userIdKey.stringValue)!,
-                    domain: nil
-                )
-
-                allClients += clientIds.compactMap {
-                    AVSClient(userId: identifier, clientId: $0)
+            switch apiVersion {
+            case .v0:
+                // `nestedContainer` contains all the user ids with no notion of domain, we can extract clients directly
+               allClients = try extractClientsFromContainer(nestedContainer, nil)
+            case .v1:
+                // `nestedContainer` has further nested containers each dynamically keyed by a domain name.
+                // we need to loop over each container to extract the clients.
+                try nestedContainer.allKeys.forEach { domainKey in
+                    let usersContainer = try nestedContainer.nestedContainer(keyedBy: DynamicKey.self, forKey: domainKey)
+                    allClients += try extractClientsFromContainer(usersContainer, domainKey.stringValue)
                 }
             }
 
@@ -526,13 +511,11 @@ extension CallingRequestStrategy {
         }
 
         enum CodingKeys: String, CodingKey {
-
             case missing
-
         }
     }
 
-    struct DynamicKey: CodingKey {
+    private struct DynamicKey: CodingKey {
         var stringValue: String
 
         init?(stringValue: String) {

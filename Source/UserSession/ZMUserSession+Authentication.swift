@@ -87,7 +87,8 @@ extension ZMUserSession {
     public func logout(credentials: ZMEmailCredentials, _ completion: @escaping (VoidResult) -> Void) {
         guard
             let accountID = ZMUser.selfUser(inUserSession: self).remoteIdentifier,
-            let selfClientIdentifier = ZMUser.selfUser(inUserSession: self).selfClient()?.remoteIdentifier
+            let selfClientIdentifier = ZMUser.selfUser(inUserSession: self).selfClient()?.remoteIdentifier,
+            let apiVersion = APIVersion.current
         else {
             return
         }
@@ -99,7 +100,7 @@ extension ZMUserSession {
             payload = [:]
         }
 
-        let request = ZMTransportRequest(path: "/clients/\(selfClientIdentifier)", method: .methodDELETE, payload: payload as ZMTransportData)
+        let request = ZMTransportRequest(path: "/clients/\(selfClientIdentifier)", method: .methodDELETE, payload: payload as ZMTransportData, apiVersion: apiVersion.rawValue)
 
         request.add(ZMCompletionHandler(on: managedObjectContext, block: { [weak self] (response) in
             guard let strongSelf = self else { return }

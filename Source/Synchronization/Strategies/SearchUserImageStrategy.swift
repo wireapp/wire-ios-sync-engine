@@ -18,9 +18,7 @@
 
 private let userPath = "/users?ids="
 
-public class SearchUserImageStrategy: AbstractRequestStrategy, FederationAware {
-
-    public var useFederationEndpoint = false
+public class SearchUserImageStrategy: AbstractRequestStrategy {
 
     fileprivate unowned var uiContext: NSManagedObjectContext
     fileprivate unowned var syncContext: NSManagedObjectContext
@@ -88,21 +86,21 @@ public class SearchUserImageStrategy: AbstractRequestStrategy, FederationAware {
         RequestAvailableNotification.notifyNewRequestsAvailable(nil)
     }
 
-    public override func nextRequestIfAllowed() -> ZMTransportRequest? {
-        let request = fetchUserProfilesRequest() ?? fetchAssetRequest()
+    public override func nextRequestIfAllowed(for apiVersion: APIVersion) -> ZMTransportRequest? {
+        let request = fetchUserProfilesRequest(apiVersion: apiVersion) ?? fetchAssetRequest(apiVersion: apiVersion)
         request?.setDebugInformationTranscoder(self)
         return request
     }
 
-    func fetchAssetRequest() -> ZMTransportRequest? {
-        let previewAssetRequestA = requestedPreviewAssets.first(where: {
+    func fetchAssetRequest(apiVersion: APIVersion) -> ZMTransportRequest? {
+        let previewAssetRequest = requestedPreviewAssets.first(where: {
             !(self.requestedPreviewAssetsInProgress.contains($0.key) ||
                 $0.value == nil)
         })
 
-        if let previewAssetRequest = previewAssetRequestA,
+        if let previewAssetRequest = previewAssetRequest,
            let assetKeys = previewAssetRequest.value,
-           let request = request(for: assetKeys, size: .preview, user: previewAssetRequest.key) {
+           let request = request(for: assetKeys, size: .preview, user: previewAssetRequest.key, apiVersion: apiVersion) {
             requestedPreviewAssetsInProgress.insert(previewAssetRequest.key)
 
             request.add(ZMCompletionHandler(on: syncContext, block: { [weak self] (response) in
@@ -112,14 +110,14 @@ public class SearchUserImageStrategy: AbstractRequestStrategy, FederationAware {
             return request
         }
 
-        let completeAssetRequestA = requestedCompleteAssets.first(where: {
+        let completeAssetRequest = requestedCompleteAssets.first(where: {
             !(self.requestedCompleteAssetsInProgress.contains($0.key) ||
                 $0.value == nil)
         })
 
-        if let completeAssetRequest = completeAssetRequestA,
+        if let completeAssetRequest = completeAssetRequest,
            let assetKeys = completeAssetRequest.value,
-           let request = request(for: assetKeys, size: .complete, user: completeAssetRequest.key) {
+           let request = request(for: assetKeys, size: .complete, user: completeAssetRequest.key, apiVersion: apiVersion) {
             requestedCompleteAssetsInProgress.insert(completeAssetRequest.key)
 
             request.add(ZMCompletionHandler(on: syncContext, block: { [weak self] (response) in
@@ -132,18 +130,22 @@ public class SearchUserImageStrategy: AbstractRequestStrategy, FederationAware {
         return nil
     }
 
-    func request(for assetKeys: SearchUserAssetKeys, size: ProfileImageSize, user: UUID) -> ZMTransportRequest? {
+    func request(for assetKeys: SearchUserAssetKeys, size: ProfileImageSize, user: UUID, apiVersion: APIVersion) -> ZMTransportRequest? {
         if let key = size == .preview ? assetKeys.preview : assetKeys.complete {
             let path: String
 
-            if useFederationEndpoint,
-               requestedUserDomain.keys.contains(user),
-               let domain = requestedUserDomain[user] {
-                path = "/assets/v4/\(domain)/\(key)"
-            } else {
+            switch apiVersion {
+            case .v0:
                 path = "/assets/v3/\(key)"
+            case .v1:
+                guard let domain = requestedUserDomain[user] ?? APIVersion.domain else {
+                    return nil
+                }
+
+                path = "/assets/v4/\(domain)/\(key)"
             }
-            return ZMTransportRequest(getFromPath: path)
+
+            return ZMTransportRequest(getFromPath: path, apiVersion: apiVersion.rawValue)
         }
         return nil
     }
@@ -178,14 +180,14 @@ public class SearchUserImageStrategy: AbstractRequestStrategy, FederationAware {
         }
     }
 
-    func fetchUserProfilesRequest() -> ZMTransportRequest? {
+    func fetchUserProfilesRequest(apiVersion: APIVersion) -> ZMTransportRequest? {
         let missingFullProfiles = requestedMissingFullProfiles.subtracting(requestedMissingFullProfilesInProgress)
 
         guard missingFullProfiles.count > 0 else { return nil }
 
         requestedMissingFullProfilesInProgress.formUnion(missingFullProfiles)
 
-        return SearchUserImageStrategy.requestForFetchingFullProfile(for: missingFullProfiles, completionHandler: ZMCompletionHandler(on: managedObjectContext, block: { (response) in
+        return SearchUserImageStrategy.requestForFetchingFullProfile(for: missingFullProfiles, apiVersion: apiVersion, completionHandler: ZMCompletionHandler(on: managedObjectContext, block: { (response) in
 
             self.requestedMissingFullProfilesInProgress.subtract(missingFullProfiles)
 
@@ -227,9 +229,9 @@ public class SearchUserImageStrategy: AbstractRequestStrategy, FederationAware {
         }
     }
 
-    public static func requestForFetchingFullProfile(for usersWithIDs: Set<UUID>, completionHandler: ZMCompletionHandler) -> ZMTransportRequest {
+    public static func requestForFetchingFullProfile(for usersWithIDs: Set<UUID>, apiVersion: APIVersion, completionHandler: ZMCompletionHandler) -> ZMTransportRequest {
         let usersList = usersWithIDs.map {$0.transportString()}.joined(separator: ",")
-        let request = ZMTransportRequest(getFromPath: userPath + usersList)
+        let request = ZMTransportRequest(getFromPath: userPath + usersList, apiVersion: apiVersion.rawValue)
         request.add(completionHandler)
         return request
     }

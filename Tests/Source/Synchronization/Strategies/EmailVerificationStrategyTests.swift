@@ -40,7 +40,7 @@ class RegistrationCredentialVerificationStrategyTests: MessagingTest {
     // MARK: - nil request tests
 
     func testThatItDoesNotReturnRequestIfThePhaseIsNone() {
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
         XCTAssertNil(request)
     }
 
@@ -53,12 +53,12 @@ class RegistrationCredentialVerificationStrategyTests: MessagingTest {
         let payload = ["email": email,
                        "locale": NSLocale.formattedLocaleIdentifier()!]
 
-        let transportRequest = ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData)
+        let transportRequest = ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData, apiVersion: APIVersion.v0.rawValue)
         registrationStatus.phase = .sendActivationCode(credentials: .email(email))
 
         // when
 
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
 
         // then
         XCTAssertNotNil(request)
@@ -72,12 +72,12 @@ class RegistrationCredentialVerificationStrategyTests: MessagingTest {
         let payload = ["phone": phone,
                        "locale": NSLocale.formattedLocaleIdentifier()!]
 
-        let transportRequest = ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData)
+        let transportRequest = ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData, apiVersion: APIVersion.v0.rawValue)
         registrationStatus.phase = .sendActivationCode(credentials: .phone(phone))
 
         // when
 
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
 
         // then
         XCTAssertNotNil(request)
@@ -88,7 +88,7 @@ class RegistrationCredentialVerificationStrategyTests: MessagingTest {
         // given
         let email = "john@smith.com"
         registrationStatus.phase = .sendActivationCode(credentials: .email(email))
-        let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil)
+        let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
         // when
         XCTAssertEqual(registrationStatus.successCalled, 0)
@@ -102,7 +102,7 @@ class RegistrationCredentialVerificationStrategyTests: MessagingTest {
         // given
         let phone = "+4912345678900"
         registrationStatus.phase = .sendActivationCode(credentials: .phone(phone))
-        let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil)
+        let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
         // when
         XCTAssertEqual(registrationStatus.successCalled, 0)
@@ -123,12 +123,12 @@ class RegistrationCredentialVerificationStrategyTests: MessagingTest {
                        "code": code,
                        "dryrun": true] as [String: Any]
 
-        let transportRequest = ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData)
+        let transportRequest = ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData, apiVersion: APIVersion.v0.rawValue)
         registrationStatus.phase = .checkActivationCode(credentials: .email(email), code: code)
 
         // when
 
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
 
         // then
         XCTAssertNotNil(request)
@@ -144,12 +144,12 @@ class RegistrationCredentialVerificationStrategyTests: MessagingTest {
                        "code": code,
                        "dryrun": true] as [String: Any]
 
-        let transportRequest = ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData)
+        let transportRequest = ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData, apiVersion: APIVersion.v0.rawValue)
         registrationStatus.phase = .checkActivationCode(credentials: .phone(phone), code: code)
 
         // when
 
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
 
         // then
         XCTAssertNotNil(request)
@@ -161,7 +161,7 @@ class RegistrationCredentialVerificationStrategyTests: MessagingTest {
         let email = "john@smith.com"
         let code = "123456"
         registrationStatus.phase = .checkActivationCode(credentials: .email(email), code: code)
-        let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil)
+        let response = ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
         // when
         XCTAssertEqual(registrationStatus.successCalled, 0)
