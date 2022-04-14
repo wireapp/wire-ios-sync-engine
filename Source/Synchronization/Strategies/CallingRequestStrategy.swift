@@ -214,45 +214,50 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
     // MARK: - Event Consumer
 
+    public func processEvents(_ events: [ZMUpdateEvent], liveEvents: Bool, prefetchResult: ZMFetchRequestBatchResult?) {
+        events.forEach(processEvent)
+    }
+
     public func processEventsWhileInBackground(_ events: [ZMUpdateEvent]) {
+        events.forEach(processEvent)
+    }
+
+    private func processEvent(_ event: ZMUpdateEvent) {
         let serverTimeDelta = managedObjectContext.serverTimeDelta
+        guard event.type == .conversationOtrMessageAdd else { return }
 
-        for event in events {
-            guard event.type == .conversationOtrMessageAdd else { continue }
+        if let genericMessage = GenericMessage(from: event), genericMessage.hasCalling {
 
-            if let genericMessage = GenericMessage(from: event), genericMessage.hasCalling {
-
-                guard
-                    let payload = genericMessage.calling.content.data(using: .utf8, allowLossyConversion: false),
-                    let senderUUID = event.senderUUID,
-                    let conversationUUID = event.conversationUUID,
-                    let clientId = event.senderClientID,
-                    let eventTimestamp = event.timestamp
-                else {
-                    zmLog.error("ignoring calling message: \(genericMessage.debugDescription)")
-                    continue
-                }
-
-                self.zmLog.debug("received calling message, timestamp \(eventTimestamp), serverTimeDelta \(serverTimeDelta)")
-
-                let isRemoteMute = CallEventContent(from: payload, with: decoder)?.isRemoteMute ?? false
-
-                guard !isRemoteMute else {
-                    callCenter?.muted = true
-                    zmLog.debug("muted remotely from calling message")
-                    return
-                }
-
-                processCallEvent(
-                    conversationUUID: conversationUUID,
-                    senderUUID: senderUUID,
-                    clientId: clientId,
-                    event: event,
-                    payload: payload,
-                    currentTimestamp: Date().addingTimeInterval(serverTimeDelta),
-                    eventTimestamp: eventTimestamp
-                )
+            guard
+                let payload = genericMessage.calling.content.data(using: .utf8, allowLossyConversion: false),
+                let senderUUID = event.senderUUID,
+                let conversationUUID = event.conversationUUID,
+                let clientId = event.senderClientID,
+                let eventTimestamp = event.timestamp
+            else {
+                zmLog.error("ignoring calling message: \(genericMessage.debugDescription)")
+                return
             }
+
+            self.zmLog.debug("received calling message, timestamp \(eventTimestamp), serverTimeDelta \(serverTimeDelta)")
+
+            let isRemoteMute = CallEventContent(from: payload, with: decoder)?.isRemoteMute ?? false
+
+            guard !isRemoteMute else {
+                callCenter?.muted = true
+                zmLog.debug("muted remotely from calling message")
+                return
+            }
+
+            processCallEvent(
+                conversationUUID: conversationUUID,
+                senderUUID: senderUUID,
+                clientId: clientId,
+                event: event,
+                payload: payload,
+                currentTimestamp: Date().addingTimeInterval(serverTimeDelta),
+                eventTimestamp: eventTimestamp
+            )
         }
     }
 
@@ -287,10 +292,6 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
             self?.zmLog.debug("processed calling message")
             self?.callEventStatus.finishedProcessingCallEvent()
         })
-    }
-
-    public func processEvents(_ events: [ZMUpdateEvent], liveEvents: Bool, prefetchResult: ZMFetchRequestBatchResult?) {
-        // No op
     }
 
 }
