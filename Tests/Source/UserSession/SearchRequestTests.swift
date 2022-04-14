@@ -62,19 +62,8 @@ class SearchRequestTests: MessagingTest {
         // with leading whitespace
         try assertHandleAndDomain(from: " john@example.com ", handle: "john", domain: "example.com")
 
-        // with whitespace in the middle
-        try assertHandleAndDomain(from: " john@ example.com abc", handle: "john", domain: "example.comabc")
-    }
-
-    func testThatItDoesntParseHandleAndDomain_WhenQueryIsIncomplete() throws {
         // missing domain
-        assertHandleAndDomainIsNil(from: "@john")
-
-        // missing handle
-        assertHandleAndDomainIsNil(from: "@@example.com")
-
-        // whitespace handle
-        assertHandleAndDomainIsNil(from: "@ @example.com")
+        try assertHandleAndDomain(from: "@john", handle: "john", domain: nil)
     }
 
     // MARK: - Helpers
@@ -82,7 +71,7 @@ class SearchRequestTests: MessagingTest {
     func assertHandleAndDomain(
         from query: String,
         handle expectedHandle: String,
-        domain expectedDomain: String,
+        domain expectedDomain: String?,
         file: StaticString = #file,
         line: UInt = #line
     ) throws {
@@ -92,23 +81,6 @@ class SearchRequestTests: MessagingTest {
         // then
         XCTAssertEqual(request.query.string, expectedHandle, file: file, line: line)
         XCTAssertEqual(request.searchDomain, expectedDomain, file: file, line: line)
-    }
-
-    func assertHandleAndDomainIsNil(
-        from query: String,
-        file: StaticString = #file,
-        line: UInt = #line
-    ) {
-        // when
-        let request = SearchRequest(query: query, searchOptions: [])
-
-        // then
-        switch (request.query, request.searchDomain) {
-        case (.exactHandle, _):
-            XCTFail("expected full text search query", file: file, line: line)
-        case (.fullTextSearch, let domain):
-            XCTAssertNil(domain, file: file, line: line)
-        }
     }
 
 }

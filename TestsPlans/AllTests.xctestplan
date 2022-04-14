@@ -63,6 +63,7 @@
     {
       "skippedTests" : [
         "AvailabilityTests",
+        "ConnectionTests_Swift\/testThatConnectionRequestsToTwoUsersAreAddedToPending()",
         "LoginFlowTests_PushToken\/testThatItRegistersThePushTokenWithTheBackend()"
       ],
       "target" : {
