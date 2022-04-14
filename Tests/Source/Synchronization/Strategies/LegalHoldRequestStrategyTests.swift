@@ -117,7 +117,7 @@ class LegalHoldRequestStrategyTests: MessagingTest {
             guard let request = self.sut.nextRequest(for: .v0) else { return XCTFail() }
 
             // THEN
-            XCTAssertEqual(request.path, "teams/\(team.remoteIdentifier!.transportString())/legalhold/\(selfUser.remoteIdentifier.transportString())")
+            XCTAssertEqual(request.path, "/teams/\(team.remoteIdentifier!.transportString())/legalhold/\(selfUser.remoteIdentifier.transportString())")
         }
     }
 
