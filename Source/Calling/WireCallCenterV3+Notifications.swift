@@ -39,8 +39,6 @@ public protocol NetworkQualityObserver: AnyObject {
 struct WireCallCenterNetworkQualityNotification: SelfPostingNotification {
     static let notificationName = Notification.Name("WireCallCenterNetworkQualityNotification")
     public let conversationId: AVSIdentifier
-    public let userId: AVSIdentifier
-    public let clientId: String
     public let networkQuality: NetworkQuality
 }
 
