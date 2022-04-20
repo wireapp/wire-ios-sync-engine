@@ -48,26 +48,34 @@ extension PKPushPayload {
 extension SessionManager: PKPushRegistryDelegate {
 
     public func pushRegistry(_ registry: PKPushRegistry, didUpdate pushCredentials: PKPushCredentials, for type: PKPushType) {
+        // We're only interested in voip push kit tokens.
         guard type == .voIP else { return }
+
+        // We only want to store the voip token if required.
+        guard requiredPushTokenType == .voip else { return }
 
         Logging.push.safePublic("PushKit token was updated: \(pushCredentials)")
 
-        // give new push token to all running sessions
-        backgroundUserSessions.values.forEach({ userSession in
+        // Give new push token to all running sessions.
+        backgroundUserSessions.values.forEach { userSession in
             let pushToken = PushToken.createVOIPToken(from: pushCredentials.token)
             userSession.setPushToken(pushToken)
-        })
+        }
     }
 
     public func pushRegistry(_ registry: PKPushRegistry, didInvalidatePushTokenFor type: PKPushType) {
+        // We're only interested in voip push kit tokens.
         guard type == .voIP else { return }
+
+        // We don't want to delete a standard push token by accident.
+        guard requiredPushTokenType == .voip else { return }
 
         Logging.push.safePublic("PushKit token was invalidated")
 
-        // delete push token from all running sessions
-        backgroundUserSessions.values.forEach({ userSession in
+        // Delete push token from all running sessions.
+        backgroundUserSessions.values.forEach { userSession in
             userSession.deletePushKitToken()
-        })
+        }
     }
 
     public func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType) {
