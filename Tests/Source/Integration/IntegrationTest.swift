@@ -81,6 +81,10 @@ extension IntegrationTest {
         return SessionManagerConfiguration.defaultConfiguration
     }
 
+    var shouldProcessLegacyPushes: Bool {
+        return false
+    }
+
     static let SelfUserEmail = "myself@user.example.com"
     static let SelfUserPassword = "fgf0934';$@#%"
 
@@ -105,7 +109,7 @@ extension IntegrationTest {
         WireCallCenterV3Factory.wireCallCenterClass = WireCallCenterV3IntegrationMock.self
         mockTransportSession.cookieStorage.deleteKeychainItems()
         createSessionManager()
-        mockTransportSession.useLegaclyPushNotifications = sessionManager!.configuration.useLegacyPushNotifications
+        mockTransportSession.useLegaclyPushNotifications = shouldProcessLegacyPushes
     }
 
     func setupTimers() {
@@ -226,7 +230,8 @@ extension IntegrationTest {
             dispatchGroup: self.dispatchGroup,
             environment: mockEnvironment,
             configuration: sessionManagerConfiguration,
-            detector: jailbreakDetector
+            detector: jailbreakDetector,
+            requiredPushTokenType: shouldProcessLegacyPushes ? .voip : .standard
         )
 
         sessionManager?.loginDelegate = mockLoginDelegete

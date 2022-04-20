@@ -33,7 +33,11 @@ final class SessionManagerTests: IntegrationTest {
         createSelfUserAndConversation()
     }
 
-    func createManager(launchOptions: LaunchOptions = [:], maxNumberAccounts: Int = SessionManager.defaultMaxNumberAccounts) -> SessionManager? {
+    func createManager(
+        launchOptions: LaunchOptions = [:],
+        maxNumberAccounts: Int = SessionManager.defaultMaxNumberAccounts,
+        requiredTokenType: PushToken.TokenType = .standard
+    ) -> SessionManager? {
         guard let application = application else { return nil }
         let environment = MockEnvironment()
         let reachability = MockReachability()
@@ -59,7 +63,8 @@ final class SessionManagerTests: IntegrationTest {
             dispatchGroup: dispatchGroup,
             environment: environment,
             configuration: sessionManagerConfiguration,
-            detector: jailbreakDetector
+            detector: jailbreakDetector,
+            requiredPushTokenType: requiredTokenType
         )
 
         sessionManager.start(launchOptions: launchOptions)
@@ -144,13 +149,16 @@ final class SessionManagerTests: IntegrationTest {
         var createToken: Any?
         var destroyToken: Any?
 
-        let testSessionManager = SessionManager(appVersion: "0.0.0",
-                                                mediaManager: mockMediaManager,
-                                                analytics: nil,
-                                                delegate: nil,
-                                                application: application,
-                                                environment: sessionManager!.environment,
-                                                configuration: SessionManagerConfiguration(blacklistDownloadInterval: -1))
+        let testSessionManager = SessionManager(
+            appVersion: "0.0.0",
+            mediaManager: mockMediaManager,
+            analytics: nil,
+            delegate: nil,
+            application: application,
+            environment: sessionManager!.environment,
+            configuration: SessionManagerConfiguration(blacklistDownloadInterval: -1),
+            requiredPushTokenType: .standard
+        )
 
         let environment = MockEnvironment()
         let reachability = MockReachability()
@@ -228,14 +236,17 @@ final class SessionManagerTests: IntegrationTest {
 
         var destroyToken: Any?
 
-        let testSessionManager = SessionManager(appVersion: "0.0.0",
-                                                mediaManager: mockMediaManager,
-                                                analytics: nil,
-                                                delegate: self.delegate,
-                                                application: application,
-                                                environment: sessionManager!.environment,
-                                                configuration: SessionManagerConfiguration(blacklistDownloadInterval: -1),
-                                                detector: jailbreakDetector)
+        let testSessionManager = SessionManager(
+            appVersion: "0.0.0",
+            mediaManager: mockMediaManager,
+            analytics: nil,
+            delegate: self.delegate,
+            application: application,
+            environment: sessionManager!.environment,
+            configuration: SessionManagerConfiguration(blacklistDownloadInterval: -1),
+            detector: jailbreakDetector,
+            requiredPushTokenType: .standard
+        )
 
         let environment = MockEnvironment()
         let reachability = MockReachability()
@@ -284,14 +295,17 @@ final class SessionManagerTests: IntegrationTest {
         let configuration = SessionManagerConfiguration(blockOnJailbreakOrRoot: true)
 
         // WHEN
-        _ = SessionManager(appVersion: "0.0.0",
-                               mediaManager: mockMediaManager,
-                               analytics: nil,
-                               delegate: self.delegate,
-                               application: application,
-                               environment: sessionManager!.environment,
-                               configuration: configuration,
-                               detector: jailbreakDetector)
+        _ = SessionManager(
+            appVersion: "0.0.0",
+            mediaManager: mockMediaManager,
+            analytics: nil,
+            delegate: self.delegate,
+            application: application,
+            environment: sessionManager!.environment,
+            configuration: configuration,
+            detector: jailbreakDetector,
+            requiredPushTokenType: .standard
+        )
 
         XCTAssertTrue(self.delegate.jailbroken)
         XCTAssertTrue(self.waitForCustomExpectations(withTimeout: 0.5))
@@ -1005,13 +1019,17 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
         let sessionManagerExpectation = self.expectation(description: "Session manager and session is loaded")
 
         // WHEN
-        let testSessionManager = SessionManager(appVersion: "0.0.0",
-                                                mediaManager: mockMediaManager,
-                                                analytics: nil,
-                                                delegate: nil,
-                                                application: application,
-                                                environment: sessionManager!.environment,
-                                                configuration: SessionManagerConfiguration(blacklistDownloadInterval: -1))
+        let testSessionManager = SessionManager(
+            appVersion: "0.0.0",
+            mediaManager: mockMediaManager,
+            analytics: nil,
+            delegate: nil,
+            application: application,
+            environment: sessionManager!.environment,
+            configuration: SessionManagerConfiguration(blacklistDownloadInterval: -1),
+            requiredPushTokenType: .standard
+        )
+
         let environment = MockEnvironment()
         let reachability = MockReachability()
         let authenticatedSessionFactory = MockAuthenticatedSessionFactory(
@@ -1056,13 +1074,16 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
         let sessionManagerExpectation = self.expectation(description: "Session manager and session is loaded")
 
         // WHEN
-        let testSessionManager = SessionManager(appVersion: "0.0.0",
-                                                mediaManager: mockMediaManager,
-                                                analytics: nil,
-                                                delegate: nil,
-                                                application: application,
-                                                environment: sessionManager!.environment,
-                                                configuration: SessionManagerConfiguration(blacklistDownloadInterval: -1))
+        let testSessionManager = SessionManager(
+            appVersion: "0.0.0",
+            mediaManager: mockMediaManager,
+            analytics: nil,
+            delegate: nil,
+            application: application,
+            environment: sessionManager!.environment,
+            configuration: SessionManagerConfiguration(blacklistDownloadInterval: -1),
+            requiredPushTokenType: .standard
+        )
 
         let environment = MockEnvironment()
         let reachability = MockReachability()

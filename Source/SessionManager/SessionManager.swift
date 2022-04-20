@@ -276,6 +276,8 @@ public final class SessionManager: NSObject, SessionManagerType {
 
     var apiVersionResolver: APIVersionResolver?
 
+    public var requiredPushTokenType: PushToken.TokenType
+
     public override init() {
         fatal("init() not implemented")
     }
@@ -289,17 +291,21 @@ public final class SessionManager: NSObject, SessionManagerType {
         application: ZMApplication,
         environment: BackendEnvironmentProvider,
         configuration: SessionManagerConfiguration = SessionManagerConfiguration(),
-        detector: JailbreakDetectorProtocol = JailbreakDetector()) {
-
+        detector: JailbreakDetectorProtocol = JailbreakDetector(),
+        requiredPushTokenType: PushToken.TokenType
+    ) {
         let group = ZMSDispatchGroup(dispatchGroup: DispatchGroup(), label: "Session manager reachability")!
         let flowManager = FlowManager(mediaManager: mediaManager)
 
         let serverNames = [environment.backendURL, environment.backendWSURL].compactMap { $0.host }
         let reachability = ZMReachability(serverNames: serverNames, group: group)
+
         let unauthenticatedSessionFactory = UnauthenticatedSessionFactory(
             appVersion: appVersion,
             environment: environment,
-            reachability: reachability)
+            reachability: reachability
+        )
+
         let authenticatedSessionFactory = AuthenticatedSessionFactory(
             appVersion: appVersion,
             application: application,
@@ -307,20 +313,24 @@ public final class SessionManager: NSObject, SessionManagerType {
             flowManager: flowManager,
             environment: environment,
             reachability: reachability,
-            analytics: analytics)
+            analytics: analytics
+        )
 
-            self.init(maxNumberAccounts: maxNumberAccounts,
-                      appVersion: appVersion,
-                  authenticatedSessionFactory: authenticatedSessionFactory,
-                  unauthenticatedSessionFactory: unauthenticatedSessionFactory,
-                  analytics: analytics,
-                  reachability: reachability,
-                  delegate: delegate,
-                  application: application,
-                  pushRegistry: PKPushRegistry(queue: nil),
-                  environment: environment,
-                  configuration: configuration,
-                  detector: detector)
+        self.init(
+            maxNumberAccounts: maxNumberAccounts,
+            appVersion: appVersion,
+            authenticatedSessionFactory: authenticatedSessionFactory,
+            unauthenticatedSessionFactory: unauthenticatedSessionFactory,
+            analytics: analytics,
+            reachability: reachability,
+            delegate: delegate,
+            application: application,
+            pushRegistry: PKPushRegistry(queue: nil),
+            environment: environment,
+            configuration: configuration,
+            detector: detector,
+            requiredPushTokenType: requiredPushTokenType
+        )
 
         if configuration.blacklistDownloadInterval > 0 {
             self.blacklistVerificator = ZMBlacklistVerificator(checkInterval: configuration.blacklistDownloadInterval,
@@ -370,8 +380,9 @@ public final class SessionManager: NSObject, SessionManagerType {
          dispatchGroup: ZMSDispatchGroup? = nil,
          environment: BackendEnvironmentProvider,
          configuration: SessionManagerConfiguration = SessionManagerConfiguration(),
-         detector: JailbreakDetectorProtocol = JailbreakDetector()) {
-
+         detector: JailbreakDetectorProtocol = JailbreakDetector(),
+         requiredPushTokenType: PushToken.TokenType
+    ) {
         SessionManager.enableLogsByEnvironmentVariable()
         self.environment = environment
         self.appVersion = appVersion
@@ -380,6 +391,7 @@ public final class SessionManager: NSObject, SessionManagerType {
         self.dispatchGroup = dispatchGroup
         self.configuration = configuration.copy() as! SessionManagerConfiguration
         self.jailbreakDetector = detector
+        self.requiredPushTokenType = requiredPushTokenType
 
         guard let sharedContainerURL = Bundle.main.appGroupIdentifier.map(FileManager.sharedContainerDirectory) else {
             preconditionFailure("Unable to get shared container URL")
@@ -422,24 +434,18 @@ public final class SessionManager: NSObject, SessionManagerType {
 
         super.init()
 
-        registerForVoipPushNotificationsIfNeeded()
+        registerForVoipPushNotifications()
         deleteAccountToken = AccountDeletedNotification.addObserver(observer: self, queue: groupQueue)
         callCenterObserverToken = WireCallCenterV3.addGlobalCallStateObserver(observer: self)
 
         checkJailbreakIfNeeded()
     }
 
-    //  For iOS earlier than 13 we should register for voip push notifications
-    private func registerForVoipPushNotificationsIfNeeded() {
-        guard #available(iOS 13.0, *),
-        !configuration.useLegacyPushNotifications else {
-            pushLog.safePublic("registering for voip push token")
-            // register for voIP push notifications
-            self.pushRegistry.delegate = self
-            let pkPushTypeSet: Set<PKPushType> = [PKPushType.voIP]
-            self.pushRegistry.desiredPushTypes = pkPushTypeSet
-            return
-        }
+    private func registerForVoipPushNotifications() {
+        pushLog.safePublic("registering for voip push token")
+        self.pushRegistry.delegate = self
+        let pkPushTypeSet: Set<PKPushType> = [PKPushType.voIP]
+        self.pushRegistry.desiredPushTypes = pkPushTypeSet
     }
 
     public func start(launchOptions: LaunchOptions) {
@@ -756,22 +762,9 @@ public final class SessionManager: NSObject, SessionManagerType {
         registerObservers(account: account, session: userSession)
     }
 
-    // The restrictions for using voip push notifications are only enforced from iOS 13.
-    // For clients running iOS 13 and above, if the token type does not match the useLegacyPushNotifications flag,
-    // we should delete the token and generate a new one when upgrading the client OS or app version.
     private func updateOrMigratePushToken(session userSession: ZMUserSession) {
-        var isIOS13: Bool {
-            if #available(iOS 13.0, *) {
-                return true
-            } else {
-                return false
-            }
-        }
-        let hasLegacyToken = userSession.selfUserClient?.pushToken?.tokenType == .voip
-        let shouldHaveLegacyToken = !isIOS13 || configuration.useLegacyPushNotifications
-
-        if shouldHaveLegacyToken != hasLegacyToken {
-            pushLog.safePublic("deleting push token")
+        if let currentToken = userSession.selfUserClient?.pushToken?.tokenType, currentToken != requiredPushTokenType {
+            pushLog.safePublic("deleting current token")
             userSession.deletePushKitToken()
         }
 
@@ -796,7 +789,7 @@ public final class SessionManager: NSObject, SessionManagerType {
     private func startBackgroundSession(for account: Account, with coreDataStack: CoreDataStack) -> ZMUserSession {
         let sessionConfig = ZMUserSession.Configuration(
             appLockConfig: configuration.legacyAppLockConfig,
-            useLegacyPushNotifications: configuration.useLegacyPushNotifications
+            useLegacyPushNotifications: shouldProcessLegacyPushes
         )
 
         guard let newSession = authenticatedSessionFactory.session(for: account,

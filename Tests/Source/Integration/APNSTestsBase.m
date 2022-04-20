@@ -32,6 +32,11 @@
     [self createExtraUsersAndConversations];
 }
 
+- (BOOL)shouldProcessLegacyPushes
+{
+    return YES;
+}
+
 - (NSDictionary *)noticePayloadForLastEvent
 {
     ZMUpdateEvent *lastEvent = self.mockTransportSession.updateEvents.lastObject;
