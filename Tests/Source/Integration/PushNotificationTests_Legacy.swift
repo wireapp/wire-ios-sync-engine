@@ -28,10 +28,8 @@ class PushNotificationTokenTests_Legacy: IntegrationTest {
         case delete(Data)
     }
 
-    override var sessionManagerConfiguration: SessionManagerConfiguration {
-        let result = super.sessionManagerConfiguration
-        result.useLegacyPushNotifications = true
-        return result
+    override var shouldProcessLegacyPushes: Bool {
+        return true
     }
 
     func check(request: ZMTransportRequest, expectedRequest: TokenRequest, line: UInt = #line) {
