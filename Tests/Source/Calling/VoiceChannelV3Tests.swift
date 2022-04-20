@@ -80,7 +80,7 @@ class VoiceChannelV3Tests: MessagingTest {
 
         // when
 
-        wireCallCenterMock?.handleNetworkQualityChange(conversationId: conversation!.avsIdentifier!, client: caller, quality: quality)
+        wireCallCenterMock?.handleNetworkQualityChange(conversationId: conversation!.avsIdentifier!, userId: caller.userId, clientId: caller.clientId, quality: quality)
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then

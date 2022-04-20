@@ -1039,7 +1039,7 @@ extension WireCallCenterV3Tests {
         let quality = NetworkQuality.poor
 
         // when
-        sut.handleNetworkQualityChange(conversationId: oneOnOneConversationID, client: AVSClient(userId: otherUserID, clientId: otherUserClientID), quality: quality)
+        sut.handleNetworkQualityChange(conversationId: oneOnOneConversationID, userId: otherUserID.identifier.transportString(), clientId: otherUserClientID, quality: quality)
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
