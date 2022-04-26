@@ -253,9 +253,10 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
                 conversationUUID: conversationUUID,
                 senderUUID: senderUUID,
                 clientId: clientId,
-                event: event,
+                conversationDomain: event.conversationDomain,
+                senderDomain: event.senderDomain,
                 payload: payload,
-                currentTimestamp: Date().addingTimeInterval(serverTimeDelta),
+                currentTimestamp: serverTimeDelta,
                 eventTimestamp: eventTimestamp
             )
         }
@@ -271,11 +272,11 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
                           eventTimestamp: Date) {
         let conversationId = AVSIdentifier(
             identifier: conversationUUID,
-            domain: event.conversationDomain
+            domain: conversationDomain
         )
         let userId = AVSIdentifier(
             identifier: senderUUID,
-            domain: event.senderDomain
+            domain: senderDomain
         )
 
         let callEvent = CallEvent(
