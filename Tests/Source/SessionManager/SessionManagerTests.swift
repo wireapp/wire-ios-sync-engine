@@ -1679,6 +1679,27 @@ class MockForegroundNotificationResponder: NSObject, ForegroundNotificationRespo
         return true
     }
 }
+
+extension SessionManagerTests {
+
+    @available(iOS 13, *)
+    func testThatItLoadsUserSession() async throws {
+        // GIVEN
+        let sessionManager = try XCTUnwrap(self.sessionManager)
+        let account = createAccount()
+
+        XCTAssertNil(sessionManager.backgroundUserSessions[account.userIdentifier])
+
+        // WHEN
+        let session = try await sessionManager.withSession(for: account)
+
+        // THEN
+        XCTAssertNotNil(session.managedObjectContext)
+        XCTAssertNotNil(sessionManager.backgroundUserSessions[account.userIdentifier])
+    }
+
+}
+
 extension SessionManager {
 
     func withSession(
