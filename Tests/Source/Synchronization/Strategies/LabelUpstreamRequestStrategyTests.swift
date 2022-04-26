@@ -66,7 +66,7 @@ class LabelUpstreamRequestStrategyTests: MessagingTest {
             self.sut.objectsDidChange(Set([label]))
 
             // when
-            guard let request = self.sut.nextRequestIfAllowed() else { return XCTFail() }
+            guard let request = self.sut.nextRequestIfAllowed(for: .v0) else { return XCTFail() }
 
             // then
             let payload = try! JSONSerialization.data(withJSONObject: request.payload as Any, options: [])
@@ -90,7 +90,7 @@ class LabelUpstreamRequestStrategyTests: MessagingTest {
             self.sut.objectsDidChange(Set([label]))
 
             // when
-            guard let request = self.sut.nextRequestIfAllowed() else { return XCTFail() }
+            guard let request = self.sut.nextRequestIfAllowed(for: .v0) else { return XCTFail() }
 
             // then
             let payload = try! JSONSerialization.data(withJSONObject: request.payload as Any, options: [])
@@ -110,7 +110,7 @@ class LabelUpstreamRequestStrategyTests: MessagingTest {
 
         // then
         syncMOC.performGroupedBlockAndWait {
-            XCTAssertNotNil(self.sut.nextRequestIfAllowed())
+            XCTAssertNotNil(self.sut.nextRequestIfAllowed(for: .v0))
         }
     }
 
@@ -124,7 +124,7 @@ class LabelUpstreamRequestStrategyTests: MessagingTest {
 
         // then
         syncMOC.performGroupedBlockAndWait {
-            XCTAssertNotNil(self.sut.nextRequestIfAllowed())
+            XCTAssertNotNil(self.sut.nextRequestIfAllowed(for: .v0))
         }
     }
 
@@ -143,17 +143,17 @@ class LabelUpstreamRequestStrategyTests: MessagingTest {
 
         // when
         syncMOC.performGroupedBlockAndWait {
-            guard let request = self.sut.nextRequestIfAllowed() else { return XCTFail() }
+            guard let request = self.sut.nextRequestIfAllowed(for: .v0) else { return XCTFail() }
             label2.modifiedKeys = Set(["name"])
             self.syncMOC.saveOrRollback()
             self.sut.objectsDidChange(Set([label2]))
-            request.complete(with: ZMTransportResponse(payload: nil, httpStatus: 201, transportSessionError: nil))
+            request.complete(with: ZMTransportResponse(payload: nil, httpStatus: 201, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
         syncMOC.performGroupedBlockAndWait {
-            XCTAssertNotNil(self.sut.nextRequestIfAllowed())
+            XCTAssertNotNil(self.sut.nextRequestIfAllowed(for: .v0))
         }
     }
 
@@ -169,8 +169,8 @@ class LabelUpstreamRequestStrategyTests: MessagingTest {
 
         // when
         syncMOC.performGroupedBlockAndWait {
-            guard let request = self.sut.nextRequestIfAllowed() else { return XCTFail() }
-            request.complete(with: ZMTransportResponse(payload: nil, httpStatus: 201, transportSessionError: nil))
+            guard let request = self.sut.nextRequestIfAllowed(for: .v0) else { return XCTFail() }
+            request.complete(with: ZMTransportResponse(payload: nil, httpStatus: 201, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
@@ -193,8 +193,8 @@ class LabelUpstreamRequestStrategyTests: MessagingTest {
 
         // when
         syncMOC.performGroupedBlockAndWait {
-            guard let request = self.sut.nextRequestIfAllowed() else { return XCTFail() }
-            request.complete(with: ZMTransportResponse(payload: nil, httpStatus: 201, transportSessionError: nil))
+            guard let request = self.sut.nextRequestIfAllowed(for: .v0) else { return XCTFail() }
+            request.complete(with: ZMTransportResponse(payload: nil, httpStatus: 201, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
         }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 

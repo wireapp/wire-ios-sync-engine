@@ -124,7 +124,7 @@ class ConversationMessageTimerTests: IntegrationTest {
         let identifier = conversation.remoteIdentifier!.transportString()
         mockTransportSession.responseGeneratorBlock = { request in
             guard request.path == "/conversations/\(identifier)/message-timer" else { return nil }
-            return ZMTransportResponse(payload: self.responsePayload(for: conversation, timeout: timeout), httpStatus: 200, transportSessionError: nil)
+            return ZMTransportResponse(payload: self.responsePayload(for: conversation, timeout: timeout), httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
         }
 
         // when

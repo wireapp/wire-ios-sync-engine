@@ -85,7 +85,7 @@ class ZMUserSessionTests_Authentication: ZMUserSessionTestsBase {
         // when
         sut.logout(credentials: credentials, {_ in })
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        transportSession.lastEnqueuedRequest?.complete(with: ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil))
+        transportSession.lastEnqueuedRequest?.complete(with: ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
@@ -111,15 +111,15 @@ class ZMUserSessionTests_Authentication: ZMUserSessionTestsBase {
             }
         })
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        transportSession.lastEnqueuedRequest?.complete(with: ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil))
+        transportSession.lastEnqueuedRequest?.complete(with: ZMTransportResponse(payload: nil, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
     }
 
     func testThatItCallsTheCompletionHandlerWithCorrectErrorCode_WhenLogoutRequestFails() {
-        checkThatItCallsTheCompletionHandler(with: .clientDeletedRemotely, for: ZMTransportResponse(payload: ["label": "client-not-found"] as ZMTransportData, httpStatus: 404, transportSessionError: nil))
-        checkThatItCallsTheCompletionHandler(with: .invalidCredentials, for: ZMTransportResponse(payload: ["label": "invalid-credentials"] as ZMTransportData, httpStatus: 403, transportSessionError: nil))
-        checkThatItCallsTheCompletionHandler(with: .invalidCredentials, for: ZMTransportResponse(payload: ["label": "missing-auth"]  as ZMTransportData, httpStatus: 403, transportSessionError: nil))
-        checkThatItCallsTheCompletionHandler(with: .invalidCredentials, for: ZMTransportResponse(payload: ["label": "bad-request"]  as ZMTransportData, httpStatus: 403, transportSessionError: nil))
+        checkThatItCallsTheCompletionHandler(with: .clientDeletedRemotely, for: ZMTransportResponse(payload: ["label": "client-not-found"] as ZMTransportData, httpStatus: 404, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
+        checkThatItCallsTheCompletionHandler(with: .invalidCredentials, for: ZMTransportResponse(payload: ["label": "invalid-credentials"] as ZMTransportData, httpStatus: 403, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
+        checkThatItCallsTheCompletionHandler(with: .invalidCredentials, for: ZMTransportResponse(payload: ["label": "missing-auth"]  as ZMTransportData, httpStatus: 403, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
+        checkThatItCallsTheCompletionHandler(with: .invalidCredentials, for: ZMTransportResponse(payload: ["label": "bad-request"]  as ZMTransportData, httpStatus: 403, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
     }
 
     func checkThatItCallsTheCompletionHandler(with errorCode: ZMUserSessionErrorCode, for response: ZMTransportResponse) {

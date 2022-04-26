@@ -151,7 +151,7 @@ ZM_EMPTY_ASSERTING_INIT()
 }
 #endif
 
-- (ZMTransportRequest *)nextRequest
+- (ZMTransportRequest *)nextRequestForAPIVersion:(APIVersion)apiVersion
 {
     if (!self.didFetchObjects) {
         self.didFetchObjects = YES;
@@ -162,7 +162,15 @@ ZM_EMPTY_ASSERTING_INIT()
         return nil;
     }
 
-    return [self.strategyDirectory.requestStrategies firstNonNilReturnedFromSelector:@selector(nextRequest)];
+    for (id<RequestStrategy> requestStrategy in self.strategyDirectory.requestStrategies) {
+        ZMTransportRequest *request = [requestStrategy nextRequestForAPIVersion:apiVersion];
+
+        if (request != nil) {
+            return request;
+        }
+    }
+
+    return nil;
 }
 
 @end

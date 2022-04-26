@@ -37,7 +37,7 @@ class PermissionsDownloadRequestStrategyTests: MessagingTest {
     }
 
     func testThatItDoesNotGenerateARequestInitially() {
-        XCTAssertNil(sut.nextRequest())
+        XCTAssertNil(sut.nextRequest(for: .v0))
     }
 
     func testThatItDoesNotCreateARequestIfThereIsNoMemberToBeRedownloaded() {
@@ -52,7 +52,7 @@ class PermissionsDownloadRequestStrategyTests: MessagingTest {
             self.boostrapChangeTrackers(with: member)
 
             // then
-            XCTAssertNil(self.sut.nextRequest())
+            XCTAssertNil(self.sut.nextRequest(for: .v0))
         }
     }
 
@@ -72,7 +72,7 @@ class PermissionsDownloadRequestStrategyTests: MessagingTest {
             self.boostrapChangeTrackers(with: member)
 
             // then
-            guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
+            guard let request = self.sut.nextRequest(for: .v0) else { return XCTFail("No request generated") }
             XCTAssertEqual(request.method, .methodGET)
             XCTAssertEqual(request.path, "/teams/\(teamId.transportString())/members/\(userId.transportString())")
         }
@@ -90,7 +90,7 @@ class PermissionsDownloadRequestStrategyTests: MessagingTest {
             self.boostrapChangeTrackers(with: member)
 
             // then
-            XCTAssertNil(self.sut.nextRequest())
+            XCTAssertNil(self.sut.nextRequest(for: .v0))
         }
     }
 
@@ -109,7 +109,7 @@ class PermissionsDownloadRequestStrategyTests: MessagingTest {
 
             member.needsToBeUpdatedFromBackend = true
             self.boostrapChangeTrackers(with: member)
-            guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
+            guard let request = self.sut.nextRequest(for: .v0) else { return XCTFail("No request generated") }
 
             // when
             let payload: [String: Any] = [
@@ -117,7 +117,7 @@ class PermissionsDownloadRequestStrategyTests: MessagingTest {
                 "permissions": ["self": 17, "copy": 0]
             ]
 
-            let response = ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
             // when
             request.complete(with: response)
@@ -137,7 +137,7 @@ class PermissionsDownloadRequestStrategyTests: MessagingTest {
         syncMOC.performGroupedBlockAndWait {
             // then
             self.boostrapChangeTrackers(with: member)
-            XCTAssertNil(self.sut.nextRequestIfAllowed())
+            XCTAssertNil(self.sut.nextRequestIfAllowed(for: .v0))
         }
     }
 
@@ -155,10 +155,10 @@ class PermissionsDownloadRequestStrategyTests: MessagingTest {
             member.needsToBeUpdatedFromBackend = true
 
             self.boostrapChangeTrackers(with: member)
-            guard let request = self.sut.nextRequest() else { return XCTFail("No request generated") }
+            guard let request = self.sut.nextRequest(for: .v0) else { return XCTFail("No request generated") }
 
             // when
-            let response = ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 404, transportSessionError: nil)
+            let response = ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 404, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
             // when
             request.complete(with: response)

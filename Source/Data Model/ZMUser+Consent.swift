@@ -62,7 +62,11 @@ extension ZMUser {
                       on transportSession: TransportSessionType,
                       completion: @escaping CompletionFetch) {
 
-        let request = ConsentRequestFactory.fetchConsentRequest()
+        guard let apiVersion = APIVersion.current else {
+            return completion(.failure(ConsentRequestError.unknown))
+        }
+
+        let request = ConsentRequestFactory.fetchConsentRequest(apiVersion: apiVersion)
 
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
 
@@ -94,7 +98,12 @@ extension ZMUser {
                     for consentType: ConsentType,
                     on transportSession: TransportSessionType,
                     completion: @escaping CompletionSet) {
-        let request = ConsentRequestFactory.setConsentRequest(for: consentType, value: value)
+
+        guard let apiVersion = APIVersion.current else {
+            return completion(.failure(ConsentRequestError.unknown))
+        }
+
+        let request = ConsentRequestFactory.setConsentRequest(for: consentType, value: value, apiVersion: apiVersion)
 
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
 
@@ -116,15 +125,15 @@ extension ZMUser {
 struct ConsentRequestFactory {
     static let consentPath = "/self/consent"
 
-    static func fetchConsentRequest() -> ZMTransportRequest {
-        return .init(getFromPath: consentPath)
+    static func fetchConsentRequest(apiVersion: APIVersion) -> ZMTransportRequest {
+        return .init(getFromPath: consentPath, apiVersion: apiVersion.rawValue)
     }
 
     static var sourceString: String {
         return "iOS " + Bundle.main.version
     }
 
-    static func setConsentRequest(for consentType: ConsentType, value: Bool) -> ZMTransportRequest {
+    static func setConsentRequest(for consentType: ConsentType, value: Bool, apiVersion: APIVersion) -> ZMTransportRequest {
         let payload: [String: Any] = [
             "type": consentType.rawValue,
             "value": value ? 1:0,
@@ -132,6 +141,7 @@ struct ConsentRequestFactory {
         ]
         return .init(path: consentPath,
                      method: .methodPUT,
-                     payload: payload as ZMTransportData)
+                     payload: payload as ZMTransportData,
+                     apiVersion: apiVersion.rawValue)
     }
 }

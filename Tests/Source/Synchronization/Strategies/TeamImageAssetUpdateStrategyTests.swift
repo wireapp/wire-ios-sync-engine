@@ -56,7 +56,7 @@ final class TeamImageAssetUpdateStrategyTests: MessagingTest {
         _ = createTeamWithImage()
 
         // THEN
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
         XCTAssertNil(request)
     }
 
@@ -69,7 +69,7 @@ final class TeamImageAssetUpdateStrategyTests: MessagingTest {
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // THEN
-        let request = sut.nextRequest()
+        let request = sut.nextRequest(for: .v0)
         XCTAssertNotNil(request)
         XCTAssertEqual(request?.path, "/assets/v3/\(pictureAssetId)")
         XCTAssertEqual(request?.method, .methodGET)
@@ -82,10 +82,10 @@ final class TeamImageAssetUpdateStrategyTests: MessagingTest {
 
         team.requestImage()
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        guard let request = sut.nextRequest() else { return XCTFail("nil request generated") }
+        guard let request = sut.nextRequest(for: .v0) else { return XCTFail("nil request generated") }
 
         // WHEN
-        request.complete(with: ZMTransportResponse(imageData: imageData, httpStatus: 200, transportSessionError: nil, headers: nil))
+        request.complete(with: ZMTransportResponse(imageData: imageData, httpStatus: 200, transportSessionError: nil, headers: nil, apiVersion: APIVersion.v0.rawValue))
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // THEN
@@ -97,10 +97,10 @@ final class TeamImageAssetUpdateStrategyTests: MessagingTest {
         let team = createTeamWithImage()
         team.requestImage()
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        guard let request = sut.nextRequest() else { return XCTFail("nil request generated") }
+        guard let request = sut.nextRequest(for: .v0) else { return XCTFail("nil request generated") }
 
         // WHEN
-        request.complete(with: ZMTransportResponse(payload: nil, httpStatus: 404, transportSessionError: nil))
+        request.complete(with: ZMTransportResponse(payload: nil, httpStatus: 404, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // THEN

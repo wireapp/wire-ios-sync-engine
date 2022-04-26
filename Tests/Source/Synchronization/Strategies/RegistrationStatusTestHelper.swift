@@ -50,7 +50,7 @@ extension RegistrationStatusStrategyTestHelper {
             "message": "some"
         ]
 
-        let response = ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: httpStatus, transportSessionError: nil)
+        let response = ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: httpStatus, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
         // when
         XCTAssertEqual(registrationStatus.successCalled, 0, "Success should not be called", file: file, line: line)

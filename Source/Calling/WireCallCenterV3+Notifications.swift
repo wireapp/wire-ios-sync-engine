@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2017 Wire Swiss GmbH
+// Copyright (C) 2022 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -39,8 +39,6 @@ public protocol NetworkQualityObserver: AnyObject {
 struct WireCallCenterNetworkQualityNotification: SelfPostingNotification {
     static let notificationName = Notification.Name("WireCallCenterNetworkQualityNotification")
     public let conversationId: AVSIdentifier
-    public let userId: AVSIdentifier
-    public let clientId: String
     public let networkQuality: NetworkQuality
 }
 

@@ -60,7 +60,7 @@ class LabelDownstreamRequestStrategyTests: MessagingTest {
         let encoder = JSONEncoder()
         let data = try! encoder.encode(self.folderResponse(name: "folder", conversations: []))
         let urlResponse = HTTPURLResponse(url: URL(string: "properties/labels")!, statusCode: 200, httpVersion: nil, headerFields: nil)!
-        return ZMTransportResponse(httpurlResponse: urlResponse, data: data, error: nil)
+        return ZMTransportResponse(httpurlResponse: urlResponse, data: data, error: nil, apiVersion: APIVersion.v0.rawValue)
     }
 
     func favoriteResponse(identifier: UUID = UUID(), favorites: [UUID]) -> WireSyncEngine.LabelPayload {
@@ -96,7 +96,7 @@ class LabelDownstreamRequestStrategyTests: MessagingTest {
             self.mockSyncStatus.mockPhase = .fetchingLabels
 
             // WHEN
-            guard let request = self.sut.nextRequest() else { return XCTFail() }
+            guard let request = self.sut.nextRequest(for: .v0) else { return XCTFail() }
 
             // THEN
             XCTAssertEqual(request.path, "/properties/labels")
@@ -109,7 +109,7 @@ class LabelDownstreamRequestStrategyTests: MessagingTest {
             ZMUser.selfUser(in: self.syncMOC).needsToRefetchLabels = true
 
             // WHEN
-            guard let request = self.sut.nextRequest() else { return XCTFail() }
+            guard let request = self.sut.nextRequest(for: .v0) else { return XCTFail() }
 
             // THEN
             XCTAssertEqual(request.path, "/properties/labels")
@@ -120,7 +120,7 @@ class LabelDownstreamRequestStrategyTests: MessagingTest {
         syncMOC.performGroupedBlockAndWait {
             // GIVEN
             ZMUser.selfUser(in: self.syncMOC).needsToRefetchLabels = true
-            guard let request = self.sut.nextRequest() else { return XCTFail() }
+            guard let request = self.sut.nextRequest(for: .v0) else { return XCTFail() }
 
             // WHEN
             request.complete(with: self.successfullFolderResponse())
@@ -137,10 +137,10 @@ class LabelDownstreamRequestStrategyTests: MessagingTest {
         syncMOC.performGroupedBlockAndWait {
             // GIVEN
             ZMUser.selfUser(in: self.syncMOC).needsToRefetchLabels = true
-            guard let request = self.sut.nextRequest() else { return XCTFail() }
+            guard let request = self.sut.nextRequest(for: .v0) else { return XCTFail() }
 
             // WHEN
-            request.complete(with: ZMTransportResponse(payload: nil, httpStatus: 404, transportSessionError: nil))
+            request.complete(with: ZMTransportResponse(payload: nil, httpStatus: 404, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
         }
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
@@ -154,7 +154,7 @@ class LabelDownstreamRequestStrategyTests: MessagingTest {
         syncMOC.performGroupedBlockAndWait {
             // GIVEN
             self.mockSyncStatus.mockPhase = .fetchingLabels
-            guard let request = self.sut.nextRequest() else { return XCTFail() }
+            guard let request = self.sut.nextRequest(for: .v0) else { return XCTFail() }
 
             // WHEN
             request.complete(with: self.successfullFolderResponse())
@@ -171,10 +171,10 @@ class LabelDownstreamRequestStrategyTests: MessagingTest {
         syncMOC.performGroupedBlockAndWait {
             // GIVEN
             self.mockSyncStatus.mockPhase = .fetchingLabels
-            guard let request = self.sut.nextRequest() else { return XCTFail() }
+            guard let request = self.sut.nextRequest(for: .v0) else { return XCTFail() }
 
             // WHEN
-            request.complete(with: ZMTransportResponse(payload: nil, httpStatus: 404, transportSessionError: nil))
+            request.complete(with: ZMTransportResponse(payload: nil, httpStatus: 404, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
         }
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 

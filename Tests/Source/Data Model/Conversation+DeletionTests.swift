@@ -25,22 +25,22 @@ class Conversation_DeletionTests: DatabaseTest {
 
     override func setUp() {
         super.setUp()
-
+        APIVersion.current = .v0
         mockTransportSession = MockTransportSession(dispatchGroup: dispatchGroup)
     }
 
     override func tearDown() {
         mockTransportSession.cleanUp()
         mockTransportSession = nil
-
+        APIVersion.current = nil
         super.tearDown()
     }
 
     func testThatItParsesAllKnownConversationDeletionErrorResponses() {
 
         let errorResponses: [(ConversationDeletionError, ZMTransportResponse)] = [
-            (ConversationDeletionError.invalidOperation, ZMTransportResponse(payload: ["label": "invalid-op"] as ZMTransportData, httpStatus: 403, transportSessionError: nil)),
-            (ConversationDeletionError.conversationNotFound, ZMTransportResponse(payload: ["label": "no-conversation"] as ZMTransportData, httpStatus: 404, transportSessionError: nil))
+            (ConversationDeletionError.invalidOperation, ZMTransportResponse(payload: ["label": "invalid-op"] as ZMTransportData, httpStatus: 403, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)),
+            (ConversationDeletionError.conversationNotFound, ZMTransportResponse(payload: ["label": "no-conversation"] as ZMTransportData, httpStatus: 404, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
         ]
 
         for (expectedError, response) in errorResponses {

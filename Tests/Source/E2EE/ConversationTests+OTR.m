@@ -140,7 +140,7 @@
         ZM_STRONG(self);
         if ([request.path.pathComponents containsObject:@"assets"]) {
             self.mockTransportSession.responseGeneratorBlock = nil;
-            return [ZMTransportResponse responseWithPayload:@{ @"label" : @"unknown-client"} HTTPStatus:403 transportSessionError:nil];
+            return [ZMTransportResponse responseWithPayload:@{ @"label" : @"unknown-client"} HTTPStatus:403 transportSessionError:nil apiVersion:0];
         }
         return nil;
     };

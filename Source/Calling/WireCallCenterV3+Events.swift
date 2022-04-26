@@ -284,15 +284,19 @@ extension WireCallCenterV3 {
     }
 
     /// Handles network quality change
-    func handleNetworkQualityChange(conversationId: AVSIdentifier, client: AVSClient, quality: NetworkQuality) {
+    func handleNetworkQualityChange(conversationId: AVSIdentifier, userId: String, clientId: String, quality: NetworkQuality) {
         handleEventInContext("network-quality-change") {
-            self.callParticipantNetworkQualityChanged(conversationId: conversationId, client: client, quality: quality)
+            if let identifier = AVSIdentifier(string: userId) {
+                self.callParticipantNetworkQualityChanged(
+                    conversationId: conversationId,
+                    client: AVSClient(userId: identifier, clientId: clientId),
+                    quality: quality
+                )
+            }
 
             if let call = self.callSnapshots[conversationId] {
                 self.callSnapshots[conversationId] = call.updateNetworkQuality(quality)
                 let notification = WireCallCenterNetworkQualityNotification(conversationId: conversationId,
-                                                                            userId: client.avsIdentifier,
-                                                                            clientId: client.clientId,
                                                                             networkQuality: quality)
                 notification.post(in: $0.notificationContext)
             }

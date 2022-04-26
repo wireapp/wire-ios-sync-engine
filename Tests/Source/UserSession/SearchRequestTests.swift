@@ -19,6 +19,7 @@
 import Foundation
 
 @testable import WireSyncEngine
+import XCTest
 
 class SearchRequestTests: MessagingTest {
 
@@ -31,7 +32,7 @@ class SearchRequestTests: MessagingTest {
         let request = SearchRequest(query: tooLongString, searchOptions: [])
 
         // then
-        XCTAssertEqual(request.query, croppedString)
+        XCTAssertEqual(request.query.string, croppedString)
     }
 
     func testThatItNormalizesTheQuery() {
@@ -60,40 +61,26 @@ class SearchRequestTests: MessagingTest {
 
         // with leading whitespace
         try assertHandleAndDomain(from: " john@example.com ", handle: "john", domain: "example.com")
-    }
-
-    func testThatItDoesntParseHandleAndDomain_WhenQueryIsIncomplete() throws {
 
         // missing domain
-        assertHandleAndDomainIsNil(from: "@john")
-
-        // missing handle
-        assertHandleAndDomainIsNil(from: "@@example.com")
-
-        // whitespace handle
-        assertHandleAndDomainIsNil(from: "@ @example.com")
+        try assertHandleAndDomain(from: "@john", handle: "john", domain: nil)
     }
 
     // MARK: - Helpers
 
-    func assertHandleAndDomain(from query: String,
-                               handle expectedHandle: String,
-                               domain expectedDomain: String) throws {
+    func assertHandleAndDomain(
+        from query: String,
+        handle expectedHandle: String,
+        domain expectedDomain: String?,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) throws {
         // when
         let request = SearchRequest(query: query, searchOptions: [])
 
         // then
-        let (handle, domain) = try XCTUnwrap(request.handleAndDomain)
-        XCTAssertEqual(handle, expectedHandle)
-        XCTAssertEqual(domain, expectedDomain)
-    }
-
-    func assertHandleAndDomainIsNil(from query: String) {
-        // when
-        let request = SearchRequest(query: query, searchOptions: [])
-
-        // then
-        XCTAssertNil(request.handleAndDomain)
+        XCTAssertEqual(request.query.string, expectedHandle, file: file, line: line)
+        XCTAssertEqual(request.searchDomain, expectedDomain, file: file, line: line)
     }
 
 }

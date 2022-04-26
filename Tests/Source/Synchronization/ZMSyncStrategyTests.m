@@ -156,7 +156,7 @@
     self.mockContextChangeTracker.fetchRequest = self.fetchRequestForTrackedObjects2;
         
     // when
-    (void)[self.sut nextRequest];
+    (void)[self.sut nextRequestForAPIVersion:APIVersionV0];
     
     // then
     XCTAssertTrue(self.mockContextChangeTracker.addTrackedObjectsCalled);

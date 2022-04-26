@@ -364,7 +364,7 @@ extension FileTransferTests_Swift {
         self.mockTransportSession.responseGeneratorBlock = { request in
             let expectedPath = "/assets/v3/\(thumbnailIDString)"
             if request.path == expectedPath {
-                return ZMTransportResponse.init(imageData: encryptedAsset, httpStatus: 200, transportSessionError: nil, headers: nil)
+                return ZMTransportResponse.init(imageData: encryptedAsset, httpStatus: 200, transportSessionError: nil, headers: nil, apiVersion: APIVersion.v0.rawValue)
             }
             return nil
         }
@@ -434,7 +434,7 @@ extension FileTransferTests_Swift {
         self.mockTransportSession.responseGeneratorBlock = { request in
             let expectedPath = "/assets/v3/\(thumbnailIDString)"
             if request.path == expectedPath {
-                return ZMTransportResponse.init(imageData: encryptedAsset, httpStatus: 200, transportSessionError: nil, headers: nil)
+                return ZMTransportResponse.init(imageData: encryptedAsset, httpStatus: 200, transportSessionError: nil, headers: nil, apiVersion: APIVersion.v0.rawValue)
             }
             return nil
         }
@@ -529,7 +529,7 @@ extension FileTransferTests_Swift {
         self.mockTransportSession.responseGeneratorBlock = { request in
             let expectedPath = "/assets/v3/\(assetID.transportString())"
             if request.path == expectedPath {
-                return ZMTransportResponse.init(imageData: encryptedAsset, httpStatus: 200, transportSessionError: nil, headers: nil)
+                return ZMTransportResponse.init(imageData: encryptedAsset, httpStatus: 200, transportSessionError: nil, headers: nil, apiVersion: APIVersion.v0.rawValue)
             }
             return nil
         }
@@ -585,7 +585,7 @@ extension FileTransferTests_Swift {
             let expectedPath = "/assets/v3/\(assetID.transportString())"
             if request.path == expectedPath {
                 let wrongData = Data.secureRandomData(length: 128)
-                return ZMTransportResponse.init(imageData: wrongData, httpStatus: 200, transportSessionError: nil, headers: nil)
+                return ZMTransportResponse.init(imageData: wrongData, httpStatus: 200, transportSessionError: nil, headers: nil, apiVersion: APIVersion.v0.rawValue)
             }
             return nil
         }

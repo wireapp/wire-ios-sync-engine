@@ -102,7 +102,7 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
         return modifiedPredicate
     }
 
-    public func nextRequest() -> ZMTransportRequest? {
+    public func nextRequest(for apiVersion: APIVersion) -> ZMTransportRequest? {
         guard let clientRegistrationStatus = self.clientRegistrationStatus,
             let clientUpdateStatus = self.clientUpdateStatus else {
                 return nil
@@ -114,22 +114,22 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
 
         if clientUpdateStatus.currentPhase == .fetchingClients {
             fetchAllClientsSync.readyForNextRequestIfNotBusy()
-            return fetchAllClientsSync.nextRequest()
+            return fetchAllClientsSync.nextRequest(for: apiVersion)
         }
 
         if clientUpdateStatus.currentPhase == .deletingClients {
-            if let request =  deleteSync.nextRequest() {
+            if let request =  deleteSync.nextRequest(for: apiVersion) {
                 return request
             }
         }
 
         if clientRegistrationStatus.currentPhase == .unregistered {
-            if let request = insertSync.nextRequest() {
+            if let request = insertSync.nextRequest(for: apiVersion) {
                 return request
             }
         }
 
-        if let request = modifiedSync.nextRequest() {
+        if let request = modifiedSync.nextRequest(for: apiVersion) {
             return request
         }
 
@@ -149,11 +149,11 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
         return false
     }
 
-    public func request(for sync: ZMSingleRequestSync) -> ZMTransportRequest? {
-        return requestsFactory.fetchClientsRequest()
+    public func request(for sync: ZMSingleRequestSync, apiVersion: APIVersion) -> ZMTransportRequest? {
+        return requestsFactory.fetchClientsRequest(apiVersion: apiVersion)
     }
 
-    public func request(forUpdating managedObject: ZMManagedObject, forKeys keys: Set<String>) -> ZMUpstreamRequest? {
+    public func request(forUpdating managedObject: ZMManagedObject, forKeys keys: Set<String>, apiVersion: APIVersion) -> ZMUpstreamRequest? {
         if let managedObject = managedObject as? UserClient {
             guard let clientUpdateStatus = self.clientUpdateStatus else { fatal("clientUpdateStatus is not set") }
 
@@ -162,25 +162,25 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
             switch keys {
             case _ where keys.contains(ZMUserClientNumberOfKeysRemainingKey):
                 do {
-                    try request = requestsFactory.updateClientPreKeysRequest(managedObject)
+                    try request = requestsFactory.updateClientPreKeysRequest(managedObject, apiVersion: apiVersion)
                 } catch let e {
                     fatal("Couldn't create request for new pre keys: \(e)")
                 }
             case _ where keys.contains(ZMUserClientMarkedToDeleteKey):
                 if clientUpdateStatus.currentPhase == ClientUpdatePhase.deletingClients {
-                    request = requestsFactory.deleteClientRequest(managedObject, credentials: clientUpdateStatus.credentials)
+                    request = requestsFactory.deleteClientRequest(managedObject, credentials: clientUpdateStatus.credentials, apiVersion: apiVersion)
                 } else {
                     fatal("No email credentials in memory")
                 }
             case _ where keys.contains(ZMUserClientNeedsToUpdateSignalingKeysKey):
                 do {
-                    try request = requestsFactory.updateClientSignalingKeysRequest(managedObject)
+                    try request = requestsFactory.updateClientSignalingKeysRequest(managedObject, apiVersion: apiVersion)
                 } catch let e {
                     fatal("Couldn't create request for new signaling keys: \(e)")
                 }
             case _ where keys.contains(ZMUserClientNeedsToUpdateCapabilitiesKey):
                 do {
-                    try request = requestsFactory.updateClientCapabilitiesRequest(managedObject)
+                    try request = requestsFactory.updateClientCapabilitiesRequest(managedObject, apiVersion: apiVersion)
                 } catch let e {
                     fatal("Couldn't create request for updating Capabilities: \(e)")
                 }
@@ -193,12 +193,13 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
         }
     }
 
-    public func request(forInserting managedObject: ZMManagedObject, forKeys keys: Set<String>?) -> ZMUpstreamRequest? {
+    public func request(forInserting managedObject: ZMManagedObject, forKeys keys: Set<String>?, apiVersion: APIVersion) -> ZMUpstreamRequest? {
         guard let client = managedObject as? UserClient else { fatal("Called requestForInsertingObject() on \(managedObject.safeForLoggingDescription)") }
         return try? requestsFactory.registerClientRequest(
                 client,
                 credentials: clientRegistrationStatus?.emailCredentials,
-                cookieLabel: CookieLabel.current.value
+                cookieLabel: CookieLabel.current.value,
+                apiVersion: apiVersion
             )
     }
 

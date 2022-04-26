@@ -89,6 +89,70 @@ class ConversationTests_Guests: IntegrationTest {
         XCTAssertEqual(request.method, .methodPOST)
     }
 
+    func testThatItSendsRequestToFetchTheGuestLinkStatus() {
+        // given
+        mockTransportSession.performRemoteChanges { _ in
+            self.groupConversationWithWholeTeam.guestLinkFeatureStatus = "enabled"
+        }
+        XCTAssert(login())
+
+        let conversation = self.conversation(for: self.groupConversationWithWholeTeam)!
+
+        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
+        mockTransportSession?.resetReceivedRequests()
+
+        // when
+        conversation.canGenerateGuestLink(in: self.userSession!) { result in
+            switch result {
+            case .success:
+                XCTAssertEqual(self.groupConversationWithWholeTeam.guestLinkFeatureStatus, "enabled")
+            case .failure:
+                XCTFail()
+            }
+        }
+
+        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.1))
+
+        // then
+        XCTAssertEqual(mockTransportSession.receivedRequests().count, 1)
+        guard let request = mockTransportSession.receivedRequests().first else { return }
+        XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/features/conversationGuestLinks")
+        XCTAssertEqual(request.method, .methodGET)
+
+    }
+
+    func testThatItSendsRequestToFetchTheGuestLinkStatus_AndFailsWhenConversationIdIsMissing() {
+        // GIVEN
+        performIgnoringZMLogError {
+            XCTAssert(self.login())
+            var conversation: ZMConversation!
+            self.mockTransportSession.performRemoteChanges { _ in
+                conversation = self.conversation(for: self.groupConversationWithWholeTeam)!
+            }
+
+            conversation.remoteIdentifier = UUID.create()
+
+            XCTAssert(self.waitForAllGroupsToBeEmpty(withTimeout: 0.1))
+            self.mockTransportSession?.resetReceivedRequests()
+
+            // WHEN
+            let didFail  = self.expectation(description: "did fail")
+            conversation.canGenerateGuestLink(in: self.userSession!) { result in
+                // THEN
+                switch result {
+                case .success:
+                    XCTFail()
+                case .failure(let error):
+                    XCTAssertEqual(error as! WirelessLinkError, WirelessLinkError.noConversation)
+                    didFail.fulfill()
+                }
+            }
+
+            XCTAssert(self.waitForCustomExpectations(withTimeout: 0.4))
+
+        }
+    }
+
     func testThatItSendsRequestToSetModeIfLegacyWhenFetchingTheLink() {
         // given
         mockTransportSession.performRemoteChanges { _ in

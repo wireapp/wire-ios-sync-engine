@@ -49,7 +49,7 @@ class SignatureRequestStrategyTests: MessagingTest {
         syncMOC.signatureStatus?.state = .waitingForConsentURL
 
         // when
-        let request = sut.nextRequestIfAllowed()
+        let request = sut.nextRequestIfAllowed(for: .v0)
 
         // then
         XCTAssertNotNil(request)
@@ -66,12 +66,12 @@ class SignatureRequestStrategyTests: MessagingTest {
         let responseId = "123123"
         let payload: [String: String] = ["consentURL": "http://test.com",
                                           "responseId": responseId]
-        let successResponse = ZMTransportResponse(payload: payload as NSDictionary, httpStatus: 200, transportSessionError: nil)
+        let successResponse = ZMTransportResponse(payload: payload as NSDictionary, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
         // when user inserted correct OTP code
         sut.didReceive(successResponse, forSingleRequest: sut.requestSync!)
         syncMOC.signatureStatus?.state = .waitingForSignature
-        let request = sut.nextRequestIfAllowed()
+        let request = sut.nextRequestIfAllowed(for: .v0)
 
         // then
         XCTAssertNotNil(request)
@@ -84,10 +84,10 @@ class SignatureRequestStrategyTests: MessagingTest {
         let responseId = "123123"
         let payload: [String: String] = ["consentURL": "http://test.com",
                                           "responseId": responseId]
-        let successResponse = ZMTransportResponse(payload: payload as NSDictionary, httpStatus: 200, transportSessionError: nil)
+        let successResponse = ZMTransportResponse(payload: payload as NSDictionary, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
         // when
-        _ = sut.nextRequestIfAllowed()
+        _ = sut.nextRequestIfAllowed(for: .v0)
         sut.didReceive(successResponse, forSingleRequest: sut.requestSync!)
 
         // then
@@ -99,10 +99,10 @@ class SignatureRequestStrategyTests: MessagingTest {
         let documentId = "123123"
         let payload: [String: String] = ["documentId": documentId,
                                           "cms": "Test"]
-        let successResponse = ZMTransportResponse(payload: payload as NSDictionary, httpStatus: 200, transportSessionError: nil)
+        let successResponse = ZMTransportResponse(payload: payload as NSDictionary, httpStatus: 200, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
         // when
-        _ = sut.nextRequestIfAllowed()
+        _ = sut.nextRequestIfAllowed(for: .v0)
         sut.didReceive(successResponse, forSingleRequest: sut.retrieveSync!)
 
         // then
@@ -111,10 +111,10 @@ class SignatureRequestStrategyTests: MessagingTest {
 
     func testThatItNotifiesSignatureStatusAfterFailedResponseToReceiveConsentURL() {
         // given
-        let successResponse = ZMTransportResponse(payload: nil, httpStatus: 400, transportSessionError: nil)
+        let successResponse = ZMTransportResponse(payload: nil, httpStatus: 400, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
         // when
-        _ = sut.nextRequestIfAllowed()
+        _ = sut.nextRequestIfAllowed(for: .v0)
         sut.didReceive(successResponse, forSingleRequest: sut.requestSync!)
 
         // then
@@ -123,10 +123,10 @@ class SignatureRequestStrategyTests: MessagingTest {
 
     func testThatItNotifiesSignatureStatusAfterFailedResponseToReceiveSignature() {
         // given
-        let successResponse = ZMTransportResponse(payload: nil, httpStatus: 400, transportSessionError: nil)
+        let successResponse = ZMTransportResponse(payload: nil, httpStatus: 400, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue)
 
         // when
-        _ = sut.nextRequestIfAllowed()
+        _ = sut.nextRequestIfAllowed(for: .v0)
         sut.didReceive(successResponse, forSingleRequest: sut.retrieveSync!)
 
         // then

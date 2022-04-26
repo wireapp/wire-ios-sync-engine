@@ -49,17 +49,13 @@ extension PKPushPayload {
 extension SessionManager: PKPushRegistryDelegate {
 
     public func pushRegistry(_ registry: PKPushRegistry, didUpdate pushCredentials: PKPushCredentials, for type: PKPushType) {
+        // We're only interested in voip push kit tokens.
         guard type == .voIP else { return }
 
-        Logging.push.safePublic("PushKit token was updated: \(pushCredentials)")
+        // We only want to store the voip token if required.
+        guard requiredPushTokenType == .voip else { return }
 
-        guard configuration.useLegacyPushNotifications else {
-            // Do nothing: we still register for voip pushes even when using standard
-            // apns push tokens. This is so the app can receive "fake" voip pushes from
-            // the extension. We don't want to use the voip push token because we should
-            // be using the standard apns token instead.
-            return
-        }
+        Logging.push.safePublic("PushKit token was updated: \(pushCredentials)")
 
         // Give new push token to all running sessions.
         backgroundUserSessions.values.forEach { userSession in
@@ -69,19 +65,18 @@ extension SessionManager: PKPushRegistryDelegate {
     }
 
     public func pushRegistry(_ registry: PKPushRegistry, didInvalidatePushTokenFor type: PKPushType) {
-        guard
-            type == .voIP,
-            configuration.useLegacyPushNotifications
-        else {
-            return
-        }
+        // We're only interested in voip push kit tokens.
+        guard type == .voIP else { return }
+
+        // We don't want to delete a standard push token by accident.
+        guard requiredPushTokenType == .voip else { return }
 
         Logging.push.safePublic("PushKit token was invalidated")
 
         // Delete push token from all running sessions.
-        backgroundUserSessions.values.forEach({ userSession in
+        backgroundUserSessions.values.forEach { userSession in
             userSession.deletePushKitToken()
-        })
+        }
     }
 
     public func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType) {
@@ -192,16 +187,16 @@ extension SessionManager: PKPushRegistryDelegate {
 
     public func updatePushToken(for session: ZMUserSession) {
         session.managedObjectContext.performGroupedBlock { [weak session] in
-            // Refresh the tokens if needed
-            if #available(iOS 13.0, *), !self.configuration.useLegacyPushNotifications {
-                pushLog.safePublic("creating standard push token")
-                self.application.registerForRemoteNotifications()
-            } else {
+            switch self.requiredPushTokenType {
+            case .voip:
                 if let token = self.pushRegistry.pushToken(for: .voIP) {
                     pushLog.safePublic("creating voip push token")
                     let pushToken = PushToken.createVOIPToken(from: token)
                     session?.setPushToken(pushToken)
                 }
+            case .standard:
+                pushLog.safePublic("creating standard push token")
+                self.application.registerForRemoteNotifications()
             }
         }
     }
@@ -266,6 +261,11 @@ extension SessionManager {
 }
 
 extension SessionManager {
+
+    var shouldProcessLegacyPushes: Bool {
+        return requiredPushTokenType == .voip
+    }
+
     public func updateDeviceToken(_ deviceToken: Data) {
         let pushToken = PushToken.createAPNSToken(from: deviceToken)
         // give new device token to all running sessions
@@ -273,6 +273,7 @@ extension SessionManager {
             userSession.setPushToken(pushToken)
         })
     }
+
 }
 
 private extension VOIPPushPayload {

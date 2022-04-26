@@ -61,7 +61,7 @@ NSString * const ZMSkipHotfix = @"ZMSkipHotfix";
         return;
     }
     
-    NSString * currentVersionString = [[[NSBundle bundleForClass:ZMUserSession.class] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
+    NSString * currentVersionString = [[[NSBundle bundleForClass:ZMUserSession.class] infoDictionary] objectForKey:@"FrameworkVersion"];
     [self applyPatchesForCurrentVersion:currentVersionString];
 }
 

@@ -42,7 +42,7 @@ public final class UserClientRequestFactory {
         self.keyStore = keysStore
     }
 
-    public func registerClientRequest(_ client: UserClient, credentials: ZMEmailCredentials?, cookieLabel: String) throws -> ZMUpstreamRequest {
+    public func registerClientRequest(_ client: UserClient, credentials: ZMEmailCredentials?, cookieLabel: String, apiVersion: APIVersion) throws -> ZMUpstreamRequest {
 
         let (preKeysPayloadData, preKeysRangeMax) = try payloadForPreKeys(client)
         let (signalingKeysPayloadData, signalingKeys) = payloadForSignalingKeys()
@@ -67,7 +67,7 @@ public final class UserClientRequestFactory {
             payload["verification_code"] = verificationCode
         }
 
-        let request = ZMTransportRequest(path: "/clients", method: ZMTransportRequestMethod.methodPOST, payload: payload as ZMTransportData)
+        let request = ZMTransportRequest(path: "/clients", method: ZMTransportRequestMethod.methodPOST, payload: payload as ZMTransportData, apiVersion: apiVersion.rawValue)
         request.add(storeMaxRangeID(client, maxRangeID: preKeysRangeMax))
         request.add(storeAPSSignalingKeys(client, signalingKeys: signalingKeys))
 
@@ -143,14 +143,14 @@ public final class UserClientRequestFactory {
         return (payload, signalingKeys)
     }
 
-    public func updateClientPreKeysRequest(_ client: UserClient) throws -> ZMUpstreamRequest {
+    public func updateClientPreKeysRequest(_ client: UserClient, apiVersion: APIVersion) throws -> ZMUpstreamRequest {
         if let remoteIdentifier = client.remoteIdentifier {
             let startIndex = UInt16(client.preKeysRangeMax)
             let (preKeysPayloadData, preKeysRangeMax) = try payloadForPreKeys(client, startIndex: startIndex)
             let payload: [String: Any] = [
                 "prekeys": preKeysPayloadData
             ]
-            let request = ZMTransportRequest(path: "/clients/\(remoteIdentifier)", method: ZMTransportRequestMethod.methodPUT, payload: payload as ZMTransportData)
+            let request = ZMTransportRequest(path: "/clients/\(remoteIdentifier)", method: ZMTransportRequestMethod.methodPUT, payload: payload as ZMTransportData, apiVersion: apiVersion.rawValue)
             request.add(storeMaxRangeID(client, maxRangeID: preKeysRangeMax))
 
             let userClientNumberOfKeysRemainingKeySet: Set<String> = [ZMUserClientNumberOfKeysRemainingKey]
@@ -159,14 +159,14 @@ public final class UserClientRequestFactory {
         throw UserClientRequestError.clientNotRegistered
     }
 
-    public func updateClientSignalingKeysRequest(_ client: UserClient) throws -> ZMUpstreamRequest {
+    public func updateClientSignalingKeysRequest(_ client: UserClient, apiVersion: APIVersion) throws -> ZMUpstreamRequest {
         if let remoteIdentifier = client.remoteIdentifier {
             let (signalingKeysPayloadData, signalingKeys) = payloadForSignalingKeys()
             let payload: [String: Any] = [
                 "sigkeys": signalingKeysPayloadData,
                 "prekeys": [] // NOTE backend always expects 'prekeys' to be present atm
             ]
-            let request = ZMTransportRequest(path: "/clients/\(remoteIdentifier)", method: ZMTransportRequestMethod.methodPUT, payload: payload as ZMTransportData)
+            let request = ZMTransportRequest(path: "/clients/\(remoteIdentifier)", method: ZMTransportRequestMethod.methodPUT, payload: payload as ZMTransportData, apiVersion: apiVersion.rawValue)
             request.add(storeAPSSignalingKeys(client, signalingKeys: signalingKeys))
 
             let userClientNeedsToUpdateSignalingKeysKeySet: Set<String> = [ZMUserClientNeedsToUpdateSignalingKeysKey]
@@ -175,14 +175,14 @@ public final class UserClientRequestFactory {
         throw UserClientRequestError.clientNotRegistered
     }
 
-    public func updateClientCapabilitiesRequest(_ client: UserClient) throws -> ZMUpstreamRequest? {
+    public func updateClientCapabilitiesRequest(_ client: UserClient, apiVersion: APIVersion) throws -> ZMUpstreamRequest? {
         guard let remoteIdentifier = client.remoteIdentifier else {
             throw UserClientRequestError.clientNotRegistered
         }
         let payload: [String: Any] = [
             "capabilities": ["legalhold-implicit-consent"]
         ]
-        let request = ZMTransportRequest(path: "/clients/\(remoteIdentifier)", method: ZMTransportRequestMethod.methodPUT, payload: payload as ZMTransportData)
+        let request = ZMTransportRequest(path: "/clients/\(remoteIdentifier)", method: ZMTransportRequestMethod.methodPUT, payload: payload as ZMTransportData, apiVersion: apiVersion.rawValue)
         request.add(storeCapabilitiesHandler(client))
 
         let userClientNeedsToUpdateCapabilitiesKeySet: Set<String> = [ZMUserClientNeedsToUpdateCapabilitiesKey]
@@ -190,7 +190,7 @@ public final class UserClientRequestFactory {
     }
 
     /// Password needs to be set
-    public func deleteClientRequest(_ client: UserClient, credentials: ZMEmailCredentials?) -> ZMUpstreamRequest {
+    public func deleteClientRequest(_ client: UserClient, credentials: ZMEmailCredentials?, apiVersion: APIVersion) -> ZMUpstreamRequest {
         let payload: [AnyHashable: Any]
 
         if let credentials = credentials,
@@ -204,13 +204,13 @@ public final class UserClientRequestFactory {
             payload = [:]
         }
 
-        let request =  ZMTransportRequest(path: "/clients/\(client.remoteIdentifier!)", method: ZMTransportRequestMethod.methodDELETE, payload: payload as ZMTransportData)
+        let request =  ZMTransportRequest(path: "/clients/\(client.remoteIdentifier!)", method: ZMTransportRequestMethod.methodDELETE, payload: payload as ZMTransportData, apiVersion: apiVersion.rawValue)
         let userClientMarkedToDeleteKeySet: Set<String> = [ZMUserClientMarkedToDeleteKey]
         return ZMUpstreamRequest(keys: userClientMarkedToDeleteKeySet, transportRequest: request)
     }
 
-    public func fetchClientsRequest() -> ZMTransportRequest! {
-        return ZMTransportRequest(getFromPath: "/clients")
+    public func fetchClientsRequest(apiVersion: APIVersion) -> ZMTransportRequest! {
+        return ZMTransportRequest(getFromPath: "/clients", apiVersion: apiVersion.rawValue)
     }
 
 }

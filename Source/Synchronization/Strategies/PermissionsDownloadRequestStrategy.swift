@@ -93,8 +93,8 @@ public final class PermissionsDownloadRequestStrategy: AbstractRequestStrategy, 
         )
     }
 
-    public override func nextRequestIfAllowed() -> ZMTransportRequest? {
-        return sync.nextRequest()
+    public override func nextRequestIfAllowed(for apiVersion: APIVersion) -> ZMTransportRequest? {
+        return sync.nextRequest(for: apiVersion)
     }
 
     public var contextChangeTrackers: [ZMContextChangeTracker] {
@@ -107,10 +107,10 @@ public final class PermissionsDownloadRequestStrategy: AbstractRequestStrategy, 
 
     // MARK: - ZMDownstreamTranscoder
 
-    public func request(forFetching object: ZMManagedObject!, downstreamSync: ZMObjectSync!) -> ZMTransportRequest! {
+    public func request(forFetching object: ZMManagedObject!, downstreamSync: ZMObjectSync!, apiVersion: APIVersion) -> ZMTransportRequest! {
         guard let member = object as? Member, downstreamSync as? ZMDownstreamObjectSync == sync else { fatal("Wrong object: \(object.safeForLoggingDescription)") }
         guard let identifier = member.remoteIdentifier, let teamId = member.team?.remoteIdentifier else { fatal("No ids to sync: \(object.safeForLoggingDescription)") }
-        return TeamDownloadRequestFactory.getSingleMemberRequest(for: identifier, in: teamId)
+        return TeamDownloadRequestFactory.getSingleMemberRequest(for: identifier, in: teamId, apiVersion: apiVersion)
     }
 
     public func update(_ object: ZMManagedObject!, with response: ZMTransportResponse!, downstreamSync: ZMObjectSync!) {
