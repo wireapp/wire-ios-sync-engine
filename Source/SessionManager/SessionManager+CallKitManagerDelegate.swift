@@ -21,6 +21,7 @@ import CallKit
 
 enum ConversationLookupError: Error {
     case accountDoesNotExist
+    case failedToLoadSession
     case conversationDoesNotExist
 }
 
@@ -31,12 +32,19 @@ extension SessionManager: CallKitManagerDelegate {
             return completionHandler(.failure(ConversationLookupError.accountDoesNotExist))
         }
 
-        withSession(for: account) { (userSession) in
-            guard let conversation = ZMConversation.fetch(with: handle.conversationId, in: userSession.managedObjectContext) else {
-                return completionHandler(.failure(ConversationLookupError.conversationDoesNotExist))
-            }
+        withSession(for: account) { result in
+            switch result {
+            case let .success(session):
+                guard let conversation = ZMConversation.fetch(with: handle.conversationId, in: session.managedObjectContext) else {
+                    completionHandler(.failure(ConversationLookupError.conversationDoesNotExist))
+                    return
+                }
 
-            completionHandler(.success(conversation))
+                completionHandler(.success(conversation))
+
+            case .failure:
+                completionHandler(.failure(ConversationLookupError.failedToLoadSession))
+            }
         }
     }
 

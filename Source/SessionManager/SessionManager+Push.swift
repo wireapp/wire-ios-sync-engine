@@ -102,7 +102,9 @@ extension SessionManager: PKPushRegistryDelegate {
                 return completion()
         }
 
-        withSession(for: account, perform: { userSession in
+        withSession(for: account, perform: { result in
+            guard case let .success(userSession) = result else { return }
+            
             Logging.push.safePublic("Forwarding push payload to user session with account \(account.userIdentifier)")
 
             userSession.receivedPushNotification(with: payload.dictionaryPayload, completion: { [weak self] in
@@ -171,9 +173,14 @@ extension SessionManager: PKPushRegistryDelegate {
         guard
             let selfID = userInfo.selfUserID,
             let account = accountManager.account(with: selfID)
-            else { return }
+        else {
+            return
+        }
 
-        self.withSession(for: account, perform: block)
+        self.withSession(for: account) { result in
+            guard case let .success(session) = result else { return }
+            block(session)
+        }
     }
 
     fileprivate func activateAccount(for session: ZMUserSession, completion: @escaping () -> Void) {

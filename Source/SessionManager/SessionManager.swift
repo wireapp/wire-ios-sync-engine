@@ -633,24 +633,37 @@ public final class SessionManager: NSObject, SessionManagerType {
             return
         }
 
-        activateSession(for: account, completion: completion)
+        activateSession(for: account) { result in
+            if case let .success(session) = result {
+                completion(session)
+            } else {
+                completion(nil)
+            }
+        }
     }
 
-    fileprivate func activateSession(for account: Account, completion: @escaping (ZMUserSession) -> Void) {
-        self.withSession(for: account, notifyAboutMigration: true) { session in
-            self.activeUserSession = session
-            log.debug("Activated ZMUserSession for account \(String(describing: account.userName)) — \(account.userIdentifier)")
+    private func activateSession(for account: Account, completion: @escaping (Swift.Result<ZMUserSession, SessionLoadingError>) -> Void) {
+        withSession(for: account, notifyAboutMigration: true) { result in
+            switch result {
+            case let .success(session):
+                self.activeUserSession = session
 
-            self.delegate?.sessionManagerDidChangeActiveUserSession(userSession: session)
-            self.configureUserNotifications()
+                log.debug("Activated ZMUserSession for account \(String(describing: account.userName)) — \(account.userIdentifier)")
 
-            completion(session)
+                self.delegate?.sessionManagerDidChangeActiveUserSession(userSession: session)
+                self.configureUserNotifications()
 
-            // If the user isn't logged in it's because they still need
-            // to complete the login flow, which will be handle elsewhere.
-            if session.isLoggedIn {
-                self.delegate?.sessionManagerDidReportLockChange(forSession: session)
-                self.performPostUnlockActionsIfPossible(for: session)
+                completion(.success(session))
+
+                // If the user isn't logged in it's because they still need
+                // to complete the login flow, which will be handle elsewhere.
+                if session.isLoggedIn {
+                    self.delegate?.sessionManagerDidReportLockChange(forSession: session)
+                    self.performPostUnlockActionsIfPossible(for: session)
+                }
+
+            case let .failure(error):
+                completion(.failure(error))
             }
         }
     }
@@ -661,41 +674,47 @@ public final class SessionManager: NSObject, SessionManagerType {
     }
 
     // Loads user session for @c account given and executes the @c action block.
-    func withSession(for account: Account,
-                     notifyAboutMigration: Bool = false,
-                     perform completion: @escaping (ZMUserSession) -> Void) {
+    func withSession(
+        for account: Account,
+        notifyAboutMigration: Bool = false,
+        perform completion: @escaping (Swift.Result<ZMUserSession, SessionLoadingError>) -> Void
+    ) {
         log.debug("Request to load session for \(account)")
-        let group = self.dispatchGroup
-        group?.enter()
-        self.sessionLoadingQueue.serialAsync(do: { onWorkDone in
 
+        let group = dispatchGroup
+        group?.enter()
+
+        sessionLoadingQueue.serialAsync { onWorkDone in
             if let session = self.backgroundUserSessions[account.userIdentifier] {
                 log.debug("Session for \(account) is already loaded")
-                completion(session)
+                completion(.success(session))
                 onWorkDone()
                 group?.leave()
             } else {
-                let coreDataStack = CoreDataStack(account: account,
-                                                  applicationContainer: self.sharedContainerURL,
-                                                  dispatchGroup: self.dispatchGroup)
+                let coreDataStack = CoreDataStack(
+                    account: account,
+                    applicationContainer: self.sharedContainerURL,
+                    dispatchGroup: self.dispatchGroup
+                )
 
                 if coreDataStack.needsMigration {
                     self.delegate?.sessionManagerWillMigrateAccount(userSessionCanBeTornDown: {})
                 }
 
-                coreDataStack.loadStores { (error) in
+                coreDataStack.loadStores { error in
                     if error != nil {
                         self.delegate?.sessionManagerDidFailToLoadDatabase()
+                        completion(.failure(.failedToLoadDatabase))
                     } else {
-                        let userSession = self.startBackgroundSession(for: account,
-                                                                      with: coreDataStack)
-                        completion(userSession)
+                        let userSession = self.startBackgroundSession(for: account, with: coreDataStack)
+                        completion(.success(userSession))
                     }
+
                     onWorkDone()
                     group?.leave()
                 }
             }
-        })
+        }
     }
 
     fileprivate func deleteAccountData(for account: Account) {
@@ -1033,7 +1052,9 @@ extension SessionManager: UnauthenticatedSessionDelegate {
 
         accountManager.addAndSelect(account)
 
-        self.activateSession(for: account) { userSession in
+        activateSession(for: account) { result in
+            guard case let .success(userSession) = result else { return }
+
             self.updateCurrentAccount(in: userSession.managedObjectContext)
 
             if let profileImageData = session.authenticationStatus.profileImageData {
@@ -1296,9 +1317,11 @@ extension SessionManager {
 
         self.accountManager.accounts.forEach { account in
             group.enter()
-            self.withSession(for: account) { userSession in
-                userSession.perform {
-                    userSession.markAllConversationsAsRead()
+            self.withSession(for: account) { result in
+                if case let .success(userSession) = result {
+                    userSession.perform {
+                        userSession.markAllConversationsAsRead()
+                    }
                 }
 
                 group.leave()
@@ -1340,4 +1363,17 @@ extension SessionManager {
     public static func stopAVSLogging() {
         avsLogObserver = nil
     }
+}
+
+// MARK: - Errors
+
+extension SessionManager {
+
+    enum SessionLoadingError: Error {
+
+        case failedToLoadDatabase
+        case unknown
+
+    }
+
 }
