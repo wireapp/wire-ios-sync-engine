@@ -673,6 +673,23 @@ public final class SessionManager: NSObject, SessionManagerType {
         processPendingURLActionRequiresAuthentication()
     }
 
+    @available(iOS 13, *)
+    func withSession(for account: Account) async throws -> ZMUserSession {
+        log.debug("Request to load session for \(account)")
+
+        return try await withCheckedThrowingContinuation { continuation in
+            withSession(for: account) { result in
+                switch result {
+                case let .success(session):
+                    continuation.resume(returning: session)
+
+                case let .failure(error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+
     // Loads user session for @c account given and executes the @c action block.
     func withSession(
         for account: Account,
