@@ -1679,3 +1679,21 @@ class MockForegroundNotificationResponder: NSObject, ForegroundNotificationRespo
         return true
     }
 }
+extension SessionManager {
+
+    func withSession(
+        for account: Account,
+        perform completion: @escaping (ZMUserSession) -> Void
+    ) {
+        withSession(for: account) { (result: Swift.Result<ZMUserSession, SessionLoadingError>) in
+            switch result {
+            case let .success(session):
+                completion(session)
+
+            case .failure:
+                fatalError()
+            }
+        }
+    }
+
+}
