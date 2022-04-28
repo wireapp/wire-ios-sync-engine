@@ -116,7 +116,7 @@ extension ZMUserSession {
             guard let pushToken = selfClient.pushToken else { return }
             selfClient.legacyPushToken = pushToken.markToDelete()
 
-            selfClient.pushToken = pushToken.markToDelete() // nil
+            selfClient.pushToken = nil
             syncMOC.saveOrRollback()
         }
     }
