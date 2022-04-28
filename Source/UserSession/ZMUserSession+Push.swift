@@ -114,7 +114,9 @@ extension ZMUserSession {
         syncMOC.performGroupedBlock {
             guard let selfClient = ZMUser.selfUser(in: syncMOC).selfClient() else { return }
             guard let pushToken = selfClient.pushToken else { return }
-            selfClient.pushToken = pushToken.markToDelete()
+            selfClient.legacyPushToken = pushToken.markToDelete()
+
+            selfClient.pushToken = pushToken.markToDelete() // nil
             syncMOC.saveOrRollback()
         }
     }
