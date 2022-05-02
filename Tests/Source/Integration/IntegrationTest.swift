@@ -18,6 +18,7 @@
 
 import Foundation
 import WireTesting
+import WireDataModel
 import WireTransport.Testing
 import avs
 
@@ -720,4 +721,15 @@ public class MockLoginDelegate: NSObject, LoginDelegate {
         currentError = error
         didCallClientRegistrationDidFail = true
     }
+}
+
+// MARK: - Configure default APIVersion
+
+@objc
+extension IntegrationTest {
+
+    func configureDefaultAPIVersion() {
+        APIVersion.current = .v0
+    }
+
 }

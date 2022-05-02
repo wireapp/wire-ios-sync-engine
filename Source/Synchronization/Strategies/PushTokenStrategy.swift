@@ -135,6 +135,8 @@ public class PushTokenStrategy: AbstractRequestStrategy, ZMUpstreamTranscoder, Z
         case .deleteToken:
             if let legacyPushToken = client.legacyPushToken, legacyPushToken.isMarkedForDeletion {
                 client.legacyPushToken = nil
+
+                // Return true to indicate more requests are needed because we still need to register the new push token.
                 return true
 
             // The token might have changed in the meantime, check if it's still up for deletion

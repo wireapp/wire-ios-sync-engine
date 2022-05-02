@@ -38,6 +38,7 @@
     self.appState = @"authenticated";
     
     self.currentUserIdentifier = [NSUUID createUUID];
+    [self configureDefaultAPIVersion];
     [self _setUp];
 }
 

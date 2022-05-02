@@ -765,7 +765,7 @@ public final class SessionManager: NSObject, SessionManagerType {
     private func updateOrMigratePushToken(session userSession: ZMUserSession) {
         if let currentToken = userSession.selfUserClient?.pushToken?.tokenType, currentToken != requiredPushTokenType {
             pushLog.safePublic("deleting current token")
-            userSession.deletePushKitToken()
+            userSession.deletePushKitToken(isLegacy: true)
         }
 
         updatePushToken(for: userSession)
