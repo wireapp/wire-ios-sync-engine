@@ -102,37 +102,26 @@ extension SessionManager: PKPushRegistryDelegate {
 
         guard let account = accountManager.account(with: payload.accountID) else {
             throw VOIPPushError.accountNotFound
-
         }
 
         guard let session = backgroundUserSessions[account.userIdentifier] else {
             throw VOIPPushError.userSessionNotFound
-
-        }
-
-        guard let processor = session.syncStrategy?.callingRequestStrategy else {
-            throw VOIPPushError.processorNotFound
-
         }
 
         guard let callKitManager = self.callKitManager else {
             throw VOIPPushError.callKitManagerNotFound
-
         }
 
         guard let caller = payload.caller(in: session.viewContext) else {
             throw VOIPPushError.callerNotFound
-
         }
 
         guard let conversation = payload.conversation(in: session.viewContext) else {
             throw VOIPPushError.conversationNotFound
-
         }
 
         guard let callEventContent = CallEventContent(from: payload.data) else {
             throw VOIPPushError.malformedPayloadData
-
         }
 
         // IMPORTANT: We must report the call to CallKit synchronously in this method,
@@ -151,6 +140,10 @@ extension SessionManager: PKPushRegistryDelegate {
             throw VOIPPushError.failedToReportIncomingCall(reason: error)
         } catch let error as CallKitManager.ReportTerminatingCallError {
             throw VOIPPushError.failedToReportTerminatingCall(reason: error)
+        }
+
+        guard let processor = session.syncStrategy?.callingRequestStrategy else {
+            throw VOIPPushError.processorNotFound
         }
 
         Logging.push.safePublic("Forwarding call push payload to user session with account \(account.userIdentifier)")
