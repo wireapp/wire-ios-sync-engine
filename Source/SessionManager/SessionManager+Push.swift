@@ -85,35 +85,86 @@ extension SessionManager: PKPushRegistryDelegate {
 
     public func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
         if let voipPushPayload = VOIPPushPayload(payload: payload) {
-            handleCallPushPayload(voipPushPayload, completion: completion)
+            do {
+                try handleCallPushPayload(voipPushPayload, completion: completion)
+            } catch let error as VOIPPushError {
+                Logging.push.safePublic("Failed to handle voip push payload: \(error)")
+            } catch {
+                Logging.push.safePublic("Failed to handle voip push payload for unknown reason")
+            }
         } else {
             handleLegacyPushPayload(payload, for: type, completion: completion)
         }
     }
 
-    private func handleCallPushPayload(_ payload: VOIPPushPayload, completion: @escaping () -> Void) {
+    private func handleCallPushPayload(_ payload: VOIPPushPayload, completion: @escaping () -> Void) throws {
+        defer { completion() }
+
         guard let account = accountManager.account(with: payload.accountID) else {
-            Logging.push.safePublic("Aborted processing of call push payload because an account couldn't be found.")
-            completion()
-            return
+            throw VOIPPushError.accountNotFound
+
         }
 
-        withSession(for: account) { userSession in
-            Logging.push.safePublic("Forwarding call push payload to user session with account \(account.userIdentifier)")
+        guard let session = backgroundUserSessions[account.userIdentifier] else {
+            throw VOIPPushError.userSessionNotFound
 
-            let processor = userSession.syncStrategy?.callingRequestStrategy
-
-            processor?.processCallEvent(
-                conversationUUID: payload.conversationID,
-                senderUUID: payload.senderID,
-                clientId: payload.senderClientID,
-                conversationDomain: payload.conversationDomain,
-                senderDomain: payload.senderDomain,
-                payload: payload.data,
-                currentTimestamp: payload.serverTimeDelta,
-                eventTimestamp: payload.timestamp
-            )
         }
+
+        guard let processor = session.syncStrategy?.callingRequestStrategy else {
+            throw VOIPPushError.processorNotFound
+
+        }
+
+        guard let callKitManager = self.callKitManager else {
+            throw VOIPPushError.callKitManagerNotFound
+
+        }
+
+        guard let caller = payload.caller(in: session.viewContext) else {
+            throw VOIPPushError.callerNotFound
+
+        }
+
+        guard let conversation = payload.conversation(in: session.viewContext) else {
+            throw VOIPPushError.conversationNotFound
+
+        }
+
+        guard let callEventContent = CallEventContent(from: payload.data) else {
+            throw VOIPPushError.malformedPayloadData
+
+        }
+
+        // IMPORTANT: We must report the call to CallKit synchronously in this method,
+        // otherwise iOS will terminate the app due to violation of use of voip pushes.
+        // If we let iOS terminate our app several times, then it will stop delivering
+        // voip pushes altogether (even from the notification service extension). This
+        // may not be recoverable without reinstalling the app.
+
+        do {
+            if case let .incomingCall(video: video) = callEventContent.callState {
+                try callKitManager.reportIncomingCall(from: caller, in: conversation, video: video)
+            } else {
+                try callKitManager.reportCallEnded(in: conversation, atTime: payload.timestamp, reason: .remoteEnded)
+            }
+        } catch let error as CallKitManager.ReportIncomingCallError {
+            throw VOIPPushError.failedToReportIncomingCall(reason: error)
+        } catch let error as CallKitManager.ReportTerminatingCallError {
+            throw VOIPPushError.failedToReportTerminatingCall(reason: error)
+        }
+
+        Logging.push.safePublic("Forwarding call push payload to user session with account \(account.userIdentifier)")
+
+        processor.processCallEvent(
+            conversationUUID: payload.conversationID,
+            senderUUID: payload.senderID,
+            clientId: payload.senderClientID,
+            conversationDomain: payload.conversationDomain,
+            senderDomain: payload.senderDomain,
+            payload: payload.data,
+            currentTimestamp: payload.serverTimeDelta,
+            eventTimestamp: payload.timestamp
+        )
     }
 
     private func handleLegacyPushPayload(_ payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
@@ -284,6 +335,71 @@ private extension VOIPPushPayload {
         }
 
         self.init(from: dict)
+    }
+
+    func caller(in context: NSManagedObjectContext) -> ZMUser? {
+        return ZMUser.fetch(
+            with: senderID,
+            domain: senderDomain,
+            in: context
+        )
+    }
+
+    func conversation(in context: NSManagedObjectContext) -> ZMConversation? {
+        return ZMConversation.fetch(
+            with: conversationID,
+            domain: conversationDomain,
+            in: context
+        )
+    }
+
+}
+
+private extension SessionManager {
+
+    private enum VOIPPushError: Error, SafeForLoggingStringConvertible {
+
+        case accountNotFound
+        case userSessionNotFound
+        case processorNotFound
+        case callKitManagerNotFound
+        case callerNotFound
+        case conversationNotFound
+        case malformedPayloadData
+        case failedToReportIncomingCall(reason: CallKitManager.ReportIncomingCallError)
+        case failedToReportTerminatingCall(reason: CallKitManager.ReportTerminatingCallError)
+
+        var safeForLoggingDescription: String {
+            switch self {
+            case .accountNotFound:
+                return "Account not found"
+
+            case .userSessionNotFound:
+                return "User session not found"
+
+            case .processorNotFound:
+                return "Call event processor not found"
+
+            case .callKitManagerNotFound:
+                return "CallKit manager not found"
+
+            case .callerNotFound:
+                return "Caller not found"
+
+            case .conversationNotFound:
+                return "Conversation not found"
+
+            case .malformedPayloadData:
+                return "Malformed payload data"
+
+            case .failedToReportIncomingCall(let reason):
+                return reason.safeForLoggingDescription
+
+            case .failedToReportTerminatingCall(let reason):
+                return reason.safeForLoggingDescription
+            }
+        }
+
     }
 
 }
