@@ -383,8 +383,6 @@
 		5EFE9C17212AB945007932A6 /* RegistrationPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EFE9C16212AB945007932A6 /* RegistrationPhase.swift */; };
 		632A582025CC43DA00F0C4BD /* CallParticipantsListKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632A581F25CC43DA00F0C4BD /* CallParticipantsListKind.swift */; };
 		632A582225CD9DF900F0C4BD /* CallParticipantsKindTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632A582125CD9DF900F0C4BD /* CallParticipantsKindTests.swift */; };
-		633BBC5D27C3B93A00D8B1B0 /* CallEventContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 633BBC5C27C3B93A00D8B1B0 /* CallEventContent.swift */; };
-		633BBC6127C3C74B00D8B1B0 /* CallEventContentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 633BBC5E27C3C39700D8B1B0 /* CallEventContentTests.swift */; };
 		634976E9268A185A00824A05 /* AVSVideoStreams.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634976E8268A185A00824A05 /* AVSVideoStreams.swift */; };
 		634976F8268A200C00824A05 /* AVSClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634976F7268A200C00824A05 /* AVSClient.swift */; };
 		634976FD268A205A00824A05 /* AVSClientList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634976FC268A205A00824A05 /* AVSClientList.swift */; };
@@ -1001,8 +999,6 @@
 		5EFE9C16212AB945007932A6 /* RegistrationPhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationPhase.swift; sourceTree = "<group>"; };
 		632A581F25CC43DA00F0C4BD /* CallParticipantsListKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallParticipantsListKind.swift; sourceTree = "<group>"; };
 		632A582125CD9DF900F0C4BD /* CallParticipantsKindTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallParticipantsKindTests.swift; sourceTree = "<group>"; };
-		633BBC5C27C3B93A00D8B1B0 /* CallEventContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallEventContent.swift; sourceTree = "<group>"; };
-		633BBC5E27C3C39700D8B1B0 /* CallEventContentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallEventContentTests.swift; sourceTree = "<group>"; };
 		63495E4623FFF098002A7C59 /* ConversationTests+OTR.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ConversationTests+OTR.swift"; sourceTree = "<group>"; };
 		634976E8268A185A00824A05 /* AVSVideoStreams.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVSVideoStreams.swift; sourceTree = "<group>"; };
 		634976F7268A200C00824A05 /* AVSClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVSClient.swift; sourceTree = "<group>"; };
@@ -1641,7 +1637,6 @@
 				F1B5D53C2181FDA300986911 /* NetworkQuality.swift */,
 				7C5482D9225380160055F1AB /* CallReceivedResult.swift */,
 				5E8BB8A12147F89000EEA64B /* CallCenterSupport.swift */,
-				633BBC5C27C3B93A00D8B1B0 /* CallEventContent.swift */,
 				165D3A141E1D3EF30052E654 /* WireCallCenterV3.swift */,
 				639290A6252DEDB400046171 /* WireCallCenterV3+Degradation.swift */,
 				5EC2C592213827BF00C6CE35 /* WireCallCenterV3+Events.swift */,
@@ -1674,7 +1669,6 @@
 				6349771D268B7C4300824A05 /* AVSVideoStreamsTest.swift */,
 				63CF3FFF276B4D110079FF2B /* AVSIdentifierTests.swift */,
 				63A8F575276B7B3100513750 /* AVSClientTests.swift */,
-				633BBC5E27C3C39700D8B1B0 /* CallEventContentTests.swift */,
 			);
 			path = Calling;
 			sourceTree = "<group>";
@@ -3126,7 +3120,6 @@
 				F9410F681DE4BE42007451FF /* PushTokenStrategyTests.swift in Sources */,
 				F9ABE8571EFD56BF00D83214 /* TeamDownloadRequestStrategy+EventsTests.swift in Sources */,
 				85D85EAFA1CB6E457D14E3B7 /* MockEntity2.m in Sources */,
-				633BBC6127C3C74B00D8B1B0 /* CallEventContentTests.swift in Sources */,
 				166D18A6230EC418001288CD /* MockMediaManager.swift in Sources */,
 				09914E531BD6613D00C10BF8 /* ZMDecodedAPSMessageTest.m in Sources */,
 				6349771E268B7C4300824A05 /* AVSVideoStreamsTest.swift in Sources */,
@@ -3286,7 +3279,6 @@
 				0640C26D26EA0B5C0057AF80 /* NSManagedObjectContext+Packaging.swift in Sources */,
 				F1C51FE71FB49660009C2269 /* RegistrationStatus.swift in Sources */,
 				5E8EE1FA20FDC7D700DB1F9B /* Pasteboard.swift in Sources */,
-				633BBC5D27C3B93A00D8B1B0 /* CallEventContent.swift in Sources */,
 				16CD6A272681BA9000B9A73A /* ZMUser+FederatedConnection.swift in Sources */,
 				874A16922052BEC5001C6760 /* UserExpirationObserver.swift in Sources */,
 				8751DA061F66BFA6000D308B /* ZMUserSession+Push.swift in Sources */,
