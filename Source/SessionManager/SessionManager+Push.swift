@@ -108,7 +108,7 @@ extension SessionManager: PKPushRegistryDelegate {
             throw VOIPPushError.userSessionNotFound
         }
 
-        guard let callKitManager = self.callKitManager else {
+        guard let callKitManager = callKitManager else {
             throw VOIPPushError.callKitManagerNotFound
         }
 
