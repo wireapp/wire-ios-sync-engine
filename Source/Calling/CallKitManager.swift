@@ -143,6 +143,10 @@ public class CallKitManager: NSObject {
         return calls.first(where: { $0.value.conversation == conversation })?.key
     }
 
+    private func callExists(for conversation: ZMConversation) -> Bool {
+        return callUUID(for: conversation) != nil
+    }
+
 }
 
 extension CallKitManager {
@@ -282,6 +286,9 @@ extension CallKitManager {
     }
 
     func reportIncomingCall(from user: ZMUser, in conversation: ZMConversation, video: Bool) {
+        guard !callExists(for: conversation) else {
+            return log("Cannot report incoming call: call already exists, probably b/c it was reported earlier for a push notification")
+        }
 
         guard let handle = conversation.callKitHandle else {
             return log("Cannot report incoming call: conversation is missing handle")
@@ -305,13 +312,11 @@ extension CallKitManager {
 
         log("provider.reportNewIncomingCall")
 
-        provider.reportNewIncomingCall(with: callUUID, update: update) { [weak self] (error) in
+        provider.reportNewIncomingCall(with: callUUID, update: update) { [weak self] error in
             if let error = error {
                 self?.log("Cannot report incoming call: \(error)")
                 self?.calls.removeValue(forKey: callUUID)
                 conversation.voiceChannel?.leave()
-            } else {
-                self?.mediaManager?.setupAudioDevice()
             }
         }
     }
@@ -410,6 +415,8 @@ extension CallKitManager: CXProviderDelegate {
         call.observer.onFailedToJoin = {
             action.fail()
         }
+
+        mediaManager?.setupAudioDevice()
 
         if call.conversation.voiceChannel?.join(video: false) != true {
             action.fail()
