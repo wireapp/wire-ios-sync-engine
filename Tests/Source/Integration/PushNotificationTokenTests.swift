@@ -155,10 +155,9 @@ class PushNotificationTokenTests: IntegrationTest {
         // when
         userSession?.deletePushKitToken(isLegacy: true)
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        XCTAssertNotNil(userSession?.selfUserClient?.legacyPushToken)
 
         // then
-       // checkThatLastRequestContainsTokenRequest(.delete(token))
+        checkThatLastRequestContainsTokenRequest(.delete(token))
         XCTAssertNil(userSession?.selfUserClient?.pushToken)
         XCTAssertNil(userSession?.selfUserClient?.legacyPushToken)
     }
