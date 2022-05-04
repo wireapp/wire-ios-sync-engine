@@ -84,7 +84,7 @@ extension SessionManager: PKPushRegistryDelegate {
     }
 
     public func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
-        if let voipPushPayload = VOIPPushPayload(payload: payload) {
+        if let voipPushPayload = VoIPPushPayload(payload: payload) {
             do {
                 try handleCallPushPayload(voipPushPayload, completion: completion)
             } catch let error as VOIPPushError {
@@ -97,7 +97,7 @@ extension SessionManager: PKPushRegistryDelegate {
         }
     }
 
-    private func handleCallPushPayload(_ payload: VOIPPushPayload, completion: @escaping () -> Void) throws {
+    private func handleCallPushPayload(_ payload: VoIPPushPayload, completion: @escaping () -> Void) throws {
         defer { completion() }
 
         guard let account = accountManager.account(with: payload.accountID) else {
@@ -320,7 +320,7 @@ extension SessionManager {
 
 }
 
-private extension VOIPPushPayload {
+private extension VoIPPushPayload {
 
     init?(payload: PKPushPayload) {
         guard let dict = payload.dictionaryPayload as? [String: Any] else {
