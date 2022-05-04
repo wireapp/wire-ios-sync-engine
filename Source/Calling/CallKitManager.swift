@@ -73,7 +73,14 @@ public class CallKitManager: NSObject {
     fileprivate var callStateObserverToken: Any?
     fileprivate var missedCallObserverToken: Any?
     fileprivate var connectedCallConversation: ZMConversation?
-    fileprivate var calls: [UUID: CallKitCall]
+
+    fileprivate var calls: [UUID: CallKitCall] {
+        didSet {
+            VoIPPushHelper.setOngoingCalls(
+                conversationIDs: calls.values.map { $0.conversation.remoteIdentifier! }
+            )
+        }
+    }
 
     convenience init(delegate: CallKitManagerDelegate, mediaManager: MediaManagerType?) {
         self.init(provider: CXProvider(configuration: CallKitManager.providerConfiguration),

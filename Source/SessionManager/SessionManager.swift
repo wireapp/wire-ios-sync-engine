@@ -208,10 +208,9 @@ public final class SessionManager: NSObject, SessionManagerType {
 
     public private(set) var backgroundUserSessions = [UUID: ZMUserSession]() {
         didSet {
-            Set(oldValue.keys).union(backgroundUserSessions.keys).forEach { id in
-                let isLoaded = backgroundUserSessions[id] != nil
-                VoIPPushHelper.setIsUserSessionLoaded(accountID: id, isLoaded: isLoaded)
-            }
+            VoIPPushHelper.setLoadedUserSessions(
+                accountIDs: Array(backgroundUserSessions.keys)
+            )
         }
     }
 
