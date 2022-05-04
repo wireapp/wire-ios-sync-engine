@@ -24,6 +24,7 @@ import CallKit
 import PushKit
 import UserNotifications
 import WireDataModel
+import WireRequestStrategy
 
 private let log = ZMSLog(tag: "SessionManager")
 private let pushLog = ZMSLog(tag: "Push")
@@ -205,7 +206,15 @@ public final class SessionManager: NSObject, SessionManagerType {
         }
     }
 
-    public fileprivate(set) var backgroundUserSessions: [UUID: ZMUserSession] = [:]
+    public private(set) var backgroundUserSessions = [UUID: ZMUserSession]() {
+        didSet {
+            Set(oldValue.keys).union(backgroundUserSessions.keys).forEach { id in
+                let isLoaded = backgroundUserSessions[id] != nil
+                VoIPPushHelper.setIsUserSessionLoaded(accountID: id, isLoaded: isLoaded)
+            }
+        }
+    }
+
     public internal(set) var unauthenticatedSession: UnauthenticatedSession? {
         willSet {
             self.unauthenticatedSession?.tearDown()
@@ -258,7 +267,11 @@ public final class SessionManager: NSObject, SessionManagerType {
     fileprivate var memoryWarningObserver: NSObjectProtocol?
     fileprivate var isSelectingAccount: Bool = false
 
-    public var callKitManager: CallKitManager?
+    public var callKitManager: CallKitManager? {
+        didSet {
+            VoIPPushHelper.isCallKitAvailable = callKitManager != nil
+        }
+    }
 
     public var isSelectedAccountAuthenticated: Bool {
         guard let selectedAccount = accountManager.selectedAccount else {

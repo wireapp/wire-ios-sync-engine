@@ -90,6 +90,8 @@ public class WireCallCenterV3: NSObject {
     /// Set to true once AVS calls the ReadyHandler. Setting it to `true` forwards all previously buffered events to AVS.
     var isReady: Bool = false {
         didSet {
+            VoIPPushHelper.isAVSReady = isReady
+
             if isReady {
                 bufferedEvents.forEach { (item: (event: CallEvent, completionHandler: () -> Void)) in
                     let (event, completionHandler) = item
