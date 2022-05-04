@@ -142,6 +142,27 @@ class PushNotificationTokenTests: IntegrationTest {
         XCTAssertNil(userSession?.selfUserClient?.pushToken)
     }
 
+    func testThatItDeletesLegacyTokenWhenMarkedAsToBeDeleted() {
+        XCTAssert(login())
+
+        // given
+        let token = Data(repeating: 0x41, count: 10)
+        let pushToken = PushToken.createAPNSToken(from: token)
+        userSession?.setPushToken(pushToken)
+        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+        mockTransportSession.resetReceivedRequests()
+
+        // when
+        userSession?.deletePushKitToken(isLegacy: true)
+        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+        XCTAssertNotNil(userSession?.selfUserClient?.legacyPushToken)
+
+        // then
+        checkThatLastRequestContainsTokenRequest(.delete(token))
+        XCTAssertNil(userSession?.selfUserClient?.pushToken)
+        XCTAssertNil(userSession?.selfUserClient?.legacyPushToken)
+    }
+
     func testThatItDoesNotDeleteTokenIfItWasResetWhileRequestIsInProgress() {
         XCTAssert(login())
 
