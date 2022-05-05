@@ -109,12 +109,19 @@ extension ZMUserSession {
         }
     }
 
-    func deletePushKitToken() {
+    func deletePushKitToken(isLegacy: Bool = false) {
         let syncMOC = managedObjectContext.zm_sync!
         syncMOC.performGroupedBlock {
             guard let selfClient = ZMUser.selfUser(in: syncMOC).selfClient() else { return }
             guard let pushToken = selfClient.pushToken else { return }
-            selfClient.pushToken = pushToken.markToDelete()
+            if isLegacy {
+                // Move the token to another property to free up space for
+                // a new non-legacy token.
+                selfClient.legacyPushToken = pushToken.markToDelete()
+                selfClient.pushToken = nil
+            } else {
+                selfClient.pushToken = pushToken.markToDelete()
+            }
             syncMOC.saveOrRollback()
         }
     }

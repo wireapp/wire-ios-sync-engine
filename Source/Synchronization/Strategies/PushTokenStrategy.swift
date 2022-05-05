@@ -27,6 +27,7 @@ public class PushTokenStrategy: AbstractRequestStrategy, ZMUpstreamTranscoder, Z
 
     enum Keys {
         static let UserClientPushTokenKey = "pushToken"
+        static let UserClientLegacyPushTokenKey = "legacyPushToken"
         static let RequestTypeKey = "requestType"
     }
 
@@ -49,9 +50,14 @@ public class PushTokenStrategy: AbstractRequestStrategy, ZMUpstreamTranscoder, Z
         return NSCompoundPredicate(andPredicateWithSubpredicates: [basePredicate, nonNilPushToken])
     }
 
-    @objc public init(withManagedObjectContext managedObjectContext: NSManagedObjectContext, applicationStatus: ApplicationStatus, analytics: AnalyticsType?) {
+    @objc
+    public init(withManagedObjectContext managedObjectContext: NSManagedObjectContext,
+                applicationStatus: ApplicationStatus,
+                analytics: AnalyticsType?) {
+
         super.init(withManagedObjectContext: managedObjectContext, applicationStatus: applicationStatus)
-        self.pushKitTokenSync = ZMUpstreamModifiedObjectSync(transcoder: self, entityName: UserClient.entityName(), update: modifiedPredicate(), filter: nil, keysToSync: [Keys.UserClientPushTokenKey], managedObjectContext: managedObjectContext)
+        pushKitTokenSync = ZMUpstreamModifiedObjectSync(transcoder: self, entityName: UserClient.entityName(), update: modifiedPredicate(), filter: nil, keysToSync: [Keys.UserClientPushTokenKey, Keys.UserClientLegacyPushTokenKey], managedObjectContext: managedObjectContext)
+
         if let analytics = analytics {
             self.notificationsTracker = NotificationsTracker(analytics: analytics)
         }
@@ -67,30 +73,38 @@ public class PushTokenStrategy: AbstractRequestStrategy, ZMUpstreamTranscoder, Z
         guard let client = managedObject as? UserClient else { return nil }
         guard client.isSelfClient() else { return nil }
         guard let clientIdentifier = client.remoteIdentifier else { return nil }
-        guard let pushToken = client.pushToken else { return nil }
 
         let request: ZMTransportRequest
         let requestType: RequestType
 
-        if pushToken.isMarkedForDeletion {
-            request = ZMTransportRequest(path: "\(PushTokenPath)/\(pushToken.deviceTokenString)", method: .methodDELETE, payload: nil, apiVersion: apiVersion.rawValue)
+        if let legacyPushToken = client.legacyPushToken, legacyPushToken.isMarkedForDeletion {
+            request = ZMTransportRequest(path: "\(PushTokenPath)/\(legacyPushToken.deviceTokenString)", method: .methodDELETE, payload: nil, apiVersion: apiVersion.rawValue)
             requestType = .deleteToken
-        } else if pushToken.isMarkedForDownload {
-            request = ZMTransportRequest(path: "\(PushTokenPath)", method: .methodGET, payload: nil, apiVersion: apiVersion.rawValue)
-            requestType = .getToken
-        } else if !pushToken.isRegistered {
-            let tokenPayload = PushTokenPayload(pushToken: pushToken, clientIdentifier: clientIdentifier)
-            let payloadData = try! JSONEncoder().encode(tokenPayload)
+        } else if let pushToken = client.pushToken {
+            if pushToken.isMarkedForDeletion {
+                request = ZMTransportRequest(path: "\(PushTokenPath)/\(pushToken.deviceTokenString)", method: .methodDELETE, payload: nil, apiVersion: apiVersion.rawValue)
+                requestType = .deleteToken
+            } else if pushToken.isMarkedForDownload {
+                request = ZMTransportRequest(path: "\(PushTokenPath)", method: .methodGET, payload: nil, apiVersion: apiVersion.rawValue)
+                requestType = .getToken
+            } else if !pushToken.isRegistered {
+                let tokenPayload = PushTokenPayload(pushToken: pushToken, clientIdentifier: clientIdentifier)
+                let payloadData = try! JSONEncoder().encode(tokenPayload)
 
-            // In various places (MockTransport for example) the payload is expected to be dictionary
-            let payload = ((try? JSONDecoder().decode([String: String].self, from: payloadData)) ?? [:]) as NSDictionary
-            request = ZMTransportRequest(path: "\(PushTokenPath)", method: .methodPOST, payload: payload, apiVersion: apiVersion.rawValue)
-            requestType = .postToken
+                // In various places (MockTransport for example) the payload is expected to be dictionary
+                let payload = ((try? JSONDecoder().decode([String: String].self, from: payloadData)) ?? [:]) as NSDictionary
+                request = ZMTransportRequest(path: "\(PushTokenPath)", method: .methodPOST, payload: payload, apiVersion: apiVersion.rawValue)
+                requestType = .postToken
+            } else {
+                return nil
+            }
         } else {
             return nil
         }
 
-        return ZMUpstreamRequest(keys: [Keys.UserClientPushTokenKey], transportRequest: request, userInfo: [Keys.RequestTypeKey: requestType.rawValue])
+        return ZMUpstreamRequest(keys: keys,
+                                 transportRequest: request,
+                                 userInfo: [Keys.RequestTypeKey: requestType.rawValue])
     }
 
     public func request(forInserting managedObject: ZMManagedObject, forKeys keys: Set<String>?, apiVersion: APIVersion) -> ZMUpstreamRequest? {
@@ -98,31 +112,39 @@ public class PushTokenStrategy: AbstractRequestStrategy, ZMUpstreamTranscoder, Z
     }
 
     public func updateInsertedObject(_ managedObject: ZMManagedObject, request upstreamRequest: ZMUpstreamRequest, response: ZMTransportResponse) {
-
     }
 
     public func updateUpdatedObject(_ managedObject: ZMManagedObject, requestUserInfo: [AnyHashable: Any]? = nil, response: ZMTransportResponse, keysToParse: Set<String>) -> Bool {
         guard let client = managedObject as? UserClient else { return false }
         guard client.isSelfClient() else { return false }
-        guard let pushToken = client.pushToken else { return false }
         guard let userInfo = requestUserInfo as? [String: String] else { return false }
         guard let requestTypeValue = userInfo[Keys.RequestTypeKey], let requestType = RequestType(rawValue: requestTypeValue) else { return false }
 
         switch requestType {
         case .postToken:
+            guard let pushToken = client.pushToken else { return false }
             var token = pushToken.resetFlags()
             token.isRegistered = true
             client.pushToken = token
             return false
         case .deleteToken:
+            if let legacyPushToken = client.legacyPushToken, legacyPushToken.isMarkedForDeletion {
+                client.legacyPushToken = nil
+
+                // Return true to indicate more requests are needed because we still need to register the new push token.
+                return true
+
             // The token might have changed in the meantime, check if it's still up for deletion
-            if let token = client.pushToken, token.isMarkedForDeletion {
+            } else if let token = client.pushToken, token.isMarkedForDeletion {
                 client.pushToken = nil
                 NotificationInContext(name: ZMUserSession.registerCurrentPushTokenNotificationName, context: managedObjectContext.notificationContext).post()
+                return false
+            } else {
+                return false
             }
-            return false
         case .getToken:
-            guard let responseData = response.rawData else { return false }
+            guard let pushToken = client.pushToken,
+                  let responseData = response.rawData else { return false }
             guard let payload = try? JSONDecoder().decode([String: [PushTokenPayload]].self, from: responseData) else { return false }
             guard let tokens = payload["tokens"] else { return false }
 
