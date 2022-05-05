@@ -407,13 +407,13 @@ class CallKitManagerTest: DatabaseTest {
 
     // MARK: Performing Actions
 
-    func testThatCallAnswerActionIsFulfilledWhenCallIsEstablished() {
+    func testThatCallAnswerActionIsFulfilledWhenCallIsEstablished() throws {
         // given
         let otherUser = self.otherUser(moc: self.uiMOC)
         createOneOnOneConversation(user: otherUser)
         let conversation = otherUser.oneToOneConversation!
         let provider = MockProvider(foo: true)
-        sut.reportIncomingCall(from: otherUser, in: conversation, video: false)
+        try sut.reportIncomingCall(from: otherUser, in: conversation, video: false)
         let action = MockCallAnswerAction(call: sut.callUUID(for: conversation)!)
         self.sut.provider(provider, perform: action)
 
@@ -424,13 +424,13 @@ class CallKitManagerTest: DatabaseTest {
         XCTAssertTrue(action.isFulfilled)
     }
 
-    func testThatCallAnswerActionIsFulfilledWhenDataChannelIsEstablished() {
+    func testThatCallAnswerActionIsFulfilledWhenDataChannelIsEstablished() throws {
         // given
         let otherUser = self.otherUser(moc: self.uiMOC)
         createOneOnOneConversation(user: otherUser)
         let conversation = otherUser.oneToOneConversation!
         let provider = MockProvider(foo: true)
-        sut.reportIncomingCall(from: otherUser, in: conversation, video: false)
+        try sut.reportIncomingCall(from: otherUser, in: conversation, video: false)
         let action = MockCallAnswerAction(call: sut.callUUID(for: conversation)!)
         self.sut.provider(provider, perform: action)
 
