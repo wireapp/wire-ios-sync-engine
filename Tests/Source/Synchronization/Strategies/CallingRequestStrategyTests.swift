@@ -420,7 +420,7 @@ class CallingRequestStrategyTests: MessagingTest {
         // GIVEN
         let json = ["src_userid": UUID.create().uuidString,
                     "resp": false,
-                    "type": "REMOTEMUTE"] as [String : Any]
+                    "type": "REMOTEMUTE"] as [String: Any]
         let data = try! JSONSerialization.data(withJSONObject: json, options: [])
         let content = String(data: data, encoding: .utf8)!
         let message = GenericMessage(content: Calling(content: content))
