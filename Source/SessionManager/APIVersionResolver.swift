@@ -63,26 +63,37 @@ final class APIVersionResolver {
             fatalError()
         }
 
+        let wasFederationEnabled = APIVersion.isFederationEnabled
+
         APIVersion.current = .highestSupportedVersion(in: payload.supported)
         APIVersion.domain = payload.domain
         APIVersion.isFederationEnabled = payload.federation
 
-        if APIVersion.current == nil {
-            guard let maxBackendVersion = payload.supported.max() else {
-                blacklistApp(reason: .backendAPIVersionObsolete)
-                return
-            }
+        guard APIVersion.current != nil else {
+            return reportBlacklist(payload: payload)
+        }
 
-            guard let minClientVersion = APIVersion.allCases.min()?.rawValue else {
-                blacklistApp(reason: .clientAPIVersionObsolete)
-                return
-            }
+        if !wasFederationEnabled && APIVersion.isFederationEnabled {
+            delegate?.apiVersionResolverDetectedFederationHasBeenEnabled()
+            return
+        }
+    }
 
-            if maxBackendVersion < minClientVersion {
-                blacklistApp(reason: .backendAPIVersionObsolete)
-            } else {
-                blacklistApp(reason: .clientAPIVersionObsolete)
-            }
+    private func reportBlacklist(payload: APIVersionResponsePayload) {
+        guard let maxBackendVersion = payload.supported.max() else {
+            blacklistApp(reason: .backendAPIVersionObsolete)
+            return
+        }
+
+        guard let minClientVersion = APIVersion.allCases.min()?.rawValue else {
+            blacklistApp(reason: .clientAPIVersionObsolete)
+            return
+        }
+
+        if maxBackendVersion < minClientVersion {
+            blacklistApp(reason: .backendAPIVersionObsolete)
+        } else {
+            blacklistApp(reason: .clientAPIVersionObsolete)
         }
     }
 
@@ -104,6 +115,7 @@ final class APIVersionResolver {
 
 protocol APIVersionResolverDelegate: AnyObject {
 
+    func apiVersionResolverDetectedFederationHasBeenEnabled()
     func apiVersionResolverFailedToResolveVersion(reason: BlacklistReason)
 
 }
