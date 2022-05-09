@@ -171,7 +171,7 @@ extension WireCallCenterV3 {
 
     func handleCallEnd(reason: CallClosedReason, conversationId: AVSIdentifier, messageTime: Date?, userId: AVSIdentifier) {
         handleEvent("closed-call") {
-            self.handle(callState: .terminating(reason: reason), conversationId: conversationId, messageTime: messageTime)
+            self.handle(callState: .terminating(reason: reason), conversationId: conversationId, messageTime: messageTime, userId: userId)
         }
     }
 

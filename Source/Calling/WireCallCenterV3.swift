@@ -691,7 +691,7 @@ extension WireCallCenterV3 {
     ///     - conversationId: The id of the conversation where teh calling state has changed.
     ///     - messageTime: The timestamp of the event.
 
-    func handle(callState: CallState, conversationId: AVSIdentifier, messageTime: Date? = nil) {
+    func handle(callState: CallState, conversationId: AVSIdentifier, messageTime: Date? = nil, userId: AVSIdentifier? = nil) {
         callState.logState()
 
         var callState = callState
@@ -704,7 +704,7 @@ extension WireCallCenterV3 {
             muted = true
         }
 
-        let callerId = initiatorForCall(conversationId: conversationId)
+        let callerId = initiatorForCall(conversationId: conversationId) ?? userId
         let previousCallState = callSnapshots[conversationId]?.callState
 
         if case .terminating = callState {
