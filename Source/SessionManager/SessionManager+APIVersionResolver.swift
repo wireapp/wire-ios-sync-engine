@@ -48,48 +48,48 @@ extension SessionManager: APIVersionResolverDelegate {
     }
 
     func apiVersionResolverDetectedFederationHasBeenEnabled() {
-
         delegate?.sessionManagerWillMigrateAccount { [weak self] in
-            guard let `self` = self else { return }
+            self?.migrateAllAccountsForFederation()
+        }
+    }
 
-            let accountMigrationGroup = DispatchGroup()
+    private func migrateAllAccountsForFederation() {
+        let accountMigrationGroup = DispatchGroup()
 
-            self.activeUserSession = nil
-            self.accountManager.accounts.forEach { account in
-                accountMigrationGroup.enter()
-                // 1. Tear down the user sessions
-                self.tearDownBackgroundSession(for: account.userIdentifier)
+        activeUserSession = nil
+        accountManager.accounts.forEach { account in
+            accountMigrationGroup.enter()
+            // 1. Tear down the user sessions
+            tearDownBackgroundSession(for: account.userIdentifier)
 
-                // 2. do the migration
-                CoreDataStack.migrateLocalStorage(
-                    accountIdentifier: account.userIdentifier,
-                    applicationContainer: self.sharedContainerURL,
-                    dispatchGroup: self.dispatchGroup,
-                    migration: { context in
-                        // extend the context to perform users and conversations migration
-                    },
-                    completion: { result in
-                        if case let .failure(error) = result {
-                            log.error("Failed to migrate account: \(error)")
-                        }
-
-                        accountMigrationGroup.leave()
+            // 2. do the migration
+            CoreDataStack.migrateLocalStorage(
+                accountIdentifier: account.userIdentifier,
+                applicationContainer: sharedContainerURL,
+                dispatchGroup: dispatchGroup,
+                migration: { context in
+                    // TODO: extend the context to perform users and conversations migration
+                },
+                completion: { result in
+                    if case let .failure(error) = result {
+                        log.error("Failed to migrate account: \(error)")
                     }
-                )
+
+                    accountMigrationGroup.leave()
+                }
+            )
+        }
+
+        accountMigrationGroup.wait()
+
+        // 4. Reload sessions
+        accountManager.accounts.forEach { account in
+            if account == accountManager.selectedAccount {
+                // When completed, this should trigger an AppState change through the SessionManagerDelegate
+                loadSession(for: account, completion: { _ in })
+            } else {
+                withSession(for: account, perform: { _ in })
             }
-
-            accountMigrationGroup.wait()
-
-            // 3. Activate the selected account session
-            guard let selectedAccount = self.accountManager.selectedAccount else {
-                // If no selected account, we may want to load an unauthenticated session
-                // and report to the UI so the app can get out of the migration state
-                return
-            }
-            // When completed, this should trigger an AppState change through the SessionManagerDelegate
-            self.loadSession(for: selectedAccount, completion: { _ in })
-
-            // 4. Load the other accounts background sessions?
         }
     }
 
