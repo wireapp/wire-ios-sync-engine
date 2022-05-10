@@ -62,13 +62,13 @@ extension SessionManager: APIVersionResolverDelegate {
             // 1. Tear down the user sessions
             tearDownBackgroundSession(for: account.userIdentifier)
 
-            // 2. do the migration
+            // 2. Migrate users and conversations
             CoreDataStack.migrateLocalStorage(
                 accountIdentifier: account.userIdentifier,
                 applicationContainer: sharedContainerURL,
                 dispatchGroup: dispatchGroup,
-                migration: { context in
-                    // TODO: extend the context to perform users and conversations migration
+                migration: {
+                    try $0.migrateToFederation()
                 },
                 completion: { result in
                     if case let .failure(error) = result {
@@ -82,7 +82,7 @@ extension SessionManager: APIVersionResolverDelegate {
 
         accountMigrationGroup.wait()
 
-        // 4. Reload sessions
+        // 3. Reload sessions
         accountManager.accounts.forEach { account in
             if account == accountManager.selectedAccount {
                 // When completed, this should trigger an AppState change through the SessionManagerDelegate
