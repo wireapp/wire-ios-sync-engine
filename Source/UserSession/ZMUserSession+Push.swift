@@ -19,6 +19,7 @@
 import Foundation
 import WireTransport
 import UserNotifications
+import WireRequestStrategy
 
 let PushChannelUserIDKey = "user"
 let PushChannelDataKey = "data"
@@ -99,13 +100,27 @@ extension ZMUserSession {
     }
 
     func setPushToken(_ pushToken: PushToken) {
-        let syncMOC = managedObjectContext.zm_sync!
-        syncMOC.performGroupedBlock {
-            guard let selfClient = ZMUser.selfUser(in: syncMOC).selfClient() else { return }
-            if selfClient.pushToken?.deviceToken != pushToken.deviceToken {
-                selfClient.pushToken = pushToken
-                syncMOC.saveOrRollback()
+        syncContext.performGroupedBlock {
+            guard
+                let selfClient = ZMUser.selfUser(in: self.syncContext).selfClient(),
+                let clientID = selfClient.remoteIdentifier,
+                selfClient.pushToken?.deviceToken != pushToken.deviceToken
+            else {
+                return
             }
+
+            let action = RegisterPushTokenAction(token: pushToken, clientID: clientID) { result in
+                switch result {
+                case .success:
+                    selfClient.pushToken = pushToken
+                    self.syncContext.saveOrRollback()
+
+                case .failure(let error):
+                    Logging.push.safePublic("Failed to register push token with backend: \(error)")
+                }
+            }
+
+            action.send(in: self.syncContext.notificationContext)
         }
     }
 
