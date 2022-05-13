@@ -124,20 +124,32 @@ extension ZMUserSession {
         }
     }
 
-    func deletePushKitToken(isLegacy: Bool = false) {
-        let syncMOC = managedObjectContext.zm_sync!
-        syncMOC.performGroupedBlock {
-            guard let selfClient = ZMUser.selfUser(in: syncMOC).selfClient() else { return }
-            guard let pushToken = selfClient.pushToken else { return }
-            if isLegacy {
-                // Move the token to another property to free up space for
-                // a new non-legacy token.
-                selfClient.legacyPushToken = pushToken.markToDelete()
-                selfClient.pushToken = nil
-            } else {
-                selfClient.pushToken = pushToken.markToDelete()
+    func deletePushKitToken() {
+        syncContext.performGroupedBlock {
+            guard let selfClient = ZMUser.selfUser(in: self.syncContext).selfClient(),
+                  let pushToken = selfClient.pushToken
+            else {
+                return
             }
-            syncMOC.saveOrRollback()
+
+            let action = RemovePushTokenAction(deviceToken: pushToken.deviceTokenString) { result in
+                switch result {
+                case .success:
+                    selfClient.pushToken = nil
+                    self.syncContext.saveOrRollback()
+                case .failure(let error):
+                    switch error {
+                    case .tokenDoesNotExist:
+                        selfClient.pushToken = nil
+                        self.syncContext.saveOrRollback()
+                        
+                        Logging.push.safePublic("Failed to delete push token because it does not exist: \(error)")
+                    default:
+                        Logging.push.safePublic("Failed to delete push token: \(error)")
+                    }
+                }
+            }
+            action.send(in: self.syncContext.notificationContext)
         }
     }
 
