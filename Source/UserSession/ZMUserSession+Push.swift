@@ -124,11 +124,12 @@ extension ZMUserSession {
         }
     }
 
-    func deletePushKitToken() {
+    func deletePushKitToken(_ completion: (() -> Void)? = nil) {
         syncContext.performGroupedBlock {
             guard let selfClient = ZMUser.selfUser(in: self.syncContext).selfClient(),
                   let pushToken = selfClient.pushToken
             else {
+                completion?()
                 return
             }
 
@@ -142,12 +143,13 @@ extension ZMUserSession {
                     case .tokenDoesNotExist:
                         selfClient.pushToken = nil
                         self.syncContext.saveOrRollback()
-                        
+
                         Logging.push.safePublic("Failed to delete push token because it does not exist: \(error)")
                     default:
                         Logging.push.safePublic("Failed to delete push token: \(error)")
                     }
                 }
+                completion?()
             }
             action.send(in: self.syncContext.notificationContext)
         }

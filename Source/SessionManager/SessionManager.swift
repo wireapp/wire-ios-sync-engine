@@ -775,12 +775,16 @@ public final class SessionManager: NSObject, SessionManagerType {
     }
 
     private func updateOrMigratePushToken(session userSession: ZMUserSession) {
-        if let currentToken = userSession.selfUserClient?.pushToken?.tokenType, currentToken != requiredPushTokenType {
+        if let currentToken = userSession.selfUserClient?.pushToken?.tokenType,
+            currentToken != requiredPushTokenType {
             pushLog.safePublic("deleting current token")
-            userSession.deletePushKitToken()
-        }
 
-        updatePushToken(for: userSession)
+            userSession.deletePushKitToken {
+                self.updatePushToken(for: userSession)
+            }
+        } else {
+            updatePushToken(for: userSession)
+        }
     }
 
     private func deleteMessagesOlderThanRetentionLimit(contextProvider: ContextProvider) {
