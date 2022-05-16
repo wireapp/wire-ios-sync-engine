@@ -163,19 +163,45 @@ extension ZMUserSession {
         }
     }
 
-    /// Will compare the push token registered on backend with the local one
-    /// and re-register it if they don't match
+    /// Compares the push token registered on backend with the local one
+    /// and re-registers it if they don't match.
+
     public func validatePushToken() {
-        let syncMOC = managedObjectContext.zm_sync!
-        syncMOC.performGroupedBlock {
-            guard let selfClient = ZMUser.selfUser(in: syncMOC).selfClient() else { return }
-            guard let pushToken = selfClient.pushToken else {
-                // If we don't have any push token, then try to register it again
+        let syncContext = managedObjectContext.zm_sync!
+
+        syncContext.performGroupedBlock {
+            guard
+                let selfClient = ZMUser.selfUser(in: syncContext).selfClient(),
+                let clientID = selfClient.remoteIdentifier
+            else {
+                return
+            }
+
+            guard let localToken = selfClient.pushToken else {
                 self.sessionManager?.updatePushToken(for: self)
                 return
             }
-            selfClient.pushToken = pushToken.markToDownload()
-            syncMOC.saveOrRollback()
+
+            let action = GetPushTokensAction(clientID: clientID) { result in
+                switch result {
+                case let .success(tokens):
+                    let matchingRemoteToken = tokens.first {
+                        $0.deviceTokenString == localToken.deviceTokenString
+                    }
+
+                    guard matchingRemoteToken != nil else {
+                        self.sessionManager?.updatePushToken(for: self)
+                        return
+                    }
+
+                    selfClient.pushToken = matchingRemoteToken
+
+                case let .failure(error):
+                    Logging.push.safePublic("Failed to validate push token: \(error)")
+                }
+            }
+
+            action.send(in: syncContext.notificationContext)
         }
     }
 
