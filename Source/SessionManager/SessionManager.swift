@@ -779,8 +779,8 @@ public final class SessionManager: NSObject, SessionManagerType {
             currentToken != requiredPushTokenType {
             pushLog.safePublic("deleting current token")
 
-            userSession.deletePushKitToken {
-                self.updatePushToken(for: userSession)
+            userSession.deletePushKitToken { [weak self] in
+                self?.updatePushToken(for: userSession)
             }
         } else {
             updatePushToken(for: userSession)
