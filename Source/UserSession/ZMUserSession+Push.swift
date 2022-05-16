@@ -100,9 +100,10 @@ extension ZMUserSession {
     }
 
     func setPushToken(_ pushToken: PushToken) {
-        syncContext.performGroupedBlock {
+        let syncMOC = managedObjectContext.zm_sync!
+        syncMOC.performGroupedBlock {
             guard
-                let selfClient = ZMUser.selfUser(in: self.syncContext).selfClient(),
+                let selfClient = ZMUser.selfUser(in: syncMOC).selfClient(),
                 let clientID = selfClient.remoteIdentifier,
                 selfClient.pushToken?.deviceToken != pushToken.deviceToken
             else {
@@ -113,20 +114,21 @@ extension ZMUserSession {
                 switch result {
                 case .success:
                     selfClient.pushToken = pushToken
-                    self.syncContext.saveOrRollback()
+                    syncMOC.saveOrRollback()
 
                 case .failure(let error):
                     Logging.push.safePublic("Failed to register push token with backend: \(error)")
                 }
             }
 
-            action.send(in: self.syncContext.notificationContext)
+            action.send(in: syncMOC.notificationContext)
         }
     }
 
     func deletePushKitToken(_ completion: (() -> Void)? = nil) {
-        syncContext.performGroupedBlock {
-            guard let selfClient = ZMUser.selfUser(in: self.syncContext).selfClient(),
+        let syncMOC = managedObjectContext.zm_sync!
+        syncMOC.performGroupedBlock {
+            guard let selfClient = ZMUser.selfUser(in: syncMOC).selfClient(),
                   let pushToken = selfClient.pushToken
             else {
                 completion?()
@@ -137,12 +139,12 @@ extension ZMUserSession {
                 switch result {
                 case .success:
                     selfClient.pushToken = nil
-                    self.syncContext.saveOrRollback()
+                    syncMOC.saveOrRollback()
                 case .failure(let error):
                     switch error {
                     case .tokenDoesNotExist:
                         selfClient.pushToken = nil
-                        self.syncContext.saveOrRollback()
+                        syncMOC.saveOrRollback()
 
                         Logging.push.safePublic("Failed to delete push token because it does not exist: \(error)")
                     default:
@@ -151,7 +153,7 @@ extension ZMUserSession {
                 }
                 completion?()
             }
-            action.send(in: self.syncContext.notificationContext)
+            action.send(in: syncMOC.notificationContext)
         }
     }
 
