@@ -105,7 +105,7 @@ extension ZMUserSession {
             guard
                 let selfClient = ZMUser.selfUser(in: syncMOC).selfClient(),
                 let clientID = selfClient.remoteIdentifier,
-                selfClient.pushToken?.deviceToken != pushToken.deviceToken
+                PushTokenStorage.pushToken?.deviceToken != pushToken.deviceToken
             else {
                 return
             }
@@ -113,7 +113,7 @@ extension ZMUserSession {
             let action = RegisterPushTokenAction(token: pushToken, clientID: clientID) { result in
                 switch result {
                 case .success:
-                    selfClient.pushToken = pushToken
+                    PushTokenStorage.pushToken = pushToken
                     syncMOC.saveOrRollback()
 
                 case .failure(let error):
@@ -128,9 +128,7 @@ extension ZMUserSession {
     func deletePushKitToken(_ completion: (() -> Void)? = nil) {
         let syncMOC = managedObjectContext.zm_sync!
         syncMOC.performGroupedBlock {
-            guard let selfClient = ZMUser.selfUser(in: syncMOC).selfClient(),
-                  let pushToken = selfClient.pushToken
-            else {
+            guard let pushToken = PushTokenStorage.pushToken else {
                 completion?()
                 return
             }
@@ -138,12 +136,12 @@ extension ZMUserSession {
             let action = RemovePushTokenAction(deviceToken: pushToken.deviceTokenString) { result in
                 switch result {
                 case .success:
-                    selfClient.pushToken = nil
+                    PushTokenStorage.pushToken = nil
                     syncMOC.saveOrRollback()
                 case .failure(let error):
                     switch error {
                     case .tokenDoesNotExist:
-                        selfClient.pushToken = nil
+                        PushTokenStorage.pushToken = nil
                         syncMOC.saveOrRollback()
 
                         Logging.push.safePublic("Failed to delete push token because it does not exist: \(error)")
@@ -177,7 +175,7 @@ extension ZMUserSession {
                 return
             }
 
-            guard let localToken = selfClient.pushToken else {
+            guard let localToken = PushTokenStorage.pushToken else {
                 self.sessionManager?.updatePushToken(for: self)
                 return
             }
@@ -194,7 +192,7 @@ extension ZMUserSession {
                         return
                     }
 
-                    selfClient.pushToken = matchingRemoteToken
+                    PushTokenStorage.pushToken = matchingRemoteToken
 
                 case let .failure(error):
                     Logging.push.safePublic("Failed to validate push token: \(error)")
@@ -334,13 +332,12 @@ extension UNNotificationContent {
 }
 
 extension PushToken {
-    public init(deviceToken: Data, pushTokenType: TokenType, isRegistered: Bool = false) {
+    public init(deviceToken: Data, pushTokenType: TokenType) {
         let metadata = PushTokenMetadata.current(for: pushTokenType)
         self.init(deviceToken: deviceToken,
                   appIdentifier: metadata.appIdentifier,
                   transportType: metadata.transportType,
-                  tokenType: pushTokenType,
-                  isRegistered: isRegistered)
+                  tokenType: pushTokenType)
     }
 
     public static func createVOIPToken(from deviceToken: Data) -> PushToken {

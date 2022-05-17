@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		0601900B2678750D0043F8F8 /* DeepLinkURLActionProcessorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 161ACB3E23F6E4C200ABFF33 /* DeepLinkURLActionProcessorTests.swift */; };
 		06025664248E5BC700E060E1 /* (null) in Sources */ = {isa = PBXBuildFile; };
+		06185E7E2832FFCF003700BD /* PushTokenStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06185E7D2832FFCF003700BD /* PushTokenStorage.swift */; };
+		06185E8028330320003700BD /* PushTokenStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06185E7F28330320003700BD /* PushTokenStorageTests.swift */; };
 		06239126274DB73A0065A72D /* StartLoginURLActionProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06239125274DB73A0065A72D /* StartLoginURLActionProcessor.swift */; };
 		063AF985264B2DF800DCBCED /* CallClosedReason.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0625690E264AE6560041C17B /* CallClosedReason.swift */; };
 		0640C26D26EA0B5C0057AF80 /* NSManagedObjectContext+Packaging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0640C26C26EA0B5C0057AF80 /* NSManagedObjectContext+Packaging.swift */; };
@@ -654,6 +656,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		06185E7D2832FFCF003700BD /* PushTokenStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushTokenStorage.swift; sourceTree = "<group>"; };
+		06185E7F28330320003700BD /* PushTokenStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushTokenStorageTests.swift; sourceTree = "<group>"; };
 		06239125274DB73A0065A72D /* StartLoginURLActionProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartLoginURLActionProcessor.swift; sourceTree = "<group>"; };
 		0625690E264AE6560041C17B /* CallClosedReason.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CallClosedReason.swift; sourceTree = "<group>"; };
 		063AFA3E264B30C400DCBCED /* BuildType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BuildType.swift; sourceTree = "<group>"; };
@@ -2039,6 +2043,7 @@
 				546F815A1E685F1A00775059 /* LocalNotificationDispatcherTests.swift */,
 				160195601E30C9CF00ACBFAC /* LocalNotificationDispatcherCallingTests.swift */,
 				1671F9FE1E2FAF50009F3150 /* ZMLocalNotificationForTests_CallState.swift */,
+				06185E7F28330320003700BD /* PushTokenStorageTests.swift */,
 			);
 			path = PushNotifications;
 			sourceTree = "<group>";
@@ -2528,6 +2533,7 @@
 				F19E55A122B3A3FA005C792D /* UNNotificationResponse+SafeLogging.swift */,
 				F19E55A322B3A740005C792D /* PKPushPayload+SafeLogging.swift */,
 				F19E55A522B3AAA8005C792D /* PKPushCredentials+SafeLogging.swift */,
+				06185E7D2832FFCF003700BD /* PushTokenStorage.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -3019,6 +3025,7 @@
 				16DCAD6F1B147706008C1DD9 /* NSURL+LaunchOptionsTests.m in Sources */,
 				541228451AEE422C00D9ED1C /* ZMAuthenticationStatusTests.m in Sources */,
 				5E0EB1F72100A14A00B5DC2B /* CompanyLoginRequesterTests.swift in Sources */,
+				06185E8028330320003700BD /* PushTokenStorageTests.swift in Sources */,
 				1671F9FF1E2FAF50009F3150 /* ZMLocalNotificationForTests_CallState.swift in Sources */,
 				EE6654642445D4EE00CBF8D3 /* MockAddressBook.swift in Sources */,
 				161ACB3A23F6BAFE00ABFF33 /* URLActionTests.swift in Sources */,
@@ -3201,6 +3208,7 @@
 				16DCAD691B0F9447008C1DD9 /* NSURL+LaunchOptions.m in Sources */,
 				F9F631421DE3524100416938 /* TypingStrategy.swift in Sources */,
 				EEEED9A823F6BC00008C94CA /* SelfUserProvider.swift in Sources */,
+				06185E7E2832FFCF003700BD /* PushTokenStorage.swift in Sources */,
 				7C5482DA225380160055F1AB /* CallReceivedResult.swift in Sources */,
 				54C8A39C1F7536DB004961DF /* ZMOperationLoop+Notifications.swift in Sources */,
 				7C5B94F622DC6BC500A6F8BB /* JailbreakDetector.swift in Sources */,
