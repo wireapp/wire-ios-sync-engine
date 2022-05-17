@@ -33,11 +33,12 @@ public enum PushTokenStorage {
         }
 
         set {
-            guard let value = newValue,
-                  let data = try? JSONEncoder().encode(value) else {
-                      storage.set(nil, forKey: Keys.pushToken.rawValue)
-                      return
-                  }
+            guard 
+               let value = newValue,
+               let data = try? JSONEncoder().encode(value) 
+            else {
+               return storage.set(nil, forKey: Keys.pushToken.rawValue)
+            }
             storage.set(data, forKey: Keys.pushToken.rawValue)
         }
     }
