@@ -774,13 +774,13 @@ public final class SessionManager: NSObject, SessionManagerType {
         registerObservers(account: account, session: userSession)
     }
 
-    private func updateOrMigratePushToken(session userSession: ZMUserSession) {
-        guard let storedPushToken = PushTokenStorage.pushToken else {
+    func updateOrMigratePushToken(session userSession: ZMUserSession) {
+        guard let localToken = PushTokenStorage.pushToken else {
 
             if let legacyTokenData = pushRegistry.pushToken(for: .voIP),
                let legacyToken = try? JSONDecoder().decode(PushToken.self, from: legacyTokenData) {
                 PushTokenStorage.pushToken = legacyToken
-                userSession.deletePushKitToken { [weak self] in
+                userSession.deletePushToken { [weak self] in
                     self?.updatePushToken(for: userSession)
                 }
             } else {
@@ -789,8 +789,8 @@ public final class SessionManager: NSObject, SessionManagerType {
             return
         }
 
-        guard storedPushToken.tokenType == requiredPushTokenType else {
-            userSession.deletePushKitToken { [weak self] in
+        guard localToken.tokenType == requiredPushTokenType else {
+            userSession.deletePushToken { [weak self] in
                 self?.updatePushToken(for: userSession)
             }
             return

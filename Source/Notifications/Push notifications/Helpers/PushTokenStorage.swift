@@ -18,7 +18,7 @@
 
 import Foundation
 
-enum PushTokenStorage {
+public enum PushTokenStorage {
 
     private enum Keys: String {
         case pushToken = "PushToken"
@@ -26,7 +26,7 @@ enum PushTokenStorage {
 
     static var storage: UserDefaults = .standard
 
-    static var pushToken: PushToken? {
+    public static var pushToken: PushToken? {
         get {
             guard let storedValue = storage.object(forKey: Keys.pushToken.rawValue) as? Data else { return nil }
             return try? JSONDecoder().decode(PushToken.self, from: storedValue)
@@ -34,7 +34,10 @@ enum PushTokenStorage {
 
         set {
             guard let value = newValue,
-                  let data = try? JSONEncoder().encode(value) else { return }
+                  let data = try? JSONEncoder().encode(value) else {
+                      storage.set(nil, forKey: Keys.pushToken.rawValue)
+                      return
+                  }
             storage.set(data, forKey: Keys.pushToken.rawValue)
         }
     }

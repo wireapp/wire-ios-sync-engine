@@ -91,6 +91,8 @@ struct PushTokenMetadata {
     }
 }
 
+// MARK: - Register current push token
+
 extension ZMUserSession {
 
     @objc public static let registerCurrentPushTokenNotificationName = Notification.Name(rawValue: "ZMUserSessionResetPushTokensNotification")
@@ -99,34 +101,50 @@ extension ZMUserSession {
         NotificationCenter.default.addObserver(self, selector: #selector(ZMUserSession.registerCurrentPushToken), name: ZMUserSession.registerCurrentPushTokenNotificationName, object: nil)
     }
 
-    func setPushToken(_ pushToken: PushToken) {
-        let syncMOC = managedObjectContext.zm_sync!
-        syncMOC.performGroupedBlock {
-            guard
-                let selfClient = ZMUser.selfUser(in: syncMOC).selfClient(),
-                let clientID = selfClient.remoteIdentifier,
-                PushTokenStorage.pushToken?.deviceToken != pushToken.deviceToken
-            else {
-                return
-            }
-
-            let action = RegisterPushTokenAction(token: pushToken, clientID: clientID) { result in
-                switch result {
-                case .success:
-                    PushTokenStorage.pushToken = pushToken
-                    syncMOC.saveOrRollback()
-
-                case .failure(let error):
-                    Logging.push.safePublic("Failed to register push token with backend: \(error)")
-                }
-            }
-
-            action.send(in: syncMOC.notificationContext)
+    func registerCurrentPushToken() {
+        managedObjectContext.performGroupedBlock {
+            self.sessionManager?.updatePushToken(for: self)
         }
     }
 
-    func deletePushKitToken(_ completion: (() -> Void)? = nil) {
+}
+
+// MARK: - Register, delete and update push token
+
+extension ZMUserSession {
+
+    public func setPushToken(_ pushToken: PushToken) {
         let syncMOC = managedObjectContext.zm_sync!
+
+        syncMOC.performGroupedBlock {
+            guard
+                let selfClient = ZMUser.selfUser(in: syncMOC).selfClient(),
+                let clientID = selfClient.remoteIdentifier else {
+                    return
+                }
+
+            /// If there is no local token, or if the local token's type is different from the new token,
+            /// we must register a new token
+            guard let localToken = PushTokenStorage.pushToken,
+                  localToken.deviceToken == pushToken.deviceToken else {
+                      let action = RegisterPushTokenAction(token: pushToken, clientID: clientID) { result in
+                          switch result {
+                          case .success:
+                              PushTokenStorage.pushToken = pushToken
+                          case .failure(let error):
+                              Logging.push.safePublic("Failed to register push token with backend: \(error)")
+                          }
+                      }
+
+                      action.send(in: syncMOC.notificationContext)
+                      return
+                  }
+        }
+    }
+
+    func deletePushToken(_ completion: (() -> Void)? = nil) {
+        let syncMOC = managedObjectContext.zm_sync!
+
         syncMOC.performGroupedBlock {
             guard let pushToken = PushTokenStorage.pushToken else {
                 completion?()
@@ -137,13 +155,10 @@ extension ZMUserSession {
                 switch result {
                 case .success:
                     PushTokenStorage.pushToken = nil
-                    syncMOC.saveOrRollback()
                 case .failure(let error):
                     switch error {
                     case .tokenDoesNotExist:
                         PushTokenStorage.pushToken = nil
-                        syncMOC.saveOrRollback()
-
                         Logging.push.safePublic("Failed to delete push token because it does not exist: \(error)")
                     default:
                         Logging.push.safePublic("Failed to delete push token: \(error)")
@@ -152,12 +167,6 @@ extension ZMUserSession {
                 completion?()
             }
             action.send(in: syncMOC.notificationContext)
-        }
-    }
-
-    public func registerCurrentPushToken() {
-        managedObjectContext.performGroupedBlock {
-            self.sessionManager?.updatePushToken(for: self)
         }
     }
 
@@ -188,6 +197,7 @@ extension ZMUserSession {
                     }
 
                     guard matchingRemoteToken != nil else {
+                        PushTokenStorage.pushToken = nil
                         self.sessionManager?.updatePushToken(for: self)
                         return
                     }
@@ -203,13 +213,6 @@ extension ZMUserSession {
         }
     }
 
-    /// Count number of conversations with unread messages and update the application icon badge count.
-    func calculateBadgeCount() {
-        let accountID = coreDataStack.account.userIdentifier
-        let unreadCount = Int(ZMConversation.unreadConversationCount(in: self.syncManagedObjectContext))
-        Logging.push.safePublic("Updating badge count for \(accountID) to \(SanitizedString(stringLiteral: String(unreadCount)))")
-        self.sessionManager?.updateAppIconBadge(accountID: accountID, unreadCount: unreadCount)
-    }
 }
 
 extension ZMUserSession {
