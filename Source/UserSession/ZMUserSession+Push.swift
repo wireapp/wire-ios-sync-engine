@@ -125,7 +125,7 @@ extension ZMUserSession {
         }
     }
 
-    func deletePushKitToken(_ completion: (() -> Void)? = nil) {
+    func deletePushKitToken(completion: (() -> Void)? = nil) {
         let syncMOC = managedObjectContext.zm_sync!
         syncMOC.performGroupedBlock {
             guard let selfClient = ZMUser.selfUser(in: syncMOC).selfClient(),
