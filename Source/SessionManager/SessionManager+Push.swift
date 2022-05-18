@@ -75,7 +75,7 @@ extension SessionManager: PKPushRegistryDelegate {
 
         // Delete push token from all running sessions.
         backgroundUserSessions.values.forEach { userSession in
-            userSession.deletePushKitToken()
+            userSession.deletePushToken()
         }
     }
 

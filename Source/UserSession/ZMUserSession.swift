@@ -392,6 +392,14 @@ public class ZMUserSession: NSObject {
         })
     }
 
+    /// Count number of conversations with unread messages and update the application icon badge count.
+    private func calculateBadgeCount() {
+        let accountID = coreDataStack.account.userIdentifier
+        let unreadCount = Int(ZMConversation.unreadConversationCount(in: self.syncManagedObjectContext))
+        Logging.push.safePublic("Updating badge count for \(accountID) to \(SanitizedString(stringLiteral: String(unreadCount)))")
+        self.sessionManager?.updateAppIconBadge(accountID: accountID, unreadCount: unreadCount)
+    }
+
     private func registerForBackgroundNotifications() {
         application.registerObserverForDidEnterBackground(self, selector: #selector(applicationDidEnterBackground(_:)))
         application.registerObserverForWillEnterForeground(self, selector: #selector(applicationWillEnterForeground(_:)))

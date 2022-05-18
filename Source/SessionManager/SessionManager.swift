@@ -774,16 +774,21 @@ public final class SessionManager: NSObject, SessionManagerType {
         registerObservers(account: account, session: userSession)
     }
 
-    private func updateOrMigratePushToken(session userSession: ZMUserSession) {
-        if let currentToken = userSession.selfUserClient?.pushToken?.tokenType,
-            currentToken != requiredPushTokenType {
-            pushLog.safePublic("deleting current token")
+    func updateOrMigratePushToken(session userSession: ZMUserSession) {
+        // If the legacy token exists, migrate it to the PushTokenStorage and delete it from selfClient
+        if let client = userSession.selfUserClient, let legacyToken = client.retrieveLegacyPushToken() {
+            PushTokenStorage.pushToken = legacyToken
+        }
 
-            userSession.deletePushKitToken { [weak self] in
+        guard let localToken = PushTokenStorage.pushToken else {
+            updatePushToken(for: userSession)
+            return
+        }
+
+        if localToken.tokenType != requiredPushTokenType {
+            userSession.deletePushToken { [weak self] in
                 self?.updatePushToken(for: userSession)
             }
-        } else {
-            updatePushToken(for: userSession)
         }
     }
 

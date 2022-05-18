@@ -67,6 +67,7 @@ class PushNotificationTokenTests: IntegrationTest {
 
     override func setUp() {
         super.setUp()
+        PushTokenStorage.pushToken = nil
         createSelfUserAndConversation()
     }
 
@@ -108,7 +109,7 @@ class PushNotificationTokenTests: IntegrationTest {
 
         // given
         let token = Data(repeating: 0x41, count: 10)
-        let pushToken1 = PushToken.createAPNSToken(from: token)
+        let pushToken1 = PushToken.createVOIPToken(from: token)
         userSession?.setPushToken(pushToken1)
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         mockTransportSession.resetReceivedRequests()
@@ -123,7 +124,7 @@ class PushNotificationTokenTests: IntegrationTest {
         checkThatLastRequestContainsTokenRequest(.post(otherToken))
     }
 
-    func testThatItDeletesTokenWhenMarkedAsToBeDeleted() {
+    func testThatItDeletesToken() {
         XCTAssert(login())
 
         // given
@@ -134,36 +135,12 @@ class PushNotificationTokenTests: IntegrationTest {
         mockTransportSession.resetReceivedRequests()
 
         // when
-        userSession?.deletePushKitToken()
+        userSession?.deletePushToken()
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
         checkThatLastRequestContainsTokenRequest(.delete(token))
-        XCTAssertNil(userSession?.selfUserClient?.pushToken)
-    }
-
-    func testThatItDoesNotDeleteTokenIfItWasResetWhileRequestIsInProgress() {
-        XCTAssert(login())
-
-        // given
-        let token = Data(repeating: 0x41, count: 10)
-        let otherToken = Data(repeating: 0x42, count: 10)
-        let pushToken1 = PushToken.createAPNSToken(from: token)
-        userSession?.setPushToken(pushToken1)
-        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-        mockTransportSession.resetReceivedRequests()
-
-        // when
-        userSession?.deletePushKitToken()
-        let pushToken2 = PushToken.createAPNSToken(from: otherToken)
-        userSession?.setPushToken(pushToken2)
-        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
-
-        // then
-        checkThatLastRequestContainsTokenRequest(.post(otherToken))
-        guard let pushToken = userSession?.selfUserClient?.pushToken else { return XCTFail("Push token should be set") }
-        XCTAssertEqual(pushToken.deviceToken, otherToken)
-        XCTAssertFalse(pushToken.isMarkedForDeletion)
+        XCTAssertNil(PushTokenStorage.pushToken)
     }
 
     func overrideBackendToken(of token: Data, with updatedToken: Data, line: UInt = #line) {
@@ -183,7 +160,7 @@ class PushNotificationTokenTests: IntegrationTest {
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         mockTransportSession.resetReceivedRequests()
         guard let client = userSession?.selfUserClient else { return XCTFail() }
-        guard let pushToken = client.pushToken else { return XCTFail() }
+        guard let pushToken = PushTokenStorage.pushToken else { return XCTFail() }
 
         // when
         userSession?.validatePushToken()
@@ -191,7 +168,7 @@ class PushNotificationTokenTests: IntegrationTest {
 
         // then
         checkThatLastRequestContainsTokenRequests([.get])
-        guard let afterUpdate = userSession?.selfUserClient?.pushToken else { return XCTFail("Push token should be set") }
+        guard let afterUpdate = PushTokenStorage.pushToken else { return XCTFail("Push token should be set") }
         XCTAssertEqual(pushToken, afterUpdate)
     }
 
@@ -207,8 +184,7 @@ class PushNotificationTokenTests: IntegrationTest {
         userSession?.setPushToken(standardToken)
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         mockTransportSession.resetReceivedRequests()
-        guard let client = userSession?.selfUserClient else { return XCTFail() }
-        guard let pushToken = client.pushToken else { return XCTFail() }
+        guard let pushToken = PushTokenStorage.pushToken else { return XCTFail() }
 
         // when
         // Change the registered push token on the backend
@@ -218,7 +194,7 @@ class PushNotificationTokenTests: IntegrationTest {
 
         // then
         checkThatLastRequestContainsTokenRequests([.get, .post(token)])
-        guard let afterUpdate = userSession?.selfUserClient?.pushToken else { return XCTFail("Push token should be set") }
+        guard let afterUpdate = PushTokenStorage.pushToken else { return XCTFail("Push token should be set") }
         XCTAssertEqual(pushToken, afterUpdate)
     }
 }

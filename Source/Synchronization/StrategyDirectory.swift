@@ -167,8 +167,7 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
                 applicationStatus: applicationStatusDirectory),
             PushTokenStrategy(
                 withManagedObjectContext: syncMOC,
-                applicationStatus: applicationStatusDirectory,
-                analytics: applicationStatusDirectory.analytics),
+                applicationStatus: applicationStatusDirectory),
             TypingStrategy(
                 applicationStatus: applicationStatusDirectory,
                 managedObjectContext: syncMOC),
