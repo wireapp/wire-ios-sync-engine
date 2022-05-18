@@ -142,7 +142,7 @@ extension ZMUserSession {
         }
     }
 
-    func deletePushToken(_ completion: (() -> Void)? = nil) {
+    func deletePushToken(completion: (() -> Void)? = nil) {
         let syncMOC = managedObjectContext.zm_sync!
 
         syncMOC.performGroupedBlock {
