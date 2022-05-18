@@ -123,22 +123,20 @@ extension ZMUserSession {
                     return
                 }
 
-            /// If there is no local token, or if the local token's type is different from the new token,
+            /// If there is no local token, or the local token's type is different from the new token,
             /// we must register a new token
-            guard let localToken = PushTokenStorage.pushToken,
-                  localToken.deviceToken == pushToken.deviceToken else {
-                      let action = RegisterPushTokenAction(token: pushToken, clientID: clientID) { result in
-                          switch result {
-                          case .success:
-                              PushTokenStorage.pushToken = pushToken
-                          case .failure(let error):
-                              Logging.push.safePublic("Failed to register push token with backend: \(error)")
-                          }
-                      }
+            if pushToken.deviceToken != PushTokenStorage.pushToken?.deviceToken {
+                let action = RegisterPushTokenAction(token: pushToken, clientID: clientID) { result in
+                    switch result {
+                    case .success:
+                        PushTokenStorage.pushToken = pushToken
+                    case .failure(let error):
+                        Logging.push.safePublic("Failed to register push token with backend: \(error)")
+                    }
+                }
 
-                      action.send(in: syncMOC.notificationContext)
-                      return
-                  }
+                action.send(in: syncMOC.notificationContext)
+            }
         }
     }
 
