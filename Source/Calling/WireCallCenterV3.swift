@@ -462,13 +462,13 @@ extension WireCallCenterV3 {
                                      startedWithVideo: video,
                                      isConferenceCall: conversationType == .conference)
 
-        if conversationType == .conference && !canStartConferenceCalls {
-            if let context = uiMOC {
-                WireCallCenterConferenceCallingUnavailableNotification().post(in: context.notificationContext)
-            }
-
-            return false
-        }
+//        if conversationType == .conference && !canStartConferenceCalls {
+//            if let context = uiMOC {
+//                WireCallCenterConferenceCallingUnavailableNotification().post(in: context.notificationContext)
+//            }
+//
+//            return false
+//        }
 
         let started = avsWrapper.startCall(conversationId: conversationId,
                                            callType: callType,
@@ -495,12 +495,13 @@ extension WireCallCenterV3 {
     }
 
     private var canStartConferenceCalls: Bool {
-        guard usePackagingFeatureConfig else {
-            return true
-        }
-        guard let context = uiMOC else { return false }
-        let conferenceCalling = FeatureService(context: context).fetchConferenceCalling()
-        return conferenceCalling.status == .enabled
+        return true
+//        guard usePackagingFeatureConfig else {
+//            return true
+//        }
+//        guard let context = uiMOC else { return false }
+//        let conferenceCalling = FeatureService(context: context).fetchConferenceCalling()
+//        return conferenceCalling.status == .enabled
     }
 
     /**
