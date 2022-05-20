@@ -54,41 +54,47 @@ extension SessionManager: APIVersionResolverDelegate {
     }
 
     private func migrateAllAccountsForFederation() {
-        let accountMigrationGroup = DispatchGroup()
+        let dispatchGroup = ZMSDispatchGroup(dispatchGroup: DispatchGroup(), label: "Accounts Migration Group")
+        let dispatchQueue = DispatchQueue(label: "Accounts Migration Queue", qos: .userInitiated)
 
-        activeUserSession = nil
-        accountManager.accounts.forEach { account in
-            accountMigrationGroup.enter()
-            // 1. Tear down the user sessions
-            tearDownBackgroundSession(for: account.userIdentifier)
+        dispatchQueue.async { [weak self] in
+            guard let `self` = self else { return }
 
-            // 2. Migrate users and conversations
-            CoreDataStack.migrateLocalStorage(
-                accountIdentifier: account.userIdentifier,
-                applicationContainer: sharedContainerURL,
-                dispatchGroup: dispatchGroup,
-                migration: {
-                    try $0.migrateToFederation()
-                },
-                completion: { result in
-                    if case let .failure(error) = result {
-                        log.error("Failed to migrate account: \(error)")
-                    }
+            self.activeUserSession = nil
+            self.accountManager.accounts.forEach { account in
 
-                    accountMigrationGroup.leave()
+                // 1. Tear down the user sessions
+                DispatchQueue.main.sync {
+                    self.tearDownBackgroundSession(for: account.userIdentifier)
                 }
-            )
-        }
 
-        accountMigrationGroup.wait()
+                // 2. Migrate users and conversations
+                CoreDataStack.migrateLocalStorage(
+                    accountIdentifier: account.userIdentifier,
+                    applicationContainer: self.sharedContainerURL,
+                    dispatchGroup: dispatchGroup,
+                    migration: {
+                        try $0.migrateToFederation()
+                    },
+                    completion: { result in
+                        if case let .failure(error) = result {
+                            log.error("Failed to migrate account: \(error)")
+                        }
+                    }
+                )
+            }
 
-        // 3. Reload sessions
-        accountManager.accounts.forEach { account in
-            if account == accountManager.selectedAccount {
-                // When completed, this should trigger an AppState change through the SessionManagerDelegate
-                loadSession(for: account, completion: { _ in })
-            } else {
-                withSession(for: account, perform: { _ in })
+            // The migration above will call enter() / leave() on the dispatch group
+            dispatchGroup?.wait(forInterval: 5)
+
+            // 3. Reload sessions
+            self.accountManager.accounts.forEach { account in
+                if account == self.accountManager.selectedAccount {
+                    // When completed, this should trigger an AppState change through the SessionManagerDelegate
+                    self.loadSession(for: account, completion: { _ in })
+                } else {
+                    self.withSession(for: account, perform: { _ in })
+                }
             }
         }
     }
