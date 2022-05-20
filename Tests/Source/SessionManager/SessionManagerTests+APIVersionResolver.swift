@@ -24,9 +24,6 @@ class SessionManagerTests_APIVersionResolver: IntegrationTest {
 
     func testThatDatabaseIsMigrated_WhenFederationIsEnabled() throws {
         // Given
-        createSelfUserAndConversation()
-        createTeamAndConversations()
-
         let sessionManager = try XCTUnwrap(sessionManager)
         let account = addAccount(name: "John Doe", userIdentifier: UUID())
         sessionManager.accountManager.select(account)
@@ -65,9 +62,9 @@ class SessionManagerTests_APIVersionResolver: IntegrationTest {
 
         XCTAssertTrue(delegate.didCallWillMigrateAccount)
 
-        wait(for: [expectation], timeout: 15)
-        // Then
+        wait(for: [expectation], timeout: 15) // Timeout is subject to change
 
+        // Then
         XCTAssertTrue(delegate.didCallDidChangeActiveUserSession)
         try session = XCTUnwrap(delegate.session)
 
