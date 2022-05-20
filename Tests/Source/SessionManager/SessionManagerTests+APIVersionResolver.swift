@@ -83,13 +83,6 @@ class SessionManagerTests_APIVersionResolver: IntegrationTest {
         sessionManager!.accountManager.addOrUpdate(account)
         return account
     }
-
-    var didCallSessionManagerWillMigrateAccount: Bool = false
-    override func sessionManagerWillMigrateAccount(userSessionCanBeTornDown: @escaping () -> Void) {
-        super.sessionManagerWillMigrateAccount(userSessionCanBeTornDown: userSessionCanBeTornDown)
-        didCallSessionManagerWillMigrateAccount = true
-    }
-
 }
 
 class MockSessionManagerDelegate: SessionManagerDelegate {
