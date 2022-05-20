@@ -93,20 +93,17 @@ class MockSessionManagerDelegate: SessionManagerDelegate {
         userSessionCanBeTornDown()
     }
 
-    var didCallDidReportLockChange: Bool = false
-
-    var expectation: XCTestExpectation?
-    func sessionManagerDidReportLockChange(forSession session: UserSessionAppLockInterface) {
-        didCallDidReportLockChange = true
-        expectation?.fulfill()
-    }
-
     var didCallDidChangeActiveUserSession: Bool = false
     var session: ZMUserSession?
+    var expectation: XCTestExpectation?
     func sessionManagerDidChangeActiveUserSession(userSession: ZMUserSession) {
         didCallDidChangeActiveUserSession = true
         session = userSession
         expectation?.fulfill()
+    }
+
+    func sessionManagerDidReportLockChange(forSession session: UserSessionAppLockInterface) {
+        // no op
     }
 
     func sessionManagerDidFailToLogin(error: Error?) {
