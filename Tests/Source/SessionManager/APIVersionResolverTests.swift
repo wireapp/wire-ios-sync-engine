@@ -140,6 +140,27 @@ class APIVersionResolverTests: ZMTBaseTest {
         XCTAssertEqual(mockDelegate.blacklistReason, .clientAPIVersionObsolete)
     }
 
+    func testThatItReportsToDelegate_WhenFederationHasBeenEnabled() throws {
+        // Given
+        APIVersion.isFederationEnabled = false
+        let maxSupportedAPIVersion = try XCTUnwrap(APIVersion.allCases.max())
+
+        mockBackendInfo(
+            supportedVersions: 0...(maxSupportedAPIVersion.rawValue + 1),
+            domain: "foo.com",
+            isFederationEnabled: true
+        )
+
+        // When
+        let done = expectation(description: "done")
+        sut.resolveAPIVersion(completion: done.fulfill)
+        XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
+
+        // Then
+        XCTAssertTrue(APIVersion.isFederationEnabled)
+        XCTAssertTrue(mockDelegate.didReportFederationHasBeenEnabled)
+    }
+
 }
 
 // MARK: - Mocks
@@ -152,4 +173,8 @@ private class MockAPIVersionResolverDelegate: APIVersionResolverDelegate {
         blacklistReason = reason
     }
 
+    var didReportFederationHasBeenEnabled: Bool = false
+    func apiVersionResolverDetectedFederationHasBeenEnabled() {
+        didReportFederationHasBeenEnabled = true
+    }
 }
