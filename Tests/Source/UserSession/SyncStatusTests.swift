@@ -68,7 +68,6 @@ final class SyncStatusTests: MessagingTest {
                 .fetchingUsers,
                 .fetchingSelfUser,
                 .fetchingLegalHoldStatus,
-                .fetchingFeatureFlags,
                 .fetchingLabels,
                 .fetchingMissedEvents]
     }
