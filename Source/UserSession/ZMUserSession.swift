@@ -584,7 +584,7 @@ extension ZMUserSession: ZMSyncStateDelegate {
     private func fetchFeatureConfigs() {
         let action = GetFeatureConfigsAction { result in
             if case let .failure(reason) = result {
-                Logging.network.error("Failed to fetch feature configs: \(reason.localizedDescription)")
+                Logging.network.error("Failed to fetch feature configs: \(String(describing: reason))")
             }
         }
 
