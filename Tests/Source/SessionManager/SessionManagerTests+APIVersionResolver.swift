@@ -23,11 +23,14 @@ import WireTesting
 class SessionManagerTests_APIVersionResolver: IntegrationTest {
 
     func testThatDatabaseIsMigrated_WhenFederationIsEnabled() throws {
-        // Given
+        // GIVEN
+
+        // Setup Session Manager
         let sessionManager = try XCTUnwrap(sessionManager)
         let account = addAccount(name: "John Doe", userIdentifier: UUID())
         sessionManager.accountManager.select(account)
 
+        // Load session
         var session: ZMUserSession!
         sessionManager.loadSession(for: account, completion: {
             session = $0
@@ -35,43 +38,43 @@ class SessionManagerTests_APIVersionResolver: IntegrationTest {
 
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
-        let context = session.managedObjectContext
+        // Create user and conversation
+        let user = ZMUser.insertNewObject(in: session.syncContext)
+        let conversation = ZMConversation.insertNewObject(in: session.syncContext)
+        user.remoteIdentifier = UUID()
+        conversation.remoteIdentifier = UUID()
 
-        var user: ZMUser!
-        var conversation: ZMConversation!
-        session.perform {
-            user = ZMUser.insertNewObject(in: session.managedObjectContext)
-            user.remoteIdentifier = UUID()
-            conversation = ZMConversation.insertNewObject(in: session.managedObjectContext)
-        }
-
-        XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         XCTAssertNil(user.domain)
         XCTAssertNil(conversation.domain)
 
+        // Setup domain
         let domain = "example.domain.com"
         APIVersion.domain = domain
 
+        // Setup expectation & Session Manager delegate
         let expectation = XCTestExpectation(description: "Migration completed")
         let delegate = MockSessionManagerDelegate()
         delegate.expectation = expectation
         sessionManager.delegate = delegate
 
-        // When
+        // WHEN
         sessionManager.apiVersionResolverDetectedFederationHasBeenEnabled()
 
+        // THEN
         XCTAssertTrue(delegate.didCallWillMigrateAccount)
 
-        wait(for: [expectation], timeout: 15) // Timeout is subject to change
+        wait(for: [expectation], timeout: 5)
 
-        // Then
         XCTAssertTrue(delegate.didCallDidChangeActiveUserSession)
-        try session = XCTUnwrap(delegate.session)
+        let newSession = try XCTUnwrap(delegate.session)
 
-        let migratedUser = ZMUser.fetch(with: user.remoteIdentifier, in: context)
+        let migratedUser = ZMUser.fetch(with: user.remoteIdentifier, domain: domain, in: newSession.syncContext)
         XCTAssertNotNil(migratedUser)
         XCTAssertEqual(migratedUser?.domain, domain)
-        XCTAssertEqual(conversation.domain, domain)
+
+        let migratedConversation = ZMConversation.fetch(with: conversation.remoteIdentifier!, domain: domain, in: newSession.syncContext)
+        XCTAssertNotNil(migratedConversation)
+        XCTAssertEqual(migratedConversation?.domain, domain)
 
         userSession = nil
     }
@@ -85,7 +88,7 @@ class SessionManagerTests_APIVersionResolver: IntegrationTest {
     }
 }
 
-class MockSessionManagerDelegate: SessionManagerDelegate {
+private class MockSessionManagerDelegate: SessionManagerDelegate {
 
     var didCallWillMigrateAccount: Bool = false
     func sessionManagerWillMigrateAccount(userSessionCanBeTornDown: @escaping () -> Void) {
