@@ -18,7 +18,6 @@
 
 import Foundation
 
-// TODO: David - move to Logging extension in RS
 private let log = ZMSLog(tag: "APIVersion")
 
 extension SessionManager: APIVersionResolverDelegate {
@@ -77,8 +76,8 @@ extension SessionManager: APIVersionResolverDelegate {
                         try $0.migrateToFederation()
                     },
                     completion: { result in
-                        if case let .failure(error) = result {
-                            log.error("Failed to migrate account: \(error)")
+                        if case .failure = result {
+                            log.error("Failed to migrate account for federation")
                         }
                     }
                 )
