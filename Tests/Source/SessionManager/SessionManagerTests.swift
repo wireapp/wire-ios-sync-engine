@@ -1497,14 +1497,6 @@ final class SessionManagerTests_AppLock: IntegrationTest {
         XCTAssertEqual(appLock.methodCalls.beginTimer.count, 1)
     }
 
-    private func addAccount(name: String, userIdentifier: UUID) -> Account {
-        let account = Account(userName: name, userIdentifier: userIdentifier)
-        let cookie = NSData.secureRandomData(ofLength: 16)
-        sessionManager!.environment.cookieStorage(for: account).authenticationCookieData = cookie
-        sessionManager!.accountManager.addOrUpdate(account)
-        return account
-    }
-
 }
 
 extension NSManagedObjectContext {

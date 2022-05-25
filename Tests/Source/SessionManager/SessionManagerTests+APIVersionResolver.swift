@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2017 Wire Swiss GmbH
+// Copyright (C) 2022 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -77,14 +77,6 @@ class SessionManagerTests_APIVersionResolver: IntegrationTest {
         XCTAssertEqual(migratedConversation?.domain, domain)
 
         userSession = nil
-    }
-
-    private func addAccount(name: String, userIdentifier: UUID) -> Account {
-        let account = Account(userName: name, userIdentifier: userIdentifier)
-        let cookie = NSData.secureRandomData(ofLength: 16)
-        sessionManager!.environment.cookieStorage(for: account).authenticationCookieData = cookie
-        sessionManager!.accountManager.addOrUpdate(account)
-        return account
     }
 }
 
