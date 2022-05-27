@@ -85,7 +85,9 @@ typedef NS_ENUM(NSUInteger, ZMUserSessionErrorCode) {
     /// User has rebooted the device
     ZMUserSessionNeedsAuthenticationAfterReboot,
     /// User's account pending verification
-    ZMUserSessionAccountIsPendingVerification
+    ZMUserSessionAccountIsPendingVerification,
+    /// Migration has finished and the user should authenticate
+    ZMUserSessionNeedsAuthenticationAfterMigration
 };
 
 FOUNDATION_EXPORT NSString * const ZMClientsKey;

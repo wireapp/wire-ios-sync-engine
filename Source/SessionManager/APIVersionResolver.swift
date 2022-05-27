@@ -75,7 +75,6 @@ final class APIVersionResolver {
 
         if !wasFederationEnabled && APIVersion.isFederationEnabled {
             delegate?.apiVersionResolverDetectedFederationHasBeenEnabled()
-            return
         }
     }
 
