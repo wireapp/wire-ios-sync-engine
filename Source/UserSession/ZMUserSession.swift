@@ -559,13 +559,7 @@ extension ZMUserSession: ZMSyncStateDelegate {
             self?.notifyThirdPartyServices()
         }
 
-        featureService.enqueueBackendRefresh(for: .appLock)
-        featureService.enqueueBackendRefresh(for: .fileSharing)
-        featureService.enqueueBackendRefresh(for: .conferenceCalling)
-        featureService.enqueueBackendRefresh(for: .selfDeletingMessages)
-        featureService.enqueueBackendRefresh(for: .conversationGuestLinks)
-        featureService.enqueueBackendRefresh(for: .classifiedDomains)
-
+        fetchFeatureConfigs()
     }
 
     func processEvents() {
@@ -585,6 +579,16 @@ extension ZMUserSession: ZMSyncStateDelegate {
             self?.isPerformingSync = hasMoreEventsToProcess || isSyncing
             self?.updateNetworkState()
         }
+    }
+
+    private func fetchFeatureConfigs() {
+        let action = GetFeatureConfigsAction { result in
+            if case let .failure(reason) = result {
+                Logging.network.error("Failed to fetch feature configs: \(String(describing: reason))")
+            }
+        }
+
+        action.send(in: syncContext.notificationContext)
     }
 
     public func didRegisterSelfUserClient(_ userClient: UserClient!) {
