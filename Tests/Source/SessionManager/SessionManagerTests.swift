@@ -1640,6 +1640,10 @@ class SessionManagerTestDelegate: SessionManagerDelegate {
         startedMigrationCalled = true
     }
 
+    func sessionManagerDidPerformFederationMigration(authenticated: Bool) {
+        // no op
+    }
+
 }
 
 class SessionManagerObserverMock: SessionManagerCreatedSessionObserver, SessionManagerDestroyedSessionObserver {

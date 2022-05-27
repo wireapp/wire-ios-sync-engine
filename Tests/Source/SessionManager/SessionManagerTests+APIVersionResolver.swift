@@ -65,6 +65,7 @@ class SessionManagerTests_APIVersionResolver: IntegrationTest {
 
         wait(for: [expectation], timeout: 5)
 
+        XCTAssertTrue(delegate.didCallDidPerformFederationMigration)
         XCTAssertTrue(delegate.didCallDidChangeActiveUserSession)
         let newSession = try XCTUnwrap(delegate.session)
 
@@ -81,6 +82,12 @@ class SessionManagerTests_APIVersionResolver: IntegrationTest {
 }
 
 private class MockSessionManagerDelegate: SessionManagerDelegate {
+    var didCallDidPerformFederationMigration: Bool = false
+    var expectation: XCTestExpectation?
+    func sessionManagerDidPerformFederationMigration(authenticated: Bool) {
+        didCallDidPerformFederationMigration = true
+        expectation?.fulfill()
+    }
 
     var didCallWillMigrateAccount: Bool = false
     func sessionManagerWillMigrateAccount(userSessionCanBeTornDown: @escaping () -> Void) {
@@ -90,11 +97,9 @@ private class MockSessionManagerDelegate: SessionManagerDelegate {
 
     var didCallDidChangeActiveUserSession: Bool = false
     var session: ZMUserSession?
-    var expectation: XCTestExpectation?
     func sessionManagerDidChangeActiveUserSession(userSession: ZMUserSession) {
         didCallDidChangeActiveUserSession = true
         session = userSession
-        expectation?.fulfill()
     }
 
     func sessionManagerDidReportLockChange(forSession session: UserSessionAppLockInterface) {

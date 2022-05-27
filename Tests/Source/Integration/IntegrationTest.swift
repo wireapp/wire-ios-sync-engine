@@ -672,6 +672,10 @@ extension IntegrationTest: SessionManagerDelegate {
         userSessionCanBeTornDown()
     }
 
+    public func sessionManagerDidPerformFederationMigration(authenticated: Bool) {
+        // no op
+    }
+
 }
 
 @objcMembers
