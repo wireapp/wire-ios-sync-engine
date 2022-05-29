@@ -240,6 +240,8 @@ final class DummyServiceUser: NSObject, ServiceUser {
         return false
     }
 
+    var canCreateMLSGroups = false
+
     var connectionRequestMessage: String? = ""
 
     var totalCommonConnections: UInt = 0
