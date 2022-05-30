@@ -105,7 +105,6 @@ extension SessionManager: APIVersionResolverDelegate {
             }
 
             dispatchGroup?.wait(forInterval: 1)
-            
             self.delegate?.sessionManagerDidPerformFederationMigration(authenticated: authenticated)
         }
     }
