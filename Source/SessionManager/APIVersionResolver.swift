@@ -67,7 +67,7 @@ final class APIVersionResolver {
 
         APIVersion.current = .highestSupportedVersion(in: payload.supported)
         APIVersion.domain = payload.domain
-        APIVersion.isFederationEnabled = payload.federation
+        APIVersion.isFederationEnabled = payload.federation ?? false
 
         guard APIVersion.current != nil else {
             return reportBlacklist(payload: payload)
@@ -103,8 +103,8 @@ final class APIVersionResolver {
     private struct APIVersionResponsePayload: Decodable {
 
         let supported: [Int32]
-        let federation: Bool
-        let domain: String
+        let federation: Bool?
+        let domain: String?
 
     }
 
