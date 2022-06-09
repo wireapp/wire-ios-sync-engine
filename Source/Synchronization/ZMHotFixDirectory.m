@@ -224,7 +224,15 @@ static NSString* ZMLogTag ZM_UNUSED = @"HotFix";
                         [ZMHotFixDirectory refetchSelfUser:context];
                         [ZMHotFixDirectory refetchUsers:context];
                      }],
-                    ];
+                    
+                    /// We need to refetch self user in order to fetch usesCompanyLogin. Backend and clients made some changes to
+                    /// the definintion of usesCompanyLogin.
+                    [ZMHotFixPatch
+                     patchWithVersion:@"426.1.2"
+                     patchCode:^(NSManagedObjectContext *context) {
+                        [ZMHotFixDirectory refetchSelfUser:context];
+                    }],
+                  ];
     });
     return patches;
 }
