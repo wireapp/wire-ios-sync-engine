@@ -266,7 +266,7 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
                 applicationStatusDirectory: applicationStatusDirectory,
                 userProfileImageUpdateStatus: applicationStatusDirectory.userProfileImageUpdateStatus),
             localNotificationDispatcher,
-            MLSStrategy(
+            MLSRequestStrategy(
                 withManagedObjectContext: syncMOC,
                 applicationStatus: applicationStatusDirectory
             )
