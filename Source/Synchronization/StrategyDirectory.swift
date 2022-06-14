@@ -17,6 +17,7 @@
 //
 
 import Foundation
+import WireRequestStrategy
 
 @objc
 public protocol StrategyDirectoryProtocol {
@@ -264,7 +265,11 @@ public class StrategyDirectory: NSObject, StrategyDirectoryProtocol {
                 managedObjectContext: syncMOC,
                 applicationStatusDirectory: applicationStatusDirectory,
                 userProfileImageUpdateStatus: applicationStatusDirectory.userProfileImageUpdateStatus),
-            localNotificationDispatcher
+            localNotificationDispatcher,
+            MLSStrategy(
+                withManagedObjectContext: syncMOC,
+                applicationStatus: applicationStatusDirectory
+            )
         ]
 
         return strategies
