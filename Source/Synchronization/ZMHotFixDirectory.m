@@ -232,6 +232,15 @@ static NSString* ZMLogTag ZM_UNUSED = @"HotFix";
                      patchCode:^(NSManagedObjectContext *context) {
                         [ZMHotFixDirectory refetchSelfUser:context];
                     }],
+
+                    // Problem: the domain of a backend changed, so the self user has an old
+                    // and invalid domain, which causes requests to federated endpoints to fail.
+                    // Solution: refetch the self user's domain.
+                    [ZMHotFixPatch
+                     patchWithVersion:@"426.1.3"
+                     patchCode:^(NSManagedObjectContext *context) {
+                        [ZMHotFixDirectory refetchSelfUserDomain:context];
+                    }]
                   ];
     });
     return patches;

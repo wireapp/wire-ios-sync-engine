@@ -238,6 +238,34 @@ class ZMHotFixTests_Integration: MessagingTest {
         }
     }
 
+    func testThatItClearsSelfUserDomainAndTriggersRefetch_426_1_3() {
+        var selfUser: ZMUser!
+
+        syncMOC.performGroupedBlock {
+            // GIVEN
+            self.syncMOC.setPersistentStoreMetadata("426.1.2", key: "lastSavedVersion")
+            self.syncMOC.setPersistentStoreMetadata(NSNumber(value: true), key: "HasHistory")
+
+            selfUser = ZMUser.selfUser(in: self.syncMOC)
+            selfUser.domain = "example.com"
+            selfUser.needsToBeUpdatedFromBackend = false
+
+            // WHEN
+            let sut = ZMHotFix(syncMOC: self.syncMOC)
+
+            self.performIgnoringZMLogError {
+                sut!.applyPatches(forCurrentVersion: "426.1.3")
+            }
+        }
+
+        XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+
+        syncMOC.performGroupedBlock {
+            XCTAssertNil(selfUser.domain)
+            XCTAssertTrue(selfUser.needsToBeUpdatedFromBackend)
+        }
+    }
+
     func createSelfClient(_ context: NSManagedObjectContext) -> UserClient {
         let selfClient = UserClient.insertNewObject(in: context)
         selfClient.remoteIdentifier = UUID().transportString()
