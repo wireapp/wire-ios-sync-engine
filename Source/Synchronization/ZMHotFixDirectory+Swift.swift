@@ -160,15 +160,6 @@ import Foundation
         context.enqueueDelayedSave()
     }
 
-    public static func refetchSelfUserDomain(_ context: NSManagedObjectContext) {
-        let selfUser = ZMUser.selfUser(in: context)
-        // Only if the domain is `nil` will we store the domain discovered on the backend.
-        // After that, we don't expect it to change and may crash the app if it does.
-        selfUser.domain = nil
-        selfUser.needsToBeUpdatedFromBackend = true
-        context.enqueueDelayedSave()
-    }
-
     /// Marks all connected users (including self) to be refetched.
     /// Unconnected users are refreshed with a call to `refreshData` when information is displayed.
     /// See also the related `ZMUserSession.isPendingHotFixChanges` in `ZMHotFix+PendingChanges.swift`.
