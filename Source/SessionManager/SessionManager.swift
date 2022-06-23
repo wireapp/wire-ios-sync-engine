@@ -1090,6 +1090,7 @@ extension SessionManager: UserSessionSelfUserClientDelegate {
             }
         }
 
+        activeUserSession?.setUpCoreCrypto()
         loginDelegate?.clientRegistrationDidSucceed(accountId: accountId)
     }
 
