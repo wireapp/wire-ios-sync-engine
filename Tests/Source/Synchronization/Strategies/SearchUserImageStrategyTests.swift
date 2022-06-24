@@ -45,7 +45,7 @@ class SearchUserImageStrategyTests: MessagingTest {
     }
 
     func createSearchUser() -> ZMSearchUser {
-        return ZMSearchUser(contextProvider: coreDataStack, name: "Foo", handle: "foo", accentColor: .brightOrange, remoteIdentifier: UUID())
+        return ZMSearchUser(contextProvider: coreDataStack, name: "Foo", handle: "foo", accentColor: .amber, remoteIdentifier: UUID())
     }
 
     func userIDs(from searchUsers: Set<ZMSearchUser>) -> Set<UUID> {

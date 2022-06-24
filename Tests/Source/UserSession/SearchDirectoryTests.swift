@@ -28,7 +28,7 @@ class SearchDirectoryTests: DatabaseTest {
         let mockTransport = MockTransportSession(dispatchGroup: dispatchGroup)
         let uuid = UUID.create()
         let sut = SearchDirectory(searchContext: searchMOC, contextProvider: coreDataStack!, transportSession: mockTransport)
-        _ = ZMSearchUser(contextProvider: coreDataStack!, name: "John Doe", handle: "john", accentColor: .brightOrange, remoteIdentifier: uuid)
+        _ = ZMSearchUser(contextProvider: coreDataStack!, name: "John Doe", handle: "john", accentColor: .amber, remoteIdentifier: uuid)
         XCTAssertNotNil(uiMOC.zm_searchUserCache?.object(forKey: uuid as NSUUID))
 
         // when

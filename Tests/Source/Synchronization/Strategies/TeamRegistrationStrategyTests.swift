@@ -31,11 +31,11 @@ class RegistrationStrategyTests: MessagingTest {
         registrationStatus = TestRegistrationStatus()
         userInfoParser = MockUserInfoParser()
         sut = WireSyncEngine.RegistrationStrategy(groupQueue: self.syncMOC, status: registrationStatus, userInfoParser: userInfoParser)
-        team = UnregisteredTeam(teamName: "Dream Team", email: "some@email.com", emailCode: "23", fullName: "M. Jordan", password: "qwerty", accentColor: .brightOrange)
+        team = UnregisteredTeam(teamName: "Dream Team", email: "some@email.com", emailCode: "23", fullName: "M. Jordan", password: "qwerty", accentColor: .amber)
 
         user = UnregisteredUser()
         user.name = "M. Jordan"
-        user.accentColorValue = .brightOrange
+        user.accentColorValue = .amber
         user.verificationCode = "23"
         user.credentials = .phone("+4912345678900")
         user.acceptedTermsOfService = true

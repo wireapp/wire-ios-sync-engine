@@ -35,13 +35,13 @@ class RegistrationStatusTests: MessagingTest {
         sut.delegate = delegate
         email = "some@foo.bar"
         code = "123456"
-        team = UnregisteredTeam(teamName: "Dream Team", email: email, emailCode: "23", fullName: "M. Jordan", password: "qwerty", accentColor: .brightOrange)
+        team = UnregisteredTeam(teamName: "Dream Team", email: email, emailCode: "23", fullName: "M. Jordan", password: "qwerty", accentColor: .amber)
 
         user = UnregisteredUser()
         user.credentials = UnverifiedCredentials.email(email)
         user.name = "M. Jordan"
         user.password = "qwerty"
-        user.accentColorValue = .brightOrange
+        user.accentColorValue = .amber
         user.verificationCode = code
         user.acceptedTermsOfService = true
         user.marketingConsent = true
