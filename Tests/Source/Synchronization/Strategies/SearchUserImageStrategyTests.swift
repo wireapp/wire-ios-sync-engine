@@ -269,6 +269,8 @@ extension SearchUserImageStrategyTests {
             expectedPath = "/assets/v3/\(assetID)"
         case .v1:
             expectedPath = "/v1/assets/v4/\(domain)/\(assetID)"
+        case .v2:
+            fatalError("API version not implemented")
         }
 
         XCTAssertEqual(request.path, expectedPath)

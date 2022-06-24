@@ -180,6 +180,9 @@ public final class UserImageAssetUpdateStrategy: AbstractRequestStrategy, ZMCont
             }
 
             path = "/assets/v4/\(domain)/\(assetId)"
+
+        case .v2:
+            fatalError("API version not implemented")
         }
 
         return ZMTransportRequest.imageGet(fromPath: path, apiVersion: apiVersion.rawValue)

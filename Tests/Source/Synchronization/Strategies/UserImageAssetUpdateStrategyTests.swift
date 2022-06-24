@@ -302,6 +302,8 @@ extension UserImageAssetUpdateStrategyTests {
             expectedPath = "/assets/v3/\(assetId)"
         case .v1:
             expectedPath = "/v1/assets/v4/\(domain)/\(assetId)"
+        case .v2:
+            fatalError("API version not implemented")
         }
 
         let request = self.sut.downstreamRequestSyncs[size]?.nextRequest(for: apiVersion)

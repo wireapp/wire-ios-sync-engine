@@ -143,6 +143,9 @@ public class SearchUserImageStrategy: AbstractRequestStrategy {
                 }
 
                 path = "/assets/v4/\(domain)/\(key)"
+
+            case .v2:
+                fatalError("API version not implemented")
             }
 
             return ZMTransportRequest(getFromPath: path, apiVersion: apiVersion.rawValue)
