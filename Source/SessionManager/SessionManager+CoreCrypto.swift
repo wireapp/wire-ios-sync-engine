@@ -40,60 +40,16 @@ public protocol CoreCryptoProvider: AnyObject {
 extension SessionManager: CoreCryptoProvider {
     public var coreCrypto: CoreCryptoProtocol? {
         get {
-            guard let context = activeUserSession?.syncContext else { return nil }
-            return context.coreCrypto
+            return activeUserSession?.coreCrypto
         }
         set {
-            guard let context = activeUserSession?.syncContext else { return }
-            context.coreCrypto = newValue
-        }
-    }
-}
-
-extension NSManagedObjectContext {
-    private static let coreCrytpoUserInfoKey = "CoreCryptoKey"
-
-    public var coreCrypto: CoreCryptoProtocol? {
-        get {
-            userInfo[Self.coreCrytpoUserInfoKey] as? CoreCryptoProtocol
-        }
-        set {
-            userInfo[Self.coreCrytpoUserInfoKey] = newValue
+            activeUserSession?.coreCrypto = newValue
         }
     }
 }
 
 extension SessionManager: CoreCryptoConfigurationProvider {
     public var coreCryptoConfiguration: CoreCryptoConfiguration? {
-        guard let userSession = activeUserSession else { return nil }
-
-        let context = userSession.syncContext
-        let user = ZMUser.selfUser(in: context)
-
-        guard let clientId = user.selfClient()?.remoteIdentifier else { return nil }
-
-        let accountDirectory = CoreDataStack.accountDataFolder(
-            accountIdentifier: user.remoteIdentifier,
-            applicationContainer: userSession.sharedContainerURL
-        )
-        FileManager.default.createAndProtectDirectory(at: accountDirectory)
-        let mlsDirectory = accountDirectory.appendingMLSFolder()
-
-        do {
-            let key = try CoreCryptoKeyProvider.coreCryptoKey()
-            return CoreCryptoConfiguration(
-                path: mlsDirectory.path,
-                key: key.base64EncodedString(),
-                clientId: clientId
-            )
-        } catch {
-            fatalError(String(describing: error))
-        }
-    }
-}
-
-extension URL {
-    func appendingMLSFolder() -> URL {
-        return appendingPathComponent("mls")
+        return activeUserSession?.coreCryptoConfiguration
     }
 }
