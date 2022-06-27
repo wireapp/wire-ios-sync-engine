@@ -22,11 +22,7 @@ extension SessionManager {
 
     /// Forwards the Handoff/CallKit activity that user would like to continue in the app
     public func continueUserActivity(_ userActivity: NSUserActivity) -> Bool {
-        if #available(iOS 10.0, *) {
-            return callKitManager?.continueUserActivity(userActivity) ?? false
-        } else {
-            return false
-        }
+        return callKitManager?.continueUserActivity(userActivity) ?? false
     }
 
 }

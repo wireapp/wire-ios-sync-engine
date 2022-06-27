@@ -32,10 +32,8 @@ public protocol Pasteboard: AnyObject {
 extension UIPasteboard: Pasteboard {
 
     public var text: String? {
-        if #available(iOS 10, *) {
-            guard self.hasStrings else {
-                return nil
-            }
+        guard self.hasStrings else {
+            return nil
         }
         return self.string
     }
