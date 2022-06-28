@@ -40,16 +40,23 @@ extension ZMUserSession {
                 clientId: clientId
             )
         } catch {
+            // TODO: Error handling
             fatalError(String(describing: error))
         }
     }
 
     var coreCrypto: CoreCryptoProtocol? {
         get {
-            return managedObjectContext.coreCrypto
+            var coreCrypto: CoreCryptoProtocol?
+            syncContext.performAndWait {
+                coreCrypto = syncContext.coreCrypto
+            }
+            return coreCrypto
         }
         set {
-            managedObjectContext.coreCrypto = newValue
+            syncContext.performAndWait {
+                syncContext.coreCrypto = newValue
+            }
         }
     }
 }
@@ -59,9 +66,11 @@ extension NSManagedObjectContext {
 
     public var coreCrypto: CoreCryptoProtocol? {
         get {
-            userInfo[Self.coreCrytpoUserInfoKey] as? CoreCryptoProtocol
+            precondition(zm_isSyncContext, "core crypto should only be accessed on the sync context")
+            return userInfo[Self.coreCrytpoUserInfoKey] as? CoreCryptoProtocol
         }
         set {
+            precondition(zm_isSyncContext, "core crypto should only be accessed on the sync context")
             userInfo[Self.coreCrytpoUserInfoKey] = newValue
         }
     }
