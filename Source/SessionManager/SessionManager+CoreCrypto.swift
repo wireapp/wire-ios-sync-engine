@@ -25,10 +25,6 @@ public struct CoreCryptoConfiguration {
     public let clientId: String
 }
 
-public protocol CoreCryptoSetupDelegate: AnyObject {
-    func setUpCoreCryptoIfNeeded()
-}
-
 public protocol CoreCryptoConfigurationProvider: AnyObject {
     var coreCryptoConfiguration: CoreCryptoConfiguration? { get }
 }

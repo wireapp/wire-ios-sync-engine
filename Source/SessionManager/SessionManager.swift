@@ -199,7 +199,6 @@ public final class SessionManager: NSObject, SessionManagerType {
     public weak var delegate: SessionManagerDelegate?
     public let accountManager: AccountManager
     public weak var loginDelegate: LoginDelegate?
-    public weak var coreCryptoSetupDelegate: CoreCryptoSetupDelegate?
 
     public internal(set) var activeUserSession: ZMUserSession? {
         willSet {
@@ -1091,7 +1090,6 @@ extension SessionManager: UserSessionSelfUserClientDelegate {
             }
         }
 
-        coreCryptoSetupDelegate?.setUpCoreCryptoIfNeeded()
         loginDelegate?.clientRegistrationDidSucceed(accountId: accountId)
     }
 
