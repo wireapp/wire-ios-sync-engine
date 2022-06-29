@@ -270,7 +270,7 @@ extension SearchUserImageStrategyTests {
         case .v1:
             expectedPath = "/v1/assets/v4/\(domain)/\(assetID)"
         case .v2:
-            fatalError("API version not implemented")
+            expectedPath = "/v2/assets/\(domain)/\(assetID)"
         }
 
         XCTAssertEqual(request.path, expectedPath)
@@ -279,6 +279,7 @@ extension SearchUserImageStrategyTests {
     func testThatNextRequestCreatesARequestForAnAssetID() {
         testThatNextRequestCreatesARequestForAnAssetID(apiVersion: .v0)
         testThatNextRequestCreatesARequestForAnAssetID(apiVersion: .v1)
+        testThatNextRequestCreatesARequestForAnAssetID(apiVersion: .v2)
     }
 
     func testThatNextRequestDoesNotCreatesARequestForAnAssetIDIfTheFirstRequestIsStillRunning() {

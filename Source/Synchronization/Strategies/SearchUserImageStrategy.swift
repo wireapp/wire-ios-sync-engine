@@ -145,7 +145,11 @@ public class SearchUserImageStrategy: AbstractRequestStrategy {
                 path = "/assets/v4/\(domain)/\(key)"
 
             case .v2:
-                fatalError("API version not implemented")
+                guard let domain = requestedUserDomain[user] ?? APIVersion.domain else {
+                    return nil
+                }
+
+                path = "/assets/\(domain)/\(key)"
             }
 
             return ZMTransportRequest(getFromPath: path, apiVersion: apiVersion.rawValue)

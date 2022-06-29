@@ -182,7 +182,11 @@ public final class UserImageAssetUpdateStrategy: AbstractRequestStrategy, ZMCont
             path = "/assets/v4/\(domain)/\(assetId)"
 
         case .v2:
-            fatalError("API version not implemented")
+            guard let domain = user.domain ?? APIVersion.domain else {
+                return nil
+            }
+
+            path = "/assets/\(domain)/\(assetId)"
         }
 
         return ZMTransportRequest.imageGet(fromPath: path, apiVersion: apiVersion.rawValue)
