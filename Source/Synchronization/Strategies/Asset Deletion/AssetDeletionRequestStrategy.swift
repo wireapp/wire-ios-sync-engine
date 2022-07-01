@@ -19,8 +19,22 @@
 import Foundation
 
 fileprivate extension AssetRequestFactory {
-    static func request(for identifier: String, on queue: ZMSGroupQueue, apiVersion: APIVersion, block: @escaping ZMCompletionHandlerBlock) -> ZMTransportRequest {
-        let request = ZMTransportRequest(path: "/assets/v3/\(identifier)", method: .methodDELETE, payload: nil, apiVersion: apiVersion.rawValue)
+    static func request(for identifier: String, on queue: ZMSGroupQueue, apiVersion: APIVersion, block: @escaping ZMCompletionHandlerBlock) -> ZMTransportRequest? {
+
+        let path: String
+
+        switch apiVersion {
+        case .v0, .v1:
+            path = "/assets/v3/\(identifier)"
+        case .v2:
+            guard let domain = APIVersion.domain else {
+                return nil
+            }
+
+            path = "/assets/\(domain)/\(identifier)"
+        }
+
+        let request = ZMTransportRequest(path: path, method: .methodDELETE, payload: nil, apiVersion: apiVersion.rawValue)
         request.add(ZMCompletionHandler(on: queue, block: block))
         return request
     }

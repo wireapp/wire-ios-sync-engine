@@ -55,18 +55,9 @@ class AssetDeletionRequestStrategyTests: MessagingTest {
     }
 
     func testThatItCreatesARequestIfThereIsAnIdentifier() {
-        // Given
-        let identifier = UUID.create().transportString()
-        mockIdentifierProvider.nextIdentifier = identifier
-
-        // When
-        let request = sut.nextRequest(for: .v0)
-
-        // Then
-        XCTAssertNotNil(request)
-        XCTAssertEqual(request?.method, .methodDELETE)
-        XCTAssertEqual(request?.path, "/assets/v3/\(identifier)")
-        XCTAssertNil(request?.payload)
+        testThatItCreatesARequestIfThereIsAnIdentifier(for: .v0)
+        testThatItCreatesARequestIfThereIsAnIdentifier(for: .v1)
+        testThatItCreatesARequestIfThereIsAnIdentifier(for: .v2)
     }
 
     func testThatItCallsDidDeleteIdentifierOnSuccess() {
@@ -103,6 +94,34 @@ class AssetDeletionRequestStrategyTests: MessagingTest {
         XCTAssert(mockIdentifierProvider.deletedIdentifiers.isEmpty)
     }
 
+}
+
+// MARK: Helper Method
+
+extension AssetDeletionRequestStrategyTests {
+    func testThatItCreatesARequestIfThereIsAnIdentifier(for apiVersion: APIVersion) {
+        // Given
+        let domain = "example.domain.com"
+        APIVersion.domain = domain
+        let identifier = UUID.create().transportString()
+        mockIdentifierProvider.nextIdentifier = identifier
+
+        // When
+        let request = sut.nextRequest(for: apiVersion)
+
+        // Then
+        let expectedPath: String
+        switch apiVersion {
+        case .v0, .v1:
+            expectedPath = "/assets/v3/\(identifier)"
+        case .v2:
+            expectedPath = "/v2/assets/\(domain)/\(identifier)"
+        }
+        XCTAssertNotNil(request)
+        XCTAssertEqual(request?.method, .methodDELETE)
+        XCTAssertEqual(request?.path, expectedPath)
+        XCTAssertNil(request?.payload)
+    }
 }
 
 // MARK: - Helper

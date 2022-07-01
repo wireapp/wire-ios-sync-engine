@@ -303,7 +303,7 @@ extension UserImageAssetUpdateStrategyTests {
         case .v1:
             expectedPath = "/v1/assets/v4/\(domain)/\(assetId)"
         case .v2:
-            fatalError("API version not implemented")
+            expectedPath = "/v2/assets/\(domain)/\(assetId)"
         }
 
         let request = self.sut.downstreamRequestSyncs[size]?.nextRequest(for: apiVersion)
@@ -315,11 +315,13 @@ extension UserImageAssetUpdateStrategyTests {
     func testThatItCreatesRequestForCorrectAssetIdentifierForPreviewImage() {
         testThatItCreatesRequestForCorrectAssetIdentifier(for: .preview, apiVersion: .v0)
         testThatItCreatesRequestForCorrectAssetIdentifier(for: .preview, apiVersion: .v1)
+        testThatItCreatesRequestForCorrectAssetIdentifier(for: .preview, apiVersion: .v2)
     }
 
     func testThatItCreatesRequestForCorrectAssetIdentifierForCompleteImage() {
         testThatItCreatesRequestForCorrectAssetIdentifier(for: .complete, apiVersion: .v0)
         testThatItCreatesRequestForCorrectAssetIdentifier(for: .complete, apiVersion: .v1)
+        testThatItCreatesRequestForCorrectAssetIdentifier(for: .complete, apiVersion: .v2)
     }
 
     func testThatItUpdatesCorrectUserImageDataForPreviewImage() {
