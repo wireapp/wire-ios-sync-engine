@@ -16,7 +16,7 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-import WireSyncEngine
+@testable import WireSyncEngine
 import WireUtilities
 import WireTesting
 import WireCryptobox
@@ -293,6 +293,31 @@ class UserClientRequestFactoryTests: MessagingTest {
                 ])
             XCTAssertEqual($0.transportRequest.method, ZMTransportRequestMethod.methodDELETE)
         }
+    }
+
+    // MARK: - MLS public keys
+
+    func test_ItGeneratesRequestToUploadMLSPublicKeys() throws {
+        // Given
+        let client = UserClient.insertNewObject(in: self.syncMOC)
+        client.remoteIdentifier = "\(client.objectID)"
+        client.mlsPublicKeys = UserClient.MLSPublicKeys(ed25519: "foo")
+        self.syncMOC.saveOrRollback()
+
+        // When
+        let request = try XCTUnwrap(sut.updateClientMLSPublicKeysRequest(client, apiVersion: .v1))
+
+        // Then
+        XCTAssertEqual(request.keys, Set([UserClient.needsToUploadMLSPublicKeysKey]))
+
+        let transportRequest = try XCTUnwrap(request.transportRequest)
+        XCTAssertEqual(transportRequest.path, "/v1/clients/\(client.remoteIdentifier!)")
+        XCTAssertEqual(transportRequest.method, .methodPUT)
+
+        let payload = try XCTUnwrap(transportRequest.payload)
+        let payloadDict = try XCTUnwrap(payload.asDictionary())
+        let keys = try XCTUnwrap(payloadDict["mls_public_keys"] as? [String: String])
+        XCTAssertEqual(keys["ed25519"], "foo")
     }
 
 }

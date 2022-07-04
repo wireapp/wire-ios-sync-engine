@@ -750,6 +750,49 @@ extension UserClientRequestStrategyTests {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.2))
     }
 
+    func test_ItCreatesARequest_ForClientsThatNeedToUpdateMLSPublicKeys() {
+        var existingClient: UserClient! = nil
+
+        syncMOC.performGroupedBlock {
+            // Given
+            self.clientRegistrationStatus.mockPhase = .registered
+
+            existingClient = self.createSelfClient()
+            let existingClientSet: Set<NSManagedObject> = [existingClient]
+
+            // When
+            existingClient.needsToUploadMLSPublicKeys = true
+            existingClient.setLocallyModifiedKeys(Set([UserClient.needsToUploadMLSPublicKeysKey]))
+
+            self.sut.contextChangeTrackers.forEach {
+                $0.objectsDidChange(existingClientSet)
+            }
+
+            let request = self.sut.nextRequest(for: .v1)
+
+            // Then
+            XCTAssertNotNil(request)
+
+            // And when
+            let response = ZMTransportResponse(
+                payload: nil,
+                httpStatus: 200,
+                transportSessionError: nil,
+                apiVersion: APIVersion.v1.rawValue
+            )
+
+            request?.complete(with: response)
+        }
+
+        XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+
+        // Then
+        syncMOC.performGroupedBlock {
+            XCTAssertFalse(existingClient.needsToUploadMLSPublicKeys)
+            XCTAssertFalse(existingClient.hasLocalModifications(forKey: UserClient.needsToUploadMLSPublicKeysKey))
+        }
+    }
+
 }
 
 extension UserClientRequestStrategy {

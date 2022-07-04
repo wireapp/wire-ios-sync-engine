@@ -18,6 +18,7 @@
 
 import Foundation
 import WireCryptobox
+import WireDataModel
 
 enum UserClientRequestError: Error {
     case noPreKeys
@@ -175,6 +176,31 @@ public final class UserClientRequestFactory {
         throw UserClientRequestError.clientNotRegistered
     }
 
+    func updateClientMLSPublicKeysRequest(
+        _ client: UserClient,
+        apiVersion: APIVersion
+    ) throws -> ZMUpstreamRequest? {
+        guard let clientID = client.remoteIdentifier else {
+            throw UserClientRequestError.clientNotRegistered
+        }
+
+        let payload = MLSPublicKeyUploadPayload(keys: client.mlsPublicKeys)
+        let payloadData = try JSONEncoder().encode(payload)
+        let payloadDataString = String(data: payloadData, encoding: .utf8)!
+
+        let request = ZMTransportRequest(
+            path: "/clients/\(clientID)",
+            method: .methodPUT,
+            payload: payloadDataString as ZMTransportData,
+            apiVersion: apiVersion.rawValue
+        )
+
+        return ZMUpstreamRequest(
+            keys: Set([UserClient.needsToUploadMLSPublicKeysKey]),
+            transportRequest: request
+        )
+    }
+
     public func updateClientCapabilitiesRequest(_ client: UserClient, apiVersion: APIVersion) throws -> ZMUpstreamRequest? {
         guard let remoteIdentifier = client.remoteIdentifier else {
             throw UserClientRequestError.clientNotRegistered
@@ -212,5 +238,17 @@ public final class UserClientRequestFactory {
     public func fetchClientsRequest(apiVersion: APIVersion) -> ZMTransportRequest! {
         return ZMTransportRequest(getFromPath: "/clients", apiVersion: apiVersion.rawValue)
     }
+
+}
+
+private struct MLSPublicKeyUploadPayload: Encodable {
+
+    enum CodingKeys: String, CodingKey {
+
+        case keys = "mls_public_keys"
+
+    }
+
+    let keys: UserClient.MLSPublicKeys
 
 }

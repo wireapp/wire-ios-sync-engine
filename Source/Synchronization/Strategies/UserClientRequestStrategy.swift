@@ -57,29 +57,49 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
         }
     }
 
-    public init(clientRegistrationStatus: ZMClientRegistrationStatus,
-                clientUpdateStatus: ClientUpdateStatus,
-                context: NSManagedObjectContext,
-                userKeysStore: UserClientKeysStore) {
+    public init(
+        clientRegistrationStatus: ZMClientRegistrationStatus,
+        clientUpdateStatus: ClientUpdateStatus,
+        context: NSManagedObjectContext,
+        userKeysStore: UserClientKeysStore
+    ) {
         self.clientRegistrationStatus = clientRegistrationStatus
         self.clientUpdateStatus = clientUpdateStatus
         self.userKeysStore = userKeysStore
         self.requestsFactory = UserClientRequestFactory(keysStore: userKeysStore)
         super.init(managedObjectContext: context)
 
-        let deletePredicate = NSPredicate(format: "\(ZMUserClientMarkedToDeleteKey) == YES")
-        let modifiedPredicate = self.modifiedPredicate()
+        let modifiedKeysToSync = [
+            ZMUserClientNumberOfKeysRemainingKey,
+            ZMUserClientNeedsToUpdateSignalingKeysKey,
+            ZMUserClientNeedsToUpdateCapabilitiesKey,
+            UserClient.needsToUploadMLSPublicKeysKey
+        ]
 
-        self.modifiedSync = ZMUpstreamModifiedObjectSync(transcoder: self,
-                                                         entityName: UserClient.entityName(),
-                                                         update: modifiedPredicate,
-                                                         filter: nil,
-                                                         keysToSync: [ZMUserClientNumberOfKeysRemainingKey,
-                                                                      ZMUserClientNeedsToUpdateSignalingKeysKey,
-                                                                      ZMUserClientNeedsToUpdateCapabilitiesKey],
-                                                         managedObjectContext: context)
-        self.deleteSync = ZMUpstreamModifiedObjectSync(transcoder: self, entityName: UserClient.entityName(), update: deletePredicate, filter: nil, keysToSync: [ZMUserClientMarkedToDeleteKey], managedObjectContext: context)
-        self.insertSync = ZMUpstreamInsertedObjectSync(transcoder: self, entityName: UserClient.entityName(), filter: insertSyncFilter, managedObjectContext: context)
+        self.modifiedSync = ZMUpstreamModifiedObjectSync(
+            transcoder: self,
+            entityName: UserClient.entityName(),
+            update: modifiedPredicate(),
+            filter: nil,
+            keysToSync: modifiedKeysToSync,
+            managedObjectContext: context
+        )
+
+        self.deleteSync = ZMUpstreamModifiedObjectSync(
+            transcoder: self,
+            entityName: UserClient.entityName(),
+            update: NSPredicate(format: "\(ZMUserClientMarkedToDeleteKey) == YES"),
+            filter: nil,
+            keysToSync: [ZMUserClientMarkedToDeleteKey],
+            managedObjectContext: context
+        )
+
+        self.insertSync = ZMUpstreamInsertedObjectSync(
+            transcoder: self,
+            entityName: UserClient.entityName(),
+            filter: insertSyncFilter,
+            managedObjectContext: context
+        )
 
         self.fetchAllClientsSync = ZMSingleRequestSync(singleRequestTranscoder: self, groupQueue: context)
     }
@@ -89,16 +109,32 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
             fatal("baseModifiedPredicate is nil!")
         }
 
-        let needToUploadKeysPredicate = NSPredicate(format: "\(ZMUserClientNumberOfKeysRemainingKey) < \(minNumberOfRemainingKeys)")
-        let needsToUploadSignalingKeysPredicate = NSPredicate(format: "\(ZMUserClientNeedsToUpdateSignalingKeysKey) == YES")
-        let needsToUpdateCapabilitiesPredicate = NSPredicate(format: "\(ZMUserClientNeedsToUpdateCapabilitiesKey) == YES")
+        let needToUploadKeysPredicate = NSPredicate(
+            format: "\(ZMUserClientNumberOfKeysRemainingKey) < \(minNumberOfRemainingKeys)"
+        )
+
+        let needsToUploadSignalingKeysPredicate = NSPredicate(
+            format: "\(ZMUserClientNeedsToUpdateSignalingKeysKey) == YES"
+        )
+
+        let needsToUpdateCapabilitiesPredicate = NSPredicate(
+            format: "\(ZMUserClientNeedsToUpdateCapabilitiesKey) == YES"
+        )
+
+        let needsToUploadMLSPublicKeysPredicate = NSPredicate(
+            format: "\(UserClient.needsToUploadMLSPublicKeysKey) == YES"
+        )
 
         let modifiedPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
             baseModifiedPredicate,
-            NSCompoundPredicate(orPredicateWithSubpredicates: [needToUploadKeysPredicate,
-                                                              needsToUploadSignalingKeysPredicate,
-                                                              needsToUpdateCapabilitiesPredicate])
+            NSCompoundPredicate(orPredicateWithSubpredicates: [
+                needToUploadKeysPredicate,
+                needsToUploadSignalingKeysPredicate,
+                needsToUpdateCapabilitiesPredicate,
+                needsToUploadMLSPublicKeysPredicate
             ])
+        ])
+
         return modifiedPredicate
     }
 
@@ -153,44 +189,76 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
         return requestsFactory.fetchClientsRequest(apiVersion: apiVersion)
     }
 
-    public func request(forUpdating managedObject: ZMManagedObject, forKeys keys: Set<String>, apiVersion: APIVersion) -> ZMUpstreamRequest? {
-        if let managedObject = managedObject as? UserClient {
-            guard let clientUpdateStatus = self.clientUpdateStatus else { fatal("clientUpdateStatus is not set") }
-
-            var request: ZMUpstreamRequest!
-
-            switch keys {
-            case _ where keys.contains(ZMUserClientNumberOfKeysRemainingKey):
-                do {
-                    try request = requestsFactory.updateClientPreKeysRequest(managedObject, apiVersion: apiVersion)
-                } catch let e {
-                    fatal("Couldn't create request for new pre keys: \(e)")
-                }
-            case _ where keys.contains(ZMUserClientMarkedToDeleteKey):
-                if clientUpdateStatus.currentPhase == ClientUpdatePhase.deletingClients {
-                    request = requestsFactory.deleteClientRequest(managedObject, credentials: clientUpdateStatus.credentials, apiVersion: apiVersion)
-                } else {
-                    fatal("No email credentials in memory")
-                }
-            case _ where keys.contains(ZMUserClientNeedsToUpdateSignalingKeysKey):
-                do {
-                    try request = requestsFactory.updateClientSignalingKeysRequest(managedObject, apiVersion: apiVersion)
-                } catch let e {
-                    fatal("Couldn't create request for new signaling keys: \(e)")
-                }
-            case _ where keys.contains(ZMUserClientNeedsToUpdateCapabilitiesKey):
-                do {
-                    try request = requestsFactory.updateClientCapabilitiesRequest(managedObject, apiVersion: apiVersion)
-                } catch let e {
-                    fatal("Couldn't create request for updating Capabilities: \(e)")
-                }
-            default: fatal("Unknown keys to sync (\(keys))")
-            }
-
-            return request
-        } else {
+    public func request(
+        forUpdating managedObject: ZMManagedObject,
+        forKeys keys: Set<String>,
+        apiVersion: APIVersion
+    ) -> ZMUpstreamRequest? {
+        guard let userClient = managedObject as? UserClient else {
             fatal("Called requestForUpdatingObject() on \(managedObject) to sync keys: \(keys)")
         }
+
+        guard let clientUpdateStatus = self.clientUpdateStatus else {
+            fatal("clientUpdateStatus is not set")
+        }
+
+        if keys.contains(ZMUserClientNumberOfKeysRemainingKey) {
+            do {
+                return try requestsFactory.updateClientPreKeysRequest(
+                    userClient,
+                    apiVersion: apiVersion
+                )
+            } catch let error {
+                fatal("Couldn't create request for new pre keys: \(error)")
+            }
+        }
+
+        if keys.contains(ZMUserClientMarkedToDeleteKey) {
+            guard clientUpdateStatus.currentPhase == ClientUpdatePhase.deletingClients else {
+                fatal("No email credentials in memory")
+            }
+
+            return requestsFactory.deleteClientRequest(
+                userClient,
+                credentials: clientUpdateStatus.credentials,
+                apiVersion: apiVersion
+            )
+        }
+
+        if keys.contains(ZMUserClientNeedsToUpdateSignalingKeysKey) {
+            do {
+                return try requestsFactory.updateClientSignalingKeysRequest(
+                    userClient,
+                    apiVersion: apiVersion
+                )
+            } catch let error {
+                fatal("Couldn't create request for new signaling keys: \(error)")
+            }
+        }
+
+        if keys.contains(ZMUserClientNeedsToUpdateCapabilitiesKey) {
+            do {
+                return try requestsFactory.updateClientCapabilitiesRequest(
+                    userClient,
+                    apiVersion: apiVersion
+                )
+            } catch let error {
+                fatal("Couldn't create request for updating Capabilities: \(error)")
+            }
+        }
+
+        if keys.contains(UserClient.needsToUploadMLSPublicKeysKey) {
+            do {
+                return try requestsFactory.updateClientMLSPublicKeysRequest(
+                    userClient,
+                    apiVersion: apiVersion
+                )
+            } catch let error {
+                fatal("Couldn't create request for new mls public keys: \(error)")
+            }
+        }
+
+        fatal("Unknown keys to sync (\(keys))")
     }
 
     public func request(forInserting managedObject: ZMManagedObject, forKeys keys: Set<String>?, apiVersion: APIVersion) -> ZMUpstreamRequest? {
@@ -370,7 +438,13 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
     }
 
     /// Returns whether synchronization of this object needs additional requests
-    public func updateUpdatedObject(_ managedObject: ZMManagedObject, requestUserInfo: [AnyHashable: Any]?, response: ZMTransportResponse, keysToParse: Set<String>) -> Bool {
+    public func updateUpdatedObject(
+        _ managedObject: ZMManagedObject,
+        requestUserInfo: [AnyHashable: Any]?,
+        response: ZMTransportResponse,
+        keysToParse: Set<String>
+    ) -> Bool {
+        guard let userClient = managedObject as? UserClient else { return false }
 
         if keysToParse.contains(ZMUserClientMarkedToDeleteKey) {
             return processResponseForDeletingClients(managedObject, requestUserInfo: requestUserInfo, responsePayload: response.payload)
@@ -380,6 +454,8 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
             didRetryRegisteringSignalingKeys = false
         } else if keysToParse.contains(ZMUserClientNeedsToUpdateCapabilitiesKey) {
             didRetryUpdatingCapabilities = false
+        } else if keysToParse.contains(UserClient.needsToUploadMLSPublicKeysKey), response.result == .success {
+            userClient.needsToUploadMLSPublicKeys = false
         }
 
         return false
