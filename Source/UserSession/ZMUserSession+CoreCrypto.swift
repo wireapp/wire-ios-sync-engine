@@ -61,21 +61,6 @@ extension ZMUserSession {
     }
 }
 
-extension NSManagedObjectContext {
-    private static let coreCrytpoUserInfoKey = "CoreCryptoKey"
-
-    public var coreCrypto: CoreCryptoProtocol? {
-        get {
-            precondition(zm_isSyncContext, "core crypto should only be accessed on the sync context")
-            return userInfo[Self.coreCrytpoUserInfoKey] as? CoreCryptoProtocol
-        }
-        set {
-            precondition(zm_isSyncContext, "core crypto should only be accessed on the sync context")
-            userInfo[Self.coreCrytpoUserInfoKey] = newValue
-        }
-    }
-}
-
 extension URL {
     func appendingMLSFolder() -> URL {
         return appendingPathComponent("mls")
