@@ -45,20 +45,22 @@ extension ZMUserSession {
         }
     }
 
-    var coreCrypto: CoreCryptoProtocol? {
-        get {
-            var coreCrypto: CoreCryptoProtocol?
-            syncContext.performAndWait {
-                coreCrypto = syncContext.coreCrypto
-            }
-            return coreCrypto
+    var isMLSControllerInitialized: Bool {
+        var result = false
+
+        syncContext.performAndWait {
+            result = syncContext.isMLSControllerInitialized
         }
-        set {
-            syncContext.performAndWait {
-                syncContext.coreCrypto = newValue
-            }
+
+        return result
+    }
+
+    func initializeMLSController(coreCrypto: CoreCryptoProtocol) {
+        syncContext.performAndWait {
+            syncContext.initializeMLSController(coreCrypto: coreCrypto)
         }
     }
+
 }
 
 extension URL {

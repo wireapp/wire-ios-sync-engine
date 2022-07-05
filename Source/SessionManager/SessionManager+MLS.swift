@@ -29,23 +29,31 @@ public protocol CoreCryptoConfigurationProvider: AnyObject {
     var coreCryptoConfiguration: CoreCryptoConfiguration? { get }
 }
 
-public protocol CoreCryptoProvider: AnyObject {
-    var coreCrypto: CoreCryptoProtocol? { get set }
+public protocol MLSControllerInitializerHelper: AnyObject {
+
+    var isMLSControllerInitialized: Bool { get }
+    func initializeMLSController(coreCrypto: CoreCryptoProtocol)
+
 }
 
-extension SessionManager: CoreCryptoProvider {
-    public var coreCrypto: CoreCryptoProtocol? {
-        get {
-            return activeUserSession?.coreCrypto
-        }
-        set {
-            activeUserSession?.coreCrypto = newValue
-        }
+extension SessionManager: MLSControllerInitializerHelper {
+
+    public var isMLSControllerInitialized: Bool {
+        guard let session = activeUserSession else { return false }
+        return session.isMLSControllerInitialized
     }
+
+    public func initializeMLSController(coreCrypto: CoreCryptoProtocol) {
+        guard let session = activeUserSession else { return }
+        session.initializeMLSController(coreCrypto: coreCrypto)
+    }
+
 }
 
 extension SessionManager: CoreCryptoConfigurationProvider {
+
     public var coreCryptoConfiguration: CoreCryptoConfiguration? {
         return activeUserSession?.coreCryptoConfiguration
     }
+
 }
