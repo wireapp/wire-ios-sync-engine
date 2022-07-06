@@ -93,25 +93,34 @@ open class UnauthenticatedSessionFactory {
         }
     }
 
-    var reachability: ReachabilityProvider
+    var reachability: ReachabilityProvider & TearDownCapable
     let appVersion: String
 
-    init(appVersion: String,
-         environment: BackendEnvironmentProvider,
-         reachability: ReachabilityProvider) {
+    init(
+      appVersion: String,
+      environment: BackendEnvironmentProvider,
+      reachability: ReachabilityProvider & TearDownCapable
+    ) {
         self.environment = environment
         self.reachability = reachability
         self.appVersion = appVersion
     }
 
-    func session(delegate: UnauthenticatedSessionDelegate,
-                 authenticationStatusDelegate: ZMAuthenticationStatusDelegate) -> UnauthenticatedSession {
-        let transportSession = UnauthenticatedTransportSession(environment: environment,
-                                                               reachability: reachability,
-                                                               applicationVersion: appVersion)
-        return UnauthenticatedSession(transportSession: transportSession,
-                                      reachability: reachability,
-                                      delegate: delegate,
-                                      authenticationStatusDelegate: authenticationStatusDelegate)
+    func session(
+      delegate: UnauthenticatedSessionDelegate,
+      authenticationStatusDelegate: ZMAuthenticationStatusDelegate
+    ) -> UnauthenticatedSession {
+        let transportSession = UnauthenticatedTransportSession(
+          environment: environment,
+          reachability: reachability,
+          applicationVersion: appVersion
+        )
+
+      return UnauthenticatedSession(
+        transportSession: transportSession,
+        reachability: reachability,
+        delegate: delegate,
+        authenticationStatusDelegate: authenticationStatusDelegate
+      )
     }
 }
