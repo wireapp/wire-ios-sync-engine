@@ -756,19 +756,6 @@ static NSString * const LastUpdateEventIDStoreKey = @"LastUpdateEventID";
     XCTAssertNotNil([self.sut nextRequestForAPIVersion:APIVersionV0]);
 }
 
-- (void)testThatItForcesTheRequestToTheVoIPSession
-{
-    // given
-    [self expectMockPushNotificationStatusHasEventsToFetch:YES inBackground:YES];
-
-    // when
-    ZMTransportRequest *request = [self.sut nextRequestForAPIVersion:APIVersionV0];
-
-    // then
-    XCTAssertNotNil(request);
-    XCTAssertTrue(request.shouldUseVoipSession);
-}
-
 - (void)testThatItDoesNotifyThePushNotificationStatusWhenEventsAreFetched
 {
     // given
