@@ -63,7 +63,7 @@ final class MockUnauthenticatedSessionFactory: UnauthenticatedSessionFactory {
 
     init(transportSession: UnauthenticatedTransportSessionProtocol,
          environment: BackendEnvironmentProvider,
-         reachability: ReachabilityProvider) {
+         reachability: ReachabilityProvider & TearDownCapable) {
         self.transportSession = transportSession
         super.init(appVersion: "1.0", environment: environment, reachability: reachability)
     }
