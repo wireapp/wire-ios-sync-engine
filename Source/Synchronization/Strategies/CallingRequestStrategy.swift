@@ -86,7 +86,6 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
                       clientDiscoverySync.nextRequest(for: apiVersion) ??
                       messageSync.nextRequest(for: apiVersion)
 
-        request?.forceToVoipSession()
         return request
     }
 
