@@ -49,8 +49,7 @@ extension ZMConversation {
     public func setMessageDestructionTimeout(
         _ timeout: MessageDestructionTimeoutValue,
         in userSession: ZMUserSession, _
-        completion: @escaping (VoidResult) -> Void)
-    {
+        completion: @escaping (VoidResult) -> Void) {
         guard let apiVersion = APIVersion.current else {
             return completion(.failure(WirelessLinkError.unknown))
         }
