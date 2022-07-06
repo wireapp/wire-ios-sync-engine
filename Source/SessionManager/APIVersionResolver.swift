@@ -50,7 +50,7 @@ final class APIVersionResolver {
 
     private func handleResponse(_ response: ZMTransportResponse) {
         guard response.result == .success else {
-            APIVersion.current = .v0
+            APIVersion.setVersions(production: [.v0], development: [])
             APIVersion.domain = "wire.com"
             APIVersion.isFederationEnabled = false
             return
@@ -63,11 +63,18 @@ final class APIVersionResolver {
             fatalError()
         }
 
-        let wasFederationEnabled = APIVersion.isFederationEnabled
+        let supportedProductionVersions = payload.supported.compactMap(APIVersion.init)
+        let supportDevelopmentVersions = payload.development.compactMap(APIVersion.init)
 
-        APIVersion.current = .highestSupportedVersion(in: payload.supported)
+        APIVersion.setVersions(
+            production: supportedProductionVersions,
+            development: supportDevelopmentVersions
+        )
+
         APIVersion.domain = payload.domain
-        APIVersion.isFederationEnabled = payload.federation ?? false
+
+        let wasFederationEnabled = APIVersion.isFederationEnabled
+        APIVersion.isFederationEnabled = payload.federation
 
         guard APIVersion.current != nil else {
             return reportBlacklist(payload: payload)
@@ -103,8 +110,9 @@ final class APIVersionResolver {
     private struct APIVersionResponsePayload: Decodable {
 
         let supported: [Int32]
-        let federation: Bool?
-        let domain: String?
+        let development: [Int32]
+        let federation: Bool
+        let domain: String
 
     }
 
