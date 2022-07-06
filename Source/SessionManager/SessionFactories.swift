@@ -26,8 +26,14 @@ open class AuthenticatedSessionFactory {
     let flowManager: FlowManagerType
     var analytics: AnalyticsType?
     let application: ZMApplication
-    var environment: BackendEnvironmentProvider
-    let reachability: ReachabilityProvider & TearDownCapable
+
+    var environment: BackendEnvironmentProvider {
+        didSet {
+            reachability = environment.reachability
+        }
+    }
+
+    var reachability: ReachabilityProvider & TearDownCapable
 
     public init(
         appVersion: String,
@@ -81,26 +87,40 @@ open class AuthenticatedSessionFactory {
 
 open class UnauthenticatedSessionFactory {
 
-    var environment: BackendEnvironmentProvider
-    let reachability: ReachabilityProvider
+    var environment: BackendEnvironmentProvider {
+        didSet {
+            reachability = environment.reachability
+        }
+    }
+
+    var reachability: ReachabilityProvider & TearDownCapable
     let appVersion: String
 
-    init(appVersion: String,
-         environment: BackendEnvironmentProvider,
-         reachability: ReachabilityProvider) {
+    init(
+      appVersion: String,
+      environment: BackendEnvironmentProvider,
+      reachability: ReachabilityProvider & TearDownCapable
+    ) {
         self.environment = environment
         self.reachability = reachability
         self.appVersion = appVersion
     }
 
-    func session(delegate: UnauthenticatedSessionDelegate,
-                 authenticationStatusDelegate: ZMAuthenticationStatusDelegate) -> UnauthenticatedSession {
-        let transportSession = UnauthenticatedTransportSession(environment: environment,
-                                                               reachability: reachability,
-                                                               applicationVersion: appVersion)
-        return UnauthenticatedSession(transportSession: transportSession,
-                                      reachability: reachability,
-                                      delegate: delegate,
-                                      authenticationStatusDelegate: authenticationStatusDelegate)
+    func session(
+      delegate: UnauthenticatedSessionDelegate,
+      authenticationStatusDelegate: ZMAuthenticationStatusDelegate
+    ) -> UnauthenticatedSession {
+        let transportSession = UnauthenticatedTransportSession(
+          environment: environment,
+          reachability: reachability,
+          applicationVersion: appVersion
+        )
+
+      return UnauthenticatedSession(
+        transportSession: transportSession,
+        reachability: reachability,
+        delegate: delegate,
+        authenticationStatusDelegate: authenticationStatusDelegate
+      )
     }
 }
