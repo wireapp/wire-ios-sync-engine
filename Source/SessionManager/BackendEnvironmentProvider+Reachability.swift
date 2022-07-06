@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2017 Wire Swiss GmbH
+// Copyright (C) 2022 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,30 +18,12 @@
 
 import Foundation
 
-@objc
-public protocol ServerConnection {
+extension BackendEnvironmentProvider {
 
-    var isMobileConnection: Bool { get }
-    var isOffline: Bool { get }
-
-}
-
-extension SessionManager {
-
-    @objc public var serverConnection: ServerConnection? {
-        return self
-    }
-
-}
-
-extension SessionManager: ServerConnection {
-
-    public var isOffline: Bool {
-        return !reachability.mayBeReachable
-    }
-
-    public var isMobileConnection: Bool {
-        return reachability.isMobileConnection
+    var reachability: ZMReachability {
+        let serverNames = [backendURL, backendWSURL].compactMap(\.host)
+        let group = ZMSDispatchGroup(dispatchGroup: DispatchGroup(), label: "Reachability")!
+        return ZMReachability(serverNames: serverNames, group: group)
     }
 
 }
