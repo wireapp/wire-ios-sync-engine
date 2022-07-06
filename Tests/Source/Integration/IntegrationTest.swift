@@ -733,7 +733,7 @@ public class MockLoginDelegate: NSObject, LoginDelegate {
 extension IntegrationTest {
 
     func configureDefaultAPIVersion() {
-        APIVersion.current = .v0
+        setCurrentAPIVersion(.v0)
     }
 
 }
