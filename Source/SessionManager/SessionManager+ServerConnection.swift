@@ -44,5 +44,4 @@ extension SessionManager: ServerConnection {
         return reachability.isMobileConnection
     }
 
-
 }
