@@ -408,7 +408,7 @@ public class ZMUserSession: NSObject {
 
     private func enableBackgroundFetch() {
         // We enable background fetch by setting the minimum interval to something different from UIApplicationBackgroundFetchIntervalNever
-        application.setMinimumBackgroundFetchInterval(10.0 * 60.0 + Double(arc4random_uniform(5 * 60)))
+        application.setMinimumBackgroundFetchInterval(10.0 * 60.0 + Double.random(in: 0..<300))
     }
 
     private func notifyUserAboutChangesInAvailabilityBehaviourIfNeeded() {
