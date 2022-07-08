@@ -54,9 +54,15 @@ class AssetDeletionRequestStrategyTests: MessagingTest {
         XCTAssertNil(request)
     }
 
-    func testThatItCreatesARequestIfThereIsAnIdentifier() {
+    func testThatItCreatesARequestIfThereIsAnIdentifier_V0() {
         testThatItCreatesARequestIfThereIsAnIdentifier(for: .v0)
+    }
+
+    func testThatItCreatesARequestIfThereIsAnIdentifier_V1() {
         testThatItCreatesARequestIfThereIsAnIdentifier(for: .v1)
+    }
+
+    func testThatItCreatesARequestIfThereIsAnIdentifier_V2() {
         testThatItCreatesARequestIfThereIsAnIdentifier(for: .v2)
     }
 
@@ -112,8 +118,10 @@ extension AssetDeletionRequestStrategyTests {
         // Then
         let expectedPath: String
         switch apiVersion {
-        case .v0, .v1:
+        case .v0:
             expectedPath = "/assets/v3/\(identifier)"
+        case .v1:
+            expectedPath = "/v1/assets/v3/\(identifier)"
         case .v2:
             expectedPath = "/v2/assets/\(domain)/\(identifier)"
         }

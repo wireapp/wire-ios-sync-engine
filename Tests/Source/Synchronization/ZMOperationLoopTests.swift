@@ -24,7 +24,7 @@ extension ZMOperationLoopTests {
 
     @objc
     func setCurrentAPIVersion(_ apiVersion: APIVersion) {
-        setCurrentAPIVersion(.v0)
+        setCurrentAPIVersion(.some(apiVersion))
     }
 
     @objc
