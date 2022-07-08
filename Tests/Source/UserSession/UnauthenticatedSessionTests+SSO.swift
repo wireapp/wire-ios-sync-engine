@@ -38,7 +38,7 @@ public final class UnauthenticatedSessionTests_SSO: ZMTBaseTest {
                                      delegate: mockDelegate,
                                      authenticationStatusDelegate: mockAuthenticationStatusDelegate)
         sut.groupQueue.add(dispatchGroup)
-        APIVersion.current = .v0
+        setCurrentAPIVersion(.v0)
     }
 
     public override func tearDown() {
@@ -47,7 +47,7 @@ public final class UnauthenticatedSessionTests_SSO: ZMTBaseTest {
         transportSession = nil
         mockDelegate = nil
         reachability = nil
-        APIVersion.current = nil
+        setCurrentAPIVersion(nil)
         super.tearDown()
     }
 

@@ -39,13 +39,13 @@ class SearchTaskTests: DatabaseTest {
             uiMOC.saveOrRollback()
         }
 
-        APIVersion.current = .v0
+        setCurrentAPIVersion(.v0)
     }
 
     override func tearDown() {
         self.teamIdentifier = nil
         self.mockTransportSession = nil
-        APIVersion.current = nil
+        setCurrentAPIVersion(nil)
         super.tearDown()
     }
 
