@@ -68,7 +68,7 @@
                                              [self pushChannelDidChange:note];
                                          }];
 
-    [ZMOperationLoopTests setCurrentAPIVersion:APIVersionV0];
+    [self setCurrentAPIVersion:APIVersionV0];
 }
 
 - (void)tearDown;
@@ -167,7 +167,7 @@
 - (void)testThatItDoesNotSendARequestIfThereIsNoCurrentAPIVersion
 {
     // given
-    [ZMOperationLoopTests clearCurrentAPIVersion];
+    [self clearCurrentAPIVersion];
     XCTAssertNil(self.sut.currentAPIVersion);
 
     self.mockRequestStrategy.mockRequest = [[ZMTransportRequest alloc] initWithPath:@"/test"

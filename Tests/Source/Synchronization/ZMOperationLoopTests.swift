@@ -23,13 +23,13 @@ extension ZMOperationLoopTests {
     // MARK: - Helpers
 
     @objc
-    static func setCurrentAPIVersion(_ apiVersion: APIVersion) {
-        APIVersion.current = apiVersion
+    func setCurrentAPIVersion(_ apiVersion: APIVersion) {
+        setCurrentAPIVersion(.some(apiVersion))
     }
 
     @objc
-    static func clearCurrentAPIVersion() {
-        APIVersion.current = nil
+    func clearCurrentAPIVersion() {
+        setCurrentAPIVersion(nil)
     }
 
     // MARK: - Tests

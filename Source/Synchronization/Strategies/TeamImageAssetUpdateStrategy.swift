@@ -63,7 +63,16 @@ public final class TeamImageAssetUpdateStrategy: AbstractRequestStrategy, ZMCont
     public func request(forFetching object: ZMManagedObject!, downstreamSync: ZMObjectSync!, apiVersion: APIVersion) -> ZMTransportRequest! {
         guard let team = object as? Team, let assetId = team.pictureAssetId else { return nil }
 
-        return ZMTransportRequest.imageGet(fromPath: "/assets/v3/\(assetId)", apiVersion: apiVersion.rawValue)
+        let path: String
+
+        switch apiVersion {
+        case .v0, .v1:
+            path = "/assets/v3/\(assetId)"
+        case .v2:
+            guard let domain = APIVersion.domain else { return nil }
+            path = "/assets/\(domain)/\(assetId)"
+        }
+        return ZMTransportRequest.imageGet(fromPath: path, apiVersion: apiVersion.rawValue)
     }
 
     public func delete(_ object: ZMManagedObject!, with response: ZMTransportResponse!, downstreamSync: ZMObjectSync!) {

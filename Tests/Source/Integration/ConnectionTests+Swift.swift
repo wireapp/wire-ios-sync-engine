@@ -24,11 +24,11 @@ class ConnectionTests_Swift: IntegrationTest {
 
     override func setUp() {
         super.setUp()
-        APIVersion.current = .v0
+        setCurrentAPIVersion(.v0)
     }
 
     override func tearDown() {
-        APIVersion.current = nil
+        setCurrentAPIVersion(nil)
         listObserver = nil
         tokens = .init()
         super.tearDown()

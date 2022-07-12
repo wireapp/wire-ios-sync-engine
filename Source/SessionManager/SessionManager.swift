@@ -236,7 +236,7 @@ public final class SessionManager: NSObject, SessionManagerType {
     var deleteAccountToken: Any?
     var callCenterObserverToken: Any?
     var blacklistVerificator: ZMBlacklistVerificator?
-    let reachability: ReachabilityProvider & TearDownCapable
+    var reachability: ReachabilityProvider & TearDownCapable
     var pushRegistry: PushRegistry
     let notificationsTracker: NotificationsTracker?
     let configuration: SessionManagerConfiguration
@@ -253,6 +253,7 @@ public final class SessionManager: NSObject, SessionManagerType {
         didSet {
             authenticatedSessionFactory.environment = environment
             unauthenticatedSessionFactory.environment = environment
+            reachability = environment.reachability
 
             // We need a new resolver for the new backend environment.
             apiVersionResolver = createAPIVersionResolver()
@@ -307,11 +308,8 @@ public final class SessionManager: NSObject, SessionManagerType {
         detector: JailbreakDetectorProtocol = JailbreakDetector(),
         requiredPushTokenType: PushToken.TokenType
     ) {
-        let group = ZMSDispatchGroup(dispatchGroup: DispatchGroup(), label: "Session manager reachability")!
         let flowManager = FlowManager(mediaManager: mediaManager)
-
-        let serverNames = [environment.backendURL, environment.backendWSURL].compactMap { $0.host }
-        let reachability = ZMReachability(serverNames: serverNames, group: group)
+        let reachability = environment.reachability
 
         let unauthenticatedSessionFactory = UnauthenticatedSessionFactory(
             appVersion: appVersion,

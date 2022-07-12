@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2017 Wire Swiss GmbH
+// Copyright (C) 2021 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,31 +17,13 @@
 //
 
 import Foundation
+import XCTest
 
-@objc
-public protocol ServerConnection {
+extension XCTestCase {
 
-    var isMobileConnection: Bool { get }
-    var isOffline: Bool { get }
-
-}
-
-extension SessionManager {
-
-    @objc public var serverConnection: ServerConnection? {
-        return self
-    }
-
-}
-
-extension SessionManager: ServerConnection {
-
-    public var isOffline: Bool {
-        return !reachability.mayBeReachable
-    }
-
-    public var isMobileConnection: Bool {
-        return reachability.isMobileConnection
+    func setCurrentAPIVersion(_ version: APIVersion?) {
+        APIVersion.setVersions(production: [version].compactMap(\.self), development: [])
+        XCTAssertEqual(APIVersion.current, version)
     }
 
 }

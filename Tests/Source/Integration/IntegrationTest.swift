@@ -63,7 +63,7 @@ final class MockUnauthenticatedSessionFactory: UnauthenticatedSessionFactory {
 
     init(transportSession: UnauthenticatedTransportSessionProtocol,
          environment: BackendEnvironmentProvider,
-         reachability: ReachabilityProvider) {
+         reachability: ReachabilityProvider & TearDownCapable) {
         self.transportSession = transportSession
         super.init(appVersion: "1.0", environment: environment, reachability: reachability)
     }
@@ -733,7 +733,7 @@ public class MockLoginDelegate: NSObject, LoginDelegate {
 extension IntegrationTest {
 
     func configureDefaultAPIVersion() {
-        APIVersion.current = .v0
+        setCurrentAPIVersion(.v0)
     }
 
 }
