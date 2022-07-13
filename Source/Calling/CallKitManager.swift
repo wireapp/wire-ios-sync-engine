@@ -182,13 +182,14 @@ extension CallKitManager {
         var contacts: [INPerson]?
         var video = false
 
-        if let audioCallIntent = intent as? INStartAudioCallIntent {
+        if let audioCallIntent = intent as? INStartCallIntent {
             contacts = audioCallIntent.contacts
             video = false
-        } else if let videoCallIntent = intent as? INStartVideoCallIntent {
+        } else if let videoCallIntent = intent as? INStartCallIntent {
             contacts = videoCallIntent.contacts
             video = true
         }
+
 
         if let contacts = contacts {
             findConversationAssociated(with: contacts) { [weak self] (conversation) in

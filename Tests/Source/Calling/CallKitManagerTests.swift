@@ -598,9 +598,9 @@ class CallKitManagerTest: DatabaseTest {
         let intent: INIntent
 
         if isVideo {
-            intent = INStartVideoCallIntent(contacts: contacts)
+            intent = INStartCallIntent(audioRoute: .speakerphoneAudioRoute, destinationType: .normal, contacts: contacts, recordTypeForRedialing: .unknown, callCapability: .videoCall)
         } else {
-            intent = INStartAudioCallIntent(contacts: contacts)
+            intent = INStartCallIntent(audioRoute: .speakerphoneAudioRoute, destinationType: .normal, contacts: contacts, recordTypeForRedialing: .unknown, callCapability: .audioCall)
         }
 
         let interaction = INInteraction(intent: intent, response: .none)
