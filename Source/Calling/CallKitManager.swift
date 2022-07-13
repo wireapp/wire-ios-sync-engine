@@ -190,7 +190,6 @@ extension CallKitManager {
             video = true
         }
 
-
         if let contacts = contacts {
             findConversationAssociated(with: contacts) { [weak self] (conversation) in
                 self?.requestStartCall(in: conversation, video: video)
