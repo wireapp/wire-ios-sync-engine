@@ -184,10 +184,10 @@ extension CallKitManager {
 
         if let audioCallIntent = intent as? INStartCallIntent {
             contacts = audioCallIntent.contacts
-            video = false
+            video = audioCallIntent.callCapability == .audioCall
         } else if let videoCallIntent = intent as? INStartCallIntent {
             contacts = videoCallIntent.contacts
-            video = true
+            video = videoCallIntent.callCapability == .videoCall
         }
 
         if let contacts = contacts {
