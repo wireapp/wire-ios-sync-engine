@@ -24,7 +24,7 @@ extension ZMUserSession {
         let user = ZMUser.selfUser(in: managedObjectContext)
 
         guard
-            let qualifiedClientId = MLSQualifiedClientID(user: user).mlsQualifiedClientId
+            let qualifiedClientId = MLSQualifiedClientID(user: user).qualifiedClientId
         else {
             return nil
         }
