@@ -34,6 +34,7 @@ struct TeamPayload: Decodable {
     let binding: Bool
     let icon: String
     let iconKey: String?
+    let splashScreenId: String?
 
     private enum CodingKeys: String, CodingKey {
         case identifier = "id"
@@ -42,6 +43,7 @@ struct TeamPayload: Decodable {
         case binding
         case icon
         case iconKey = "icon_key"
+        case splashScreenId = "splash_screen"
     }
 
 }
@@ -73,6 +75,7 @@ extension TeamPayload {
         team.creator = ZMUser.fetchOrCreate(with: creator, domain: nil, in: managedObjectContext)
         team.pictureAssetId = icon
         team.pictureAssetKey = iconKey
+        team.splashScreenId = splashScreenId
 
         if !binding {
             managedObjectContext.delete(team)
@@ -287,11 +290,13 @@ struct TeamUpdateEventPayload: Decodable {
     let name: String?
     let icon: String?
     let iconKey: String?
+    let splashScreenId: String?
 
     private enum CodingKeys: String, CodingKey {
         case name
         case icon
         case iconKey = "icon_key"
+        case splashScreenId = "splash_screen"
     }
 
 }
@@ -302,6 +307,7 @@ extension TeamUpdateEventPayload {
         team.name = name
         team.pictureAssetId = icon
         team.pictureAssetKey = iconKey
+        team.splashScreenId = splashScreenId
     }
 
 }
