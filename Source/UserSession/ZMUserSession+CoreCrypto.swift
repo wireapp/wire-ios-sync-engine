@@ -23,7 +23,11 @@ extension ZMUserSession {
     var coreCryptoConfiguration: CoreCryptoConfiguration? {
         let user = ZMUser.selfUser(in: managedObjectContext)
 
-        guard let clientId = user.selfClient()?.remoteIdentifier else { return nil }
+        guard
+            let qualifiedClientId = MLSQualifiedClientID(user: user).qualifiedClientId
+        else {
+            return nil
+        }
 
         let accountDirectory = CoreDataStack.accountDataFolder(
             accountIdentifier: user.remoteIdentifier,
@@ -37,7 +41,7 @@ extension ZMUserSession {
             return CoreCryptoConfiguration(
                 path: mlsDirectory.path,
                 key: key.base64EncodedString(),
-                clientId: clientId
+                clientId: qualifiedClientId
             )
         } catch {
             // TODO: Error handling
