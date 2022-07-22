@@ -31,7 +31,7 @@ class APIVersionResolverTests: ZMTBaseTest {
         transportSession = MockTransportSession(dispatchGroup: dispatchGroup)
         sut = APIVersionResolver(transportSession: transportSession)
         sut.delegate = mockDelegate
-        APIVersion.current = nil
+        setCurrentAPIVersion(nil)
         super.setUp()
     }
 
@@ -39,15 +39,18 @@ class APIVersionResolverTests: ZMTBaseTest {
         mockDelegate = nil
         transportSession = nil
         sut = nil
+        setCurrentAPIVersion(nil)
         super.tearDown()
     }
 
     private func mockBackendInfo(
-        supportedVersions: ClosedRange<Int32>,
+        productionVersions: ClosedRange<Int32>,
+        developmentVersions: ClosedRange<Int32>,
         domain: String,
         isFederationEnabled: Bool
     ) {
-        transportSession.supportedAPIVersions = supportedVersions.map(NSNumber.init(value:))
+        transportSession.supportedAPIVersions = productionVersions.map(NSNumber.init(value:))
+        transportSession.developmentAPIVersions = developmentVersions.map(NSNumber.init(value:))
         transportSession.domain = domain
         transportSession.federation = isFederationEnabled
     }
@@ -59,7 +62,8 @@ class APIVersionResolverTests: ZMTBaseTest {
         let maxSupportedAPIVersion = try XCTUnwrap(APIVersion.allCases.max())
 
         mockBackendInfo(
-            supportedVersions: 0...(maxSupportedAPIVersion.rawValue + 1),
+            productionVersions: 0...(maxSupportedAPIVersion.rawValue + 1),
+            developmentVersions: 0...0,
             domain: "foo.com",
             isFederationEnabled: true
         )
@@ -95,11 +99,13 @@ class APIVersionResolverTests: ZMTBaseTest {
 
     func testThatItReportsBlacklistReasonWhenBackendIsObsolete() throws {
         // Given
-        APIVersion.current = .v0
+        setCurrentAPIVersion(.v0)
+
         let minSupportedAPIVersion = try XCTUnwrap(APIVersion.allCases.min())
 
         mockBackendInfo(
-            supportedVersions: (minSupportedAPIVersion.rawValue - 3)...(minSupportedAPIVersion.rawValue - 1),
+            productionVersions: (minSupportedAPIVersion.rawValue - 3)...(minSupportedAPIVersion.rawValue - 1),
+            developmentVersions: 0...0,
             domain: "foo.com",
             isFederationEnabled: true
         )
@@ -119,11 +125,13 @@ class APIVersionResolverTests: ZMTBaseTest {
 
     func testThatItReportsBlacklistReasonWhenClientIsObsolete() throws {
         // Given
-        APIVersion.current = .v0
+        setCurrentAPIVersion(.v0)
+
         let maxSupportedAPIVersion = try XCTUnwrap(APIVersion.allCases.max())
 
         mockBackendInfo(
-            supportedVersions: (maxSupportedAPIVersion.rawValue + 1)...(maxSupportedAPIVersion.rawValue + 3),
+            productionVersions: (maxSupportedAPIVersion.rawValue + 1)...(maxSupportedAPIVersion.rawValue + 3),
+            developmentVersions: 0...0,
             domain: "foo.com",
             isFederationEnabled: true
         )
@@ -146,7 +154,8 @@ class APIVersionResolverTests: ZMTBaseTest {
         let maxSupportedAPIVersion = try XCTUnwrap(APIVersion.allCases.max())
 
         mockBackendInfo(
-            supportedVersions: 0...(maxSupportedAPIVersion.rawValue + 1),
+            productionVersions: 0...(maxSupportedAPIVersion.rawValue + 1),
+            developmentVersions: 0...0,
             domain: "foo.com",
             isFederationEnabled: true
         )

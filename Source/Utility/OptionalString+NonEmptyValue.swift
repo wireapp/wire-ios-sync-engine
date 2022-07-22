@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2017 Wire Swiss GmbH
+// Copyright (C) 2022 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,30 +18,18 @@
 
 import Foundation
 
-@objc
-public protocol ServerConnection {
+public extension Optional where Wrapped == String {
 
-    var isMobileConnection: Bool { get }
-    var isOffline: Bool { get }
+    /// The non-empty string value, if it exists.
 
-}
+    var nonEmptyValue: Self {
+        guard
+            let string = self,
+            !string.isEmpty
+        else {
+            return nil
+        }
 
-extension SessionManager {
-
-    @objc public var serverConnection: ServerConnection? {
-        return self
+        return string
     }
-
-}
-
-extension SessionManager: ServerConnection {
-
-    public var isOffline: Bool {
-        return !reachability.mayBeReachable
-    }
-
-    public var isMobileConnection: Bool {
-        return reachability.isMobileConnection
-    }
-
 }

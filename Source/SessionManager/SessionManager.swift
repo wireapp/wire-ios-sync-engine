@@ -126,12 +126,12 @@ public protocol ForegroundNotificationResponder: AnyObject {
 /// 1. The folder structure in the app sandbox has to be modeled in a way in which files can be associated with a single account.
 /// 2. The login flow should not rely on any persistent state (e.g. no database has to be created on disk before being logged in).
 /// 3. There has to be a persistence layer storing information about accounts and the currently selected / active account.
-/// 
+///
 /// The wire account database and a couple of other related files are stored in the shared container in a folder named by the accounts
 /// `remoteIdentifier`. All information about different accounts on a device are stored by the `AccountManager` (see the documentation
-/// of that class for more information). The `SessionManager`s main responsibility at the moment is checking whether there is a selected 
+/// of that class for more information). The `SessionManager`s main responsibility at the moment is checking whether there is a selected
 /// `Account` or not, and creating an `UnauthenticatedSession` or `ZMUserSession` accordingly. An `UnauthenticatedSession` is used
-/// to create requests to either log in existing users or to register new users. It uses its own `UnauthenticatedOperationLoop`, 
+/// to create requests to either log in existing users or to register new users. It uses its own `UnauthenticatedOperationLoop`,
 /// which is a stripped down version of the regular `ZMOperationLoop`. This unauthenticated operation loop only uses a small subset
 /// of transcoders needed to perform the login / registration (and related phone number verification) requests. For more information
 /// see `UnauthenticatedOperationLoop`.
@@ -140,7 +140,7 @@ public protocol ForegroundNotificationResponder: AnyObject {
 /// Once those became available, the session will notify the session manager, which in turn will create a regular `ZMUserSession`.
 /// For more information about the cookie retrieval consult the documentation in `UnauthenticatedSession`.
 ///
-/// The flow creating either an `UnauthenticatedSession` or `ZMUserSession` after creating an instance of `SessionManager` 
+/// The flow creating either an `UnauthenticatedSession` or `ZMUserSession` after creating an instance of `SessionManager`
 /// is depicted on a high level in the following diagram:
 ///
 ///
@@ -236,7 +236,7 @@ public final class SessionManager: NSObject, SessionManagerType {
     var deleteAccountToken: Any?
     var callCenterObserverToken: Any?
     var blacklistVerificator: ZMBlacklistVerificator?
-    let reachability: ReachabilityProvider & TearDownCapable
+    var reachability: ReachabilityProvider & TearDownCapable
     var pushRegistry: PushRegistry
     let notificationsTracker: NotificationsTracker?
     let configuration: SessionManagerConfiguration
@@ -253,6 +253,7 @@ public final class SessionManager: NSObject, SessionManagerType {
         didSet {
             authenticatedSessionFactory.environment = environment
             unauthenticatedSessionFactory.environment = environment
+            reachability = environment.reachability
 
             // We need a new resolver for the new backend environment.
             apiVersionResolver = createAPIVersionResolver()
@@ -307,11 +308,8 @@ public final class SessionManager: NSObject, SessionManagerType {
         detector: JailbreakDetectorProtocol = JailbreakDetector(),
         requiredPushTokenType: PushToken.TokenType
     ) {
-        let group = ZMSDispatchGroup(dispatchGroup: DispatchGroup(), label: "Session manager reachability")!
         let flowManager = FlowManager(mediaManager: mediaManager)
-
-        let serverNames = [environment.backendURL, environment.backendWSURL].compactMap { $0.host }
-        let reachability = ZMReachability(serverNames: serverNames, group: group)
+        let reachability = environment.reachability
 
         let unauthenticatedSessionFactory = UnauthenticatedSessionFactory(
             appVersion: appVersion,
@@ -352,16 +350,16 @@ public final class SessionManager: NSObject, SessionManagerType {
                                                                working: nil,
                                                                application: application,
                                                                blacklistCallback: { [weak self] (blacklisted) in
-                    guard let `self` = self, !self.isAppVersionBlacklisted else { return }
+                guard let `self` = self, !self.isAppVersionBlacklisted else { return }
 
-                    if blacklisted {
-                        self.isAppVersionBlacklisted = true
-                        self.delegate?.sessionManagerDidBlacklistCurrentVersion(reason: .appVersionBlacklisted)
-                        // When the application version is blacklisted we don't want have a
-                        // transition to any other state in the UI, so we won't inform it
-                        // anymore by setting the delegate to nil.
-                        self.delegate = nil
-                    }
+                if blacklisted {
+                    self.isAppVersionBlacklisted = true
+                    self.delegate?.sessionManagerDidBlacklistCurrentVersion(reason: .appVersionBlacklisted)
+                    // When the application version is blacklisted we don't want have a
+                    // transition to any other state in the UI, so we won't inform it
+                    // anymore by setting the delegate to nil.
+                    self.delegate = nil
+                }
             })
         }
 
@@ -624,10 +622,10 @@ public final class SessionManager: NSObject, SessionManagerType {
 
     /**
      Loads a session for a given account
-     
+
      - Parameters:
-         - account: account for which to load the session
-         - completion: called when session is loaded or when session fails to load
+     - account: account for which to load the session
+     - completion: called when session is loaded or when session fails to load
      */
     func loadSession(for account: Account, completion: @escaping (ZMUserSession?) -> Void) {
         guard environment.isAuthenticated(account) else {
@@ -701,7 +699,7 @@ public final class SessionManager: NSObject, SessionManagerType {
                         self.delegate?.sessionManagerDidFailToLoadDatabase()
                     } else {
                         let userSession = self.startBackgroundSession(for: account,
-                                                                      with: coreDataStack)
+                                                                         with: coreDataStack)
                         completion(userSession)
                     }
                     onWorkDone()
@@ -815,8 +813,8 @@ public final class SessionManager: NSObject, SessionManagerType {
         )
 
         guard let newSession = authenticatedSessionFactory.session(for: account,
-                                                                   coreDataStack: coreDataStack,
-                                                                   configuration: sessionConfig) else {
+                                                                      coreDataStack: coreDataStack,
+                                                                      configuration: sessionConfig) else {
             preconditionFailure("Unable to create session for \(account)")
         }
         self.configure(session: newSession, for: account)
@@ -875,9 +873,8 @@ public final class SessionManager: NSObject, SessionManagerType {
 
     public var callNotificationStyle: CallNotificationStyle = .callKit {
         didSet {
-            if #available(iOS 10.0, *) {
-                updateCallNotificationStyle()
-            }
+            updateCallNotificationStyle()
+
         }
     }
 
@@ -929,10 +926,10 @@ public final class SessionManager: NSObject, SessionManagerType {
 
     func shouldPerformPostRebootLogout() -> Bool {
         guard configuration.authenticateAfterReboot,
-            accountManager.selectedAccount != nil,
-            let systemBootTime = ProcessInfo.processInfo.bootTime(),
-            let previousSystemBootTime = SessionManager.previousSystemBootTime,
-            abs(systemBootTime.timeIntervalSince(previousSystemBootTime)) > 1.0
+              accountManager.selectedAccount != nil,
+              let systemBootTime = ProcessInfo.processInfo.bootTime(),
+              let previousSystemBootTime = SessionManager.previousSystemBootTime,
+              abs(systemBootTime.timeIntervalSince(previousSystemBootTime)) > 1.0
         else { return false }
 
         log.debug("Will logout due to device reboot. Previous boot time: \(previousSystemBootTime). Current boot time: \(systemBootTime)")
@@ -956,9 +953,9 @@ public final class SessionManager: NSObject, SessionManagerType {
 
     public func passwordVerificationDidFail(with failCount: Int) {
         guard let count = configuration.failedPasswordThresholdBeforeWipe,
-            failCount >= count, let account = accountManager.selectedAccount else {
-                return
-        }
+              failCount >= count, let account = accountManager.selectedAccount else {
+                  return
+              }
         delete(account: account, reason: .failedPasswordLimitReached)
     }
 }
@@ -1006,9 +1003,9 @@ extension SessionManager: ZMUserObserver {
     public func userDidChange(_ changeInfo: UserChangeInfo) {
         if changeInfo.teamsChanged || changeInfo.nameChanged || changeInfo.imageSmallProfileDataChanged {
             guard let user = changeInfo.user as? ZMUser,
-                let managedObjectContext = user.managedObjectContext else {
-                return
-            }
+                  let managedObjectContext = user.managedObjectContext else {
+                      return
+                  }
             updateCurrentAccount(in: managedObjectContext)
         }
     }
@@ -1299,8 +1296,8 @@ extension SessionManager: NotificationContext {
 
     public func addSessionManagerDestroyedSessionObserver(_ observer: SessionManagerDestroyedSessionObserver) -> Any {
         return NotificationInContext.addObserver(
-        name: sessionManagerDestroyedSessionNotificationName,
-        context: self) { [weak observer] note in observer?.sessionManagerDestroyedUserSession(for: note.object as! UUID) }
+            name: sessionManagerDestroyedSessionNotificationName,
+            context: self) { [weak observer] note in observer?.sessionManagerDestroyedUserSession(for: note.object as! UUID) }
     }
 
     fileprivate func notifyNewUserSessionCreated(_ userSession: ZMUserSession) {

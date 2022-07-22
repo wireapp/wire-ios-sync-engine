@@ -34,7 +34,7 @@ class DeepLinkURLActionProcessorTests: DatabaseTest {
         sut = WireSyncEngine.DeepLinkURLActionProcessor(contextProvider: coreDataStack!,
                                                         transportSession: mockTransportSession,
                                                         eventProcessor: mockUpdateEventProcessor)
-        APIVersion.current = .v0
+        setCurrentAPIVersion(.v0)
     }
 
     override func tearDown() {
@@ -42,7 +42,7 @@ class DeepLinkURLActionProcessorTests: DatabaseTest {
         sut = nil
         mockTransportSession = nil
         mockUpdateEventProcessor = nil
-        APIVersion.current = nil
+        setCurrentAPIVersion(nil)
         super.tearDown()
     }
 

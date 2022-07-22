@@ -86,7 +86,7 @@ extension String {
 
     /// Returns a string composed of random digits
     fileprivate static func random(numberOfDigits: Int) -> String {
-        return (0..<numberOfDigits).map { _ in "\(arc4random_uniform(10))" }
+        return (0..<numberOfDigits).map { _ in "\(Int.random(in: 0..<10))" }
         .joined(separator: "")
     }
 }
@@ -119,7 +119,7 @@ extension Array {
             return self.first
         }
 
-        let index = Int(arc4random_uniform(UInt32(self.count)))
+        let index = Int.random(in: 0..<self.count)
         return self[index]
     }
 }

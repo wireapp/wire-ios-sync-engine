@@ -175,11 +175,18 @@ public final class UserImageAssetUpdateStrategy: AbstractRequestStrategy, ZMCont
         case .v0:
             path = "/assets/v3/\(assetId)"
         case .v1:
-            guard let domain = user.domain ?? APIVersion.domain else {
+            guard let domain = user.domain.nonEmptyValue ?? APIVersion.domain else {
                 return nil
             }
 
             path = "/assets/v4/\(domain)/\(assetId)"
+
+        case .v2:
+            guard let domain = user.domain.nonEmptyValue ?? APIVersion.domain else {
+                return nil
+            }
+
+            path = "/assets/\(domain)/\(assetId)"
         }
 
         return ZMTransportRequest.imageGet(fromPath: path, apiVersion: apiVersion.rawValue)

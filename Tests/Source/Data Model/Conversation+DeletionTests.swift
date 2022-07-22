@@ -25,14 +25,14 @@ class Conversation_DeletionTests: DatabaseTest {
 
     override func setUp() {
         super.setUp()
-        APIVersion.current = .v0
+        setCurrentAPIVersion(.v0)
         mockTransportSession = MockTransportSession(dispatchGroup: dispatchGroup)
     }
 
     override func tearDown() {
         mockTransportSession.cleanUp()
         mockTransportSession = nil
-        APIVersion.current = nil
+        setCurrentAPIVersion(nil)
         super.tearDown()
     }
 
