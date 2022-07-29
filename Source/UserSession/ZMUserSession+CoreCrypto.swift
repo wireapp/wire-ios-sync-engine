@@ -18,6 +18,7 @@
 
 import Foundation
 import WireDataModel
+import WireRequestStrategy
 
 extension ZMUserSession {
     var coreCryptoConfiguration: CoreCryptoConfiguration? {
@@ -61,7 +62,10 @@ extension ZMUserSession {
 
     func initializeMLSController(coreCrypto: CoreCryptoProtocol) {
         syncContext.performAndWait {
-            syncContext.initializeMLSController(coreCrypto: coreCrypto)
+            syncContext.initializeMLSController(
+                coreCrypto: coreCrypto,
+                conversationEventProcessor: ConversationEventProcessor(context: syncContext)
+            )
         }
     }
 
