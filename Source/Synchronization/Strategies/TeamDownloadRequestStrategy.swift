@@ -31,7 +31,7 @@ struct TeamPayload: Decodable {
     let identifier: UUID
     let name: String
     let creator: UUID
-    let binding: Bool
+    let binding: Bool?
     let icon: String
     let iconKey: String?
 
@@ -74,7 +74,7 @@ extension TeamPayload {
         team.pictureAssetId = icon
         team.pictureAssetKey = iconKey
 
-        if !binding {
+        if let binding = binding, !binding {
             managedObjectContext.delete(team)
         }
     }
