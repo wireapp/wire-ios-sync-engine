@@ -238,6 +238,36 @@ class ZMHotFixTests_Integration: MessagingTest {
         }
     }
 
+    func testThatItUpdatesAccessRolesForConversations_432_1_0() {
+        var g1: ZMConversation!
+        syncMOC.performGroupedBlock {
+            // GIVEN
+            self.syncMOC.setPersistentStoreMetadata("432.0.0", key: "lastSavedVersion")
+            self.syncMOC.setPersistentStoreMetadata(NSNumber(value: true), key: "HasHistory")
+
+            g1 = ZMConversation.insertNewObject(in: self.syncMOC)
+            g1.conversationType = .group
+            g1.team = nil
+            g1.updateAccessStatus(accessModes: ConversationAccessMode.teamOnly.stringValue,
+                                  accessRoles: [ConversationAccessRoleV2.teamMember.rawValue])
+
+            self.syncMOC.saveOrRollback()
+            XCTAssertFalse(g1.hasLocalModifications(forKey: AccessRoleStringsKeyV2))
+
+            // WHEN
+            let sut = ZMHotFix(syncMOC: self.syncMOC)
+            self.performIgnoringZMLogError {
+                sut!.applyPatches(forCurrentVersion: "432.1.0")
+            }
+        }
+        XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+
+        syncMOC.performGroupedBlock {
+            XCTAssertEqual(g1.accessRoles, ConversationAccessRoleV2.fromLegacyAccessRole(.nonActivated))
+            XCTAssertTrue(g1.hasLocalModifications(forKey: AccessRoleStringsKeyV2))
+        }
+    }
+
     func createSelfClient(_ context: NSManagedObjectContext) -> UserClient {
         let selfClient = UserClient.insertNewObject(in: context)
         selfClient.remoteIdentifier = UUID().transportString()
