@@ -456,6 +456,7 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
             didRetryUpdatingCapabilities = false
         } else if keysToParse.contains(UserClient.needsToUploadMLSPublicKeysKey), response.result == .success {
             userClient.needsToUploadMLSPublicKeys = false
+
             Task {
                 do {
                     try await userClient.managedObjectContext?.mlsController?.uploadKeyPackagesIfNeeded()
