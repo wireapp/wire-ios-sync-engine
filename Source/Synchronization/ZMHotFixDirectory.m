@@ -242,7 +242,7 @@ static NSString* ZMLogTag ZM_UNUSED = @"HotFix";
                     [ZMHotFixPatch
                      patchWithVersion:@"432.1.0"
                      patchCode:^(NSManagedObjectContext *context) {
-                        [ZMHotFixDirectory updateConversations:context];
+                        [ZMHotFixDirectory updateConversationsWithInvalidAccessRoles:context];
                     }]
                   ];
     });
