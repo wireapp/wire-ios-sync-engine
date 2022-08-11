@@ -196,6 +196,7 @@ class ZMHotFixTests_Integration: MessagingTest {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         syncMOC.performGroupedBlock {
+            // THEN
             XCTAssertTrue(selfClient.needsToUpdateCapabilities)
             XCTAssertTrue(selfClient.hasLocalModifications(forKey: ZMUserClientNeedsToUpdateCapabilitiesKey))
         }
@@ -232,6 +233,7 @@ class ZMHotFixTests_Integration: MessagingTest {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         syncMOC.performGroupedBlock {
+            // THEN
             XCTAssertTrue(selfUser.needsToBeUpdatedFromBackend)
             XCTAssertTrue(user1.needsToBeUpdatedFromBackend)
             XCTAssertTrue(user2.needsToBeUpdatedFromBackend)
@@ -263,6 +265,7 @@ class ZMHotFixTests_Integration: MessagingTest {
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         syncMOC.performGroupedBlock {
+            // THEN
             XCTAssertEqual(g1.accessRoles, ConversationAccessRoleV2.fromLegacyAccessRole(.nonActivated))
             XCTAssertTrue(g1.hasLocalModifications(forKey: AccessRoleStringsKeyV2))
         }
