@@ -457,9 +457,18 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
         } else if keysToParse.contains(UserClient.needsToUploadMLSPublicKeysKey), response.result == .success {
             userClient.needsToUploadMLSPublicKeys = false
 
+            guard
+                let context = userClient.managedObjectContext,
+                let clientID = userClient.remoteIdentifier,
+                let mlsController = context.mlsController
+
+            else {
+                return false
+            }
+
             Task {
                 do {
-                    try await userClient.managedObjectContext?.mlsController?.uploadKeyPackagesIfNeeded()
+                    try await mlsController.uploadKeyPackagesIfNeeded(for: clientID, with: context.notificationContext)
 
                 } catch {
                     Logging.eventProcessing.error("Failed to upload key packages: \(String(describing: error))")
