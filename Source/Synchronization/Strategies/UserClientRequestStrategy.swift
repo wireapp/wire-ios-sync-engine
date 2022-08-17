@@ -459,21 +459,12 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMObjectStra
 
             guard
                 let context = userClient.managedObjectContext,
-                let clientID = userClient.remoteIdentifier,
                 let mlsController = context.mlsController
-
             else {
                 return false
             }
 
-            Task {
-                do {
-                    try await mlsController.uploadKeyPackagesIfNeeded(for: clientID, with: context.notificationContext)
-
-                } catch {
-                    Logging.eventProcessing.error("Failed to upload key packages: \(String(describing: error))")
-                }
-            }
+            mlsController.uploadKeyPackagesIfNeeded()
         }
 
         return false
