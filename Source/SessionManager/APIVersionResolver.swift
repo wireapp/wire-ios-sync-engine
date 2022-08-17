@@ -64,11 +64,11 @@ final class APIVersionResolver {
         }
 
         let supportedProductionVersions = payload.supported.compactMap(APIVersion.init)
-        let supportDevelopmentVersions = payload.development.compactMap(APIVersion.init)
+        let supportDevelopmentVersions = payload.development?.compactMap(APIVersion.init)
 
         APIVersion.setVersions(
             production: supportedProductionVersions,
-            development: supportDevelopmentVersions
+            development: supportDevelopmentVersions ?? []
         )
 
         APIVersion.domain = payload.domain
@@ -110,7 +110,7 @@ final class APIVersionResolver {
     private struct APIVersionResponsePayload: Decodable {
 
         let supported: [Int32]
-        let development: [Int32]
+        let development: [Int32]?
         let federation: Bool
         let domain: String
 
