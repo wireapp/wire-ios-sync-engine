@@ -292,6 +292,8 @@ public final class SessionManager: NSObject, SessionManagerType {
 
     public var requiredPushTokenType: PushToken.TokenType
 
+    private var coreCryptoSetup: CoreCryptoSetupClosure
+
     public override init() {
         fatal("init() not implemented")
     }
@@ -306,7 +308,8 @@ public final class SessionManager: NSObject, SessionManagerType {
         environment: BackendEnvironmentProvider,
         configuration: SessionManagerConfiguration = SessionManagerConfiguration(),
         detector: JailbreakDetectorProtocol = JailbreakDetector(),
-        requiredPushTokenType: PushToken.TokenType
+        requiredPushTokenType: PushToken.TokenType,
+        coreCryptoSetup: @escaping CoreCryptoSetupClosure
     ) {
         let flowManager = FlowManager(mediaManager: mediaManager)
         let reachability = environment.reachability
@@ -340,7 +343,8 @@ public final class SessionManager: NSObject, SessionManagerType {
             environment: environment,
             configuration: configuration,
             detector: detector,
-            requiredPushTokenType: requiredPushTokenType
+            requiredPushTokenType: requiredPushTokenType,
+            coreCryptoSetup: coreCryptoSetup
         )
 
         if configuration.blacklistDownloadInterval > 0 {
@@ -392,7 +396,8 @@ public final class SessionManager: NSObject, SessionManagerType {
          environment: BackendEnvironmentProvider,
          configuration: SessionManagerConfiguration = SessionManagerConfiguration(),
          detector: JailbreakDetectorProtocol = JailbreakDetector(),
-         requiredPushTokenType: PushToken.TokenType
+         requiredPushTokenType: PushToken.TokenType,
+         coreCryptoSetup: @escaping CoreCryptoSetupClosure
     ) {
         SessionManager.enableLogsByEnvironmentVariable()
         self.environment = environment
@@ -403,6 +408,7 @@ public final class SessionManager: NSObject, SessionManagerType {
         self.configuration = configuration.copy() as! SessionManagerConfiguration
         self.jailbreakDetector = detector
         self.requiredPushTokenType = requiredPushTokenType
+        self.coreCryptoSetup = coreCryptoSetup
 
         guard let sharedContainerURL = Bundle.main.appGroupIdentifier.map(FileManager.sharedContainerDirectory) else {
             preconditionFailure("Unable to get shared container URL")
@@ -812,11 +818,15 @@ public final class SessionManager: NSObject, SessionManagerType {
             useLegacyPushNotifications: shouldProcessLegacyPushes
         )
 
-        guard let newSession = authenticatedSessionFactory.session(for: account,
-                                                                      coreDataStack: coreDataStack,
-                                                                      configuration: sessionConfig) else {
+        guard let newSession = authenticatedSessionFactory.session(
+            for: account,
+            coreDataStack: coreDataStack,
+            configuration: sessionConfig,
+            coreCryptoSetup: coreCryptoSetup
+        ) else {
             preconditionFailure("Unable to create session for \(account)")
         }
+
         self.configure(session: newSession, for: account)
         self.deleteMessagesOlderThanRetentionLimit(contextProvider: coreDataStack)
         self.updateSystemBootTimeIfNeeded()

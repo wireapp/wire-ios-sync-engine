@@ -57,6 +57,7 @@ public class ZMUserSession: NSObject {
     private let appVersion: String
     private var tokens: [Any] = []
     private var tornDown: Bool = false
+    private let coreCryptoSetup: CoreCryptoSetupClosure
 
     var isNetworkOnline: Bool = true
     var isPerformingSync: Bool = true {
@@ -231,7 +232,8 @@ public class ZMUserSession: NSObject {
                 application: ZMApplication,
                 appVersion: String,
                 coreDataStack: CoreDataStack,
-                configuration: Configuration) {
+                configuration: Configuration,
+                coreCryptoSetup: @escaping CoreCryptoSetupClosure) {
 
         coreDataStack.syncContext.performGroupedBlockAndWait {
             coreDataStack.syncContext.analytics = analytics
@@ -254,9 +256,12 @@ public class ZMUserSession: NSObject {
         self.debugCommands = ZMUserSession.initDebugCommands()
         self.hotFix = ZMHotFix(syncMOC: coreDataStack.syncContext)
         self.appLockController = AppLockController(userId: userId, selfUser: .selfUser(in: coreDataStack.viewContext), legacyConfig: configuration.appLockConfig)
+        self.coreCryptoSetup = coreCryptoSetup
         super.init()
 
         appLockController.delegate = self
+
+        setupMLSControllerIfNeeded(coreCryptoSetup: coreCryptoSetup)
 
         configureCaches()
 
@@ -592,6 +597,8 @@ extension ZMUserSession: ZMSyncStateDelegate {
     }
 
     public func didRegisterSelfUserClient(_ userClient: UserClient!) {
+        setupMLSControllerIfNeeded(coreCryptoSetup: coreCryptoSetup)
+
         // If during registration user allowed notifications,
         // The push token can only be registered after client registration
         transportSession.pushChannel.clientID = userClient.remoteIdentifier

@@ -19,15 +19,44 @@
 import Foundation
 import WireDataModel
 import WireRequestStrategy
+import WireCoreCrypto
+
+public typealias CoreCryptoSetupClosure = (CoreCryptoConfiguration) throws -> WireDataModel.CoreCryptoProtocol
+
+public struct CoreCryptoConfiguration {
+    public let path: String
+    public let key: String
+    public let clientId: String
+}
 
 extension ZMUserSession {
-    var coreCryptoConfiguration: CoreCryptoConfiguration? {
-        let user = ZMUser.selfUser(in: managedObjectContext)
+
+    func setupMLSControllerIfNeeded(coreCryptoSetup: CoreCryptoSetupClosure) {
+        guard !isMLSControllerInitialized else {
+            return
+        }
+
+        do {
+            let configuration = try coreCryptoConfiguration()
+            let coreCrypto = try coreCryptoSetup(configuration)
+            initializeMLSController(coreCrypto: coreCrypto)
+        } catch {
+            Logging.mls.warn("Failed to setup MLSController: \(String(describing: error))")
+        }
+    }
+
+    private enum CoreCryptoConfigurationError: Error {
+        case failedToGetQualifiedClientId
+        case failedToGetCoreCryptoKey
+    }
+
+    private func coreCryptoConfiguration() throws -> CoreCryptoConfiguration {
+        let user = ZMUser.selfUser(in: syncContext)
 
         guard
             let qualifiedClientId = MLSQualifiedClientID(user: user).qualifiedClientId
         else {
-            return nil
+            throw CoreCryptoConfigurationError.failedToGetQualifiedClientId
         }
 
         let accountDirectory = CoreDataStack.accountDataFolder(
@@ -45,12 +74,12 @@ extension ZMUserSession {
                 clientId: qualifiedClientId
             )
         } catch {
-            // TODO: Error handling
-            fatalError(String(describing: error))
+            Logging.mls.warn("Failed to get core crypto key \(String(describing: error))")
+            throw CoreCryptoConfigurationError.failedToGetCoreCryptoKey
         }
     }
 
-    var isMLSControllerInitialized: Bool {
+    private var isMLSControllerInitialized: Bool {
         var result = false
 
         syncContext.performAndWait {
@@ -60,7 +89,7 @@ extension ZMUserSession {
         return result
     }
 
-    func initializeMLSController(coreCrypto: CoreCryptoProtocol) {
+    private func initializeMLSController(coreCrypto: WireDataModel.CoreCryptoProtocol) {
         syncContext.performAndWait {
             syncContext.initializeMLSController(
                 coreCrypto: coreCrypto,
@@ -68,10 +97,9 @@ extension ZMUserSession {
             )
         }
     }
-
 }
 
-extension URL {
+private extension URL {
     func appendingMLSFolder() -> URL {
         return appendingPathComponent("mls")
     }
