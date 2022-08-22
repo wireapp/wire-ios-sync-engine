@@ -162,35 +162,23 @@ import Foundation
 
     /// Update invalid accessRoles for existing conversations where the team is nil and accessRoles == [.teamMember]
     public static func updateConversationsWithInvalidAccessRoles(_ context: NSManagedObjectContext) {
-//        let action = GetFeatureConfigsAction { result in
-//            if case let .failure(reason) = result {
-//                Logging.network.error("Failed to fetch feature configs: \(String(describing: reason))")
-//            }
-//        }
-//
-//        action.send(in: context.notificationContext)
-
-
-
-        let predicate = NSPredicate(format: "team == nil AND %K == %@",
-                                    AccessRoleStringsKeyV2,
+        var actionList: [UpdateAccessRolesAction] = []
+        let predicate = NSPredicate(format: "team == nil AND accessRoleStringsV2 == %@",
                                     [ConversationAccessRoleV2.teamMember.rawValue])
         let request = ZMConversation.sortedFetchRequest(with: predicate)
 
         let conversations = context.fetchOrAssert(request: request) as? [ZMConversation]
         conversations?.forEach {
-
-            let action = UpdateAccessRolesAction(conversation: $0,
+            var action = UpdateAccessRolesAction(conversation: $0,
                                                  accessMode: ConversationAccessMode.value(forAllowGuests: true),
                                                  accessRoles: ConversationAccessRoleV2.fromLegacyAccessRole(.nonActivated))
-//            action.onResult(resultHandler: completion)
+
+            action.onResult { result in
+
+            }
             action.send(in: context.notificationContext)
-//            $0.updateAccessStatus(accessModes:
-//                                    ConversationAccessMode.value(forAllowGuests: true).stringValue,
-//                                  accessRoles: ConversationAccessRoleV2.fromLegacyAccessRole(.nonActivated).map({$0.rawValue}))
-//            $0.setLocallyModifiedKeys(Set([AccessRoleStringsKeyV2]))
+            actionList.append(action)
         }
-        context.enqueueDelayedSave()
     }
 
     /// Marks all connected users (including self) to be refetched.

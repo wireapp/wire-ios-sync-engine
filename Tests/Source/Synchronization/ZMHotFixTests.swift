@@ -244,7 +244,7 @@ class ZMHotFixTests_Integration: MessagingTest {
         var g1: ZMConversation!
         syncMOC.performGroupedBlock {
             // GIVEN
-            self.syncMOC.setPersistentStoreMetadata("432.0.0", key: "lastSavedVersion")
+            self.syncMOC.setPersistentStoreMetadata("432.0.1", key: "lastSavedVersion")
             self.syncMOC.setPersistentStoreMetadata(NSNumber(value: true), key: "HasHistory")
 
             g1 = ZMConversation.insertNewObject(in: self.syncMOC)
@@ -254,7 +254,8 @@ class ZMHotFixTests_Integration: MessagingTest {
                                   accessRoles: [ConversationAccessRoleV2.teamMember.rawValue])
 
             self.syncMOC.saveOrRollback()
-            XCTAssertFalse(g1.hasLocalModifications(forKey: AccessRoleStringsKeyV2))
+            XCTAssertEqual(g1.accessRoles, [ConversationAccessRoleV2.teamMember])
+            XCTAssertEqual(g1.accessMode, ConversationAccessMode.teamOnly)
 
             // WHEN
             let sut = ZMHotFix(syncMOC: self.syncMOC)
@@ -266,8 +267,8 @@ class ZMHotFixTests_Integration: MessagingTest {
 
         syncMOC.performGroupedBlock {
             // THEN
+            XCTAssertEqual(g1.accessMode, ConversationAccessMode.teamOnly)
             XCTAssertEqual(g1.accessRoles, ConversationAccessRoleV2.fromLegacyAccessRole(.nonActivated))
-            XCTAssertTrue(g1.hasLocalModifications(forKey: AccessRoleStringsKeyV2))
         }
     }
 
