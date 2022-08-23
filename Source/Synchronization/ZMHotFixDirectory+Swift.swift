@@ -162,22 +162,16 @@ import Foundation
 
     /// Update invalid accessRoles for existing conversations where the team is nil and accessRoles == [.teamMember]
     public static func updateConversationsWithInvalidAccessRoles(_ context: NSManagedObjectContext) {
-        var actionList: [UpdateAccessRolesAction] = []
         let predicate = NSPredicate(format: "team == nil AND accessRoleStringsV2 == %@",
                                     [ConversationAccessRoleV2.teamMember.rawValue])
         let request = ZMConversation.sortedFetchRequest(with: predicate)
 
         let conversations = context.fetchOrAssert(request: request) as? [ZMConversation]
         conversations?.forEach {
-            var action = UpdateAccessRolesAction(conversation: $0,
+            let action = UpdateAccessRolesAction(conversation: $0,
                                                  accessMode: ConversationAccessMode.value(forAllowGuests: true),
                                                  accessRoles: ConversationAccessRoleV2.fromLegacyAccessRole(.nonActivated))
-
-            action.onResult { result in
-
-            }
             action.send(in: context.notificationContext)
-            actionList.append(action)
         }
     }
 

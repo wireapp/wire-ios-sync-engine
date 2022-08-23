@@ -52,6 +52,7 @@
         "AvailabilityTests",
         "EventProcessingPerformanceTests",
         "SessionManagerTests\/testThatSessionManagerSetsUpAPNSEnvironmentOnLaunch()",
+        "ZMHotFixTests_Integration\/testThatItUpdatesAccessRolesForConversations_432_1_0()",
         "ZMMissingUpdateEventsTranscoderTests"
       ],
       "target" : {
