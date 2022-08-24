@@ -19,7 +19,6 @@
 import Foundation
 import WireDataModel
 import WireRequestStrategy
-import WireCoreCrypto
 
 public typealias CoreCryptoSetupClosure = (CoreCryptoConfiguration) throws -> WireDataModel.CoreCryptoProtocol
 
