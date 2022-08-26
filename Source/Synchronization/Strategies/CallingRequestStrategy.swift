@@ -337,15 +337,15 @@ extension CallingRequestStrategy: WireCallCenterTransport {
                 completionHandler: nil
             )
 
-            switch conversation.messageProtocol {
-            case .proteus:
+            switch (conversation.messageProtocol, recipients) {
+            case (.proteus, _), (.mls, .conversationParticipants):
                 message.send(with: self.messageSync, completion: completionHandler)
 
-            case .mls:
+            case (.mls, _):
                 if message.isConferenceKey {
                     message.send(with: self.messageSync, completion: completionHandler)
                 } else {
-                    Logging.mls.info("ignoring outgoing calling message b/c its not CONFKEY")
+                    Logging.mls.info("ignoring targeted outgoing calling message b/c its not CONFKEY")
                 }
             }
         }
