@@ -414,6 +414,201 @@ class CallingRequestStrategyTests: MessagingTest {
         return client
     }
 
+    // MARK: - MLS messages
+
+    // Note: at the moment, all mls messages are sent to every participant in the group.
+    // When we implement subgroups, then we may be able to assert who the recipients are.
+
+    func test_ThatItSendsMLSConfStartMessage_ToAllParticipants_WhenNoTargetRecipientsAreSpecified() {
+        // Given
+        let selfClient = createSelfClient()
+
+        // One user with two clients connected to self
+        let user1 = ZMUser.insertNewObject(in: syncMOC)
+        user1.remoteIdentifier = .create()
+
+        _ = createClient(for: user1, connectedTo: selfClient)
+        _ = createClient(for: user1, connectedTo: selfClient)
+
+        // Another user with two clients connected to self
+        let user2 = ZMUser.insertNewObject(in: syncMOC)
+        user2.remoteIdentifier = .create()
+
+        _ = createClient(for: user2, connectedTo: selfClient)
+        _ = createClient(for: user2, connectedTo: selfClient)
+
+        // An MLS conversation with both users and self
+        let conversation = ZMConversation.insertNewObject(in: syncMOC)
+        conversation.remoteIdentifier = .create()
+        conversation.mlsGroupID = MLSGroupID(Data([1, 2, 3]))
+        conversation.messageProtocol = .mls
+        conversation.addParticipantsAndUpdateConversationState(users: [ZMUser.selfUser(in: syncMOC), user1, user2], role: nil)
+        conversation.needsToBeUpdatedFromBackend = false
+
+        syncMOC.saveOrRollback()
+
+        let mockMLSController = MockMLSController()
+
+        syncMOC.performGroupedBlock {
+            self.syncMOC.test_setMockMLSController(mockMLSController)
+        }
+
+        XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+
+        var nextRequest: ZMTransportRequest?
+
+        // When we schedule the message with no targets
+        syncMOC.performGroupedBlock {
+            self.sut.send(data: self.callMessage(withType: "CONFSTART"), conversationId: conversation.avsIdentifier!, targets: nil) { _ in }
+        }
+
+        XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+
+        syncMOC.performGroupedBlock {
+            nextRequest = self.sut.nextRequest(for: .v2)
+        }
+
+        XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+
+        guard let request = nextRequest else { return XCTFail("Expected next request") }
+
+        // Then it's an mls request
+        XCTAssertEqual(request.path, "/v2/mls/messages")
+        XCTAssertEqual(request.method, .methodPOST)
+    }
+
+    // Note: at the moment, all mls messages are sent to every participant in the group.
+    // When we implement subgroups, then we may be able to assert who the recipients are.
+
+    func test_ThatItSendsMLSConfKeyMessage_ToAllParticipants_EvenIfTargetRecipientsAreSpecified() {
+        // Given
+        let selfClient = createSelfClient()
+
+        // One user with two clients connected to self
+        let user1 = ZMUser.insertNewObject(in: syncMOC)
+        user1.remoteIdentifier = .create()
+
+        let client1 = createClient(for: user1, connectedTo: selfClient)
+        _ = createClient(for: user1, connectedTo: selfClient)
+
+        // Another user with two clients connected to self
+        let user2 = ZMUser.insertNewObject(in: syncMOC)
+        user2.remoteIdentifier = .create()
+
+        let client3 = createClient(for: user2, connectedTo: selfClient)
+        _ = createClient(for: user2, connectedTo: selfClient)
+
+        // Targeting two specific clients
+        let avsClient1 = AVSClient(userId: user1.avsIdentifier, clientId: client1.remoteIdentifier!)
+        let avsClient2 = AVSClient(userId: user2.avsIdentifier, clientId: client3.remoteIdentifier!)
+        let targets = [avsClient1, avsClient2]
+
+        // An MLS conversation with both users and self
+        let conversation = ZMConversation.insertNewObject(in: syncMOC)
+        conversation.remoteIdentifier = .create()
+        conversation.mlsGroupID = MLSGroupID(Data([1, 2, 3]))
+        conversation.messageProtocol = .mls
+        conversation.addParticipantsAndUpdateConversationState(users: [ZMUser.selfUser(in: syncMOC), user1, user2], role: nil)
+        conversation.needsToBeUpdatedFromBackend = false
+
+        syncMOC.saveOrRollback()
+
+        let mockMLSController = MockMLSController()
+
+        syncMOC.performGroupedBlock {
+            self.syncMOC.test_setMockMLSController(mockMLSController)
+        }
+
+        XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+
+        var nextRequest: ZMTransportRequest?
+
+        // When we schedule the message
+        syncMOC.performGroupedBlock {
+            self.sut.send(data: self.callMessage(withType: "CONFKEY"), conversationId: conversation.avsIdentifier!, targets: targets) { _ in }
+        }
+
+        XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+
+        syncMOC.performGroupedBlock {
+            nextRequest = self.sut.nextRequest(for: .v2)
+        }
+
+        XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+
+        guard let request = nextRequest else { return XCTFail("Expected next request") }
+
+        // Then it's an mls request
+        XCTAssertEqual(request.path, "/v2/mls/messages")
+        XCTAssertEqual(request.method, .methodPOST)
+    }
+
+    // Note: when we implement subgroups, we'll be able to target reject messages, and
+    // then we'll replace this test.
+
+    func test_ThatItIgnoresMLSRejectMessage() {
+        // Given
+        let selfClient = createSelfClient()
+
+        let user1 = ZMUser.insertNewObject(in: syncMOC)
+        user1.remoteIdentifier = .create()
+        let client1 = createClient(for: user1, connectedTo: selfClient)
+
+        let user2 = ZMUser.insertNewObject(in: syncMOC)
+        user2.remoteIdentifier = .create()
+        _ = createClient(for: user2, connectedTo: selfClient)
+
+        // An MLS conversation with both users and self
+        let conversation = ZMConversation.insertNewObject(in: syncMOC)
+        conversation.remoteIdentifier = .create()
+        conversation.mlsGroupID = MLSGroupID(Data([1, 2, 3]))
+        conversation.messageProtocol = .mls
+        conversation.addParticipantsAndUpdateConversationState(users: [ZMUser.selfUser(in: syncMOC), user1, user2], role: nil)
+        conversation.needsToBeUpdatedFromBackend = false
+
+        syncMOC.saveOrRollback()
+
+        let mockMLSController = MockMLSController()
+
+        syncMOC.performGroupedBlock {
+            self.syncMOC.test_setMockMLSController(mockMLSController)
+        }
+
+        XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+
+        var nextRequest: ZMTransportRequest?
+
+        // Targeting one client
+        let avsClient1 = AVSClient(userId: user1.avsIdentifier, clientId: client1.remoteIdentifier!)
+        let targets = [avsClient1]
+
+        // When we schedule the message
+        syncMOC.performGroupedBlock {
+            self.sut.send(data: self.callMessage(withType: "REJECT"), conversationId: conversation.avsIdentifier!, targets: targets) { _ in }
+        }
+
+        XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+
+        syncMOC.performGroupedBlock {
+            nextRequest = self.sut.nextRequest(for: .v2)
+        }
+
+        XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+
+        // Then no request is made
+        XCTAssertNil(nextRequest)
+    }
+
+    private func callMessage(withType type: String) -> Data {
+        let json = [
+            "src_userid": UUID.create().uuidString,
+            "resp": false,
+            "type": type
+        ] as [String: Any]
+
+        return try! JSONSerialization.data(withJSONObject: json, options: [])
+    }
+
     // MARK: - Event processing
 
     func testThatItAsksCallCenterToMute_WhenReceivingRemoteMuteEvent() {
@@ -445,6 +640,42 @@ class CallingRequestStrategyTests: MessagingTest {
 
         // THEN
         XCTAssertTrue(sut.callCenter?.muted ?? false)
+    }
+
+}
+
+class MockMLSController: MLSControllerProtocol {
+
+    func uploadKeyPackagesIfNeeded() {
+        fatalError("not implemented")
+    }
+
+    func createGroup(for groupID: MLSGroupID) throws {
+        fatalError("not implemented")
+    }
+
+    func conversationExists(groupID: MLSGroupID) -> Bool {
+        fatalError("not implemented")
+    }
+
+    func processWelcomeMessage(welcomeMessage: String) throws -> MLSGroupID {
+        fatalError("not implemented")
+    }
+
+    func encrypt(message: Bytes, for groupID: MLSGroupID) throws -> Bytes {
+        return message
+    }
+
+    func decrypt(message: String, for groupID: MLSGroupID) throws -> Data? {
+        fatalError("not implemented")
+    }
+
+    func addMembersToConversation(with users: [MLSUser], for groupID: MLSGroupID) async throws {
+        fatalError("not implemented")
+    }
+
+    func removeMembersFromConversation(with clientIds: [MLSClientID], for groupID: MLSGroupID) async throws {
+        fatalError("not implemented")
     }
 
 }
