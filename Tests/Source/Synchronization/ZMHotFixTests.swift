@@ -268,7 +268,7 @@ class ZMHotFixTests_Integration: MessagingTest {
         let token = NotificationInContext.addObserver(name: UpdateAccessRolesAction.notificationName,
                                                       context: self.syncMOC.notificationContext,
                                                       using: { note in
-            guard let _ = note.userInfo["action"] as? WireRequestStrategy.UpdateAccessRolesAction else {
+            guard note.userInfo["action"] as? WireRequestStrategy.UpdateAccessRolesAction != nil else {
                 XCTFail()
                 return
 
