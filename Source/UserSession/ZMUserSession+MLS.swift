@@ -35,12 +35,14 @@ extension ZMUserSession {
             return
         }
 
-        do {
-            let configuration = try coreCryptoConfiguration()
-            let coreCrypto = try coreCryptoSetup(configuration)
-            initializeMLSController(coreCrypto: coreCrypto)
-        } catch {
-            Logging.mls.warn("Failed to setup MLSController: \(String(describing: error))")
+        syncContext.performAndWait {
+            do {
+                let configuration = try coreCryptoConfiguration()
+                let coreCrypto = try coreCryptoSetup(configuration)
+                initializeMLSController(coreCrypto: coreCrypto)
+            } catch {
+                Logging.mls.warn("Failed to setup MLSController: \(String(describing: error))")
+            }
         }
     }
 
@@ -50,16 +52,14 @@ extension ZMUserSession {
     }
 
     private func coreCryptoConfiguration() throws -> CoreCryptoConfiguration {
-        let user = ZMUser.selfUser(in: syncContext)
+        let selfUser = ZMUser.selfUser(in: syncContext)
 
-        guard
-            let qualifiedClientId = MLSQualifiedClientID(user: user).qualifiedClientId
-        else {
+        guard let qualifiedClientId = = MLSQualifiedClientID(user: selfUser).qualifiedClientId else {
             throw CoreCryptoConfigurationError.failedToGetQualifiedClientId
         }
 
         let accountDirectory = CoreDataStack.accountDataFolder(
-            accountIdentifier: user.remoteIdentifier,
+            accountIdentifier: selfUser.remoteIdentifier,
             applicationContainer: sharedContainerURL
         )
         FileManager.default.createAndProtectDirectory(at: accountDirectory)
