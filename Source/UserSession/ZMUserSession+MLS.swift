@@ -54,7 +54,7 @@ extension ZMUserSession {
     private func coreCryptoConfiguration() throws -> CoreCryptoConfiguration {
         let selfUser = ZMUser.selfUser(in: syncContext)
 
-        guard let qualifiedClientId = = MLSQualifiedClientID(user: selfUser).qualifiedClientId else {
+        guard let qualifiedClientId = MLSQualifiedClientID(user: selfUser).qualifiedClientId else {
             throw CoreCryptoConfigurationError.failedToGetQualifiedClientId
         }
 
