@@ -145,34 +145,60 @@ class CallingRequestStrategyTests: MessagingTest {
 
     // MARK: - Client List
 
-    func testThatItGeneratesClientListRequestAndCallsTheCompletionHandler_NotFederated() {
+    func testThatItGeneratesClientListRequestAndCallsTheCompletionHandler_NotFederated() throws {
         // Given
-        createSelfClient()
+        let selfClient = createSelfClient()
 
-        let conversationId = AVSIdentifier(identifier: UUID(), domain: nil)
-        let userId1 = AVSIdentifier(identifier: UUID(), domain: nil)
-        let userId2 = AVSIdentifier(identifier: UUID(), domain: nil)
-        let clientId1 = "client1"
-        let clientId2 = "client2"
+        // One user with two clients connected to self.
+        let user1 = ZMUser.insertNewObject(in: syncMOC)
+        user1.remoteIdentifier = .create()
+        let client1 = createClient(for: user1, connectedTo: selfClient)
+        let client2 = createClient(for: user1, connectedTo: selfClient)
+
+        // Another user with two clients connected to self.
+        let user2 = ZMUser.insertNewObject(in: syncMOC)
+        user2.remoteIdentifier = .create()
+        let client3 = createClient(for: user2, connectedTo: selfClient)
+        let client4 = createClient(for: user2, connectedTo: selfClient)
+
+        // A conversation with both users and self.
+        let conversation = ZMConversation.insertNewObject(in: syncMOC)
+        conversation.remoteIdentifier = .create()
+        conversation.messageProtocol = .proteus
+        conversation.addParticipantsAndUpdateConversationState(
+            users: [ZMUser.selfUser(in: syncMOC), user1, user2],
+            role: nil
+        )
+
+        conversation.needsToBeUpdatedFromBackend = false
+        syncMOC.saveOrRollback()
 
         let payload = """
         {
             "missing": {
-                "\(userId1.identifier.transportString())": ["\(clientId1)", "\(clientId2)"],
-                "\(userId2.identifier.transportString())": ["\(clientId1)"]
+                "\(user1.remoteIdentifier.uuidString)": ["\(client1.remoteIdentifier!)", "\(client2.remoteIdentifier!)"],
+                "\(user2.remoteIdentifier.uuidString)": ["\(client3.remoteIdentifier!)", "\(client4.remoteIdentifier!)"]
             }
         }
         """
 
+        // Expectation
         let receivedClientList = expectation(description: "Received client list")
 
+        let avsClient1 = try XCTUnwrap(AVSClient(userClient: client1))
+        let avsClient2 = try XCTUnwrap(AVSClient(userClient: client2))
+        let avsClient3 = try XCTUnwrap(AVSClient(userClient: client3))
+        let avsClient4 = try XCTUnwrap(AVSClient(userClient: client4))
+
         // When
-        sut.requestClientsList(conversationId: conversationId) { clients in
+        let conversationID = try XCTUnwrap(conversation.avsIdentifier)
+        sut.requestClientsList(conversationId: conversationID) { clients in
             // Then
-            XCTAssertEqual(clients.count, 3)
-            XCTAssertTrue(clients.contains(AVSClient(userId: userId1, clientId: clientId1)))
-            XCTAssertTrue(clients.contains(AVSClient(userId: userId1, clientId: clientId2)))
-            XCTAssertTrue(clients.contains(AVSClient(userId: userId2, clientId: clientId1)))
+            XCTAssertEqual(clients.count, 4)
+            XCTAssertTrue(clients.contains(avsClient1))
+            XCTAssertTrue(clients.contains(avsClient2))
+            XCTAssertTrue(clients.contains(avsClient3))
+            XCTAssertTrue(clients.contains(avsClient4))
             receivedClientList.fulfill()
         }
 
@@ -180,7 +206,7 @@ class CallingRequestStrategyTests: MessagingTest {
 
         let request = sut.nextRequest(for: .v0)
         XCTAssertNotNil(request)
-        XCTAssertEqual(request?.path, "/conversations/\(conversationId.identifier.transportString())/otr/messages")
+        XCTAssertEqual(request?.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/otr/messages")
 
         // When
         request?.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 412, transportSessionError: nil, apiVersion: APIVersion.v0.rawValue))
@@ -189,45 +215,68 @@ class CallingRequestStrategyTests: MessagingTest {
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
     }
 
-    func testThatItGeneratesClientListRequestAndCallsTheCompletionHandler_Federated() {
+    func testThatItGeneratesClientListRequestAndCallsTheCompletionHandler_Federated() throws {
         // Given
         APIVersion.isFederationEnabled = true
 
-        createSelfClient()
+        let selfClient = createSelfClient()
 
-        let domain1 = "domain1.test.com"
-        let domain2 = "domain2.test.com"
-        let conversationId = AVSIdentifier(identifier: UUID(), domain: domain1)
-        let userId1 = AVSIdentifier(identifier: UUID(), domain: domain1)
-        let userId2 = AVSIdentifier(identifier: UUID(), domain: domain1)
-        let userId3 = AVSIdentifier(identifier: UUID(), domain: domain2)
-        let clientId1 = "client1"
-        let clientId2 = "client2"
+        // One user with two clients connected to self.
+        let user1 = ZMUser.insertNewObject(in: syncMOC)
+        user1.remoteIdentifier = .create()
+        user1.domain = "foo.com"
+        let client1 = createClient(for: user1, connectedTo: selfClient)
+        let client2 = createClient(for: user1, connectedTo: selfClient)
+
+        // Another user with two clients connected to self.
+        let user2 = ZMUser.insertNewObject(in: syncMOC)
+        user2.remoteIdentifier = .create()
+        user2.domain = "bar.com"
+        let client3 = createClient(for: user2, connectedTo: selfClient)
+        let client4 = createClient(for: user2, connectedTo: selfClient)
+
+        // A conversation with both users and self.
+        let conversation = ZMConversation.insertNewObject(in: syncMOC)
+        conversation.remoteIdentifier = .create()
+        conversation.messageProtocol = .proteus
+        conversation.addParticipantsAndUpdateConversationState(
+            users: [ZMUser.selfUser(in: syncMOC), user1, user2],
+            role: nil
+        )
+
+        conversation.needsToBeUpdatedFromBackend = false
+        syncMOC.saveOrRollback()
 
         let payload = """
         {
             "missing": {
-                "\(domain1)": {
-                    "\(userId1.identifier.transportString())": ["\(clientId1)", "\(clientId2)"],
-                    "\(userId2.identifier.transportString())": ["\(clientId1)"]
+                "foo.com": {
+                    "\(user1.remoteIdentifier.uuidString)": ["\(client1.remoteIdentifier!)", "\(client2.remoteIdentifier!)"]
                 },
-                "\(domain2)": {
-                    "\(userId3.identifier.transportString())": ["\(clientId1)"]
+                "bar.com": {
+                    "\(user2.remoteIdentifier.uuidString)": ["\(client3.remoteIdentifier!)", "\(client4.remoteIdentifier!)"]
                 }
             }
         }
         """
 
+        // Expectation
         let receivedClientList = expectation(description: "Received client list")
 
+        let avsClient1 = try XCTUnwrap(AVSClient(userClient: client1))
+        let avsClient2 = try XCTUnwrap(AVSClient(userClient: client2))
+        let avsClient3 = try XCTUnwrap(AVSClient(userClient: client3))
+        let avsClient4 = try XCTUnwrap(AVSClient(userClient: client4))
+
         // When
-        sut.requestClientsList(conversationId: conversationId) { clients in
+        let conversationID = try XCTUnwrap(conversation.avsIdentifier)
+        sut.requestClientsList(conversationId: conversationID) { clients in
             // Then
             XCTAssertEqual(clients.count, 4)
-            XCTAssertTrue(clients.contains(AVSClient(userId: userId1, clientId: clientId1)))
-            XCTAssertTrue(clients.contains(AVSClient(userId: userId1, clientId: clientId2)))
-            XCTAssertTrue(clients.contains(AVSClient(userId: userId2, clientId: clientId1)))
-            XCTAssertTrue(clients.contains(AVSClient(userId: userId3, clientId: clientId1)))
+            XCTAssertTrue(clients.contains(avsClient1))
+            XCTAssertTrue(clients.contains(avsClient2))
+            XCTAssertTrue(clients.contains(avsClient3))
+            XCTAssertTrue(clients.contains(avsClient4))
             receivedClientList.fulfill()
         }
 
@@ -236,7 +285,7 @@ class CallingRequestStrategyTests: MessagingTest {
         let request = sut.nextRequest(for: .v1)
         XCTAssertNotNil(request)
         XCTAssertEqual(request?.apiVersion, APIVersion.v1.rawValue)
-        XCTAssertEqual(request?.path, "/v1/conversations/\(domain1)/\(conversationId.identifier.transportString())/proteus/messages")
+        XCTAssertEqual(request?.path, "/v1/conversations/foo.com/\(conversation.remoteIdentifier!.transportString())/proteus/messages")
 
         // When
         request?.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 412, transportSessionError: nil, apiVersion: APIVersion.v1.rawValue))
@@ -324,12 +373,31 @@ class CallingRequestStrategyTests: MessagingTest {
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
     }
 
-    func testThatItGeneratesOnlyOneClientListRequest() {
+    func testThatItGeneratesOnlyOneClientListRequest() throws {
         // Given
-        createSelfClient()
+        let selfClient = createSelfClient()
+
+        // One user with two clients connected to self.
+        let user1 = ZMUser.insertNewObject(in: syncMOC)
+        user1.remoteIdentifier = .create()
+        createClient(for: user1, connectedTo: selfClient)
+        createClient(for: user1, connectedTo: selfClient)
+
+        // A conversation with both users and self.
+        let conversation = ZMConversation.insertNewObject(in: syncMOC)
+        conversation.remoteIdentifier = .create()
+        conversation.messageProtocol = .proteus
+        conversation.addParticipantsAndUpdateConversationState(
+            users: [ZMUser.selfUser(in: syncMOC), user1],
+            role: nil
+        )
+
+        conversation.needsToBeUpdatedFromBackend = false
+        syncMOC.saveOrRollback()
 
         // When
-        sut.requestClientsList(conversationId: AVSIdentifier.stub) { _ in }
+        let conversationID = try XCTUnwrap(conversation.avsIdentifier)
+        sut.requestClientsList(conversationId: conversationID) { _ in }
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // Then
@@ -684,6 +752,7 @@ class CallingRequestStrategyTests: MessagingTest {
     private func callMessage(withType type: String) -> Data {
         let json = [
             "src_userid": UUID.create().uuidString,
+            "src_clientid": "clientID",
             "resp": false,
             "type": type
         ] as [String: Any]
@@ -696,6 +765,7 @@ class CallingRequestStrategyTests: MessagingTest {
     func testThatItAsksCallCenterToMute_WhenReceivingRemoteMuteEvent() {
         // GIVEN
         let json = ["src_userid": UUID.create().uuidString,
+                    "src_clientid": "clientID",
                     "resp": false,
                     "type": "REMOTEMUTE"] as [String: Any]
         let data = try! JSONSerialization.data(withJSONObject: json, options: [])
