@@ -25,18 +25,21 @@ class CallingRequestStrategyTests: MessagingTest {
     var sut: CallingRequestStrategy!
     var mockApplicationStatus: MockApplicationStatus!
     var mockRegistrationDelegate: ClientRegistrationDelegate!
+    var mockFetchUserClientsUseCase: MockFetchUserClientsUseCase!
 
     override func setUp() {
         super.setUp()
         mockApplicationStatus = MockApplicationStatus()
         mockApplicationStatus.mockSynchronizationState = .online
         mockRegistrationDelegate = MockClientRegistrationDelegate()
+        mockFetchUserClientsUseCase = MockFetchUserClientsUseCase()
         sut = CallingRequestStrategy(
             managedObjectContext: syncMOC,
             applicationStatus: mockApplicationStatus,
             clientRegistrationDelegate: mockRegistrationDelegate,
             flowManager: FlowManagerMock(),
-            callEventStatus: CallEventStatus()
+            callEventStatus: CallEventStatus(),
+            fetchUserClientsUseCase: mockFetchUserClientsUseCase
         )
         sut.callCenter = WireCallCenterV3Mock(
             userId: .stub,
@@ -51,6 +54,7 @@ class CallingRequestStrategyTests: MessagingTest {
         sut = nil
         mockRegistrationDelegate = nil
         mockApplicationStatus = nil
+        mockFetchUserClientsUseCase = nil
         APIVersion.isFederationEnabled = false
         super.tearDown()
     }
@@ -240,6 +244,84 @@ class CallingRequestStrategyTests: MessagingTest {
         // Then
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
 
+    }
+
+    func testThatItGeneratesClientListRequestAndCallsTheCompletionHandler_MLS() throws {
+        // Given
+        let selfClient = createSelfClient()
+
+        // One user with two clients connected to self.
+        let user1 = ZMUser.insertNewObject(in: syncMOC)
+        user1.remoteIdentifier = .create()
+        user1.domain = "foo.com"
+        let client1 = createClient(for: user1, connectedTo: selfClient)
+        let client2 = createClient(for: user1, connectedTo: selfClient)
+
+        // Another user with two clients connected to self.
+        let user2 = ZMUser.insertNewObject(in: syncMOC)
+        user2.remoteIdentifier = .create()
+        user2.domain = "bar.com"
+        let client3 = createClient(for: user2, connectedTo: selfClient)
+        let client4 = createClient(for: user2, connectedTo: selfClient)
+
+        // An mls conversation with both users and self.
+        let conversation = ZMConversation.insertNewObject(in: syncMOC)
+        conversation.remoteIdentifier = .create()
+        conversation.mlsGroupID = MLSGroupID([1, 2, 3])
+        conversation.messageProtocol = .mls
+        conversation.addParticipantsAndUpdateConversationState(
+            users: [ZMUser.selfUser(in: syncMOC), user1, user2],
+            role: nil
+        )
+
+        conversation.needsToBeUpdatedFromBackend = false
+        syncMOC.saveOrRollback()
+
+        // Expectations
+        let receivedClientList = expectation(description: "Received client list")
+
+        let avsClient1 = try XCTUnwrap(AVSClient(userClient: client1))
+        let avsClient2 = try XCTUnwrap(AVSClient(userClient: client2))
+        let avsClient3 = try XCTUnwrap(AVSClient(userClient: client3))
+        let avsClient4 = try XCTUnwrap(AVSClient(userClient: client4))
+
+        // Mock
+        mockFetchUserClientsUseCase.mockReturnValueForFetchUserClients = Set([
+            QualifiedClientID(
+                userID: avsClient1.avsIdentifier.identifier,
+                domain: "foo.com",
+                clientID: avsClient1.clientId
+            ),
+            QualifiedClientID(
+                userID: avsClient2.avsIdentifier.identifier,
+                domain: "foo.com",
+                clientID: avsClient2.clientId
+            ),
+            QualifiedClientID(
+                userID: avsClient3.avsIdentifier.identifier,
+                domain: "bar.com",
+                clientID: avsClient3.clientId
+            ),
+            QualifiedClientID(
+                userID: avsClient4.avsIdentifier.identifier,
+                domain: "bar.com",
+                clientID: avsClient4.clientId
+            )
+        ])
+
+        // When
+        let conversationID = try XCTUnwrap(conversation.avsIdentifier)
+        sut.requestClientsList(conversationId: conversationID) { clients in
+            // Then
+            XCTAssertEqual(clients.count, 4)
+            XCTAssertTrue(clients.contains(avsClient1))
+            XCTAssertTrue(clients.contains(avsClient2))
+            XCTAssertTrue(clients.contains(avsClient3))
+            XCTAssertTrue(clients.contains(avsClient4))
+            receivedClientList.fulfill()
+        }
+
+        XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
     }
 
     func testThatItGeneratesOnlyOneClientListRequest() {
@@ -678,4 +760,21 @@ class MockMLSController: MLSControllerProtocol {
         fatalError("not implemented")
     }
 
+}
+
+class MockFetchUserClientsUseCase: FetchUserClientsUseCaseProtocol {
+
+    var mockReturnValueForFetchUserClients = Set<QualifiedClientID>()
+    var mockErrorForFetchUserClients: Error?
+
+    func fetchUserClients(
+        userIDs: Set<QualifiedID>,
+        in context: NSManagedObjectContext
+    ) async throws -> Set<QualifiedClientID> {
+        if let error = mockErrorForFetchUserClients {
+            throw error
+        } else {
+            return mockReturnValueForFetchUserClients
+        }
+    }
 }

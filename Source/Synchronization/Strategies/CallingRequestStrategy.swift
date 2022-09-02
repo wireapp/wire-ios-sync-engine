@@ -40,6 +40,7 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
     private var clientDiscoveryRequest: ClientDiscoveryRequest?
 
     private let ephemeralURLSession = URLSession(configuration: .ephemeral)
+    private let fetchUserClientsUseCase: FetchUserClientsUseCaseProtocol
 
     // MARK: - Internal Properties
 
@@ -52,11 +53,13 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
         applicationStatus: ApplicationStatus,
         clientRegistrationDelegate: ClientRegistrationDelegate,
         flowManager: FlowManagerType,
-        callEventStatus: CallEventStatus
+        callEventStatus: CallEventStatus,
+        fetchUserClientsUseCase: FetchUserClientsUseCaseProtocol = FetchUserClientsUseCase()
     ) {
         self.messageSync = MessageSync(context: managedObjectContext, appStatus: applicationStatus)
         self.flowManager = flowManager
         self.callEventStatus = callEventStatus
+        self.fetchUserClientsUseCase = fetchUserClientsUseCase
 
         super.init(withManagedObjectContext: managedObjectContext, applicationStatus: applicationStatus)
 
@@ -392,14 +395,58 @@ extension CallingRequestStrategy: WireCallCenterTransport {
 
     public func requestClientsList(conversationId: AVSIdentifier, completionHandler: @escaping ([AVSClient]) -> Void) {
         self.zmLog.debug("requestClientList() called, moc = \(managedObjectContext)")
+
         managedObjectContext.performGroupedBlock { [unowned self] in
-            self.clientDiscoveryRequest = ClientDiscoveryRequest(
-                conversationId: conversationId.identifier,
+            guard let conversation = ZMConversation.fetch(
+                with: conversationId.identifier,
                 domain: conversationId.domain,
-                completion: completionHandler
-            )
-            self.clientDiscoverySync.readyForNextRequestIfNotBusy()
-            RequestAvailableNotification.notifyNewRequestsAvailable(nil)
+                in: self.managedObjectContext
+            ) else {
+                self.zmLog.error("Can't request client list since conversation doesn't exist")
+                completionHandler([])
+                return
+            }
+
+            switch conversation.messageProtocol {
+            case .proteus:
+                // With proteus, we discover clients by posting an otr message to no-one,
+                // then parse the error response that contains the list of all clients.
+                self.clientDiscoveryRequest = ClientDiscoveryRequest(
+                    conversationId: conversationId.identifier,
+                    domain: conversationId.domain,
+                    completion: completionHandler
+                )
+                self.clientDiscoverySync.readyForNextRequestIfNotBusy()
+                RequestAvailableNotification.notifyNewRequestsAvailable(nil)
+
+            case .mls:
+                // With MLS we will fetch all clients for each group participant at once
+                // directly from the backend.
+                let userIDs = conversation.localParticipants.map { user in
+                    QualifiedID(uuid: user.remoteIdentifier, domain: user.domain ?? APIVersion.domain!)
+                }
+
+                Task {
+                    do {
+                        let qualifiedClientIDs = try await self.fetchUserClientsUseCase.fetchUserClients(
+                            userIDs: Set(userIDs),
+                            in: self.managedObjectContext
+                        )
+
+                        let avsClients = qualifiedClientIDs.map {
+                            AVSClient(
+                                userId: AVSIdentifier(identifier: $0.userID, domain: $0.domain),
+                                clientId: $0.clientID
+                            )
+                        }
+
+                        completionHandler(avsClients)
+
+                    } catch {
+                        Logging.mls.error("Failed to fetch client list for MLS conference: \(String(describing: error))")
+                    }
+                }
+            }
         }
     }
 
@@ -567,6 +614,29 @@ private extension GenericMessageEntity {
                 completion(response.httpStatus)
             }
         }
+    }
+
+}
+
+public protocol FetchUserClientsUseCaseProtocol {
+
+    func fetchUserClients(
+        userIDs: Set<QualifiedID>,
+        in context: NSManagedObjectContext
+    ) async throws -> Set<QualifiedClientID>
+
+}
+
+public class FetchUserClientsUseCase: FetchUserClientsUseCaseProtocol {
+
+    public init() {}
+
+    public func fetchUserClients(
+        userIDs: Set<QualifiedID>,
+        in context: NSManagedObjectContext
+    ) async throws -> Set<QualifiedClientID> {
+        var action = FetchUserClientsAction(userIDs: userIDs)
+        return try await action.perform(in: context.notificationContext)
     }
 
 }
