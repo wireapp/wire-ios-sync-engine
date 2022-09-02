@@ -224,15 +224,15 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
     private func processEvent(_ event: ZMUpdateEvent) {
         let serverTimeDelta = managedObjectContext.serverTimeDelta
-        guard event.type == .conversationOtrMessageAdd else { return }
+        guard event.type == .conversationOtrMessageAdd || event.type == .conversationMLSMessageAdd else { return }
 
         if let genericMessage = GenericMessage(from: event), genericMessage.hasCalling {
 
             guard
                 let payload = genericMessage.calling.content.data(using: .utf8, allowLossyConversion: false),
+                let callEventContent = CallEventContent(from: payload, with: decoder),
                 let senderUUID = event.senderUUID,
                 let conversationUUID = event.conversationUUID,
-                let clientId = event.senderClientID,
                 let eventTimestamp = event.timestamp
             else {
                 zmLog.error("ignoring calling message: \(genericMessage.debugDescription)")
@@ -241,9 +241,7 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
             self.zmLog.debug("received calling message, timestamp \(eventTimestamp), serverTimeDelta \(serverTimeDelta)")
 
-            let isRemoteMute = CallEventContent(from: payload, with: decoder)?.isRemoteMute ?? false
-
-            guard !isRemoteMute else {
+            guard !callEventContent.isRemoteMute else {
                 callCenter?.muted = true
                 zmLog.debug("muted remotely from calling message")
                 return
@@ -252,7 +250,7 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
             processCallEvent(
                 conversationUUID: conversationUUID,
                 senderUUID: senderUUID,
-                clientId: clientId,
+                clientId: event.senderClientID ?? callEventContent.callerClientID,
                 conversationDomain: event.conversationDomain,
                 senderDomain: event.senderDomain,
                 payload: payload,
