@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 52;
+	objectVersion = 46;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -535,6 +535,7 @@
 		EEAB532C27BBA1C200577B7F /* PushNotificationTests_Legacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEAB532B27BBA1C200577B7F /* PushNotificationTests_Legacy.swift */; };
 		EEE186B4259CC92D008707CA /* ZMUserSession+AppLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEE186B3259CC92D008707CA /* ZMUserSession+AppLock.swift */; };
 		EEE186B6259CCA14008707CA /* SessionManager+AppLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEE186B5259CCA14008707CA /* SessionManager+AppLock.swift */; };
+		EEE46E5728C5EF56005F48D7 /* FetchUserClientsUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEE46E5628C5EF56005F48D7 /* FetchUserClientsUseCase.swift */; };
 		EEEA75FA1F8A6142006D1070 /* ZMLocalNotification+ExpiredMessages.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEEA75F51F8A613F006D1070 /* ZMLocalNotification+ExpiredMessages.swift */; };
 		EEEA75FC1F8A6142006D1070 /* ZMLocalNotification+Calling.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEEA75F71F8A6141006D1070 /* ZMLocalNotification+Calling.swift */; };
 		EEEED9A823F6BC00008C94CA /* SelfUserProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEEED9A723F6BC00008C94CA /* SelfUserProvider.swift */; };
@@ -1213,6 +1214,7 @@
 		EEAB532B27BBA1C200577B7F /* PushNotificationTests_Legacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationTests_Legacy.swift; sourceTree = "<group>"; };
 		EEE186B3259CC92D008707CA /* ZMUserSession+AppLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ZMUserSession+AppLock.swift"; sourceTree = "<group>"; };
 		EEE186B5259CCA14008707CA /* SessionManager+AppLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SessionManager+AppLock.swift"; sourceTree = "<group>"; };
+		EEE46E5628C5EF56005F48D7 /* FetchUserClientsUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchUserClientsUseCase.swift; sourceTree = "<group>"; };
 		EEEA75F51F8A613F006D1070 /* ZMLocalNotification+ExpiredMessages.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ZMLocalNotification+ExpiredMessages.swift"; sourceTree = "<group>"; };
 		EEEA75F71F8A6141006D1070 /* ZMLocalNotification+Calling.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ZMLocalNotification+Calling.swift"; sourceTree = "<group>"; };
 		EEEED9A723F6BC00008C94CA /* SelfUserProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelfUserProvider.swift; sourceTree = "<group>"; };
@@ -1748,6 +1750,7 @@
 				3E89FFA3191B6E15002D3A3E /* Data Model */,
 				85D85DBFC1F3A95767DEEA45 /* Synchronization */,
 				3EAD6A08199BB6C800D519DB /* Calling */,
+				EEE46E5528C5EF3B005F48D7 /* Use cases */,
 				3E18605B191A4F28000FE027 /* Public */,
 				3E18605C191A4F3B000FE027 /* WireSyncEngine-iOS.pch */,
 			);
@@ -2433,6 +2436,14 @@
 				D52257222062637500562561 /* DeletableAssetIdentifierProvider.swift */,
 			);
 			path = "Asset Deletion";
+			sourceTree = "<group>";
+		};
+		EEE46E5528C5EF3B005F48D7 /* Use cases */ = {
+			isa = PBXGroup;
+			children = (
+				EEE46E5628C5EF56005F48D7 /* FetchUserClientsUseCase.swift */,
+			);
+			path = "Use cases";
 			sourceTree = "<group>";
 		};
 		EFF9403C2240FE12004F3115 /* DeepLink */ = {
@@ -3302,6 +3313,7 @@
 				D5D10DA4203AE43200145497 /* Conversation+AccessMode.swift in Sources */,
 				7C1F4BF5203C4F67000537A8 /* Analytics+Push.swift in Sources */,
 				F9AB00221F0CDAF00037B437 /* FileRelocator.swift in Sources */,
+				EEE46E5728C5EF56005F48D7 /* FetchUserClientsUseCase.swift in Sources */,
 				166A8BF31E015F3B00F5EEEA /* WireCallCenterV3Factory.swift in Sources */,
 				16519D38231D3B1700C9D76D /* Conversation+Deletion.swift in Sources */,
 				F1C1F3F01FCF18C5007273E3 /* NSError+Localized.swift in Sources */,

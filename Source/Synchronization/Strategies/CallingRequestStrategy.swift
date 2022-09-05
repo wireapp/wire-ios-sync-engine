@@ -617,26 +617,3 @@ private extension GenericMessageEntity {
     }
 
 }
-
-public protocol FetchUserClientsUseCaseProtocol {
-
-    func fetchUserClients(
-        userIDs: Set<QualifiedID>,
-        in context: NSManagedObjectContext
-    ) async throws -> Set<QualifiedClientID>
-
-}
-
-public class FetchUserClientsUseCase: FetchUserClientsUseCaseProtocol {
-
-    public init() {}
-
-    public func fetchUserClients(
-        userIDs: Set<QualifiedID>,
-        in context: NSManagedObjectContext
-    ) async throws -> Set<QualifiedClientID> {
-        var action = FetchUserClientsAction(userIDs: userIDs)
-        return try await action.perform(in: context.notificationContext)
-    }
-
-}
