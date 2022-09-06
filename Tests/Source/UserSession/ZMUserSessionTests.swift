@@ -41,7 +41,7 @@ class ZMUserSessionSwiftTests: ZMUserSessionTestsBase {
         XCTAssertEqual(conversations.filter { $0.firstUnreadMessage != nil }.count, 0)
     }
 
-    func testThatItJoinsGroupsStillPending_AfterQuickSync() {
+    func test_itJoinsGroupsStillPending_AfterQuickSync() {
         // given
         let mockMlsController = MockMLSController()
         sut.syncContext.test_setMockMLSController(mockMlsController)
