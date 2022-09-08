@@ -64,7 +64,8 @@ final class SessionManagerTests: IntegrationTest {
             environment: environment,
             configuration: sessionManagerConfiguration,
             detector: jailbreakDetector,
-            requiredPushTokenType: requiredTokenType
+            requiredPushTokenType: requiredTokenType,
+            coreCryptoSetup: MockCoreCryptoSetup.default.setup
         )
 
         sessionManager.start(launchOptions: launchOptions)
@@ -157,7 +158,8 @@ final class SessionManagerTests: IntegrationTest {
             application: application,
             environment: sessionManager!.environment,
             configuration: SessionManagerConfiguration(blacklistDownloadInterval: -1),
-            requiredPushTokenType: .standard
+            requiredPushTokenType: .standard,
+            coreCryptoSetup: MockCoreCryptoSetup.default.setup
         )
 
         let environment = MockEnvironment()
@@ -245,7 +247,8 @@ final class SessionManagerTests: IntegrationTest {
             environment: sessionManager!.environment,
             configuration: SessionManagerConfiguration(blacklistDownloadInterval: -1),
             detector: jailbreakDetector,
-            requiredPushTokenType: .standard
+            requiredPushTokenType: .standard,
+            coreCryptoSetup: MockCoreCryptoSetup.default.setup
         )
 
         let environment = MockEnvironment()
@@ -304,7 +307,8 @@ final class SessionManagerTests: IntegrationTest {
             environment: sessionManager!.environment,
             configuration: configuration,
             detector: jailbreakDetector,
-            requiredPushTokenType: .standard
+            requiredPushTokenType: .standard,
+            coreCryptoSetup: MockCoreCryptoSetup.default.setup
         )
 
         XCTAssertTrue(self.delegate.jailbroken)
@@ -1027,7 +1031,8 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
             application: application,
             environment: sessionManager!.environment,
             configuration: SessionManagerConfiguration(blacklistDownloadInterval: -1),
-            requiredPushTokenType: .standard
+            requiredPushTokenType: .standard,
+            coreCryptoSetup: MockCoreCryptoSetup.default.setup
         )
 
         let environment = MockEnvironment()
@@ -1082,7 +1087,8 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
             application: application,
             environment: sessionManager!.environment,
             configuration: SessionManagerConfiguration(blacklistDownloadInterval: -1),
-            requiredPushTokenType: .standard
+            requiredPushTokenType: .standard,
+            coreCryptoSetup: MockCoreCryptoSetup.default.setup
         )
 
         let environment = MockEnvironment()

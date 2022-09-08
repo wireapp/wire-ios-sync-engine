@@ -160,6 +160,21 @@ import Foundation
         context.enqueueDelayedSave()
     }
 
+    /// Update invalid accessRoles for existing conversations where the team is nil and accessRoles == [.teamMember]
+    public static func updateConversationsWithInvalidAccessRoles(_ context: NSManagedObjectContext) {
+        let predicate = NSPredicate(format: "team == nil AND accessRoleStringsV2 == %@",
+                                    [ConversationAccessRoleV2.teamMember.rawValue])
+        let request = ZMConversation.sortedFetchRequest(with: predicate)
+
+        let conversations = context.fetchOrAssert(request: request) as? [ZMConversation]
+        conversations?.forEach {
+            let action = UpdateAccessRolesAction(conversation: $0,
+                                                 accessMode: ConversationAccessMode.value(forAllowGuests: true),
+                                                 accessRoles: ConversationAccessRoleV2.fromLegacyAccessRole(.nonActivated))
+            action.send(in: context.notificationContext)
+        }
+    }
+
     /// Marks all connected users (including self) to be refetched.
     /// Unconnected users are refreshed with a call to `refreshData` when information is displayed.
     /// See also the related `ZMUserSession.isPendingHotFixChanges` in `ZMHotFix+PendingChanges.swift`.

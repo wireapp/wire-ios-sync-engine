@@ -39,6 +39,7 @@
 @class MockSessionManager;
 @class RecordingMockTransportSession;
 @class MockSyncStateDelegate;
+@class MockCoreCryptoSetup;
 
 @interface ThirdPartyServices : NSObject <ZMThirdPartyServicesDelegate>
 

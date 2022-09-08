@@ -27,7 +27,7 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
     private let zmLog = ZMSLog(tag: "calling")
 
-    private let messageSync: ProteusMessageSync<GenericMessageEntity>
+    private let messageSync: MessageSync<GenericMessageEntity>
     private let flowManager: FlowManagerType
     private let decoder = JSONDecoder()
 
@@ -40,6 +40,7 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
     private var clientDiscoveryRequest: ClientDiscoveryRequest?
 
     private let ephemeralURLSession = URLSession(configuration: .ephemeral)
+    private let fetchUserClientsUseCase: FetchUserClientsUseCaseProtocol
 
     // MARK: - Internal Properties
 
@@ -47,15 +48,18 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
     // MARK: - Init
 
-    public init(managedObjectContext: NSManagedObjectContext,
-                applicationStatus: ApplicationStatus,
-                clientRegistrationDelegate: ClientRegistrationDelegate,
-                flowManager: FlowManagerType,
-                callEventStatus: CallEventStatus) {
-
-        self.messageSync = ProteusMessageSync(context: managedObjectContext, applicationStatus: applicationStatus)
+    public init(
+        managedObjectContext: NSManagedObjectContext,
+        applicationStatus: ApplicationStatus,
+        clientRegistrationDelegate: ClientRegistrationDelegate,
+        flowManager: FlowManagerType,
+        callEventStatus: CallEventStatus,
+        fetchUserClientsUseCase: FetchUserClientsUseCaseProtocol = FetchUserClientsUseCase()
+    ) {
+        self.messageSync = MessageSync(context: managedObjectContext, appStatus: applicationStatus)
         self.flowManager = flowManager
         self.callEventStatus = callEventStatus
+        self.fetchUserClientsUseCase = fetchUserClientsUseCase
 
         super.init(withManagedObjectContext: managedObjectContext, applicationStatus: applicationStatus)
 
@@ -223,15 +227,15 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
     private func processEvent(_ event: ZMUpdateEvent) {
         let serverTimeDelta = managedObjectContext.serverTimeDelta
-        guard event.type == .conversationOtrMessageAdd else { return }
+        guard event.type == .conversationOtrMessageAdd || event.type == .conversationMLSMessageAdd else { return }
 
         if let genericMessage = GenericMessage(from: event), genericMessage.hasCalling {
 
             guard
                 let payload = genericMessage.calling.content.data(using: .utf8, allowLossyConversion: false),
+                let callEventContent = CallEventContent(from: payload, with: decoder),
                 let senderUUID = event.senderUUID,
                 let conversationUUID = event.conversationUUID,
-                let clientId = event.senderClientID,
                 let eventTimestamp = event.timestamp
             else {
                 zmLog.error("ignoring calling message: \(genericMessage.debugDescription)")
@@ -240,9 +244,7 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
             self.zmLog.debug("received calling message, timestamp \(eventTimestamp), serverTimeDelta \(serverTimeDelta)")
 
-            let isRemoteMute = CallEventContent(from: payload, with: decoder)?.isRemoteMute ?? false
-
-            guard !isRemoteMute else {
+            guard !callEventContent.isRemoteMute else {
                 callCenter?.muted = true
                 zmLog.debug("muted remotely from calling message")
                 return
@@ -251,7 +253,7 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
             processCallEvent(
                 conversationUUID: conversationUUID,
                 senderUUID: senderUUID,
-                clientId: clientId,
+                clientId: event.senderClientID ?? callEventContent.callerClientID,
                 conversationDomain: event.conversationDomain,
                 senderDomain: event.senderDomain,
                 payload: payload,
@@ -301,8 +303,12 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
 extension CallingRequestStrategy: WireCallCenterTransport {
 
-    public func send(data: Data, conversationId: AVSIdentifier, targets: [AVSClient]?, completionHandler: @escaping ((Int) -> Void)) {
-
+    public func send(
+        data: Data,
+        conversationId: AVSIdentifier,
+        targets: [AVSClient]?,
+        completionHandler: @escaping ((Int) -> Void)
+    ) {
         guard let dataString = String(data: data, encoding: .utf8) else {
             zmLog.error("Not sending calling messsage since it's not UTF-8")
             completionHandler(500)
@@ -310,10 +316,11 @@ extension CallingRequestStrategy: WireCallCenterTransport {
         }
 
         managedObjectContext.performGroupedBlock {
-            guard let conversation = ZMConversation.fetch(with: conversationId.identifier,
-                                                          domain: conversationId.domain,
-                                                          in: self.managedObjectContext)
-            else {
+            guard let conversation = ZMConversation.fetch(
+                with: conversationId.identifier,
+                domain: conversationId.domain,
+                in: self.managedObjectContext
+            ) else {
                 self.zmLog.error("Not sending calling messsage since conversation doesn't exist")
                 completionHandler(500)
                 return
@@ -323,14 +330,23 @@ extension CallingRequestStrategy: WireCallCenterTransport {
 
             let genericMessage = GenericMessage(content: Calling(content: dataString))
             let recipients = targets.map { self.recipients(for: $0, in: self.managedObjectContext) } ?? .conversationParticipants
-            let message = GenericMessageEntity(conversation: conversation,
-                                               message: genericMessage,
-                                               targetRecipients: recipients,
-                                               completionHandler: nil)
 
-            self.messageSync.sync(message) { (result, response) in
-                if case .success = result {
-                    completionHandler(response.httpStatus)
+            let message = GenericMessageEntity(
+                conversation: conversation,
+                message: genericMessage,
+                targetRecipients: recipients,
+                completionHandler: nil
+            )
+
+            switch (conversation.messageProtocol, recipients) {
+            case (.proteus, _), (.mls, .conversationParticipants):
+                message.send(with: self.messageSync, completion: completionHandler)
+
+            case (.mls, _):
+                if message.isConferenceKey {
+                    message.send(with: self.messageSync, completion: completionHandler)
+                } else {
+                    Logging.mls.info("ignoring targeted outgoing calling message b/c its not CONFKEY")
                 }
             }
         }
@@ -379,14 +395,58 @@ extension CallingRequestStrategy: WireCallCenterTransport {
 
     public func requestClientsList(conversationId: AVSIdentifier, completionHandler: @escaping ([AVSClient]) -> Void) {
         self.zmLog.debug("requestClientList() called, moc = \(managedObjectContext)")
+
         managedObjectContext.performGroupedBlock { [unowned self] in
-            self.clientDiscoveryRequest = ClientDiscoveryRequest(
-                conversationId: conversationId.identifier,
+            guard let conversation = ZMConversation.fetch(
+                with: conversationId.identifier,
                 domain: conversationId.domain,
-                completion: completionHandler
-            )
-            self.clientDiscoverySync.readyForNextRequestIfNotBusy()
-            RequestAvailableNotification.notifyNewRequestsAvailable(nil)
+                in: self.managedObjectContext
+            ) else {
+                self.zmLog.error("Can't request client list since conversation doesn't exist")
+                completionHandler([])
+                return
+            }
+
+            switch conversation.messageProtocol {
+            case .proteus:
+                // With proteus, we discover clients by posting an otr message to no-one,
+                // then parse the error response that contains the list of all clients.
+                self.clientDiscoveryRequest = ClientDiscoveryRequest(
+                    conversationId: conversationId.identifier,
+                    domain: conversationId.domain,
+                    completion: completionHandler
+                )
+                self.clientDiscoverySync.readyForNextRequestIfNotBusy()
+                RequestAvailableNotification.notifyNewRequestsAvailable(nil)
+
+            case .mls:
+                // With MLS we will fetch all clients for each group participant at once
+                // directly from the backend.
+                let userIDs = conversation.localParticipants.map { user in
+                    QualifiedID(uuid: user.remoteIdentifier, domain: user.domain ?? APIVersion.domain!)
+                }
+
+                Task {
+                    do {
+                        let qualifiedClientIDs = try await self.fetchUserClientsUseCase.fetchUserClients(
+                            userIDs: Set(userIDs),
+                            in: self.managedObjectContext
+                        )
+
+                        let avsClients = qualifiedClientIDs.map {
+                            AVSClient(
+                                userId: AVSIdentifier(identifier: $0.userID, domain: $0.domain),
+                                clientId: $0.clientID
+                            )
+                        }
+
+                        completionHandler(avsClients)
+
+                    } catch {
+                        Logging.mls.error("Failed to fetch client list for MLS conference: \(String(describing: error))")
+                    }
+                }
+            }
         }
     }
 
@@ -530,4 +590,30 @@ extension CallingRequestStrategy {
             return nil
         }
     }
+}
+
+// MARK: - Message sending
+
+private extension GenericMessageEntity {
+
+    var isConferenceKey: Bool {
+        guard
+            message.hasCalling,
+            let payload = message.calling.content.data(using: .utf8, allowLossyConversion: false),
+            let callContent = CallEventContent(from: payload)
+        else {
+            return false
+        }
+
+        return callContent.isConferenceKey
+    }
+
+    func send(with messageSync: MessageSync<GenericMessageEntity>, completion: @escaping (Int) -> Void) {
+        messageSync.sync(self) { result, response in
+            if case .success = result {
+                completion(response.httpStatus)
+            }
+        }
+    }
+
 }

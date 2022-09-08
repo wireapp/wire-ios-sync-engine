@@ -44,7 +44,9 @@ final class ZMUserSessionTests_NetworkState: ZMUserSessionTestsBase {
             application: application,
             appVersion: "00000",
             coreDataStack: coreDataStack,
-            configuration: .init())
+            configuration: .init(),
+            coreCryptoSetup: MockCoreCryptoSetup.default.setup
+        )
         _ = waitForAllGroupsToBeEmpty(withTimeout: 0.5)
 
         // then
