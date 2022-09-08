@@ -796,42 +796,6 @@ class CallingRequestStrategyTests: MessagingTest {
 
 }
 
-class MockMLSController: MLSControllerProtocol {
-
-    func uploadKeyPackagesIfNeeded() {
-        fatalError("not implemented")
-    }
-
-    func createGroup(for groupID: MLSGroupID) throws {
-        fatalError("not implemented")
-    }
-
-    func conversationExists(groupID: MLSGroupID) -> Bool {
-        fatalError("not implemented")
-    }
-
-    func processWelcomeMessage(welcomeMessage: String) throws -> MLSGroupID {
-        fatalError("not implemented")
-    }
-
-    func encrypt(message: Bytes, for groupID: MLSGroupID) throws -> Bytes {
-        return message
-    }
-
-    func decrypt(message: String, for groupID: MLSGroupID) throws -> Data? {
-        fatalError("not implemented")
-    }
-
-    func addMembersToConversation(with users: [MLSUser], for groupID: MLSGroupID) async throws {
-        fatalError("not implemented")
-    }
-
-    func removeMembersFromConversation(with clientIds: [MLSClientID], for groupID: MLSGroupID) async throws {
-        fatalError("not implemented")
-    }
-
-}
-
 class MockFetchUserClientsUseCase: FetchUserClientsUseCaseProtocol {
 
     var mockReturnValueForFetchUserClients = Set<QualifiedClientID>()

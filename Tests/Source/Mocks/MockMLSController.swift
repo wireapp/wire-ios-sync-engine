@@ -21,40 +21,41 @@ import WireDataModel
 
 // Temporary Mock until we find a way to use a single mocked `MLSControllerProcotol` accross frameworks
 class MockMLSController: MLSControllerProtocol {
-    func uploadKeyPackagesIfNeeded() {
 
+    func uploadKeyPackagesIfNeeded() {
+        fatalError("not implemented")
     }
 
     func createGroup(for groupID: MLSGroupID) throws {
-
+        fatalError("not implemented")
     }
 
     func conversationExists(groupID: MLSGroupID) -> Bool {
-        return true
+        fatalError("not implemented")
     }
 
     func processWelcomeMessage(welcomeMessage: String) throws -> MLSGroupID {
-        return MLSGroupID(Bytes())
+        fatalError("not implemented")
     }
 
     func encrypt(message: Bytes, for groupID: MLSGroupID) throws -> Bytes {
-        return []
+        return message
     }
 
     func decrypt(message: String, for groupID: MLSGroupID) throws -> Data? {
-        return nil
+        fatalError("not implemented")
     }
 
     func addMembersToConversation(with users: [MLSUser], for groupID: MLSGroupID) async throws {
-
+        fatalError("not implemented")
     }
 
     func removeMembersFromConversation(with clientIds: [MLSClientID], for groupID: MLSGroupID) async throws {
-
+        fatalError("not implemented")
     }
 
-    func addGroupPendingJoin(_ group: MLSGroup) {
-
+    func addGroupPendingJoin(_ group: MLSGroupID) {
+        fatalError("not implemented")
     }
 
     var didCallJoinGroupsStillPending: Bool = false
