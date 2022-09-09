@@ -88,6 +88,32 @@ class ZMUserSessionTests_MLS: MessagingTest {
         XCTAssertNotNil(syncMOC.mlsController)
     }
 
+    func test_ItCommitsPendingProposals_AfterQuickSyncCompletes() {
+        // GIVEN
+        let converation = ZMConversation.insertNewObject(in: syncMOC)
+        converation.mlsGroupID = MLSGroupID("123".data(using: .utf8)!)
+        converation.commitPendingProposalDate = Date.distantPast
+
+        let selfUser = ZMUser.selfUser(in: syncMOC)
+        selfUser.remoteIdentifier =  UUID.create()
+        selfUser.domain = "example.domain.com"
+
+        createSut(with: selfUser)
+        let client = createSelfClient()
+        sut.didRegisterSelfUserClient(client)
+
+        // WHEN
+        sut.didFinishQuickSync()
+
+        // THEN
+        XCTAssertTrue(wait(withTimeout: 3.0) { [self] in
+            !(mockCoreCryptoSetup.mockCoreCrypto?.calls.wire_commitPendingProposals.isEmpty ?? true)
+        })
+        let wire_commitPendingProposalsCalls = mockCoreCryptoSetup.mockCoreCrypto?.calls.wire_commitPendingProposals
+        XCTAssertEqual(1, wire_commitPendingProposalsCalls?.count)
+        XCTAssertEqual(converation.mlsGroupID?.bytes, wire_commitPendingProposalsCalls?[0])
+    }
+
     func createSut(with user: ZMUser) {
         let transportSession = RecordingMockTransportSession(
             cookieStorage: ZMPersistentCookieStorage(

@@ -28,7 +28,7 @@ class MockCoreCryptoSetup: NSObject {
 
     var calls = Calls()
 
-    var mockCoreCrypto: CoreCryptoProtocol?
+    var mockCoreCrypto: MockCoreCrypto?
     var mockError: Error?
 
     func setup(with configuration: CoreCryptoConfiguration) throws -> CoreCryptoProtocol {

@@ -20,6 +20,13 @@ import Foundation
 import WireDataModel
 
 class MockCoreCrypto: CoreCryptoProtocol {
+
+    var calls = Calls()
+
+    struct Calls {
+        var wire_commitPendingProposals: [ConversationId] = []
+    }
+
     func wire_setCallbacks(callbacks: CoreCryptoCallbacks) throws {
 
     }
@@ -117,6 +124,7 @@ class MockCoreCrypto: CoreCryptoProtocol {
     }
 
     func wire_commitPendingProposals(conversationId: ConversationId) throws -> CommitBundle {
+        calls.wire_commitPendingProposals.append(conversationId)
         return CommitBundle(welcome: nil, commit: [], publicGroupState: [])
     }
 

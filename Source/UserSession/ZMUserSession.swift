@@ -564,10 +564,13 @@ extension ZMUserSession: ZMSyncStateDelegate {
             self?.notifyThirdPartyServices()
         }
 
-        do {
-            try syncContext.mlsController?.commitPendingProposals()
-        } catch {
-            Logging.mls.error("Failed to commit pending proposals: \(String(describing: error))")
+        let mlsController = syncContext.mlsController
+        Task {
+            do {
+                try await mlsController?.commitPendingProposals()
+            } catch {
+                Logging.mls.error("Failed to commit pending proposals: \(String(describing: error))")
+            }
         }
 
         fetchFeatureConfigs()
