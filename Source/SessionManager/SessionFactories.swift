@@ -56,7 +56,8 @@ open class AuthenticatedSessionFactory {
         for account: Account,
         coreDataStack: CoreDataStack,
         configuration: ZMUserSession.Configuration,
-        coreCryptoSetup: @escaping CoreCryptoSetupClosure
+        coreCryptoSetup: @escaping CoreCryptoSetupClosure,
+        mlsControllerDebugConfiguration: MLSController.DebugConfiguration? = nil
     ) -> ZMUserSession? {
 
         let transportSession = ZMTransportSession(
@@ -78,7 +79,8 @@ open class AuthenticatedSessionFactory {
             appVersion: appVersion,
             coreDataStack: coreDataStack,
             configuration: configuration,
-            coreCryptoSetup: coreCryptoSetup
+            coreCryptoSetup: coreCryptoSetup,
+            mlsControllerDebugConfiguration: mlsControllerDebugConfiguration
         )
 
         userSession.startRequestLoopTracker()

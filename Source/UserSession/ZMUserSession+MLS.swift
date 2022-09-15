@@ -30,7 +30,10 @@ public struct CoreCryptoConfiguration {
 
 extension ZMUserSession {
 
-    func setupMLSControllerIfNeeded(coreCryptoSetup: CoreCryptoSetupClosure) {
+    func setupMLSControllerIfNeeded(
+        coreCryptoSetup: CoreCryptoSetupClosure,
+        debugConfiguration: MLSController.DebugConfiguration? = nil
+    ) {
         guard !isMLSControllerInitialized else {
             return
         }
@@ -39,7 +42,7 @@ extension ZMUserSession {
             do {
                 let configuration = try coreCryptoConfiguration()
                 let coreCrypto = try coreCryptoSetup(configuration)
-                initializeMLSController(coreCrypto: coreCrypto)
+                initializeMLSController(coreCrypto: coreCrypto, debugConfiguration: debugConfiguration)
             } catch {
                 Logging.mls.warn("Failed to setup MLSController: \(String(describing: error))")
             }
@@ -88,11 +91,15 @@ extension ZMUserSession {
         return result
     }
 
-    private func initializeMLSController(coreCrypto: WireDataModel.CoreCryptoProtocol) {
+    private func initializeMLSController(
+        coreCrypto: WireDataModel.CoreCryptoProtocol,
+        debugConfiguration: MLSController.DebugConfiguration?
+    ) {
         syncContext.performAndWait {
             syncContext.initializeMLSController(
                 coreCrypto: coreCrypto,
-                conversationEventProcessor: ConversationEventProcessor(context: syncContext)
+                conversationEventProcessor: ConversationEventProcessor(context: syncContext),
+                debugConfiguration: debugConfiguration
             )
         }
     }

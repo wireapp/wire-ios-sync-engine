@@ -17,6 +17,8 @@
 //
 
 import Foundation
+import WireDataModel
+import WireRequestStrategy
 
 @objc(ZMThirdPartyServicesDelegate)
 public protocol ThirdPartyServicesDelegate: NSObjectProtocol {
@@ -89,6 +91,7 @@ public class ZMUserSession: NSObject {
     let debugCommands: [String: DebugCommand]
     let eventProcessingTracker: EventProcessingTracker = EventProcessingTracker()
     let hotFix: ZMHotFix
+    let mlsControllerDebugConfiguration: MLSController.DebugConfiguration?
 
     public lazy var featureService = FeatureService(context: syncContext)
 
@@ -233,7 +236,9 @@ public class ZMUserSession: NSObject {
                 appVersion: String,
                 coreDataStack: CoreDataStack,
                 configuration: Configuration,
-                coreCryptoSetup: @escaping CoreCryptoSetupClosure) {
+                coreCryptoSetup: @escaping CoreCryptoSetupClosure,
+                mlsControllerDebugConfiguration: MLSController.DebugConfiguration? = nil
+    ) {
 
         coreDataStack.syncContext.performGroupedBlockAndWait {
             coreDataStack.syncContext.analytics = analytics
@@ -257,11 +262,15 @@ public class ZMUserSession: NSObject {
         self.hotFix = ZMHotFix(syncMOC: coreDataStack.syncContext)
         self.appLockController = AppLockController(userId: userId, selfUser: .selfUser(in: coreDataStack.viewContext), legacyConfig: configuration.appLockConfig)
         self.coreCryptoSetup = coreCryptoSetup
+        self.mlsControllerDebugConfiguration = mlsControllerDebugConfiguration
         super.init()
 
         appLockController.delegate = self
 
-        setupMLSControllerIfNeeded(coreCryptoSetup: coreCryptoSetup)
+        setupMLSControllerIfNeeded(
+            coreCryptoSetup: coreCryptoSetup,
+            debugConfiguration: mlsControllerDebugConfiguration
+        )
 
         configureCaches()
 
@@ -599,7 +608,10 @@ extension ZMUserSession: ZMSyncStateDelegate {
     }
 
     public func didRegisterSelfUserClient(_ userClient: UserClient!) {
-        setupMLSControllerIfNeeded(coreCryptoSetup: coreCryptoSetup)
+        setupMLSControllerIfNeeded(
+            coreCryptoSetup: coreCryptoSetup,
+            debugConfiguration: mlsControllerDebugConfiguration
+        )
 
         // If during registration user allowed notifications,
         // The push token can only be registered after client registration

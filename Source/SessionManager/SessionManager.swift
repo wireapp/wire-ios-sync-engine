@@ -293,6 +293,7 @@ public final class SessionManager: NSObject, SessionManagerType {
     public var requiredPushTokenType: PushToken.TokenType
 
     private var coreCryptoSetup: CoreCryptoSetupClosure
+    private var mlsControllerDebugConfiguration: MLSController.DebugConfiguration?
 
     public override init() {
         fatal("init() not implemented")
@@ -397,7 +398,8 @@ public final class SessionManager: NSObject, SessionManagerType {
          configuration: SessionManagerConfiguration = SessionManagerConfiguration(),
          detector: JailbreakDetectorProtocol = JailbreakDetector(),
          requiredPushTokenType: PushToken.TokenType,
-         coreCryptoSetup: @escaping CoreCryptoSetupClosure
+         coreCryptoSetup: @escaping CoreCryptoSetupClosure,
+         mlsControllerDebugConfiguration: MLSController.DebugConfiguration? = nil
     ) {
         SessionManager.enableLogsByEnvironmentVariable()
         self.environment = environment
@@ -409,6 +411,7 @@ public final class SessionManager: NSObject, SessionManagerType {
         self.jailbreakDetector = detector
         self.requiredPushTokenType = requiredPushTokenType
         self.coreCryptoSetup = coreCryptoSetup
+        self.mlsControllerDebugConfiguration = mlsControllerDebugConfiguration
 
         guard let sharedContainerURL = Bundle.main.appGroupIdentifier.map(FileManager.sharedContainerDirectory) else {
             preconditionFailure("Unable to get shared container URL")
@@ -822,7 +825,8 @@ public final class SessionManager: NSObject, SessionManagerType {
             for: account,
             coreDataStack: coreDataStack,
             configuration: sessionConfig,
-            coreCryptoSetup: coreCryptoSetup
+            coreCryptoSetup: coreCryptoSetup,
+            mlsControllerDebugConfiguration: mlsControllerDebugConfiguration
         ) else {
             preconditionFailure("Unable to create session for \(account)")
         }
