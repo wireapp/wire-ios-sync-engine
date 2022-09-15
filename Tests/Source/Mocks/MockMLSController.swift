@@ -54,13 +54,13 @@ class MockMLSController: MLSControllerProtocol {
         fatalError("not implemented")
     }
 
-    func addGroupPendingJoin(_ group: MLSGroupID) {
+    func registerPendingJoin(_ group: MLSGroupID) {
         fatalError("not implemented")
     }
 
-    var didCallJoinGroupsStillPending: Bool = false
-    func joinGroupsStillPending() {
-        didCallJoinGroupsStillPending = true
+    var didCallPerformPendingJoins: Bool = false
+    func performPendingJoins() {
+        didCallPerformPendingJoins = true
     }
 
 }
