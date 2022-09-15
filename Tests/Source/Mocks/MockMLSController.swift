@@ -42,7 +42,7 @@ class MockMLSController: MLSControllerProtocol {
         return message
     }
 
-    func decrypt(message: String, for groupID: MLSGroupID) throws -> Data? {
+    func decrypt(message: String, for groupID: MLSGroupID) throws -> MLSDecryptResult? {
         fatalError("not implemented")
     }
 
@@ -54,13 +54,25 @@ class MockMLSController: MLSControllerProtocol {
         fatalError("not implemented")
     }
 
-    func addGroupPendingJoin(_ group: MLSGroupID) {
+    func addGroupPendingJoin(_ group: MLSGroup) {
         fatalError("not implemented")
     }
 
     var didCallJoinGroupsStillPending: Bool = false
     func joinGroupsStillPending() {
         didCallJoinGroupsStillPending = true
+    }
+
+    func commitPendingProposals() async throws {
+        fatalError("not implemented")
+    }
+
+    func scheduleCommitPendingProposals(groupID: MLSGroupID, at commitDate: Date) {
+        fatalError("not implemented")
+    }
+
+    func addGroupPendingJoin(_ group: MLSGroupID) {
+        fatalError("not implemented")
     }
 
 }
