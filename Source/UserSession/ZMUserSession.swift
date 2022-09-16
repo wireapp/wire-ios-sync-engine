@@ -560,7 +560,7 @@ extension ZMUserSession: ZMSyncStateDelegate {
     public func didFinishQuickSync() {
         processEvents()
 
-        syncContext.mlsController?.joinGroupsStillPending()
+        syncContext.mlsController?.performPendingJoins()
 
         managedObjectContext.performGroupedBlock { [weak self] in
             self?.notifyThirdPartyServices()
