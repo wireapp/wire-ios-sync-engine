@@ -566,15 +566,7 @@ extension ZMUserSession: ZMSyncStateDelegate {
             self?.notifyThirdPartyServices()
         }
 
-        let mlsController = syncContext.mlsController
-        Task {
-            do {
-                try await mlsController?.commitPendingProposals()
-            } catch {
-                Logging.mls.error("Failed to commit pending proposals: \(String(describing: error))")
-            }
-        }
-
+        commitPendingProposalsIfNeede()
         fetchFeatureConfigs()
     }
 
@@ -594,6 +586,17 @@ extension ZMUserSession: ZMSyncStateDelegate {
         managedObjectContext.performGroupedBlock { [weak self] in
             self?.isPerformingSync = hasMoreEventsToProcess || isSyncing
             self?.updateNetworkState()
+        }
+    }
+
+    private func commitPendingProposalsIfNeede() {
+        let mlsController = syncContext.mlsController
+        Task {
+            do {
+                try await mlsController?.commitPendingProposals()
+            } catch {
+                Logging.mls.error("Failed to commit pending proposals: \(String(describing: error))")
+            }
         }
     }
 
