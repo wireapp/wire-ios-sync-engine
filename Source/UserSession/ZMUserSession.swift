@@ -566,7 +566,7 @@ extension ZMUserSession: ZMSyncStateDelegate {
             self?.notifyThirdPartyServices()
         }
 
-        commitPendingProposalsIfNeede()
+        commitPendingProposalsIfNeeded()
         fetchFeatureConfigs()
     }
 
@@ -589,7 +589,7 @@ extension ZMUserSession: ZMSyncStateDelegate {
         }
     }
 
-    private func commitPendingProposalsIfNeede() {
+    private func commitPendingProposalsIfNeeded() {
         let mlsController = syncContext.mlsController
         Task {
             do {
