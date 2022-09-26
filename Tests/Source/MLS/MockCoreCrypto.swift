@@ -75,16 +75,16 @@ class MockCoreCrypto: CoreCryptoProtocol {
         return []
     }
 
-    func wire_newAddProposal(conversationId: ConversationId, keyPackage: [UInt8]) throws -> [UInt8] {
-        return []
+    func wire_newAddProposal(conversationId: ConversationId, keyPackage: [UInt8]) throws -> ProposalBundle {
+        return ProposalBundle(proposal: [], proposalRef: [])
     }
 
-    func wire_newUpdateProposal(conversationId: ConversationId) throws -> [UInt8] {
-        return []
+    func wire_newUpdateProposal(conversationId: ConversationId) throws -> ProposalBundle {
+        return ProposalBundle(proposal: [], proposalRef: [])
     }
 
-    func wire_newRemoveProposal(conversationId: ConversationId, clientId: ClientId) throws -> [UInt8] {
-        return []
+    func wire_newRemoveProposal(conversationId: ConversationId, clientId: ClientId) throws -> ProposalBundle {
+        return ProposalBundle(proposal: [], proposalRef: [])
     }
 
     func wire_newExternalAddProposal(conversationId: ConversationId, epoch: UInt64) throws -> [UInt8] {
@@ -123,9 +123,37 @@ class MockCoreCrypto: CoreCryptoProtocol {
 
     }
 
-    func wire_commitPendingProposals(conversationId: ConversationId) throws -> CommitBundle {
+    func wire_commitPendingProposals(conversationId: ConversationId) throws -> CommitBundle? {
         calls.wire_commitPendingProposals.append(conversationId)
         return CommitBundle(welcome: nil, commit: [], publicGroupState: [])
+    }
+
+    func wire_conversationEpoch(conversationId: ConversationId) throws -> UInt64 {
+        return 0
+    }
+
+    func wire_finalAddClientsToConversation(conversationId: ConversationId, clients: [Invitee]) throws -> TlsCommitBundle {
+        return TlsCommitBundle()
+    }
+
+    func wire_finalRemoveClientsFromConversation(conversationId: ConversationId, clients: [ClientId]) throws -> TlsCommitBundle {
+        return TlsCommitBundle()
+    }
+
+    func wire_finalUpdateKeyingMaterial(conversationId: ConversationId) throws -> TlsCommitBundle {
+        return TlsCommitBundle()
+    }
+
+    func wire_finalCommitPendingProposals(conversationId: ConversationId) throws -> TlsCommitBundle? {
+        return TlsCommitBundle()
+    }
+
+    func wire_clearPendingProposal(conversationId: ConversationId, proposalRef: [UInt8]) throws {
+
+    }
+
+    func wire_clearPendingCommit(conversationId: ConversationId) throws {
+
     }
 
 }
