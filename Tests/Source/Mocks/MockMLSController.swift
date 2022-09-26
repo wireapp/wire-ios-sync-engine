@@ -71,4 +71,7 @@ class MockMLSController: MLSControllerProtocol {
         fatalError("not implemented")
     }
 
+    func wipeGroup(_ groupID: MLSGroupID) {
+        fatalError("not implemented")
+    }
 }
