@@ -47,20 +47,49 @@ class MockCoreCrypto: CoreCryptoProtocol {
 
     }
 
+    func wire_conversationEpoch(conversationId: ConversationId) throws -> UInt64 {
+        return 0
+    }
+
     func wire_conversationExists(conversationId: ConversationId) -> Bool {
-        return true
+        return false
     }
 
     func wire_processWelcomeMessage(welcomeMessage: [UInt8]) throws -> ConversationId {
-        return ConversationId()
+        return []
     }
 
     func wire_addClientsToConversation(conversationId: ConversationId, clients: [Invitee]) throws -> MemberAddedMessages {
-        return MemberAddedMessages(commit: [], welcome: [], publicGroupState: [])
+        return .init(commit: [], welcome: [], publicGroupState: [])
     }
 
     func wire_removeClientsFromConversation(conversationId: ConversationId, clients: [ClientId]) throws -> CommitBundle {
+        return .init(welcome: nil, commit: [], publicGroupState: [])
+    }
+
+    func wire_updateKeyingMaterial(conversationId: ConversationId) throws -> CommitBundle {
+        return .init(welcome: nil, commit: [], publicGroupState: [])
+    }
+
+    func wire_commitPendingProposals(conversationId: ConversationId) throws -> CommitBundle? {
+        calls.wire_commitPendingProposals.append(conversationId)
         return CommitBundle(welcome: nil, commit: [], publicGroupState: [])
+    }
+
+    func wire_finalAddClientsToConversation(conversationId: ConversationId, clients: [Invitee]) throws -> TlsCommitBundle {
+        return .init()
+    }
+
+    func wire_finalRemoveClientsFromConversation(conversationId: ConversationId, clients: [ClientId]) throws -> TlsCommitBundle {
+        return .init()
+    }
+
+    func wire_finalUpdateKeyingMaterial(conversationId: ConversationId) throws -> TlsCommitBundle {
+        return .init()
+    }
+
+    func wire_finalCommitPendingProposals(conversationId: ConversationId) throws -> TlsCommitBundle? {
+        return nil
     }
 
     func wire_wipeConversation(conversationId: ConversationId) throws {
@@ -68,7 +97,7 @@ class MockCoreCrypto: CoreCryptoProtocol {
     }
 
     func wire_decryptMessage(conversationId: ConversationId, payload: [UInt8]) throws -> DecryptedMessage {
-        return DecryptedMessage(message: nil, proposals: [], isActive: true, commitDelay: nil)
+        return .init(message: nil, proposals: [], isActive: false, commitDelay: nil, senderClientId: nil)
     }
 
     func wire_encryptMessage(conversationId: ConversationId, message: [UInt8]) throws -> [UInt8] {
@@ -76,15 +105,15 @@ class MockCoreCrypto: CoreCryptoProtocol {
     }
 
     func wire_newAddProposal(conversationId: ConversationId, keyPackage: [UInt8]) throws -> ProposalBundle {
-        return ProposalBundle(proposal: [], proposalRef: [])
+        return .init(proposal: [], proposalRef: [])
     }
 
     func wire_newUpdateProposal(conversationId: ConversationId) throws -> ProposalBundle {
-        return ProposalBundle(proposal: [], proposalRef: [])
+        return .init(proposal: [], proposalRef: [])
     }
 
     func wire_newRemoveProposal(conversationId: ConversationId, clientId: ClientId) throws -> ProposalBundle {
-        return ProposalBundle(proposal: [], proposalRef: [])
+        return .init(proposal: [], proposalRef: [])
     }
 
     func wire_newExternalAddProposal(conversationId: ConversationId, epoch: UInt64) throws -> [UInt8] {
@@ -95,12 +124,8 @@ class MockCoreCrypto: CoreCryptoProtocol {
         return []
     }
 
-    func wire_updateKeyingMaterial(conversationId: ConversationId) throws -> CommitBundle {
-        return CommitBundle(welcome: nil, commit: [], publicGroupState: [])
-    }
-
     func wire_joinByExternalCommit(groupState: [UInt8]) throws -> MlsConversationInitMessage {
-        return MlsConversationInitMessage(group: [], commit: [])
+        return .init(group: [], commit: [])
     }
 
     func wire_exportGroupState(conversationId: ConversationId) throws -> [UInt8] {
@@ -121,31 +146,6 @@ class MockCoreCrypto: CoreCryptoProtocol {
 
     func wire_commitAccepted(conversationId: ConversationId) throws {
 
-    }
-
-    func wire_commitPendingProposals(conversationId: ConversationId) throws -> CommitBundle? {
-        calls.wire_commitPendingProposals.append(conversationId)
-        return CommitBundle(welcome: nil, commit: [], publicGroupState: [])
-    }
-
-    func wire_conversationEpoch(conversationId: ConversationId) throws -> UInt64 {
-        return 0
-    }
-
-    func wire_finalAddClientsToConversation(conversationId: ConversationId, clients: [Invitee]) throws -> TlsCommitBundle {
-        return TlsCommitBundle()
-    }
-
-    func wire_finalRemoveClientsFromConversation(conversationId: ConversationId, clients: [ClientId]) throws -> TlsCommitBundle {
-        return TlsCommitBundle()
-    }
-
-    func wire_finalUpdateKeyingMaterial(conversationId: ConversationId) throws -> TlsCommitBundle {
-        return TlsCommitBundle()
-    }
-
-    func wire_finalCommitPendingProposals(conversationId: ConversationId) throws -> TlsCommitBundle? {
-        return TlsCommitBundle()
     }
 
     func wire_clearPendingProposal(conversationId: ConversationId, proposalRef: [UInt8]) throws {
