@@ -90,6 +90,10 @@ public class ZMUserSession: NSObject {
     let eventProcessingTracker: EventProcessingTracker = EventProcessingTracker()
     let hotFix: ZMHotFix
 
+    public var syncStatus: SyncStatusProtocol? {
+        return applicationStatusDirectory?.syncStatus
+    }
+
     public lazy var featureService = FeatureService(context: syncContext)
 
     public var appLockController: AppLockType
@@ -261,8 +265,6 @@ public class ZMUserSession: NSObject {
 
         appLockController.delegate = self
 
-        setupMLSControllerIfNeeded(coreCryptoSetup: coreCryptoSetup)
-
         configureCaches()
 
         syncManagedObjectContext.performGroupedBlockAndWait {
@@ -278,6 +280,8 @@ public class ZMUserSession: NSObject {
                                                        contextProvider: self,
                                                        callNotificationStyleProvider: self)
         }
+
+        setupMLSControllerIfNeeded(coreCryptoSetup: coreCryptoSetup)
 
         updateEventProcessor!.eventConsumers = self.strategyDirectory!.eventConsumers
         registerForCalculateBadgeCountNotification()

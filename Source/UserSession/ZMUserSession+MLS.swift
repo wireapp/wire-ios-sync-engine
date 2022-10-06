@@ -35,11 +35,20 @@ extension ZMUserSession {
             return
         }
 
+        guard let syncStatus = syncStatus else {
+            Logging.mls.warn("Failed to setup MLSController: no sync status available")
+            return
+        }
+
         syncContext.performAndWait {
             do {
                 let configuration = try coreCryptoConfiguration()
                 let coreCrypto = try coreCryptoSetup(configuration)
-                initializeMLSController(coreCrypto: coreCrypto, clientID: configuration.clientId)
+                initializeMLSController(
+                    coreCrypto: coreCrypto,
+                    clientID: configuration.clientId,
+                    syncStatus: syncStatus
+                )
             } catch {
                 Logging.mls.warn("Failed to setup MLSController: \(String(describing: error))")
             }
@@ -90,13 +99,15 @@ extension ZMUserSession {
 
     private func initializeMLSController(
         coreCrypto: WireDataModel.CoreCryptoProtocol,
-        clientID: String
+        clientID: String,
+        syncStatus: SyncStatusProtocol
     ) {
         syncContext.performAndWait {
             syncContext.initializeMLSController(
                 coreCrypto: coreCrypto,
                 conversationEventProcessor: ConversationEventProcessor(context: syncContext),
-                userDefaults: UserDefaults(suiteName: "com.wire.mls.\(clientID)")!
+                userDefaults: UserDefaults(suiteName: "com.wire.mls.\(clientID)")!,
+                syncStatus: syncStatus
             )
         }
     }
