@@ -281,6 +281,8 @@ public class ZMUserSession: NSObject {
                                                        callNotificationStyleProvider: self)
         }
 
+        // This should happen after the request strategies are created b/c
+        // it needs to make network requests upon initialization.
         setupMLSControllerIfNeeded(coreCryptoSetup: coreCryptoSetup)
 
         updateEventProcessor!.eventConsumers = self.strategyDirectory!.eventConsumers
