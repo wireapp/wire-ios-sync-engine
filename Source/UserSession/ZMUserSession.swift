@@ -261,8 +261,6 @@ public class ZMUserSession: NSObject {
 
         appLockController.delegate = self
 
-        setupMLSControllerIfNeeded(coreCryptoSetup: coreCryptoSetup)
-
         configureCaches()
 
         syncManagedObjectContext.performGroupedBlockAndWait {
@@ -278,6 +276,10 @@ public class ZMUserSession: NSObject {
                                                        contextProvider: self,
                                                        callNotificationStyleProvider: self)
         }
+
+        // This should happen after the request strategies are created b/c
+        // it needs to make network requests upon initialization.
+        setupMLSControllerIfNeeded(coreCryptoSetup: coreCryptoSetup)
 
         updateEventProcessor!.eventConsumers = self.strategyDirectory!.eventConsumers
         registerForCalculateBadgeCountNotification()
