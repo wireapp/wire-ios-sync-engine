@@ -67,6 +67,10 @@ class MockMLSController: MLSControllerProtocol {
         fatalError("not implemented")
     }
 
+    func commitPendingProposals(in groupID: MLSGroupID) async throws {
+        fatalError("not implemented")
+    }
+
     func scheduleCommitPendingProposals(groupID: MLSGroupID, at commitDate: Date) {
         fatalError("not implemented")
     }
