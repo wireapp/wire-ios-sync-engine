@@ -45,12 +45,16 @@ class APIVersionResolverTests: ZMTBaseTest {
 
     private func mockBackendInfo(
         productionVersions: ClosedRange<Int32>,
-        developmentVersions: ClosedRange<Int32>,
+        developmentVersions: ClosedRange<Int32>?,
         domain: String,
         isFederationEnabled: Bool
     ) {
         transportSession.supportedAPIVersions = productionVersions.map(NSNumber.init(value:))
-        transportSession.developmentAPIVersions = developmentVersions.map(NSNumber.init(value:))
+
+        if let developmentVersions = developmentVersions {
+            transportSession.developmentAPIVersions = developmentVersions.map(NSNumber.init(value:))
+        }
+
         transportSession.domain = domain
         transportSession.federation = isFederationEnabled
     }
@@ -59,11 +63,12 @@ class APIVersionResolverTests: ZMTBaseTest {
 
     func testThatItResolvesTheAPIVersion() throws {
         // Given
-        let maxSupportedAPIVersion = try XCTUnwrap(APIVersion.allCases.max())
+        let supportedDevelopmentAPIVersion = try XCTUnwrap(APIVersion.allCases.max())
+        let maxSupportedAPIVersion = try XCTUnwrap(APIVersion.allCases.dropLast().max())
 
         mockBackendInfo(
-            productionVersions: 0...(maxSupportedAPIVersion.rawValue + 1),
-            developmentVersions: 0...0,
+            productionVersions: 0...(maxSupportedAPIVersion.rawValue),
+            developmentVersions: (supportedDevelopmentAPIVersion.rawValue)...(supportedDevelopmentAPIVersion.rawValue),
             domain: "foo.com",
             isFederationEnabled: true
         )
@@ -77,6 +82,32 @@ class APIVersionResolverTests: ZMTBaseTest {
 
         // Then
         XCTAssertEqual(APIVersion.current, maxSupportedAPIVersion)
+        XCTAssertEqual(APIVersion.developmentVersions, [supportedDevelopmentAPIVersion])
+        XCTAssertEqual(APIVersion.domain, "foo.com")
+        XCTAssertEqual(APIVersion.isFederationEnabled, true)
+    }
+
+    func testThatItResolvesTheAPIVersionWhenDevelopmentVersionsAreAbsent() throws {
+        // Given
+        let maxSupportedAPIVersion = try XCTUnwrap(APIVersion.allCases.max())
+
+        mockBackendInfo(
+            productionVersions: 0...(maxSupportedAPIVersion.rawValue),
+            developmentVersions: nil,
+            domain: "foo.com",
+            isFederationEnabled: true
+        )
+
+        XCTAssertNil(APIVersion.current)
+
+        // When
+        let done = expectation(description: "done")
+        sut.resolveAPIVersion(completion: done.fulfill)
+        XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
+
+        // Then
+        XCTAssertEqual(APIVersion.current, maxSupportedAPIVersion)
+        XCTAssertTrue(APIVersion.developmentVersions.isEmpty)
         XCTAssertEqual(APIVersion.domain, "foo.com")
         XCTAssertEqual(APIVersion.isFederationEnabled, true)
     }
@@ -105,7 +136,7 @@ class APIVersionResolverTests: ZMTBaseTest {
 
         mockBackendInfo(
             productionVersions: (minSupportedAPIVersion.rawValue - 3)...(minSupportedAPIVersion.rawValue - 1),
-            developmentVersions: 0...0,
+            developmentVersions: nil,
             domain: "foo.com",
             isFederationEnabled: true
         )
@@ -131,7 +162,7 @@ class APIVersionResolverTests: ZMTBaseTest {
 
         mockBackendInfo(
             productionVersions: (maxSupportedAPIVersion.rawValue + 1)...(maxSupportedAPIVersion.rawValue + 3),
-            developmentVersions: 0...0,
+            developmentVersions: nil,
             domain: "foo.com",
             isFederationEnabled: true
         )
@@ -154,8 +185,8 @@ class APIVersionResolverTests: ZMTBaseTest {
         let maxSupportedAPIVersion = try XCTUnwrap(APIVersion.allCases.max())
 
         mockBackendInfo(
-            productionVersions: 0...(maxSupportedAPIVersion.rawValue + 1),
-            developmentVersions: 0...0,
+            productionVersions: 0...(maxSupportedAPIVersion.rawValue),
+            developmentVersions: nil,
             domain: "foo.com",
             isFederationEnabled: true
         )

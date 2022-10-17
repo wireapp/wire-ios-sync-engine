@@ -231,6 +231,18 @@ static NSString* ZMLogTag ZM_UNUSED = @"HotFix";
                      patchWithVersion:@"426.1.2"
                      patchCode:^(NSManagedObjectContext *context) {
                         [ZMHotFixDirectory refetchSelfUser:context];
+                    }],
+
+                    /// **Problem:**
+                    /// When a private user creates a group conversation, the accessRoles property is set incorrectly and as a result, no-one can add members to the conversation.
+                    /// The conversation doesn't have a team ID, but only team members can be added according to `accessRoles`
+                    ///
+                    /// **Solution:**
+                    /// Update accessRoles for existing conversations where the team is nil and accessRoles == [.teamMember]
+                    [ZMHotFixPatch
+                     patchWithVersion:@"432.1.0"
+                     patchCode:^(NSManagedObjectContext *context) {
+                        [ZMHotFixDirectory updateConversationsWithInvalidAccessRoles:context];
                     }]
                   ];
     });
