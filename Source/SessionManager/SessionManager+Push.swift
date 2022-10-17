@@ -85,14 +85,18 @@ extension SessionManager: PKPushRegistryDelegate {
 
     public func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
         if let voipPushPayload = VoIPPushPayload(payload: payload) {
+            DebugLogger.addStep(step: "SE: reported didReceiveIncomingPushWith ", eventID: "!")
             do {
                 try handleCallPushPayload(voipPushPayload, completion: completion)
             } catch let error as VOIPPushError {
+                DebugLogger.addStep(step: "SE: Failed to handle voip push payload: ", eventID: "\(error)")
                 Logging.push.safePublic("Failed to handle voip push payload: \(error)")
             } catch {
+                DebugLogger.addStep(step: "SE: Failed to handle voip push payload for unknown reason ", eventID: "!")
                 Logging.push.safePublic("Failed to handle voip push payload for unknown reason")
             }
         } else {
+            DebugLogger.addStep(step: "SE: reported legacy didReceiveIncomingPushWith ", eventID: "!")
             handleLegacyPushPayload(payload, for: type, completion: completion)
         }
     }
@@ -101,26 +105,32 @@ extension SessionManager: PKPushRegistryDelegate {
         defer { completion() }
 
         guard let account = accountManager.account(with: payload.accountID) else {
+            DebugLogger.addStep(step: "SE: VOIPPushError.accountNotFound ", eventID: "!")
             throw VOIPPushError.accountNotFound
         }
 
         guard let session = backgroundUserSessions[account.userIdentifier] else {
+            DebugLogger.addStep(step: "SE: VOIPPushError.userSessionNotFound ", eventID: "!")
             throw VOIPPushError.userSessionNotFound
         }
 
         guard let callKitManager = callKitManager else {
+            DebugLogger.addStep(step: "SE: VOIPPushError.callKitManagerNotFound ", eventID: "!")
             throw VOIPPushError.callKitManagerNotFound
         }
 
         guard let caller = payload.caller(in: session.viewContext) else {
+            DebugLogger.addStep(step: "SE: VOIPPushError.callerNotFound ", eventID: "!")
             throw VOIPPushError.callerNotFound
         }
 
         guard let conversation = payload.conversation(in: session.viewContext) else {
+            DebugLogger.addStep(step: "SE: VOIPPushError.conversationNotFound ", eventID: "!")
             throw VOIPPushError.conversationNotFound
         }
 
         guard let callEventContent = CallEventContent(from: payload.data) else {
+            DebugLogger.addStep(step: "SE: VOIPPushError.malformedPayloadData ", eventID: "!")
             throw VOIPPushError.malformedPayloadData
         }
 
@@ -132,20 +142,26 @@ extension SessionManager: PKPushRegistryDelegate {
 
         do {
             if case let .incomingCall(video: video) = callEventContent.callState {
+                DebugLogger.addStep(step: "SE: reportIncomingCall ", eventID: "!")
                 try callKitManager.reportIncomingCall(from: caller, in: conversation, video: video)
             } else {
+                DebugLogger.addStep(step: "SE: reportCallEnded ", eventID: "!")
                 try callKitManager.reportCallEnded(in: conversation, atTime: payload.timestamp, reason: .remoteEnded)
             }
         } catch let error as CallKitManager.ReportIncomingCallError {
+            DebugLogger.addStep(step: "SE: VOIPPushError.failedToReportIncomingCall ", eventID: "\(error)")
             throw VOIPPushError.failedToReportIncomingCall(reason: error)
         } catch let error as CallKitManager.ReportTerminatingCallError {
+            DebugLogger.addStep(step: "SE: VOIPPushError.failedToReportTerminatingCall ", eventID: "\(error)")
             throw VOIPPushError.failedToReportTerminatingCall(reason: error)
         }
 
         guard let processor = session.syncStrategy?.callingRequestStrategy else {
+            DebugLogger.addStep(step: "SE: VOIPPushError.processorNotFound ", eventID: "!")
             throw VOIPPushError.processorNotFound
         }
 
+        DebugLogger.addStep(step: "SE: Forwarding call push payload to user session with account \(account.userIdentifier) ", eventID: "!")
         Logging.push.safePublic("Forwarding call push payload to user session with account \(account.userIdentifier)")
 
         processor.processCallEvent(
