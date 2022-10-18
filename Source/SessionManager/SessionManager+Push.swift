@@ -80,10 +80,16 @@ extension SessionManager: PKPushRegistryDelegate {
     }
 
     public func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType) {
+        DispatchQueue.main.async(execute: {() -> Void in
+            DebugLogger.addStep(step: "SE: Test 1 ", eventID: "!")
+        })
         self.pushRegistry(registry, didReceiveIncomingPushWith: payload, for: type, completion: {})
     }
 
     public func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
+        DispatchQueue.main.async(execute: {() -> Void in
+            DebugLogger.addStep(step: "SE: Test 2 ", eventID: "!")
+        })
         if let voipPushPayload = VoIPPushPayload(payload: payload) {
             DebugLogger.addStep(step: "SE: reported didReceiveIncomingPushWith ", eventID: "!")
             do {
