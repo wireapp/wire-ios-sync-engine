@@ -143,8 +143,16 @@
         return NO;
     }
     
-    NSSet *allObjects = [NSSet zmSetByCompiningSets:insertedObjects, updatedObjects, nil];
+    NSMutableSet *allObjects = [[NSMutableSet alloc] init];
     
+    if (insertedObjects != nil) {
+        [allObjects unionSet:insertedObjects];
+    }
+
+    if (updatedObjects != nil) {
+        [allObjects unionSet:updatedObjects];
+    }
+
     for (id<ZMContextChangeTracker> tracker in self.strategyDirectory.contextChangeTrackers) {
         [tracker objectsDidChange:allObjects];
     }
