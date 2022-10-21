@@ -80,16 +80,11 @@ extension SessionManager: PKPushRegistryDelegate {
     }
 
     public func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType) {
-        DispatchQueue.main.async(execute: {() -> Void in
-            DebugLogger.addStep(step: "SE: Test 1 ", eventID: "!")
-        })
-        self.pushRegistry(registry, didReceiveIncomingPushWith: payload, for: type, completion: {})
+           self.pushRegistry(registry, didReceiveIncomingPushWith: payload, for: type, completion: {})
     }
 
     public func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
-        DispatchQueue.main.async(execute: {() -> Void in
-            DebugLogger.addStep(step: "SE: Test 2 ", eventID: "!")
-        })
+        DebugLogger.addStep(step: "SE: Test1 ", eventID: "!")
         if let voipPushPayload = VoIPPushPayload(payload: payload) {
             DebugLogger.addStep(step: "SE: reported didReceiveIncomingPushWith ", eventID: "!")
             do {
@@ -184,6 +179,7 @@ extension SessionManager: PKPushRegistryDelegate {
 
     private func handleLegacyPushPayload(_ payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
         // We only care about voIP pushes, other types are not related to push notifications (watch complications and files)
+        DebugLogger.addStep(step: "LegacyPush ", eventID: "!")
         guard type == .voIP else { return completion() }
 
         Logging.push.safePublic("Received push payload: \(payload)")
