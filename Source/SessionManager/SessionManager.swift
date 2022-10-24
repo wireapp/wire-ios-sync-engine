@@ -1180,6 +1180,7 @@ extension SessionManager {
     }
 
     @objc fileprivate func applicationDidBecomeActive(_ note: Notification) {
+        registerForVoipPushNotifications()
         notificationsTracker?.dispatchEvent()
     }
 
