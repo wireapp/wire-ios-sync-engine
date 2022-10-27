@@ -20,14 +20,6 @@ import Foundation
 import WireDataModel
 import WireRequestStrategy
 
-public typealias CoreCryptoSetupClosure = (CoreCryptoConfiguration) throws -> WireDataModel.CoreCryptoProtocol
-
-public struct CoreCryptoConfiguration {
-    public let path: String
-    public let key: String
-    public let clientId: String
-}
-
 extension ZMUserSession {
 
     func setupMLSControllerIfNeeded(coreCryptoSetup: CoreCryptoSetupClosure) {
@@ -42,7 +34,10 @@ extension ZMUserSession {
 
         syncContext.performAndWait {
             do {
-                let configuration = try coreCryptoConfiguration()
+                let configuration = try CoreCryptoFactory.configuration(
+                    sharedContainerURL: sharedContainerURL,
+                    syncContext: syncContext
+                )
                 let coreCrypto = try coreCryptoSetup(configuration)
                 initializeMLSController(
                     coreCrypto: coreCrypto,
@@ -52,38 +47,6 @@ extension ZMUserSession {
             } catch {
                 Logging.mls.warn("Failed to setup MLSController: \(String(describing: error))")
             }
-        }
-    }
-
-    private enum CoreCryptoConfigurationError: Error {
-        case failedToGetQualifiedClientId
-        case failedToGetCoreCryptoKey
-    }
-
-    private func coreCryptoConfiguration() throws -> CoreCryptoConfiguration {
-        let selfUser = ZMUser.selfUser(in: syncContext)
-
-        guard let qualifiedClientId = MLSQualifiedClientID(user: selfUser).qualifiedClientId else {
-            throw CoreCryptoConfigurationError.failedToGetQualifiedClientId
-        }
-
-        let accountDirectory = CoreDataStack.accountDataFolder(
-            accountIdentifier: selfUser.remoteIdentifier,
-            applicationContainer: sharedContainerURL
-        )
-        FileManager.default.createAndProtectDirectory(at: accountDirectory)
-        let mlsDirectory = accountDirectory.appendingMLSFolder()
-
-        do {
-            let key = try CoreCryptoKeyProvider.coreCryptoKey()
-            return CoreCryptoConfiguration(
-                path: mlsDirectory.path,
-                key: key.base64EncodedString(),
-                clientId: qualifiedClientId
-            )
-        } catch {
-            Logging.mls.warn("Failed to get core crypto key \(String(describing: error))")
-            throw CoreCryptoConfigurationError.failedToGetCoreCryptoKey
         }
     }
 
@@ -110,11 +73,5 @@ extension ZMUserSession {
                 syncStatus: syncStatus
             )
         }
-    }
-}
-
-private extension URL {
-    func appendingMLSFolder() -> URL {
-        return appendingPathComponent("mls")
     }
 }
