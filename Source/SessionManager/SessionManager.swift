@@ -72,7 +72,7 @@ public protocol SessionManagerType: AnyObject {
 
     weak var foregroundNotificationResponder: ForegroundNotificationResponder? { get }
 
-    var callKitManager: CallKitManager? { get }
+    var callKitManager: CallKitManager { get }
     var callNotificationStyle: CallNotificationStyle { get }
 
     func updateAppIconBadge(accountID: UUID, unreadCount: Int)
@@ -268,11 +268,7 @@ public final class SessionManager: NSObject, SessionManagerType {
     fileprivate var memoryWarningObserver: NSObjectProtocol?
     fileprivate var isSelectingAccount: Bool = false
 
-    public var callKitManager: CallKitManager? {
-        didSet {
-            VoIPPushHelper.isCallKitAvailable = callKitManager != nil
-        }
-    }
+    public let callKitManager: CallKitManager
 
     public var isSelectedAccountAuthenticated: Bool {
         guard let selectedAccount = accountManager.selectedAccount else {
@@ -306,7 +302,8 @@ public final class SessionManager: NSObject, SessionManagerType {
         environment: BackendEnvironmentProvider,
         configuration: SessionManagerConfiguration = SessionManagerConfiguration(),
         detector: JailbreakDetectorProtocol = JailbreakDetector(),
-        requiredPushTokenType: PushToken.TokenType
+        requiredPushTokenType: PushToken.TokenType,
+        callKitManager: CallKitManager
     ) {
         let flowManager = FlowManager(mediaManager: mediaManager)
         let reachability = environment.reachability
@@ -340,7 +337,8 @@ public final class SessionManager: NSObject, SessionManagerType {
             environment: environment,
             configuration: configuration,
             detector: detector,
-            requiredPushTokenType: requiredPushTokenType
+            requiredPushTokenType: requiredPushTokenType,
+            callKitManager: callKitManager
         )
 
         if configuration.blacklistDownloadInterval > 0 {
@@ -392,7 +390,8 @@ public final class SessionManager: NSObject, SessionManagerType {
          environment: BackendEnvironmentProvider,
          configuration: SessionManagerConfiguration = SessionManagerConfiguration(),
          detector: JailbreakDetectorProtocol = JailbreakDetector(),
-         requiredPushTokenType: PushToken.TokenType
+         requiredPushTokenType: PushToken.TokenType,
+         callKitManager: CallKitManager
     ) {
         SessionManager.enableLogsByEnvironmentVariable()
         self.environment = environment
@@ -403,6 +402,7 @@ public final class SessionManager: NSObject, SessionManagerType {
         self.configuration = configuration.copy() as! SessionManagerConfiguration
         self.jailbreakDetector = detector
         self.requiredPushTokenType = requiredPushTokenType
+        self.callKitManager = callKitManager
 
         guard let sharedContainerURL = Bundle.main.appGroupIdentifier.map(FileManager.sharedContainerDirectory) else {
             preconditionFailure("Unable to get shared container URL")
@@ -445,23 +445,18 @@ public final class SessionManager: NSObject, SessionManagerType {
 
         super.init()
 
-        registerForVoipPushNotifications()
         deleteAccountToken = AccountDeletedNotification.addObserver(observer: self, queue: groupQueue)
         callCenterObserverToken = WireCallCenterV3.addGlobalCallStateObserver(observer: self)
 
         checkJailbreakIfNeeded()
     }
 
-    private func registerForVoipPushNotifications() {
-        pushLog.safePublic("registering for voip push token")
-        self.pushRegistry.delegate = self
-        let pkPushTypeSet: Set<PKPushType> = [PKPushType.voIP]
-        self.pushRegistry.desiredPushTypes = pkPushTypeSet
-    }
-
     public func start(launchOptions: LaunchOptions) {
         if let account = accountManager.selectedAccount {
             selectInitialAccount(account, launchOptions: launchOptions)
+            // TODO: this might need to happen with a completion handler.
+            // TODO: register as voip delegate?
+            // TODO: process voip actions pending actions
         } else {
             createUnauthenticatedSession()
             delegate?.sessionManagerDidFailToLogin(error: nil)
@@ -879,19 +874,22 @@ public final class SessionManager: NSObject, SessionManagerType {
     }
 
     public func updateCallKitConfiguration() {
-        callKitManager?.updateConfiguration()
+        callKitManager.updateConfiguration()
     }
 
     private func updateCallNotificationStyle() {
         switch callNotificationStyle {
         case .pushNotifications:
             authenticatedSessionFactory.mediaManager.setUiStartsAudio(false)
-            callKitManager = nil
+            // TODO: [John] disable call kit?
+            VoIPPushHelper.isCallKitAvailable = false
+
         case .callKit:
             // Should be set to true when CallKit is used. Then AVS will not start
             // the audio before the audio session is active
             authenticatedSessionFactory.mediaManager.setUiStartsAudio(true)
-            callKitManager = CallKitManager(delegate: self, mediaManager: authenticatedSessionFactory.mediaManager)
+            // TODO: [John] enabled call kit?
+            VoIPPushHelper.isCallKitAvailable = true
         }
     }
 

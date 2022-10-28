@@ -27,12 +27,12 @@ enum ConversationLookupError: Error {
 extension SessionManager: CallKitManagerDelegate {
 
     func lookupConversation(by handle: CallHandle, completionHandler: @escaping (Result<ZMConversation>) -> Void) {
-        guard let account  = accountManager.account(with: handle.accountId) else {
+        guard let account  = accountManager.account(with: handle.accountID) else {
             return completionHandler(.failure(ConversationLookupError.accountDoesNotExist))
         }
 
         withSession(for: account) { (userSession) in
-            guard let conversation = ZMConversation.fetch(with: handle.conversationId, in: userSession.managedObjectContext) else {
+            guard let conversation = ZMConversation.fetch(with: handle.conversationID, in: userSession.managedObjectContext) else {
                 return completionHandler(.failure(ConversationLookupError.conversationDoesNotExist))
             }
 
