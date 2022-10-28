@@ -350,7 +350,14 @@ extension CallKitManager {
         let callID = UUID()
         calls[callID] = CallKitCall(handle: handle)
 
-        provider.reportCall(with: callID, updated: update)
+        provider.reportNewIncomingCall(with: callID, update: update) { [weak self] error in
+            if let error = error {
+                self?.log("Cannot report incoming call: \(error)")
+                self?.calls.removeValue(forKey: callID)
+            } else {
+                self?.mediaManager?.setupAudioDevice()
+            }
+        }
     }
 
     func updateIncomingCall(
@@ -384,25 +391,13 @@ extension CallKitManager {
         update.supportsUngrouping = false
         update.hasVideo = hasVideo
 
-
         calls[callID] = CallKitCall(
             handle: handle,
             conversation: conversation
         )
 
-        log("provider.reportNewIncomingCall")
-
-        provider.reportNewIncomingCall(with: callID, update: update) { [weak self] error in
-            if let error = error {
-                self?.log("Cannot report incoming call: \(error)")
-                self?.calls.removeValue(forKey: callID)
-                conversation.voiceChannel?.leave()
-            } else {
-                self?.mediaManager?.setupAudioDevice()
-            }
-        }
+        provider.reportCall(with: callID, updated: update)
     }
-
 
     /// Reports an incoming call to CallKit.
     ///
@@ -625,8 +620,13 @@ extension CallKitManager: WireCallCenterCallStateObserver, WireCallCenterMissedC
         case .incoming(video: let hasVideo, shouldRing: let shouldRing, degraded: _):
             if shouldRing, let caller = caller as? ZMUser {
                 if conversation.mutedMessageTypesIncludingAvailability == .none {
-                    try? reportIncomingCall(from: caller, in: conversation, video: hasVideo)
+                    if callExists(for: conversation) {
+                        try? updateIncomingCall(from: caller, in: conversation, hasVideo: hasVideo)
+                    } else {
+                        try? reportIncomingCall(from: caller, in: conversation, video: hasVideo)
+                    }
                 }
+                // TODO: what happens if the conversation is muted? Maybe if there is an existing call, we report it as ended.
             } else {
                 try? reportCallEnded(in: conversation, atTime: timestamp, reason: .unanswered)
             }
