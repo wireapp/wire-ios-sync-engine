@@ -214,7 +214,7 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
     // MARK: - Event Consumer
 
     public func processEvents(_ events: [ZMUpdateEvent], liveEvents: Bool, prefetchResult: ZMFetchRequestBatchResult?) {
-        events.forEach(processEvent)
+        // No op
     }
 
     public func processEventsWhileInBackground(_ events: [ZMUpdateEvent]) {
