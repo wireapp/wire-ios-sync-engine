@@ -63,7 +63,7 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
 
     private let requiredPushTokenType: PushToken.TokenType
 
-    public weak var delegate: VoIPPushManagerDelegate?
+    private weak var delegate: VoIPPushManagerDelegate?
 
     // MARK: - Life cycle
 
@@ -76,6 +76,26 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
     }
 
     // MARK: - Methods
+
+    public func setDelegate(_ delegate: VoIPPushManagerDelegate) {
+        self.delegate = delegate
+
+        while !buffer.pendingActions.isEmpty {
+            switch buffer.pendingActions.removeFirst() {
+            case .storeVoIPToken(let data):
+                delegate.storeVoIPToken(data)
+
+            case .deleteExistingVoIPToken:
+                delegate.deleteExistingVoIPToken()
+
+            case .processIncomingRealVoIPPush(let payload, let completion):
+                delegate.processIncomingRealVoIPPush(payload: payload, completion: completion)
+
+            case .processIncomingFakeVoIPPush(let payload, let completion):
+                delegate.processIncomingFakeVoIPPush(payload: payload, completion: completion)
+            }
+        }
+    }
 
     public func registerForVoIPPushes() {
         Logging.push.info("registering for voIP pushes")
