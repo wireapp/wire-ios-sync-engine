@@ -32,7 +32,7 @@ public protocol VoIPPushManagerDelegate: AnyObject {
 
 extension Logging {
 
-    static let wirepush = ZMSLog(tag: "Push")
+    static let push = ZMSLog(tag: "Push")
 
 }
 
@@ -68,7 +68,7 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
     // MARK: - Life cycle
 
     public init(requiredPushTokenType: PushToken.TokenType) {
-        Logging.wirepush.info("init PushManager")
+        Logging.push.info("init PushManager")
         self.requiredPushTokenType = requiredPushTokenType
         callKitManager = CallKitManager(mediaManager: AVSMediaManager.sharedInstance())
         super.init()
@@ -78,7 +78,7 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
     // MARK: - Methods
 
     public func registerForVoIPPushes() {
-        Logging.wirepush.info("registering for voIP pushes")
+        Logging.push.info("registering for voIP pushes")
         registry.desiredPushTypes = [.voIP]
     }
 
@@ -89,7 +89,7 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
         didUpdate pushCredentials: PKPushCredentials,
         for type: PKPushType
     ) {
-        Logging.wirepush.info("received updated push credentials...")
+        Logging.push.info("received updated push credentials...")
 
         // We're only interested in voIP tokens.
         guard type == .voIP else { return }
@@ -98,10 +98,10 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
         guard requiredPushTokenType == .voip else { return }
 
         if let delegate = delegate {
-            Logging.wirepush.info("fowarding to delegate")
+            Logging.push.info("fowarding to delegate")
             delegate.storeVoIPToken(pushCredentials.token)
         } else {
-            Logging.wirepush.info("buffering")
+            Logging.push.info("buffering")
             buffer.pendingActions.append(.storeVoIPToken(pushCredentials.token))
         }
     }
@@ -119,10 +119,10 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
         guard requiredPushTokenType == .voip else { return }
 
         if let delegate = delegate {
-            Logging.wirepush.info("fowarding to delegate")
+            Logging.push.info("fowarding to delegate")
             delegate.deleteExistingVoIPToken()
         } else {
-            Logging.wirepush.info("buffering")
+            Logging.push.info("buffering")
             buffer.pendingActions.append(.deleteExistingVoIPToken)
         }
     }
@@ -138,14 +138,14 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
 
         if let nsePayload = payload.nsePayload {
             // TODO: this should only happen if the require push type is standard... guard this?
-            Logging.wirepush.info("did receive incoming fake voIP push")
+            Logging.push.info("did receive incoming fake voIP push")
             processFakePush(
                 payload: nsePayload,
                 completion: completion
             )
         } else {
             // TODO: this should only happen if the require push type is voip... guard this?
-            Logging.wirepush.info("did receive incoming real voIP push")
+            Logging.push.info("did receive incoming real voIP push")
             processRealPush(
                 payload: payload.dictionaryPayload,
                 completion: completion
@@ -157,6 +157,7 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
         payload: VoIPPushPayload,
         completion: @escaping () -> Void
     ) {
+        Logging.push.info("reporting call to CallKit")
         let handle = CallHandle(
             accountID: payload.accountID,
             conversationID: payload.conversationID
@@ -167,13 +168,13 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
         callKitManager.reportCall(handle: handle)
 
         if let delegate = delegate {
-            Logging.wirepush.info("fowarding to delegate")
+            Logging.push.info("fowarding to delegate")
             delegate.processIncomingFakeVoIPPush(
                 payload: payload,
                 completion: completion
             )
         } else {
-            Logging.wirepush.info("buffering")
+            Logging.push.info("buffering")
             buffer.pendingActions.append(.processIncomingFakeVoIPPush(
                 payload: payload,
                 completion: completion
@@ -186,13 +187,13 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
         completion: @escaping () -> Void
     ) {
         if let delegate = delegate {
-            Logging.wirepush.info("fowarding to delegate")
+            Logging.push.info("fowarding to delegate")
             delegate.processIncomingRealVoIPPush(
                 payload: payload,
                 completion: completion
             )
         } else {
-            Logging.wirepush.info("buffering")
+            Logging.push.info("buffering")
             buffer.pendingActions.append(.processIncomingRealVoIPPush(
                 payload: payload,
                 completion: completion
