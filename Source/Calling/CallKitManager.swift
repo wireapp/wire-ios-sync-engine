@@ -200,7 +200,17 @@ public class CallKitManager: NSObject {
     }
 
     private func callExists(for conversation: ZMConversation) -> Bool {
-        return callUUID(for: conversation) != nil
+        if callUUID(for: conversation) != nil {
+            return true
+        } else if let handle = conversation.callHandle {
+            return callExists(for: handle)
+        } else {
+            return false
+        }
+    }
+
+    private func callExists(for handle: CallHandle) -> Bool {
+        return callID(for: handle) != nil
     }
 
 }
