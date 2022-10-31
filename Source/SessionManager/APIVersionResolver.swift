@@ -153,6 +153,14 @@ extension APIVersion {
         return Set(allCases.filter(\.isProductionVersion))
     }
 
+    // IMPORTANT: A version X should only be considered a production version
+    // if the backend also considers X production ready (i.e no more changes
+    // can be made to the API of X) and the implementation of X is correct
+    // and tested.
+    //
+    // Only if these critera are met should we explicitly mark the version
+    // as production ready.
+
     var isProductionVersion: Bool {
         switch self {
         case .v0, .v1, .v2:
