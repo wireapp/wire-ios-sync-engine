@@ -24,17 +24,53 @@ final class APIVersionResolver {
     // MARK: - Properties
 
     weak var delegate: APIVersionResolverDelegate?
-    var isDeveloperModeEnabled: Bool
+
+    let clientProdVersions: Set<APIVersion>
+    let clientDevVersions: Set<APIVersion>
+    let isDeveloperModeEnabled: Bool
 
     private let queue: ZMSGroupQueue = DispatchGroupQueue(queue: .main)
     private let transportSession: UnauthenticatedTransportSessionProtocol
 
     // MARK: - Life cycle
 
-    init(
+    convenience init(
         transportSession: UnauthenticatedTransportSessionProtocol,
         isDeveloperModeEnabled: Bool
     ) {
+        // IMPORTANT: A version X should only be considered a production version
+        // if the backend also considers X production ready (i.e no more changes
+        // can be made to the API of X) and the implementation of X is correct
+        // and tested.
+        //
+        // Only if these critera are met should we explicitly mark the version
+        // as production ready.
+
+        let clientProdVersions = Set(APIVersion.allCases.filter {
+            switch $0 {
+            case .v0, .v1, .v2:
+                return true
+            }
+        })
+
+        let clientDevVersions = Set(APIVersion.allCases).subtracting(clientProdVersions)
+
+        self.init(
+            clientProdVersions: clientProdVersions,
+            clientDevVersions: clientDevVersions,
+            transportSession: transportSession,
+            isDeveloperModeEnabled: isDeveloperModeEnabled
+        )
+    }
+
+    init(
+        clientProdVersions: Set<APIVersion>,
+        clientDevVersions: Set<APIVersion>,
+        transportSession: UnauthenticatedTransportSessionProtocol,
+        isDeveloperModeEnabled: Bool
+    ) {
+        self.clientProdVersions = clientProdVersions
+        self.clientDevVersions = clientDevVersions
         self.transportSession = transportSession
         self.isDeveloperModeEnabled = isDeveloperModeEnabled
     }
@@ -71,30 +107,26 @@ final class APIVersionResolver {
         let backendProdVersions = Set(payload.supported.compactMap(APIVersion.init(rawValue:)))
         let backendDevVersions = Set(payload.development?.compactMap(APIVersion.init(rawValue:)) ?? [])
         let allBackendVersions = backendProdVersions.union(backendDevVersions)
-        let clientProdVersions = APIVersion.productionVersions
 
-        let highestCommonVersion = backendProdVersions
-            .intersection(clientProdVersions)
-            .max()
+        let commonProductionVersions = backendProdVersions.intersection(clientProdVersions)
 
-        if
+        if commonProductionVersions.isEmpty {
+            reportBlacklist(payload: payload)
+            BackendInfo.apiVersion = nil
+        } else if
             isDeveloperModeEnabled,
             let preferredAPIVersion = BackendInfo.preferredAPIVersion,
             allBackendVersions.contains(preferredAPIVersion)
         {
             BackendInfo.apiVersion = preferredAPIVersion
         } else {
-            BackendInfo.apiVersion = highestCommonVersion
+            BackendInfo.apiVersion = commonProductionVersions.max()
         }
 
         BackendInfo.domain = payload.domain
 
         let wasFederationEnabled = BackendInfo.isFederationEnabled
         BackendInfo.isFederationEnabled = payload.federation
-
-        guard BackendInfo.apiVersion != nil else {
-            return reportBlacklist(payload: payload)
-        }
 
         if !wasFederationEnabled && BackendInfo.isFederationEnabled {
             delegate?.apiVersionResolverDetectedFederationHasBeenEnabled()
@@ -107,7 +139,7 @@ final class APIVersionResolver {
             return
         }
 
-        guard let minClientVersion = APIVersion.allCases.min()?.rawValue else {
+        guard let minClientVersion = clientProdVersions.min()?.rawValue else {
             blacklistApp(reason: .clientAPIVersionObsolete)
             return
         }
@@ -140,32 +172,5 @@ protocol APIVersionResolverDelegate: AnyObject {
 
     func apiVersionResolverDetectedFederationHasBeenEnabled()
     func apiVersionResolverFailedToResolveVersion(reason: BlacklistReason)
-
-}
-
-extension APIVersion {
-
-    public static var developmentVersions: Set<Self> {
-        return Set(allCases).subtracting(productionVersions)
-    }
-
-    public static var productionVersions: Set<Self> {
-        return Set(allCases.filter(\.isProductionVersion))
-    }
-
-    // IMPORTANT: A version X should only be considered a production version
-    // if the backend also considers X production ready (i.e no more changes
-    // can be made to the API of X) and the implementation of X is correct
-    // and tested.
-    //
-    // Only if these critera are met should we explicitly mark the version
-    // as production ready.
-
-    var isProductionVersion: Bool {
-        switch self {
-        case .v0, .v1, .v2:
-            return true
-        }
-    }
 
 }

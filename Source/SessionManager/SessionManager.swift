@@ -309,7 +309,7 @@ public final class SessionManager: NSObject, SessionManagerType {
         configuration: SessionManagerConfiguration = SessionManagerConfiguration(),
         detector: JailbreakDetectorProtocol = JailbreakDetector(),
         requiredPushTokenType: PushToken.TokenType,
-        isDeveloperModeEnabled: Bool
+        isDeveloperModeEnabled: Bool = false
     ) {
         let flowManager = FlowManager(mediaManager: mediaManager)
         let reachability = environment.reachability
@@ -397,7 +397,7 @@ public final class SessionManager: NSObject, SessionManagerType {
          configuration: SessionManagerConfiguration = SessionManagerConfiguration(),
          detector: JailbreakDetectorProtocol = JailbreakDetector(),
          requiredPushTokenType: PushToken.TokenType,
-         isDeveloperModeEnabled: Bool
+         isDeveloperModeEnabled: Bool = false
     ) {
         SessionManager.enableLogsByEnvironmentVariable()
         self.environment = environment
