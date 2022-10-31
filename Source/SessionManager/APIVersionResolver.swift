@@ -17,21 +17,26 @@
 //
 
 import Foundation
-import WireRequestStrategy
+import WireTransport
 
 final class APIVersionResolver {
 
     // MARK: - Properties
 
     weak var delegate: APIVersionResolverDelegate?
+    var isDeveloperModeEnabled: Bool
 
     private let queue: ZMSGroupQueue = DispatchGroupQueue(queue: .main)
     private let transportSession: UnauthenticatedTransportSessionProtocol
 
     // MARK: - Life cycle
 
-    init(transportSession: UnauthenticatedTransportSessionProtocol) {
+    init(
+        transportSession: UnauthenticatedTransportSessionProtocol,
+        isDeveloperModeEnabled: Bool
+    ) {
         self.transportSession = transportSession
+        self.isDeveloperModeEnabled = isDeveloperModeEnabled
     }
 
     // MARK: - Methods
@@ -50,9 +55,9 @@ final class APIVersionResolver {
 
     private func handleResponse(_ response: ZMTransportResponse) {
         guard response.result == .success else {
-            APIVersion.setVersions(production: [.v0], development: [])
-            APIVersion.domain = "wire.com"
-            APIVersion.isFederationEnabled = false
+            BackendInfo.apiVersion = .v0
+            BackendInfo.domain = "wire.com"
+            BackendInfo.isFederationEnabled = false
             return
         }
 
@@ -63,24 +68,35 @@ final class APIVersionResolver {
             fatalError()
         }
 
-        let supportedProductionVersions = payload.supported.compactMap(APIVersion.init)
-        let supportDevelopmentVersions = payload.development?.compactMap(APIVersion.init)
+        let backendProdVersions = Set(payload.supported.compactMap(APIVersion.init(rawValue:)))
+        let backendDevVersions = Set(payload.development?.compactMap(APIVersion.init(rawValue:)) ?? [])
+        let allBackendVersions = backendProdVersions.union(backendDevVersions)
+        let clientProdVersions = APIVersion.productionVersions
 
-        APIVersion.setVersions(
-            production: supportedProductionVersions,
-            development: supportDevelopmentVersions ?? []
-        )
+        let highestCommonVersion = backendProdVersions
+            .intersection(clientProdVersions)
+            .max()
 
-        APIVersion.domain = payload.domain
+        if
+            isDeveloperModeEnabled,
+            let preferredAPIVersion = BackendInfo.preferredAPIVersion,
+            allBackendVersions.contains(preferredAPIVersion)
+        {
+            BackendInfo.apiVersion = preferredAPIVersion
+        } else {
+            BackendInfo.apiVersion = highestCommonVersion
+        }
 
-        let wasFederationEnabled = APIVersion.isFederationEnabled
-        APIVersion.isFederationEnabled = payload.federation
+        BackendInfo.domain = payload.domain
 
-        guard APIVersion.current != nil else {
+        let wasFederationEnabled = BackendInfo.isFederationEnabled
+        BackendInfo.isFederationEnabled = payload.federation
+
+        guard BackendInfo.apiVersion != nil else {
             return reportBlacklist(payload: payload)
         }
 
-        if !wasFederationEnabled && APIVersion.isFederationEnabled {
+        if !wasFederationEnabled && BackendInfo.isFederationEnabled {
             delegate?.apiVersionResolverDetectedFederationHasBeenEnabled()
         }
     }
@@ -124,5 +140,24 @@ protocol APIVersionResolverDelegate: AnyObject {
 
     func apiVersionResolverDetectedFederationHasBeenEnabled()
     func apiVersionResolverFailedToResolveVersion(reason: BlacklistReason)
+
+}
+
+extension APIVersion {
+
+    public static var developmentVersions: Set<Self> {
+        return Set(allCases).subtracting(productionVersions)
+    }
+
+    public static var productionVersions: Set<Self> {
+        return Set(allCases.filter(\.isProductionVersion))
+    }
+
+    var isProductionVersion: Bool {
+        switch self {
+        case .v0, .v1, .v2:
+            return true
+        }
+    }
 
 }
