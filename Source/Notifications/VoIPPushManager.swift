@@ -185,7 +185,10 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
 
         // Report the call immediately to fulfill API obligations,
         // otherwise the app will be killed. See <link>.
-        callKitManager.reportCall(handle: handle)
+        // The call state observer will handle the end of the call
+        if let content = CallEventContent(from: payload.data), content.isIncomingCall {
+            callKitManager.reportCall(handle: handle)
+        }
 
         if let delegate = delegate {
             Logging.push.info("fowarding to delegate")

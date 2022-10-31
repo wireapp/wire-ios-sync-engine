@@ -356,6 +356,7 @@ extension CallKitManager {
         let update = CXCallUpdate()
         update.localizedCallerName = "Wire"
         update.remoteHandle = handle.callKitHandle
+        // check if call exists for given handle, if it does, 
 
         let callID = UUID()
         calls[callID] = CallKitCall(handle: handle)

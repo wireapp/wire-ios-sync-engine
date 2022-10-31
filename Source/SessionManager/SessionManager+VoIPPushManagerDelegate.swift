@@ -45,19 +45,26 @@ extension SessionManager: VoIPPushManagerDelegate {
         payload: VoIPPushPayload,
         completion: @escaping () -> Void
     ) {
-        do {
-            try processCallMessage(
-                from: payload,
-                completion: completion
-            )
-        } catch let error as VOIPPushError {
-            // TODO: report call failure?
-            Logging.push.safePublic("Failed to handle voip push payload: \(error)")
+        guard let account = accountManager.account(with: payload.accountID) else {
             completion()
-        } catch {
-            // TODO: report call failure?
-            Logging.push.safePublic("Failed to handle voip push payload for unknown reason")
-            completion()
+            return
+        }
+
+        withSession(for: account) { [weak self] _ in
+            do {
+                try self?.processCallMessage(
+                    from: payload,
+                    completion: completion
+                )
+            } catch let error as VOIPPushError {
+                // TODO: report call failure?
+                Logging.push.safePublic("Failed to handle voip push payload: \(error)")
+                completion()
+            } catch {
+                // TODO: report call failure?
+                Logging.push.safePublic("Failed to handle voip push payload for unknown reason")
+                completion()
+            }
         }
     }
 
