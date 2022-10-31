@@ -137,7 +137,7 @@ public extension ServiceUser {
             fatal("Not a service user")
         }
 
-        guard let apiVersion = APIVersion.current else {
+        guard let apiVersion = BackendInfo.apiVersion else {
             return completion(nil)
         }
 
@@ -164,7 +164,7 @@ public extension ServiceUser {
             fatal("Not a service user")
         }
 
-        guard let apiVersion = APIVersion.current else {
+        guard let apiVersion = BackendInfo.apiVersion else {
             return completion(nil)
         }
 
@@ -308,7 +308,7 @@ public extension ZMConversation {
             return
         }
 
-        guard let apiVersion = APIVersion.current else {
+        guard let apiVersion = BackendInfo.apiVersion else {
             return completionHandler(.failure(AddBotError.missingAPIVersion))
         }
 

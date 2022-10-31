@@ -66,7 +66,7 @@ extension ZMConversation {
             return completion(.failure(WirelessLinkError.invalidOperation))
         }
 
-        guard let apiVersion = APIVersion.current else {
+        guard let apiVersion = BackendInfo.apiVersion else {
             return completion(.failure(WirelessLinkError.unknown))
         }
 
@@ -113,7 +113,7 @@ extension ZMConversation {
             return completion(.failure(WirelessLinkError.invalidOperation))
         }
 
-        guard let apiVersion = APIVersion.current else {
+        guard let apiVersion = BackendInfo.apiVersion else {
             return completion(.failure(WirelessLinkError.unknown))
         }
 
@@ -148,7 +148,7 @@ extension ZMConversation {
 
     /// Checks if a guest link can be generated or not
     public func canGenerateGuestLink(in userSession: ZMUserSession, _ completion: @escaping (Result<Bool>) -> Void) {
-        guard let apiVersion = APIVersion.current else {
+        guard let apiVersion = BackendInfo.apiVersion else {
             return completion(.failure(WirelessLinkError.unknown))
         }
 
@@ -185,7 +185,7 @@ extension ZMConversation {
             return completion(.failure(WirelessLinkError.invalidOperation))
         }
 
-        guard let apiVersion = APIVersion.current else {
+        guard let apiVersion = BackendInfo.apiVersion else {
             return completion(.failure(WirelessLinkError.unknown))
         }
 
@@ -210,7 +210,7 @@ extension ZMConversation {
             return completion(.failure(WirelessLinkError.invalidOperation))
         }
 
-        guard let apiVersion = APIVersion.current else {
+        guard let apiVersion = BackendInfo.apiVersion else {
             return completion(.failure(WirelessLinkError.unknown))
         }
 
@@ -223,7 +223,7 @@ extension ZMConversation {
             return completion(.failure(SetAllowServicesError.invalidOperation))
         }
 
-        guard let apiVersion = APIVersion.current else {
+        guard let apiVersion = BackendInfo.apiVersion else {
             return completion(.failure(SetAllowServicesError.unknown))
         }
 

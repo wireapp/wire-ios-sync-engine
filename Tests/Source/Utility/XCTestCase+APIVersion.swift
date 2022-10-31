@@ -23,7 +23,7 @@ extension XCTestCase {
 
     func setCurrentAPIVersion(_ version: APIVersion?) {
         APIVersion.setVersions(production: [version].compactMap(\.self), development: [])
-        XCTAssertEqual(APIVersion.current, version)
+        XCTAssertEqual(BackendInfo.apiVersion, version)
     }
 
 }

@@ -108,7 +108,7 @@ extension AssetDeletionRequestStrategyTests {
     func testThatItCreatesARequestIfThereIsAnIdentifier(for apiVersion: APIVersion) {
         // Given
         let domain = "example.domain.com"
-        APIVersion.domain = domain
+        BackendInfo.domain = domain
         let identifier = UUID.create().transportString()
         mockIdentifierProvider.nextIdentifier = identifier
 

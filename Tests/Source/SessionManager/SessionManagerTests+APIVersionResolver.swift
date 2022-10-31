@@ -49,7 +49,7 @@ class SessionManagerTests_APIVersionResolver: IntegrationTest {
 
         // Setup domain
         let domain = "example.domain.com"
-        APIVersion.domain = domain
+        BackendInfo.domain = domain
 
         // Setup expectation & Session Manager delegate
         let expectation = XCTestExpectation(description: "Migration completed")

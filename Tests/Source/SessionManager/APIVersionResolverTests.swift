@@ -73,7 +73,7 @@ class APIVersionResolverTests: ZMTBaseTest {
             isFederationEnabled: true
         )
 
-        XCTAssertNil(APIVersion.current)
+        XCTAssertNil(BackendInfo.apiVersion)
 
         // When
         let done = expectation(description: "done")
@@ -81,10 +81,10 @@ class APIVersionResolverTests: ZMTBaseTest {
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
 
         // Then
-        XCTAssertEqual(APIVersion.current, maxSupportedAPIVersion)
+        XCTAssertEqual(BackendInfo.apiVersion, maxSupportedAPIVersion)
         XCTAssertEqual(APIVersion.developmentVersions, [supportedDevelopmentAPIVersion])
-        XCTAssertEqual(APIVersion.domain, "foo.com")
-        XCTAssertEqual(APIVersion.isFederationEnabled, true)
+        XCTAssertEqual(BackendInfo.domain, "foo.com")
+        XCTAssertEqual(BackendInfo.isFederationEnabled, true)
     }
 
     func testThatItResolvesTheAPIVersionWhenDevelopmentVersionsAreAbsent() throws {
@@ -98,7 +98,7 @@ class APIVersionResolverTests: ZMTBaseTest {
             isFederationEnabled: true
         )
 
-        XCTAssertNil(APIVersion.current)
+        XCTAssertNil(BackendInfo.apiVersion)
 
         // When
         let done = expectation(description: "done")
@@ -106,10 +106,10 @@ class APIVersionResolverTests: ZMTBaseTest {
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
 
         // Then
-        XCTAssertEqual(APIVersion.current, maxSupportedAPIVersion)
+        XCTAssertEqual(BackendInfo.apiVersion, maxSupportedAPIVersion)
         XCTAssertTrue(APIVersion.developmentVersions.isEmpty)
-        XCTAssertEqual(APIVersion.domain, "foo.com")
-        XCTAssertEqual(APIVersion.isFederationEnabled, true)
+        XCTAssertEqual(BackendInfo.domain, "foo.com")
+        XCTAssertEqual(BackendInfo.isFederationEnabled, true)
     }
 
     func testThatItDefaultsToVersionZeroIfEndpointIsUnavailable() throws {
@@ -122,10 +122,10 @@ class APIVersionResolverTests: ZMTBaseTest {
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
 
         // Then
-        let resolvedVersion = try XCTUnwrap(APIVersion.current)
+        let resolvedVersion = try XCTUnwrap(BackendInfo.apiVersion)
         XCTAssertEqual(resolvedVersion, .v0)
-        XCTAssertEqual(APIVersion.domain, "wire.com")
-        XCTAssertEqual(APIVersion.isFederationEnabled, false)
+        XCTAssertEqual(BackendInfo.domain, "wire.com")
+        XCTAssertEqual(BackendInfo.isFederationEnabled, false)
     }
 
     func testThatItReportsBlacklistReasonWhenBackendIsObsolete() throws {
@@ -147,9 +147,9 @@ class APIVersionResolverTests: ZMTBaseTest {
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
 
         // Then
-        XCTAssertNil(APIVersion.current)
-        XCTAssertEqual(APIVersion.domain, "foo.com")
-        XCTAssertEqual(APIVersion.isFederationEnabled, true)
+        XCTAssertNil(BackendInfo.apiVersion)
+        XCTAssertEqual(BackendInfo.domain, "foo.com")
+        XCTAssertEqual(BackendInfo.isFederationEnabled, true)
         XCTAssertEqual(mockDelegate.blacklistReason, .backendAPIVersionObsolete)
 
     }
@@ -173,15 +173,15 @@ class APIVersionResolverTests: ZMTBaseTest {
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
 
         // Then
-        XCTAssertNil(APIVersion.current)
-        XCTAssertEqual(APIVersion.domain, "foo.com")
-        XCTAssertEqual(APIVersion.isFederationEnabled, true)
+        XCTAssertNil(BackendInfo.apiVersion)
+        XCTAssertEqual(BackendInfo.domain, "foo.com")
+        XCTAssertEqual(BackendInfo.isFederationEnabled, true)
         XCTAssertEqual(mockDelegate.blacklistReason, .clientAPIVersionObsolete)
     }
 
     func testThatItReportsToDelegate_WhenFederationHasBeenEnabled() throws {
         // Given
-        APIVersion.isFederationEnabled = false
+        BackendInfo.isFederationEnabled = false
         let maxSupportedAPIVersion = try XCTUnwrap(APIVersion.allCases.max())
 
         mockBackendInfo(
@@ -197,7 +197,7 @@ class APIVersionResolverTests: ZMTBaseTest {
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
 
         // Then
-        XCTAssertTrue(APIVersion.isFederationEnabled)
+        XCTAssertTrue(BackendInfo.isFederationEnabled)
         XCTAssertTrue(mockDelegate.didReportFederationHasBeenEnabled)
     }
 

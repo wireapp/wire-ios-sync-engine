@@ -22,7 +22,7 @@ import WireDataModel
 @objc extension ZMOperationLoop {
 
     public var currentAPIVersion: APIVersionWrapper? {
-        guard let current = APIVersion.current else { return nil }
+        guard let current = BackendInfo.apiVersion else { return nil }
         return .init(value: current)
     }
 

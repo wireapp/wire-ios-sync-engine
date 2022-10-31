@@ -269,7 +269,7 @@ extension SearchTask {
     func performUserLookup() {
         guard
             case .lookup(let userId) = task,
-            let apiVersion = APIVersion.current
+            let apiVersion = BackendInfo.apiVersion
         else { return }
 
         tasksRemaining += 1
@@ -314,7 +314,7 @@ extension SearchTask {
 
     func performRemoteSearch() {
         guard
-            let apiVersion = APIVersion.current,
+            let apiVersion = BackendInfo.apiVersion,
             case .search(let searchRequest) = task,
             !searchRequest.searchOptions.isDisjoint(with: [.directory, .teamMembers, .federated])
         else {
@@ -359,7 +359,7 @@ extension SearchTask {
         let teamMembersIDs = searchResult.teamMembers.compactMap(\.remoteIdentifier)
 
         guard
-            let apiVersion = APIVersion.current,
+            let apiVersion = BackendInfo.apiVersion,
             let teamID = ZMUser.selfUser(in: contextProvider.viewContext).team?.remoteIdentifier,
             !teamMembersIDs.isEmpty
         else {
@@ -436,7 +436,7 @@ extension SearchTask {
 
     func performRemoteSearchForTeamUser() {
         guard
-            let apiVersion = APIVersion.current,
+            let apiVersion = BackendInfo.apiVersion,
             case .search(let searchRequest) = task,
             searchRequest.searchOptions.contains(.directory)
         else { return }
@@ -524,7 +524,7 @@ extension SearchTask {
 
     func performRemoteSearchForServices() {
         guard
-            let apiVersion = APIVersion.current,
+            let apiVersion = BackendInfo.apiVersion,
             case .search(let searchRequest) = task,
             searchRequest.searchOptions.contains(.services)
         else { return }
