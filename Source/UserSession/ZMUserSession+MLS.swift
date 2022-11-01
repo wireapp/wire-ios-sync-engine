@@ -34,7 +34,7 @@ extension ZMUserSession {
 
         syncContext.performAndWait {
             do {
-                let configuration = try CoreCryptoFactory.configuration(
+                let configuration = try CoreCryptoFactory().configuration(
                     sharedContainerURL: sharedContainerURL,
                     syncContext: syncContext
                 )
