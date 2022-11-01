@@ -34,38 +34,9 @@ final class APIVersionResolver {
 
     // MARK: - Life cycle
 
-    convenience init(
-        transportSession: UnauthenticatedTransportSessionProtocol,
-        isDeveloperModeEnabled: Bool
-    ) {
-        // IMPORTANT: A version X should only be considered a production version
-        // if the backend also considers X production ready (i.e no more changes
-        // can be made to the API of X) and the implementation of X is correct
-        // and tested.
-        //
-        // Only if these critera are met should we explicitly mark the version
-        // as production ready.
-
-        let clientProdVersions = Set(APIVersion.allCases.filter {
-            switch $0 {
-            case .v0, .v1, .v2:
-                return true
-            }
-        })
-
-        let clientDevVersions = Set(APIVersion.allCases).subtracting(clientProdVersions)
-
-        self.init(
-            clientProdVersions: clientProdVersions,
-            clientDevVersions: clientDevVersions,
-            transportSession: transportSession,
-            isDeveloperModeEnabled: isDeveloperModeEnabled
-        )
-    }
-
     init(
-        clientProdVersions: Set<APIVersion>,
-        clientDevVersions: Set<APIVersion>,
+        clientProdVersions: Set<APIVersion> = APIVersion.productionVersions,
+        clientDevVersions: Set<APIVersion> = APIVersion.developmentVersions,
         transportSession: UnauthenticatedTransportSessionProtocol,
         isDeveloperModeEnabled: Bool
     ) {
@@ -172,5 +143,28 @@ protocol APIVersionResolverDelegate: AnyObject {
 
     func apiVersionResolverDetectedFederationHasBeenEnabled()
     func apiVersionResolverFailedToResolveVersion(reason: BlacklistReason)
+
+}
+
+// MARK: - Prod/Dev versions
+
+public extension APIVersion {
+
+    /// API versions considered production ready by the client.
+    ///
+    /// IMPORTANT: A version X should only be considered a production version
+    /// if the backend also considers X production ready (i.e no more changes
+    /// can be made to the API of X) and the implementation of X is correct
+    /// and tested.
+    ///
+    /// Only if these critera are met should we explicitly mark the version
+    /// as production ready.
+
+    static let productionVersions: Set<Self> = [.v0, .v1, .v2]
+
+    /// API versions currently under development and not suitable for production
+    /// environments.
+
+    static let developmentVersions: Set<Self> = Set(allCases).subtracting(productionVersions)
 
 }
