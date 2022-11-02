@@ -20,6 +20,7 @@ import Foundation
 import CallKit
 import Intents
 import avs
+import OSLog
 
 // Represents a call managed by CallKit.
 
@@ -273,6 +274,7 @@ extension CallKitManager {
     }
 
     func requestJoinCall(in conversation: ZMConversation, video: Bool) {
+        os_log("CallKit_Tests - SE requestJoinCall")
 
         let existingCallUUID = callUUID(for: conversation)
         let existingCall = callController.callObserver.calls.first(where: { $0.uuid == existingCallUUID })
@@ -320,6 +322,7 @@ extension CallKitManager {
     }
 
     func requestAnswerCall(in conversation: ZMConversation, video: Bool) {
+        os_log("CallKit_Tests - SE requestAnswerCall")
         guard let callUUID = callUUID(for: conversation) else { return }
 
         let action = CXAnswerCallAction(call: callUUID)
@@ -336,6 +339,7 @@ extension CallKitManager {
     }
 
     func requestEndCall(in conversation: ZMConversation, completion: (() -> Void)? = nil) {
+        os_log("CallKit_Tests - SE requestEndCall")
         guard let callUUID = callUUID(for: conversation) else { return }
 
         let action = CXEndCallAction(call: callUUID)
@@ -361,9 +365,11 @@ extension CallKitManager {
         let callID = UUID()
         calls[callID] = CallKitCall(handle: handle)
 
+        os_log("CallKit_Tests - SE provider.reportNewIncomingCall")
         provider.reportNewIncomingCall(with: callID, update: update) { [weak self] error in
             if let error = error {
                 self?.log("Cannot report incoming call: \(error)")
+                os_log("CallKit_Tests - SE provider.reportNewIncomingCall error")
                 self?.calls.removeValue(forKey: callID)
             } else {
                 self?.mediaManager?.setupAudioDevice()
@@ -371,25 +377,34 @@ extension CallKitManager {
         }
     }
 
+    public func reportCallEndedNew(handle: CallHandle) {
+        os_log("CallKit_Tests - SE end dCall unanswered")
+        provider.reportCall(with: UUID(), endedAt: Date(), reason: .unanswered)
+    }
+
     func updateIncomingCall(
         from user: ZMUser,
         in conversation: ZMConversation,
         hasVideo: Bool
     ) throws {
+        os_log("CallKit_Tests - SE updateIncomingCall")
         guard let handle = conversation.callHandle else {
             log("Cannot report incoming call: conversation is missing handle")
+            os_log("CallKit_Tests - SE Cannot report incoming call: conversation is missing handle")
             throw ReportIncomingCallError.noCallKitHandle
         }
 
         // We expect it to exist because it should have been reported before.
         guard let callID = callID(for: handle) else {
             log("Cannot update incoming call: call does not exist.")
+            os_log("CallKit_Tests - SE Cannot update incoming call: call does not exist")
             // TODO: fix error.
             throw ReportIncomingCallError.callAlreadyExists
         }
 
         guard !conversation.needsToBeUpdatedFromBackend else {
             log("Cannot report incoming call: conversation needs to be updated from backend")
+            os_log("CallKit_Tests - SE Cannot report incoming call: conversation needs to be updated from backend")
             throw ReportIncomingCallError.conversationNotSynced
         }
 
@@ -420,18 +435,22 @@ extension CallKitManager {
     /// - Throws: ReportIncomingCallError if the call could not be reported.
 
     func reportIncomingCall(from user: ZMUser, in conversation: ZMConversation, video: Bool) throws {
+        os_log("CallKit_Tests - SE reportIncomingCall")
         guard !callExists(for: conversation) else {
             log("Cannot report incoming call: call already exists, probably b/c it was reported earlier for a push notification")
+            os_log("CallKit_Tests - SE callAlreadyExists")
             throw ReportIncomingCallError.callAlreadyExists
         }
 
         guard let handle = conversation.callHandle else {
             log("Cannot report incoming call: conversation is missing handle")
+            os_log("CallKit_Tests - SE noCallKitHandle")
             throw ReportIncomingCallError.noCallKitHandle
         }
 
         guard !conversation.needsToBeUpdatedFromBackend else {
             log("Cannot report incoming call: conversation needs to be updated from backend")
+            os_log("CallKit_Tests - SE conversationNotSynced")
             throw ReportIncomingCallError.conversationNotSynced
         }
 
@@ -473,11 +492,13 @@ extension CallKitManager {
     /// - Throws: ReportTerminatingCallError if no call could be reported as ended.
 
     func reportCallEnded(in conversation: ZMConversation, atTime timestamp: Date?, reason: CXCallEndedReason) throws {
+        os_log("CallKit_Tests - SE reportCallEnded")
         let associatedCallUUIDs = calls
             .filter { $0.value.conversation == conversation }
             .keys
 
         guard !associatedCallUUIDs.isEmpty else {
+            os_log("CallKit_Tests - SE callNotFound")
             throw ReportTerminatingCallError.callNotFound
         }
 
@@ -630,18 +651,23 @@ extension CallKitManager: WireCallCenterCallStateObserver, WireCallCenterMissedC
         switch callState {
         case .incoming(video: let hasVideo, shouldRing: let shouldRing, degraded: _):
             if shouldRing, let caller = caller as? ZMUser {
+                os_log("CallKit_Tests - SE callCenterDidChange shouldRing")
                 if conversation.mutedMessageTypesIncludingAvailability == .none {
                     if callExists(for: conversation) {
+                        os_log("CallKit_Tests - SE callCenterDidChange callExists")
                         try? updateIncomingCall(from: caller, in: conversation, hasVideo: hasVideo)
                     } else {
+                        os_log("CallKit_Tests - SE callCenterDidChange call doesnt Exists")
                         try? reportIncomingCall(from: caller, in: conversation, video: hasVideo)
                     }
                 }
                 // TODO: what happens if the conversation is muted? Maybe if there is an existing call, we report it as ended.
             } else {
+                os_log("CallKit_Tests - SE callCenterDidChange should not Ring")
                 try? reportCallEnded(in: conversation, atTime: timestamp, reason: .unanswered)
             }
         case let .terminating(reason: reason):
+            os_log("CallKit_Tests - SE callCenterDidChange terminating")
             try? reportCallEnded(in: conversation, atTime: timestamp, reason: reason.CXCallEndedReason)
         default:
             break
@@ -650,6 +676,7 @@ extension CallKitManager: WireCallCenterCallStateObserver, WireCallCenterMissedC
 
     public func callCenterMissedCall(conversation: ZMConversation, caller: UserType, timestamp: Date, video: Bool) {
         // Since we missed the call we will not have an assigned callUUID and can just create a random one
+        os_log("CallKit_Tests - SE callCenterMissedCall")
         provider.reportCall(with: UUID(), endedAt: timestamp, reason: .unanswered)
     }
 
@@ -750,6 +777,7 @@ class CallObserver: WireCallCenterCallStateObserver {
     public func callCenterDidChange(callState: CallState, conversation: ZMConversation, caller: UserType, timestamp: Date?, previousCallState: CallState?) {
         switch callState {
         case .answered(degraded: false):
+            os_log("CallKit_Tests - SE callCenterDidChange CallObserver answered")
             onAnswered?()
         case .establishedDataChannel, .established:
             onEstablished?()

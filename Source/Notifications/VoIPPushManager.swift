@@ -20,6 +20,7 @@ import Foundation
 import PushKit
 import CallKit
 import avs
+import OSLog
 
 public protocol VoIPPushManagerDelegate: AnyObject {
 
@@ -156,9 +157,11 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
         // We're only interested in voIP tokens.
         guard type == .voIP else { return completion() }
 
+        os_log("CallKit_Tests - SE didReceiveIncomingPushWith")
         if let nsePayload = payload.nsePayload {
             // TODO: this should only happen if the require push type is standard... guard this?
             Logging.push.info("did receive incoming fake voIP push")
+            os_log("CallKit_Tests - SE will processFakePush")
             processFakePush(
                 payload: nsePayload,
                 completion: completion
@@ -187,17 +190,23 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
         // otherwise the app will be killed. See <link>.
         // The call state observer will handle the end of the call
         if let content = CallEventContent(from: payload.data), content.isIncomingCall {
+            os_log("CallKit_Tests - SE will reportCall")
             callKitManager.reportCall(handle: handle)
+        } else {
+            os_log("CallKit_Tests - SE will reportEndCall, it's not IncomingCall")
+            callKitManager.reportCallEndedNew(handle: handle)
         }
 
         if let delegate = delegate {
             Logging.push.info("fowarding to delegate")
+            os_log("CallKit_Tests - SE will processIncomingFakeVoIPPush")
             delegate.processIncomingFakeVoIPPush(
                 payload: payload,
                 completion: completion
             )
         } else {
             Logging.push.info("buffering")
+            os_log("CallKit_Tests - SE will buffering")
             buffer.pendingActions.append(.processIncomingFakeVoIPPush(
                 payload: payload,
                 completion: completion
