@@ -22,6 +22,56 @@ import CallKit
 import avs
 import OSLog
 
+protocol WireLoggable {}
+
+extension WireLoggable {
+
+    var logger: WireLogger {
+        return WireLogger(category: String(describing: type(of: self)))
+    }
+
+}
+
+struct WireLogger {
+
+    private var logger: Any?
+    private var infoBlock: ((String) -> Void)?
+    private var traceBlock: ((String) -> Void)?
+    private var warningBlock: ((String) -> Void)?
+
+    init(category: String) {
+        if #available(iOS 14, *) {
+            let logger = Logger(subsystem: "VoIP Push", category: category)
+            infoBlock = { message in
+                logger.info("\(message, privacy: .public)")
+            }
+            traceBlock = {message in
+                logger.trace("\(message, privacy: .public)")
+            }
+            warningBlock = {message in
+                logger.warning("\(message, privacy: .public)")
+            }
+
+            self.logger = logger
+        }
+    }
+
+    func info(_ message: String) {
+        infoBlock?(message)
+    }
+
+    func trace(_ message: String) {
+        traceBlock?(message)
+    }
+
+    func warning(_ message: String) {
+        warningBlock?(message)
+    }
+
+}
+
+
+
 public protocol VoIPPushManagerDelegate: AnyObject {
 
     func storeVoIPToken(_ data: Data)
@@ -37,7 +87,7 @@ extension Logging {
 
 }
 
-public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
+public final class VoIPPushManager: NSObject, PKPushRegistryDelegate, WireLoggable {
 
     // MARK: - Types
 
@@ -157,11 +207,17 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
         // We're only interested in voIP tokens.
         guard type == .voIP else { return completion() }
 
-        os_log("CallKit_Tests - SE didReceiveIncomingPushWith")
+        logger.trace("did receive incoming push payload")
+
         if let nsePayload = payload.nsePayload {
+            guard let content = CallEventContent(from: nsePayload.data) else {
+                logger.warning("no calling content in the nsePayload")
+              return
+            }
+
             // TODO: this should only happen if the require push type is standard... guard this?
             Logging.push.info("did receive incoming fake voIP push")
-            os_log("CallKit_Tests - SE will processFakePush")
+            logger.info("did receive incoming fake voIP push and will process it")
             processFakePush(
                 payload: nsePayload,
                 completion: completion
@@ -169,6 +225,7 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
         } else {
             // TODO: this should only happen if the require push type is voip... guard this?
             Logging.push.info("did receive incoming real voIP push")
+            logger.info("did receive incoming real voIP push and will process it")
             processRealPush(
                 payload: payload.dictionaryPayload,
                 completion: completion
@@ -186,27 +243,32 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
             conversationID: payload.conversationID
         )
 
+        guard let content = CallEventContent(from: payload.data) else {
+            logger.warning("no calling content in the payload")
+            fatalError()
+        }
+
         // Report the call immediately to fulfill API obligations,
         // otherwise the app will be killed. See <link>.
         // The call state observer will handle the end of the call
-        if let content = CallEventContent(from: payload.data), content.isIncomingCall {
-            os_log("CallKit_Tests - SE will reportCall")
-            callKitManager.reportCall(handle: handle)
+        if content.isIncomingCall {
+            logger.info("report new incoming call with Content type: \(content.type) and Handle: \(handle)")
+             callKitManager.reportIncomingCall(handle: handle)
         } else {
-            os_log("CallKit_Tests - SE will reportEndCall, it's not IncomingCall")
+            logger.info("report end call with Content type: \(content.type) and Handle: \(handle)")
             callKitManager.reportCallEndedNew(handle: handle)
         }
 
         if let delegate = delegate {
             Logging.push.info("fowarding to delegate")
-            os_log("CallKit_Tests - SE will processIncomingFakeVoIPPush")
+            logger.trace("will process incoming fake VoIP push")
             delegate.processIncomingFakeVoIPPush(
                 payload: payload,
                 completion: completion
             )
         } else {
             Logging.push.info("buffering")
-            os_log("CallKit_Tests - SE will buffering")
+            logger.info("add calling action to the buffer")
             buffer.pendingActions.append(.processIncomingFakeVoIPPush(
                 payload: payload,
                 completion: completion

@@ -19,9 +19,10 @@
 import Foundation
 import WireRequestStrategy
 import WireDataModel
+import OSLog
 
 @objcMembers
-public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequestTranscoder, ZMContextChangeTracker, ZMContextChangeTrackerSource, ZMEventConsumer {
+public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequestTranscoder, ZMContextChangeTracker, ZMContextChangeTrackerSource, ZMEventConsumer, WireLoggable {
 
     // MARK: - Private Properties
 
@@ -289,8 +290,10 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
         callEventStatus.scheduledCallEventForProcessing()
 
+        logger.trace("callCenter will processCallEvent")
         callCenter?.processCallEvent(callEvent, completionHandler: { [weak self] in
             self?.zmLog.debug("processed calling message")
+            self?.logger.info("processed calling message")
             self?.callEventStatus.finishedProcessingCallEvent()
         })
     }

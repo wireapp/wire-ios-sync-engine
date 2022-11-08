@@ -19,8 +19,9 @@
 
 import Foundation
 import PushKit
+import OSLog
 
-extension SessionManager: VoIPPushManagerDelegate {
+extension SessionManager: VoIPPushManagerDelegate, WireLoggable {
 
     // MARK: - Token management
 
@@ -47,21 +48,25 @@ extension SessionManager: VoIPPushManagerDelegate {
     ) {
         guard let account = accountManager.account(with: payload.accountID) else {
             completion()
+            logger.warning("account not found")
             return
         }
 
         withSession(for: account) { [weak self] _ in
             do {
+                self?.logger.info("will processCallMessage")
                 try self?.processCallMessage(
                     from: payload,
                     completion: completion
                 )
             } catch let error as VOIPPushError {
                 // TODO: report call failure?
+                self?.logger.warning("Failed to handle voip push payload: \(error)")
                 Logging.push.safePublic("Failed to handle voip push payload: \(error)")
                 completion()
             } catch {
                 // TODO: report call failure?
+                self?.logger.warning("Failed to handle voip push payload for unknown reason")
                 Logging.push.safePublic("Failed to handle voip push payload for unknown reason")
                 completion()
             }
@@ -74,35 +79,43 @@ extension SessionManager: VoIPPushManagerDelegate {
     ) throws {
         defer { completion() }
 
+        logger.trace("processCallMessage")
         guard let account = accountManager.account(with: payload.accountID) else {
+            logger.warning("account not found")
             throw VOIPPushError.accountNotFound
         }
 
         // TODO: shouldn't we call 'withSession', then pass the event to the calling request strategy?
 
         guard let session = backgroundUserSessions[account.userIdentifier] else {
+            logger.warning("userSession not found")
             throw VOIPPushError.userSessionNotFound
         }
 
         // TODO: [John] check if call kit is enabled
 
         guard payload.caller(in: session.viewContext) != nil else {
+            logger.warning("caller not found")
             throw VOIPPushError.callerNotFound
         }
 
         guard payload.conversation(in: session.viewContext) != nil else {
+            logger.warning("conversation not found")
             throw VOIPPushError.conversationNotFound
         }
 
         guard CallEventContent(from: payload.data) != nil else {
+            logger.warning("malformedPayloadData")
             throw VOIPPushError.malformedPayloadData
         }
 
         guard let processor = session.syncStrategy?.callingRequestStrategy else {
+            logger.warning("processor not found")
             throw VOIPPushError.processorNotFound
         }
 
         Logging.push.safePublic("forwading call event to session with account \(account.userIdentifier)")
+        logger.trace("forwading call event to session with account \(account.userIdentifier)")
 
         processor.processCallEvent(
             conversationUUID: payload.conversationID,

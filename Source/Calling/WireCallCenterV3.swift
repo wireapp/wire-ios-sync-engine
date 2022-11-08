@@ -18,6 +18,7 @@
 
 import Foundation
 import avs
+import OSLog
 
 private let zmLog = ZMSLog(tag: "calling")
 
@@ -607,7 +608,7 @@ extension WireCallCenterV3 {
 
 // MARK: - AVS Integration
 
-extension WireCallCenterV3 {
+extension WireCallCenterV3: WireLoggable {
 
     /// Sends a call OTR message when requested by AVS through `wcall_send_h`.
     func send(token: WireCallMessageToken, conversationId: AVSIdentifier, targets: AVSClientList?, data: Data, dataLength: Int) {
@@ -664,16 +665,20 @@ extension WireCallCenterV3 {
     func processCallEvent(_ callEvent: CallEvent, completionHandler: @escaping () -> Void) {
 
         if isReady {
+            logger.trace("will handle call event")
             handleCallEvent(callEvent, completionHandler: completionHandler)
         } else {
+            logger.trace("add callEvent to bufferedEvents")
             bufferedEvents.append((callEvent, completionHandler))
         }
     }
 
     fileprivate func handleCallEvent(_ callEvent: CallEvent, completionHandler: @escaping () -> Void) {
+        logger.trace("passing callEvent to AVS")
         let result = avsWrapper.received(callEvent: callEvent)
 
         if let context = uiMOC, let error = result {
+            logger.warning("call center error: \(error)")
             WireCallCenterCallErrorNotification(
                 context: context,
                 error: error,
@@ -713,6 +718,8 @@ extension WireCallCenterV3 {
             callSnapshots[conversationId] = previousSnapshot.update(with: callState)
         }
 
+        logger.info("Calculated call state: \(callState)")
+        logger.warning("Should be a callerID: \(callerId)")
         if let context = uiMOC, let callerId = callerId {
             let notification = WireCallCenterCallStateNotification(context: context,
                                                                    callState: callState,
