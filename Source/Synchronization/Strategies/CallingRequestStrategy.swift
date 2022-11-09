@@ -19,7 +19,6 @@
 import Foundation
 import WireRequestStrategy
 import WireDataModel
-import OSLog
 
 @objcMembers
 public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequestTranscoder, ZMContextChangeTracker, ZMContextChangeTrackerSource, ZMEventConsumer, WireLoggable {

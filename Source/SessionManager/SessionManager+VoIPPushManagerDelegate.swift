@@ -16,10 +16,8 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import Foundation
 import PushKit
-import OSLog
 
 extension SessionManager: VoIPPushManagerDelegate, WireLoggable {
 
@@ -251,4 +249,3 @@ private extension Dictionary where Key == AnyHashable, Value == Any {
     }
 
 }
-

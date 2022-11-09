@@ -373,7 +373,7 @@ extension CallKitManager {
         }
     }
 
-    public func reportCallEndedNew(handle: CallHandle) {
+    public func reportCallEnded(handle: CallHandle) {
         guard let callID = callID(for: handle) else {
             provider.reportCall(with: UUID(), endedAt: Date(), reason: .unanswered)
             return

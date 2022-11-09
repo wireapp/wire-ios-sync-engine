@@ -76,7 +76,6 @@ extension WireCallCenterV3: ZMConversationObserver {
 }
 
 // MARK: - AVS Callbacks
-import OSLog
 extension WireCallCenterV3 {
 
     private func handleEvent(_ description: String, _ handlerBlock: @escaping () -> Void) {

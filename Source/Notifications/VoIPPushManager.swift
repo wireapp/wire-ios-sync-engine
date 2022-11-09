@@ -70,8 +70,6 @@ struct WireLogger {
 
 }
 
-
-
 public protocol VoIPPushManagerDelegate: AnyObject {
 
     func storeVoIPToken(_ data: Data)
@@ -256,7 +254,7 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate, WireLoggab
              callKitManager.reportIncomingCall(handle: handle)
         } else {
             logger.info("report end call with Content type: \(content.type) and Handle: \(handle)")
-            callKitManager.reportCallEndedNew(handle: handle)
+            callKitManager.reportCallEnded(handle: handle)
         }
 
         if let delegate = delegate {
