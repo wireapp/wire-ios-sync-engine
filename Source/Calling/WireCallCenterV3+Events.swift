@@ -76,11 +76,11 @@ extension WireCallCenterV3: ZMConversationObserver {
 }
 
 // MARK: - AVS Callbacks
-
 extension WireCallCenterV3 {
 
     private func handleEvent(_ description: String, _ handlerBlock: @escaping () -> Void) {
         zmLog.debug("Handle AVS event: \(description)")
+        logger.trace("Received AVS callbck: \(description)")
 
         guard let context = self.uiMOC else {
             zmLog.error("Cannot handle event '\(description)' because the UI context is not available.")
