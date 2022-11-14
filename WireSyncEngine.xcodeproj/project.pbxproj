@@ -527,6 +527,7 @@
 		EE5D9B60290A7CEE007D78D6 /* VoIPPushManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE5D9B5F290A7CEE007D78D6 /* VoIPPushManager.swift */; };
 		EE5D9B62290A8557007D78D6 /* SessionManager+VoIPPushManagerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE5D9B61290A8557007D78D6 /* SessionManager+VoIPPushManagerDelegate.swift */; };
 		EE5F5F2B2922686B0013B0DE /* CallKitManagerInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE5F5F2A2922686B0013B0DE /* CallKitManagerInterface.swift */; };
+		EE5F5F2D292268E00013B0DE /* CallKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE5F5F2C292268E00013B0DE /* CallKitManager.swift */; };
 		EE5FEF0521E8948F00E24F7F /* ZMUserSession+DarwinNotificationCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE5FEF0421E8948F00E24F7F /* ZMUserSession+DarwinNotificationCenter.swift */; };
 		EE6654642445D4EE00CBF8D3 /* MockAddressBook.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE6654632445D4EE00CBF8D3 /* MockAddressBook.swift */; };
 		EE95DECD247C0049001EA010 /* SessionManagerConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE95DECC247C0049001EA010 /* SessionManagerConfigurationTests.swift */; };
@@ -1205,6 +1206,7 @@
 		EE5D9B5F290A7CEE007D78D6 /* VoIPPushManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoIPPushManager.swift; sourceTree = "<group>"; };
 		EE5D9B61290A8557007D78D6 /* SessionManager+VoIPPushManagerDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SessionManager+VoIPPushManagerDelegate.swift"; sourceTree = "<group>"; };
 		EE5F5F2A2922686B0013B0DE /* CallKitManagerInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallKitManagerInterface.swift; sourceTree = "<group>"; };
+		EE5F5F2C292268E00013B0DE /* CallKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallKitManager.swift; sourceTree = "<group>"; };
 		EE5FEF0421E8948F00E24F7F /* ZMUserSession+DarwinNotificationCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ZMUserSession+DarwinNotificationCenter.swift"; sourceTree = "<group>"; };
 		EE6654632445D4EE00CBF8D3 /* MockAddressBook.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MockAddressBook.swift; sourceTree = "<group>"; };
 		EE95DECC247C0049001EA010 /* SessionManagerConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionManagerConfigurationTests.swift; sourceTree = "<group>"; };
@@ -1632,6 +1634,7 @@
 				165D3A171E1D43870052E654 /* VoiceChannelV3.swift */,
 				165D3A3C1E1D60520052E654 /* ZMConversation+VoiceChannel.swift */,
 				EE5F5F2A2922686B0013B0DE /* CallKitManagerInterface.swift */,
+				EE5F5F2C292268E00013B0DE /* CallKitManager.swift */,
 				16A764601F3E0B0B00564F21 /* LegacyCallKitManager.swift */,
 				1658C2361F503CF800889F22 /* FlowManager.swift */,
 				166D18A3230EBFFA001288CD /* MediaManager.swift */,
@@ -3194,6 +3197,7 @@
 				166264742166093800300F45 /* CallEventStatus.swift in Sources */,
 				63C5321F27FDB283009DFFF4 /* SyncStatus.swift in Sources */,
 				549815CD1A432BC700A7CE2E /* ZMBlacklistDownloader.m in Sources */,
+				EE5F5F2D292268E00013B0DE /* CallKitManager.swift in Sources */,
 				549815CE1A432BC700A7CE2E /* ZMBlacklistVerificator.m in Sources */,
 				16D9E8BA22BCD39200FA463F /* LegalHoldRequestStrategy.swift in Sources */,
 				164C29A71ED2D7B00026562A /* SearchResult.swift in Sources */,
