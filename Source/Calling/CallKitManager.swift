@@ -28,6 +28,8 @@ final class CallKitManager: NSObject, CallKitManagerInterface, CXProviderDelegat
     private let callController: CXCallController
     private weak var mediaManager: MediaManagerType?
 
+    private let callRegister = CallRegister()
+
     // MARK: - Life cycle
 
     init(mediaManager: MediaManagerType) {
@@ -74,6 +76,46 @@ final class CallKitManager: NSObject, CallKitManagerInterface, CXProviderDelegat
         fatal("not implemented")
     }
 
+    // MARK: - Reporting calls
+
+    func reportNewIncomingCall(
+        handle: CallHandle,
+        callerName: String,
+        hasVideo: Bool
+    ) {
+        guard !callRegister.callExists(handle: handle) else {
+            // TODO: throw error
+            return
+        }
+
+        let call = callRegister.registerNewCall(with: handle)
+
+        let update = CXCallUpdate()
+        update.remoteHandle = handle.cxHandle
+        update.localizedCallerName = callerName
+        update.hasVideo = hasVideo
+        update.supportsHolding = false
+        update.supportsDTMF = false
+        update.supportsGrouping = false
+        update.supportsUngrouping = false
+
+        callProvider.reportNewIncomingCall(
+            with: call.id,
+            update: update
+        ) { [weak self] error in
+            if let error = error {
+                self?.callRegister.unregisterCall(call)
+            } else {
+                // TODO: setup
+            }
+        }
+    }
+
+    func reportCallEnded() {
+        fatal("not implemented")
+    }
+
+
     // MARK: - Call provider
 
     public func providerDidBegin(_ provider: CXProvider) {
@@ -116,6 +158,51 @@ final class CallKitManager: NSObject, CallKitManagerInterface, CXProviderDelegat
 
     func continueUserActivity(_ userActivity: NSUserActivity) -> Bool {
         fatal("not implemented")
+    }
+
+}
+
+private struct CallKitCall {
+
+    let id: UUID
+    let handle: CallHandle
+
+}
+
+private class CallRegister {
+
+    // MARK: - Properties
+
+    private var storage = [UUID: CallKitCall]()
+
+    // MARK: - Registration
+
+    func registerNewCall(with handle: CallHandle) -> CallKitCall {
+        let call = CallKitCall(id: UUID(), handle: handle)
+        storage[call.id] = call
+        return call
+    }
+
+    func unregisterCall(_ call: CallKitCall) {
+        storage.removeValue(forKey: call.id)
+    }
+
+    // MARK: - Lookup
+
+    func callExists(id: UUID) -> Bool {
+        return lookupCall(id: id) != nil
+    }
+
+    func lookupCall(id: UUID) -> CallKitCall? {
+        return storage[id]
+    }
+
+    func callExists(handle: CallHandle) -> Bool {
+        return lookupCall(handle: handle) != nil
+    }
+
+    func lookupCall(handle: CallHandle) -> CallKitCall? {
+        return storage.values.first { $0.handle == handle }
     }
 
 }

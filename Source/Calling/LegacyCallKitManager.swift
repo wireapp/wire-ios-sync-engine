@@ -35,7 +35,6 @@ private struct CallKitCall {
 
 /// Represents the location of a call uniquely across accounts
 
-
 protocol CallKitManagerDelegate: AnyObject {
 
     /// Look a conversation where a call has or will take place
