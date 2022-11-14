@@ -21,8 +21,6 @@ import CallKit
 import Intents
 import avs
 
-private let identifierSeparator: Character = "+"
-
 // Represents a call managed by CallKit
 
 private struct CallKitCall {
@@ -37,19 +35,6 @@ private struct CallKitCall {
 
 /// Represents the location of a call uniquely across accounts
 
-struct CallHandle: Hashable {
-    let accountId: UUID
-    let conversationId: UUID
-
-    init?(customIdentifier value: String) {
-        let identifiers = value.split(separator: identifierSeparator).compactMap({ UUID(uuidString: String($0)) })
-
-        guard identifiers.count == 2 else { return nil }
-
-        self.accountId = identifiers[0]
-        self.conversationId = identifiers[1]
-    }
-}
 
 protocol CallKitManagerDelegate: AnyObject {
 
@@ -176,7 +161,7 @@ extension LegacyCallKitManager {
         guard contacts.count == 1,
               let contact = contacts.first,
               let customIdentifier = contact.personHandle?.value,
-              let callHandle = CallHandle(customIdentifier: customIdentifier)
+              let callHandle = CallHandle(encodedString: customIdentifier)
         else {
             return
         }
@@ -542,13 +527,20 @@ extension LegacyCallKitManager: WireCallCenterCallStateObserver, WireCallCenterM
 extension ZMConversation {
 
     var callKitHandle: CXHandle? {
-        if let managedObjectContext = managedObjectContext,
-           let userId = ZMUser.selfUser(in: managedObjectContext).remoteIdentifier,
-           let remoteIdentifier = remoteIdentifier {
-            return CXHandle(type: .generic, value: userId.transportString() + String(identifierSeparator) + remoteIdentifier.transportString())
+        guard
+            let context = managedObjectContext,
+            let userID = ZMUser.selfUser(in: context).remoteIdentifier,
+            let conversationID = remoteIdentifier
+        else {
+            return nil
         }
 
-        return nil
+        let callHandle = CallHandle(
+            accountID: userID,
+            conversationID: conversationID
+        )
+
+        return callHandle.cxHandle
     }
 
     func localizedCallerNameForOutgoingCall() -> String? {
