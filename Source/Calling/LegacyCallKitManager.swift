@@ -64,7 +64,7 @@ protocol CallKitManagerDelegate: AnyObject {
 }
 
 @objc
-public class LegacyCallKitManager: NSObject {
+public class LegacyCallKitManager: NSObject, CallKitManagerInterface {
 
     fileprivate let provider: CXProvider
     fileprivate let callController: CXCallController
@@ -214,27 +214,27 @@ extension LegacyCallKitManager {
 
 extension LegacyCallKitManager {
 
-    func requestMuteCall(in conversation: ZMConversation, muted: Bool) {
+    public func requestMuteCall(in conversation: ZMConversation, isMuted: Bool) {
         guard let existingCallUUID = callUUID(for: conversation) else { return }
 
-        let action = CXSetMutedCallAction(call: existingCallUUID, muted: muted)
+        let action = CXSetMutedCallAction(call: existingCallUUID, muted: isMuted)
 
         callController.request(CXTransaction(action: action)) { [weak self] (error) in
             if let error = error {
-                self?.log("Cannot update call to muted = \(muted): \(error)")
+                self?.log("Cannot update call to muted = \(isMuted): \(error)")
             }
         }
     }
 
-    func requestJoinCall(in conversation: ZMConversation, video: Bool) {
+    public func requestJoinCall(in conversation: ZMConversation, hasVideo: Bool) {
 
         let existingCallUUID = callUUID(for: conversation)
         let existingCall = callController.callObserver.calls.first(where: { $0.uuid == existingCallUUID })
 
         if let call = existingCall, !call.isOutgoing {
-            requestAnswerCall(in: conversation, video: video)
+            requestAnswerCall(in: conversation, video: hasVideo)
         } else {
-            requestStartCall(in: conversation, video: video)
+            requestStartCall(in: conversation, video: hasVideo)
         }
     }
 
@@ -285,7 +285,7 @@ extension LegacyCallKitManager {
         }
     }
 
-    func requestEndCall(in conversation: ZMConversation, completion: (() -> Void)? = nil) {
+    public func requestEndCall(in conversation: ZMConversation, completion: (() -> Void)? = nil) {
         guard let callUUID = callUUID(for: conversation) else { return }
 
         let action = CXEndCallAction(call: callUUID)

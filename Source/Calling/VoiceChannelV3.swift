@@ -182,7 +182,7 @@ extension VoiceChannelV3: CallActions {
 
     public func mute(_ muted: Bool, userSession: ZMUserSession) {
         if userSession.callNotificationStyle == .callKit {
-            userSession.callKitManager?.requestMuteCall(in: conversation!, muted: muted)
+            userSession.callKitManager?.requestMuteCall(in: conversation!, isMuted: muted)
         } else {
             self.muted = muted
         }
@@ -207,7 +207,7 @@ extension VoiceChannelV3: CallActions {
 
     public func join(video: Bool, userSession: ZMUserSession) -> Bool {
         if userSession.callNotificationStyle == .callKit {
-            userSession.callKitManager?.requestJoinCall(in: conversation!, video: video)
+            userSession.callKitManager?.requestJoinCall(in: conversation!, hasVideo: video)
             return true
         } else {
             return join(video: video)
