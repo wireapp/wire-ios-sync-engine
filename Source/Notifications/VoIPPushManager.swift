@@ -58,7 +58,7 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
     // MARK: - Properties
 
     let registry = PKPushRegistry(queue: nil)
-    public let callKitManager: CallKitManager
+    public let callKitManager: LegacyCallKitManager
     var buffer = Buffer()
 
     private let requiredPushTokenType: PushToken.TokenType
@@ -70,7 +70,7 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
     public init(requiredPushTokenType: PushToken.TokenType) {
         Logging.push.info("init PushManager")
         self.requiredPushTokenType = requiredPushTokenType
-        callKitManager = CallKitManager(mediaManager: AVSMediaManager.sharedInstance())
+        callKitManager = LegacyCallKitManager(mediaManager: AVSMediaManager.sharedInstance())
         super.init()
         registry.delegate = self
     }

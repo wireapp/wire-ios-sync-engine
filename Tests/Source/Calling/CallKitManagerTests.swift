@@ -169,7 +169,7 @@ class MockCallKitManagerDelegate: WireSyncEngine.CallKitManagerDelegate {
 }
 
 class CallKitManagerTest: DatabaseTest {
-    var sut: WireSyncEngine.CallKitManager!
+    var sut: WireSyncEngine.LegacyCallKitManager!
     var callKitProvider: MockCallKitProvider!
     var callKitController: MockCallKitCallController!
     var mockWireCallCenterV3: WireCallCenterV3Mock!
@@ -217,14 +217,14 @@ class CallKitManagerTest: DatabaseTest {
         selfUser.remoteIdentifier = UUID()
 
         let flowManager = FlowManagerMock()
-        let configuration = WireSyncEngine.CallKitManager.providerConfiguration
+        let configuration = WireSyncEngine.LegacyCallKitManager.providerConfiguration
         self.callKitProvider = MockCallKitProvider(configuration: configuration)
         self.callKitController = MockCallKitCallController()
         self.mockWireCallCenterV3 = WireCallCenterV3Mock(userId: selfUser.avsIdentifier, clientId: "123", uiMOC: uiMOC, flowManager: flowManager, transport: WireCallCenterTransportMock())
         self.mockCallKitManagerDelegate = MockCallKitManagerDelegate()
         self.mockTransportSession = MockTransportSession(dispatchGroup: dispatchGroup)
 
-        self.sut = WireSyncEngine.CallKitManager(provider: callKitProvider,
+        self.sut = WireSyncEngine.LegacyCallKitManager(provider: callKitProvider,
                                                  callController: callKitController,
                                                  delegate: mockCallKitManagerDelegate,
                                                  mediaManager: nil)
@@ -246,7 +246,7 @@ class CallKitManagerTest: DatabaseTest {
     // MARK: Provider configuration
     func testThatItReturnsTheProviderConfiguration() {
         // when
-        let configuration = WireSyncEngine.CallKitManager.providerConfiguration
+        let configuration = WireSyncEngine.LegacyCallKitManager.providerConfiguration
 
         // then
         XCTAssertEqual(configuration.supportsVideo, true)
@@ -256,7 +256,7 @@ class CallKitManagerTest: DatabaseTest {
 
     func testThatItReturnsDefaultRingSound() {
         // when
-        let configuration = WireSyncEngine.CallKitManager.providerConfiguration
+        let configuration = WireSyncEngine.LegacyCallKitManager.providerConfiguration
 
         // then
         XCTAssertEqual(configuration.ringtoneSound, "ringing_from_them_long.caf")
@@ -270,7 +270,7 @@ class CallKitManagerTest: DatabaseTest {
         // given
         UserDefaults.standard.setValue(customSoundName, forKey: "ZMCallSoundName")
         // when
-        let configuration = WireSyncEngine.CallKitManager.providerConfiguration
+        let configuration = WireSyncEngine.LegacyCallKitManager.providerConfiguration
 
         // then
         XCTAssertEqual(configuration.ringtoneSound, customSoundName + ".m4a")
@@ -278,7 +278,7 @@ class CallKitManagerTest: DatabaseTest {
 
     func testThatItInvalidatesTheProviderOnDeinit() {
         // given
-        sut = WireSyncEngine.CallKitManager(provider: callKitProvider,
+        sut = WireSyncEngine.LegacyCallKitManager(provider: callKitProvider,
                                             callController: callKitController,
                                             delegate: mockCallKitManagerDelegate,
                                             mediaManager: nil)

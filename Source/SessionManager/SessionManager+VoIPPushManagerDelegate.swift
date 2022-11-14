@@ -118,8 +118,8 @@ extension SessionManager: VoIPPushManagerDelegate {
         case callerNotFound
         case conversationNotFound
         case malformedPayloadData
-        case failedToReportIncomingCall(reason: CallKitManager.ReportIncomingCallError)
-        case failedToReportTerminatingCall(reason: CallKitManager.ReportTerminatingCallError)
+        case failedToReportIncomingCall(reason: LegacyCallKitManager.ReportIncomingCallError)
+        case failedToReportTerminatingCall(reason: LegacyCallKitManager.ReportTerminatingCallError)
 
         var safeForLoggingDescription: String {
             switch self {

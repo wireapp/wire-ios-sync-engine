@@ -64,7 +64,7 @@ protocol CallKitManagerDelegate: AnyObject {
 }
 
 @objc
-public class CallKitManager: NSObject {
+public class LegacyCallKitManager: NSObject {
 
     fileprivate let provider: CXProvider
     fileprivate let callController: CXCallController
@@ -83,7 +83,7 @@ public class CallKitManager: NSObject {
     }
 
     convenience init(delegate: CallKitManagerDelegate, mediaManager: MediaManagerType?) {
-        self.init(provider: CXProvider(configuration: CallKitManager.providerConfiguration),
+        self.init(provider: CXProvider(configuration: LegacyCallKitManager.providerConfiguration),
                   callController: CXCallController(queue: DispatchQueue.main),
                   delegate: delegate,
                   mediaManager: mediaManager)
@@ -113,7 +113,7 @@ public class CallKitManager: NSObject {
     }
 
     public func updateConfiguration() {
-        provider.configuration = CallKitManager.providerConfiguration
+        provider.configuration = LegacyCallKitManager.providerConfiguration
     }
 
     internal static var providerConfiguration: CXProviderConfiguration {
@@ -156,7 +156,7 @@ public class CallKitManager: NSObject {
 
 }
 
-extension CallKitManager {
+extension LegacyCallKitManager {
 
     func findConversationAssociated(with contacts: [INPerson], completion: @escaping (ZMConversation) -> Void) {
 
@@ -199,7 +199,7 @@ extension CallKitManager {
     }
 }
 
-extension CallKitManager {
+extension LegacyCallKitManager {
 
     func requestMuteCall(in conversation: ZMConversation, muted: Bool) {
         guard let existingCallUUID = callUUID(for: conversation) else { return }
@@ -382,7 +382,7 @@ fileprivate extension Date {
     }
 }
 
-extension CallKitManager: CXProviderDelegate {
+extension LegacyCallKitManager: CXProviderDelegate {
 
     public func providerDidBegin(_ provider: CXProvider) {
         log("providerDidBegin: \(provider)")
@@ -500,7 +500,7 @@ extension CallKitManager: CXProviderDelegate {
     }
 }
 
-extension CallKitManager: WireCallCenterCallStateObserver, WireCallCenterMissedCallObserver {
+extension LegacyCallKitManager: WireCallCenterCallStateObserver, WireCallCenterMissedCallObserver {
 
     public func callCenterDidChange(callState: CallState, conversation: ZMConversation, caller: UserType, timestamp: Date?, previousCallState: CallState?) {
         switch callState {
@@ -631,7 +631,7 @@ class CallObserver: WireCallCenterCallStateObserver {
 
 // MARK: - Errors
 
-extension CallKitManager {
+extension LegacyCallKitManager {
 
     /// Errors describing why an incoming call could not be reported.
 

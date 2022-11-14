@@ -72,7 +72,7 @@ public protocol SessionManagerType: AnyObject {
 
     weak var foregroundNotificationResponder: ForegroundNotificationResponder? { get }
 
-    var callKitManager: CallKitManager { get }
+    var callKitManager: LegacyCallKitManager { get }
     var callNotificationStyle: CallNotificationStyle { get }
 
     func updateAppIconBadge(accountID: UUID, unreadCount: Int)
@@ -268,7 +268,7 @@ public final class SessionManager: NSObject, SessionManagerType {
     fileprivate var memoryWarningObserver: NSObjectProtocol?
     fileprivate var isSelectingAccount: Bool = false
 
-    public let callKitManager: CallKitManager
+    public let callKitManager: LegacyCallKitManager
 
     public var isSelectedAccountAuthenticated: Bool {
         guard let selectedAccount = accountManager.selectedAccount else {
@@ -303,7 +303,7 @@ public final class SessionManager: NSObject, SessionManagerType {
         configuration: SessionManagerConfiguration = SessionManagerConfiguration(),
         detector: JailbreakDetectorProtocol = JailbreakDetector(),
         requiredPushTokenType: PushToken.TokenType,
-        callKitManager: CallKitManager
+        callKitManager: LegacyCallKitManager
     ) {
         let flowManager = FlowManager(mediaManager: mediaManager)
         let reachability = environment.reachability
@@ -391,7 +391,7 @@ public final class SessionManager: NSObject, SessionManagerType {
          configuration: SessionManagerConfiguration = SessionManagerConfiguration(),
          detector: JailbreakDetectorProtocol = JailbreakDetector(),
          requiredPushTokenType: PushToken.TokenType,
-         callKitManager: CallKitManager
+         callKitManager: LegacyCallKitManager
     ) {
         SessionManager.enableLogsByEnvironmentVariable()
         self.environment = environment

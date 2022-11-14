@@ -25,7 +25,7 @@ class MockSessionManager: NSObject, WireSyncEngine.SessionManagerType {
     static let accountManagerURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("MockSessionManager.accounts")
 
     var foregroundNotificationResponder: ForegroundNotificationResponder?
-    var callKitManager: WireSyncEngine.CallKitManager?
+    var callKitManager: WireSyncEngine.LegacyCallKitManager?
     var callNotificationStyle: CallNotificationStyle = .pushNotifications
     var accountManager: AccountManager = AccountManager(sharedDirectory: accountManagerURL)
     var backgroundUserSessions: [UUID: ZMUserSession] = [:]
