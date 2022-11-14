@@ -178,28 +178,30 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
         completion: @escaping () -> Void
     ) {
         Logging.push.info("reporting call to CallKit")
-        let handle = CallHandle(
-            accountID: payload.accountID,
-            conversationID: payload.conversationID
-        )
 
-        // Report the call immediately to fulfill API obligations,
-        // otherwise the app will be killed. See <link>.
-        callKitManager.reportCall(handle: handle)
-
-        if let delegate = delegate {
-            Logging.push.info("fowarding to delegate")
-            delegate.processIncomingFakeVoIPPush(
-                payload: payload,
-                completion: completion
-            )
-        } else {
-            Logging.push.info("buffering")
-            buffer.pendingActions.append(.processIncomingFakeVoIPPush(
-                payload: payload,
-                completion: completion
-            ))
-        }
+        // TODO: [John] Rennable with new call kit manager.
+//        let handle = CallHandle(
+//            accountID: payload.accountID,
+//            conversationID: payload.conversationID
+//        )
+//
+//        // Report the call immediately to fulfill API obligations,
+//        // otherwise the app will be killed. See <link>.
+//        callKitManager.reportCall(handle: handle)
+//
+//        if let delegate = delegate {
+//            Logging.push.info("fowarding to delegate")
+//            delegate.processIncomingFakeVoIPPush(
+//                payload: payload,
+//                completion: completion
+//            )
+//        } else {
+//            Logging.push.info("buffering")
+//            buffer.pendingActions.append(.processIncomingFakeVoIPPush(
+//                payload: payload,
+//                completion: completion
+//            ))
+//        }
     }
 
     private func processRealPush(

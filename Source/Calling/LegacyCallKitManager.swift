@@ -82,18 +82,31 @@ public class LegacyCallKitManager: NSObject {
         }
     }
 
-    convenience init(delegate: CallKitManagerDelegate, mediaManager: MediaManagerType?) {
-        self.init(provider: CXProvider(configuration: LegacyCallKitManager.providerConfiguration),
-                  callController: CXCallController(queue: DispatchQueue.main),
-                  delegate: delegate,
-                  mediaManager: mediaManager)
+    convenience init(mediaManager: MediaManagerType?) {
+        self.init(
+            delegate: nil,
+            mediaManager: mediaManager
+        )
     }
 
-    init(provider: CXProvider,
-         callController: CXCallController,
-         delegate: CallKitManagerDelegate,
-         mediaManager: MediaManagerType?) {
+    convenience init(
+        delegate: CallKitManagerDelegate?,
+        mediaManager: MediaManagerType?
+    ) {
+        self.init(
+            provider: CXProvider(configuration: LegacyCallKitManager.providerConfiguration),
+            callController: CXCallController(queue: DispatchQueue.main),
+            delegate: delegate,
+            mediaManager: mediaManager
+        )
+    }
 
+    init(
+        provider: CXProvider,
+        callController: CXCallController,
+        delegate: CallKitManagerDelegate? ,
+        mediaManager: MediaManagerType?
+    ) {
         self.provider = provider
         self.callController = callController
         self.delegate = delegate
