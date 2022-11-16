@@ -430,7 +430,7 @@ public class CallKitManager: NSObject {
         in conversation: ZMConversation,
         atTime timestamp: Date?,
         reason: CXCallEndedReason
-    ) throws {
+    ) {
         let associatedCallUUIDs = calls
             .filter { $0.value.conversation == conversation }
             .keys
@@ -566,25 +566,50 @@ extension CallKitManager: CXProviderDelegate {
 
 extension CallKitManager: WireCallCenterCallStateObserver, WireCallCenterMissedCallObserver {
 
-    public func callCenterDidChange(callState: CallState, conversation: ZMConversation, caller: UserType, timestamp: Date?, previousCallState: CallState?) {
+    public func callCenterDidChange(
+        callState: CallState,
+        conversation: ZMConversation,
+        caller: UserType,
+        timestamp: Date?,
+        previousCallState: CallState?
+    ) {
         switch callState {
-        case .incoming(video: let hasVideo, shouldRing: let shouldRing, degraded: _):
-            if shouldRing, let caller = caller as? ZMUser {
-                if conversation.mutedMessageTypesIncludingAvailability == .none {
-                    reportIncomingCall(from: caller, in: conversation, hasVideo: hasVideo)
+        case .incoming(let hasVideo, let shouldRing, degraded: _):
+            if shouldRing {
+                guard
+                    let caller = caller as? ZMUser,
+                    conversation.mutedMessageTypesIncludingAvailability == .none
+                else {
+                    // TODO: log
+                    return
                 }
-                // TODO: what happens if the conversation is muted? Maybe if there is an existing call, we report it as ended.
+
+                reportIncomingCall(
+                    from: caller,
+                    in: conversation,
+                    hasVideo: hasVideo
+                )
+
             } else {
-                try? reportCallEnded(in: conversation, atTime: timestamp, reason: .unanswered)
+                reportCallEnded(
+                    in: conversation,
+                    atTime: timestamp,
+                    reason: .unanswered
+                )
             }
 
-        case let .terminating(reason: reason):
-            try? reportCallEnded(in: conversation, atTime: timestamp, reason: reason.CXCallEndedReason)
+        case .terminating(let reason):
+            reportCallEnded(
+                in: conversation,
+                atTime: timestamp,
+                reason: reason.CXCallEndedReason
+            )
 
         default:
             break
         }
     }
+
 
     public func callCenterMissedCall(conversation: ZMConversation, caller: UserType, timestamp: Date, video: Bool) {
         // Since we missed the call we will not have an assigned callUUID and can just create a random one
@@ -592,9 +617,6 @@ extension CallKitManager: WireCallCenterCallStateObserver, WireCallCenterMissedC
     }
 
 }
-
-
-
 
 class CallObserver: WireCallCenterCallStateObserver {
 
