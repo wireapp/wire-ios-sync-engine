@@ -156,56 +156,57 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
         // We're only interested in voIP tokens.
         guard type == .voIP else { return completion() }
 
-        if let nsePayload = payload.nsePayload {
-            // TODO: this should only happen if the require push type is standard... guard this?
-            Logging.push.info("did receive incoming fake voIP push")
-            processFakePush(
-                payload: nsePayload,
+        Logging.push.info("did receive incoming push")
+
+        switch requiredPushTokenType {
+        case .standard:
+            processNSEPush(
+                payload: payload.dictionaryPayload,
                 completion: completion
             )
-        } else {
-            // TODO: this should only happen if the require push type is voip... guard this?
-            Logging.push.info("did receive incoming real voIP push")
-            processRealPush(
+
+        case .voip:
+            processVoIPPush(
                 payload: payload.dictionaryPayload,
                 completion: completion
             )
         }
     }
 
-    private func processFakePush(
-        payload: VoIPPushPayload,
-        completion: @escaping () -> Void
-    ) {
-        Logging.push.info("reporting call to CallKit")
-        let handle = CallHandle(
-            accountID: payload.accountID,
-            conversationID: payload.conversationID
-        )
-
-        // Report the call immediately to fulfill API obligations,
-        // otherwise the app will be killed. See <link>.
-        callKitManager.reportCall(handle: handle)
-
-        if let delegate = delegate {
-            Logging.push.info("fowarding to delegate")
-            delegate.processIncomingFakeVoIPPush(
-                payload: payload,
-                completion: completion
-            )
-        } else {
-            Logging.push.info("buffering")
-            buffer.pendingActions.append(.processIncomingFakeVoIPPush(
-                payload: payload,
-                completion: completion
-            ))
-        }
-    }
-
-    private func processRealPush(
+    private func processNSEPush(
         payload: [AnyHashable: Any],
         completion: @escaping () -> Void
     ) {
+        Logging.push.info("processing NSE push")
+
+        guard
+            let accountID = payload["accountID"] as? UUID,
+            let conversationID = payload["conversationID"] as? UUID,
+            let shouldRing = payload["shouldRing"] as? Bool
+        else {
+            Logging.push.info("error: processing NSE push: invalid payload")
+        }
+
+        let handle = CallHandle(
+            accountID: accountID,
+            conversationID: conversationID
+        )
+
+        // Report the call immediately to fulfill API obligations, otherwise the app will be killed.
+        // See https://developer.apple.com/documentation/callkit/sending_end-to-end_encrypted_voip_calls
+        if shouldRing {
+            // TODO: report new incoming call.
+        } else {
+            // TODO: report call end
+        }
+    }
+
+    private func processVoIPPush(
+        payload: [AnyHashable: Any],
+        completion: @escaping () -> Void
+    ) {
+        Logging.push.info("processing VoIP push")
+
         if let delegate = delegate {
             Logging.push.info("fowarding to delegate")
             delegate.processIncomingRealVoIPPush(
@@ -220,18 +221,4 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
             ))
         }
     }
-}
-
-// TODO: [John] remove this duplication
-
-private extension PKPushPayload {
-
-    var nsePayload: VoIPPushPayload? {
-        guard let dict = dictionaryPayload as? [String: Any] else {
-            return nil
-        }
-
-        return VoIPPushPayload(from: dict)
-    }
-
 }
