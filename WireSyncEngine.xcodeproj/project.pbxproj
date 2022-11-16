@@ -518,6 +518,7 @@
 		EE1DEBC423D5F1970087EE1F /* Conversation+TypingUsers.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE1DEBC223D5F1920087EE1F /* Conversation+TypingUsers.swift */; };
 		EE1DEBC723D5F1F30087EE1F /* NSManagedObjectContext+TypingUsers.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE1DEBC523D5F1D00087EE1F /* NSManagedObjectContext+TypingUsers.swift */; };
 		EE2DE5E229250C1A00F42F4C /* CallHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2DE5E129250C1A00F42F4C /* CallHandle.swift */; };
+		EE2DE5E429250CC400F42F4C /* CallKitCall.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2DE5E329250CC400F42F4C /* CallKitCall.swift */; };
 		EE2DF75A2875DB1C0028ECA2 /* XCTestCase+APIVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2DF7592875DB1C0028ECA2 /* XCTestCase+APIVersion.swift */; };
 		EE2DF75B2875DB1C0028ECA2 /* XCTestCase+APIVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2DF7592875DB1C0028ECA2 /* XCTestCase+APIVersion.swift */; };
 		EE38DDEE280437E500D4983D /* BlacklistReason.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE38DDED280437E500D4983D /* BlacklistReason.swift */; };
@@ -1197,6 +1198,7 @@
 		EE1DEBC223D5F1920087EE1F /* Conversation+TypingUsers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Conversation+TypingUsers.swift"; sourceTree = "<group>"; };
 		EE1DEBC523D5F1D00087EE1F /* NSManagedObjectContext+TypingUsers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSManagedObjectContext+TypingUsers.swift"; sourceTree = "<group>"; };
 		EE2DE5E129250C1A00F42F4C /* CallHandle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallHandle.swift; sourceTree = "<group>"; };
+		EE2DE5E329250CC400F42F4C /* CallKitCall.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallKitCall.swift; sourceTree = "<group>"; };
 		EE2DF7592875DB1C0028ECA2 /* XCTestCase+APIVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "XCTestCase+APIVersion.swift"; sourceTree = "<group>"; };
 		EE38DDED280437E500D4983D /* BlacklistReason.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BlacklistReason.swift; sourceTree = "<group>"; };
 		EE419B57256FEA3D004618E2 /* ZMUserSession.Configuration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZMUserSession.Configuration.swift; sourceTree = "<group>"; };
@@ -1626,6 +1628,7 @@
 			isa = PBXGroup;
 			children = (
 				16A764601F3E0B0B00564F21 /* CallKitManager.swift */,
+				EE2DE5E329250CC400F42F4C /* CallKitCall.swift */,
 				EE2DE5E129250C1A00F42F4C /* CallHandle.swift */,
 				0625690E264AE6560041C17B /* CallClosedReason.swift */,
 				63B1FAD72763A4E7000766F8 /* AVSIdentifier */,
@@ -3309,6 +3312,7 @@
 				166A8BF31E015F3B00F5EEEA /* WireCallCenterV3Factory.swift in Sources */,
 				16519D38231D3B1700C9D76D /* Conversation+Deletion.swift in Sources */,
 				F1C1F3F01FCF18C5007273E3 /* NSError+Localized.swift in Sources */,
+				EE2DE5E429250CC400F42F4C /* CallKitCall.swift in Sources */,
 				5467F1C61E0AE421008C1745 /* KeyValueStore+AccessToken.swift in Sources */,
 				639290A7252DEDB500046171 /* WireCallCenterV3+Degradation.swift in Sources */,
 				8754B84A1F73C25400EC02AD /* ConversationListChangeInfo+UserSession.swift in Sources */,

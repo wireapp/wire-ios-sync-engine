@@ -21,24 +21,8 @@ import CallKit
 import Intents
 import avs
 
-// Represents a call managed by CallKit.
 
-private struct CallKitCall {
 
-    let handle: CallHandle
-    let conversation: ZMConversation?
-    let observer: CallObserver?
-
-    init(
-        handle: CallHandle,
-        conversation: ZMConversation? = nil
-    ) {
-        self.handle = handle
-        self.conversation = conversation
-        self.observer = conversation.map(CallObserver.init)
-    }
-
-}
 
 protocol CallKitManagerDelegate: AnyObject {
 
