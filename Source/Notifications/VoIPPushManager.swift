@@ -185,6 +185,7 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
             let shouldRing = payload["shouldRing"] as? Bool
         else {
             Logging.push.info("error: processing NSE push: invalid payload")
+            return
         }
 
         let handle = CallHandle(
