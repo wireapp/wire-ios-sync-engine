@@ -50,14 +50,8 @@ public class CallKitManager: NSObject {
 
     private var connectedCallConversation: ZMConversation?
 
-    fileprivate var calls: [UUID: CallKitCall] {
-        didSet {
-            // TODO: [John] this should probably be handles, not conversations?
-            VoIPPushHelper.setOngoingCalls(
-                conversationIDs: calls.values.compactMap { $0.conversation?.remoteIdentifier }
-            )
-        }
-    }
+    private let callRegister = CallKitCallRegister()
+    fileprivate var calls: [UUID: CallKitCall]
 
     // MARK: - Life cycle
 
@@ -257,6 +251,7 @@ public class CallKitManager: NSObject {
         let callUUID = UUID()
 
         calls[callUUID] = CallKitCall(
+            id: callUUID,
             handle: handle,
             conversation: conversation
         )
@@ -321,7 +316,7 @@ public class CallKitManager: NSObject {
         update.remoteHandle = handle.cxHandle
 
         let callID = UUID()
-        calls[callID] = CallKitCall(handle: handle)
+        calls[callID] = CallKitCall(id: callID, handle: handle)
 
         provider.reportNewIncomingCall(with: callID, update: update) { [weak self] error in
             if let error = error {
@@ -365,6 +360,7 @@ public class CallKitManager: NSObject {
         update.hasVideo = hasVideo
 
         calls[callID] = CallKitCall(
+            id: callID,
             handle: handle,
             conversation: conversation
         )
@@ -408,6 +404,7 @@ public class CallKitManager: NSObject {
 
         let callUUID = UUID()
         calls[callUUID] = CallKitCall(
+            id: callUUID,
             handle: handle,
             conversation: conversation
         )
