@@ -118,8 +118,6 @@ extension SessionManager: VoIPPushManagerDelegate {
         case callerNotFound
         case conversationNotFound
         case malformedPayloadData
-        case failedToReportIncomingCall(reason: CallKitManager.ReportIncomingCallError)
-        case failedToReportTerminatingCall(reason: CallKitManager.ReportTerminatingCallError)
 
         var safeForLoggingDescription: String {
             switch self {
@@ -143,12 +141,6 @@ extension SessionManager: VoIPPushManagerDelegate {
 
             case .malformedPayloadData:
                 return "Malformed payload data"
-
-            case .failedToReportIncomingCall(let reason):
-                return reason.safeForLoggingDescription
-
-            case .failedToReportTerminatingCall(let reason):
-                return reason.safeForLoggingDescription
             }
         }
 
