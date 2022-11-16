@@ -310,6 +310,56 @@ public class CallKitManager: NSObject {
 
     // MARK: - Reporting calls
 
+    func reportIncomingCallPreemptively(
+        handle: CallHandle,
+        callerName: String,
+        hasVideo: Bool
+    ) {
+        guard !callRegister.callExists(handle: handle) else {
+            // TODO: critical log
+            return
+        }
+
+        let call = callRegister.registerNewCall(with: handle)
+
+        let update = CXCallUpdate()
+        update.localizedCallerName = callerName
+        update.remoteHandle = handle.cxHandle
+        update.hasVideo = hasVideo
+        update.supportsHolding = false
+        update.supportsDTMF = false
+        update.supportsGrouping = false
+        update.supportsUngrouping = false
+
+        provider.reportNewIncomingCall(
+            with: call.id,
+            update: update
+        ) { [weak self] error in
+            if let error = error {
+                self?.log("Cannot preemptively report incoming call: \(error)")
+                self?.callRegister.unregisterCall(call)
+            }
+        }
+    }
+
+    func reportCallEndedPreemptively(
+        handle: CallHandle,
+        reason: CXCallEndedReason
+    ) {
+        guard let call = callRegister.lookupCall(handle: handle) else {
+            // TODO: critical log
+            return
+        }
+
+        provider.reportCall(
+            with: call.id,
+            endedAt: nil,
+            reason: reason
+        )
+
+        callRegister.unregisterCall(call)
+    }
+
     func reportCall(handle: CallHandle) {
         let update = CXCallUpdate()
         update.localizedCallerName = "Wire"
