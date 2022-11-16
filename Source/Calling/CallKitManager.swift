@@ -22,8 +22,6 @@ import Intents
 import avs
 
 
-
-
 protocol CallKitManagerDelegate: AnyObject {
 
     /// Look a conversation where a call has or will take place
@@ -39,13 +37,18 @@ protocol CallKitManagerDelegate: AnyObject {
 @objc
 public class CallKitManager: NSObject {
 
-    fileprivate let provider: CXProvider
-    fileprivate let callController: CXCallController
-    fileprivate weak var delegate: CallKitManagerDelegate?
-    fileprivate weak var mediaManager: MediaManagerType?
-    fileprivate var callStateObserverToken: Any?
-    fileprivate var missedCallObserverToken: Any?
-    fileprivate var connectedCallConversation: ZMConversation?
+    // MARK: - Properties
+
+    private let provider: CXProvider
+    private let callController: CXCallController
+    private weak var mediaManager: MediaManagerType?
+
+    private weak var delegate: CallKitManagerDelegate?
+
+    private var callStateObserverToken: Any?
+    private var missedCallObserverToken: Any?
+
+    private var connectedCallConversation: ZMConversation?
 
     fileprivate var calls: [UUID: CallKitCall] {
         didSet {
@@ -55,6 +58,8 @@ public class CallKitManager: NSObject {
             )
         }
     }
+
+    // MARK: - Life cycle
 
     public convenience init(mediaManager: MediaManagerType) {
         self.init(
@@ -99,12 +104,13 @@ public class CallKitManager: NSObject {
         provider.invalidate()
     }
 
+    // MARK: - Configuration
+
     public func updateConfiguration() {
         provider.configuration = CallKitManager.providerConfiguration
     }
 
-    internal static var providerConfiguration: CXProviderConfiguration {
-
+    static var providerConfiguration: CXProviderConfiguration {
         let localizedName = Bundle.main.infoDictionary?["CFBundleName"] as? String ?? "Wire"
         let configuration = CXProviderConfiguration(localizedName: localizedName)
 
@@ -121,19 +127,26 @@ public class CallKitManager: NSObject {
         return configuration
     }
 
-    fileprivate func log(_ message: String, file: String = #file, line: Int = #line) {
-        let messageWithLineNumber = String(format: "%@:%ld: %@", URL(fileURLWithPath: file).lastPathComponent, line, message)
+    // MARK: - Logging
+
+    private func log(
+        _ message: String,
+        file: String = #file,
+        line: Int = #line
+    ) {
+        let messageWithLineNumber = String(
+            format: "%@:%ld: %@",
+            URL(fileURLWithPath: file).lastPathComponent,
+            line,
+            message
+        )
+
         SessionManager.logAVS(message: messageWithLineNumber)
     }
 
-    fileprivate func actionsToEndAllOngoingCalls(exceptIn conversation: ZMConversation) -> [CXAction] {
-        return calls
-            .lazy
-            .filter { $0.value.conversation != conversation }
-            .map { CXEndCallAction(call: $0.key) }
-    }
+    // MARK: - Call lookup
 
-    internal func callUUID(for conversation: ZMConversation) -> UUID? {
+    func callUUID(for conversation: ZMConversation) -> UUID? {
         return calls.first(where: { $0.value.conversation == conversation })?.key
     }
 
@@ -155,9 +168,16 @@ public class CallKitManager: NSObject {
         return callID(for: handle) != nil
     }
 
-}
+    // MARK: - Actions
 
-extension CallKitManager {
+    private func actionsToEndAllOngoingCalls(exceptIn conversation: ZMConversation) -> [CXAction] {
+        return calls
+            .lazy
+            .filter { $0.value.conversation != conversation }
+            .map { CXEndCallAction(call: $0.key) }
+    }
+
+    // MARK: - Intents
 
     func findConversationAssociated(with contacts: [INPerson], completion: @escaping (ZMConversation) -> Void) {
 
@@ -198,9 +218,8 @@ extension CallKitManager {
 
         return false
     }
-}
 
-extension CallKitManager {
+    // MARK: - Requesting actions
 
     func requestMuteCall(in conversation: ZMConversation, muted: Bool) {
         guard let existingCallUUID = callUUID(for: conversation) else { return }
@@ -293,6 +312,8 @@ extension CallKitManager {
             completion?()
         }
     }
+
+    // MARK: - Reporting calls
 
     func reportCall(handle: CallHandle) {
         let update = CXCallUpdate()
@@ -431,23 +452,7 @@ extension CallKitManager {
 
 }
 
-fileprivate extension Date {
-    func clampForCallKit() -> Date {
-        let twoWeeksBefore = Calendar.current.date(byAdding: .day, value: -14, to: Date()) ?? Date()
-
-        return clamp(between: twoWeeksBefore, and: Date())
-    }
-
-    func clamp(between fromDate: Date, and toDate: Date) -> Date {
-        if timeIntervalSinceReferenceDate < fromDate.timeIntervalSinceReferenceDate {
-            return fromDate
-        } else if timeIntervalSinceReferenceDate > toDate.timeIntervalSinceReferenceDate {
-            return toDate
-        } else {
-            return self
-        }
-    }
-}
+// MARK: - Provider delegate
 
 extension CallKitManager: CXProviderDelegate {
 
@@ -565,6 +570,8 @@ extension CallKitManager: CXProviderDelegate {
     }
 }
 
+// MARK: - Callstate observer
+
 extension CallKitManager: WireCallCenterCallStateObserver, WireCallCenterMissedCallObserver {
 
     public func callCenterDidChange(callState: CallState, conversation: ZMConversation, caller: UserType, timestamp: Date?, previousCallState: CallState?) {
@@ -594,6 +601,103 @@ extension CallKitManager: WireCallCenterCallStateObserver, WireCallCenterMissedC
         provider.reportCall(with: UUID(), endedAt: timestamp, reason: .unanswered)
     }
 
+}
+
+
+
+
+class CallObserver: WireCallCenterCallStateObserver {
+
+    private var token: Any?
+
+    public var onAnswered : (() -> Void)?
+    public var onEstablished : (() -> Void)?
+    public var onFailedToJoin : (() -> Void)?
+
+    public init(conversation: ZMConversation) {
+        token = WireCallCenterV3.addCallStateObserver(observer: self, for: conversation, context: conversation.managedObjectContext!)
+    }
+
+    public func callCenterDidChange(callState: CallState, conversation: ZMConversation, caller: UserType, timestamp: Date?, previousCallState: CallState?) {
+        switch callState {
+        case .answered(degraded: false):
+            onAnswered?()
+        case .establishedDataChannel, .established:
+            onEstablished?()
+        case .terminating(reason: let reason):
+            switch reason {
+            case .inputOutputError, .internalError, .unknown, .lostMedia, .anweredElsewhere:
+                onFailedToJoin?()
+            default:
+                break
+            }
+        default:
+            break
+        }
+    }
+
+}
+
+// MARK: - Errors
+
+extension CallKitManager {
+
+    /// Errors describing why an incoming call could not be reported.
+
+    enum ReportIncomingCallError: Error, SafeForLoggingStringConvertible {
+
+        case callAlreadyExists
+        case noCallKitHandle
+        case conversationNotSynced
+
+        var safeForLoggingDescription: String {
+            switch self {
+            case .callAlreadyExists:
+                return "The call already exists. Perhaps it has already been reported."
+
+            case .noCallKitHandle:
+                return "No CallKit handle could be created for the conversation."
+
+            case .conversationNotSynced:
+                return "The conversation needs to be synced with the backend."
+            }
+        }
+
+    }
+
+    enum ReportTerminatingCallError: Error, SafeForLoggingStringConvertible {
+
+        case callNotFound
+
+        var safeForLoggingDescription: String {
+            switch self {
+            case .callNotFound:
+                return "The call could not be found. Perhaps it has not yet been reported."
+            }
+        }
+
+    }
+
+}
+
+// MARK: - Helpers
+
+private extension Date {
+
+    func clampForCallKit() -> Date {
+        let twoWeeksBefore = Calendar.current.date(byAdding: .day, value: -14, to: Date()) ?? Date()
+        return clamp(between: twoWeeksBefore, and: Date())
+    }
+
+    func clamp(between fromDate: Date, and toDate: Date) -> Date {
+        if timeIntervalSinceReferenceDate < fromDate.timeIntervalSinceReferenceDate {
+            return fromDate
+        } else if timeIntervalSinceReferenceDate > toDate.timeIntervalSinceReferenceDate {
+            return toDate
+        } else {
+            return self
+        }
+    }
 }
 
 extension ZMConversation {
@@ -672,80 +776,6 @@ extension CallClosedReason {
         default:
             return .failed
         }
-    }
-
-}
-
-class CallObserver: WireCallCenterCallStateObserver {
-
-    private var token: Any?
-
-    public var onAnswered : (() -> Void)?
-    public var onEstablished : (() -> Void)?
-    public var onFailedToJoin : (() -> Void)?
-
-    public init(conversation: ZMConversation) {
-        token = WireCallCenterV3.addCallStateObserver(observer: self, for: conversation, context: conversation.managedObjectContext!)
-    }
-
-    public func callCenterDidChange(callState: CallState, conversation: ZMConversation, caller: UserType, timestamp: Date?, previousCallState: CallState?) {
-        switch callState {
-        case .answered(degraded: false):
-            onAnswered?()
-        case .establishedDataChannel, .established:
-            onEstablished?()
-        case .terminating(reason: let reason):
-            switch reason {
-            case .inputOutputError, .internalError, .unknown, .lostMedia, .anweredElsewhere:
-                onFailedToJoin?()
-            default:
-                break
-            }
-        default:
-            break
-        }
-    }
-
-}
-
-// MARK: - Errors
-
-extension CallKitManager {
-
-    /// Errors describing why an incoming call could not be reported.
-
-    enum ReportIncomingCallError: Error, SafeForLoggingStringConvertible {
-
-        case callAlreadyExists
-        case noCallKitHandle
-        case conversationNotSynced
-
-        var safeForLoggingDescription: String {
-            switch self {
-            case .callAlreadyExists:
-                return "The call already exists. Perhaps it has already been reported."
-
-            case .noCallKitHandle:
-                return "No CallKit handle could be created for the conversation."
-
-            case .conversationNotSynced:
-                return "The conversation needs to be synced with the backend."
-            }
-        }
-
-    }
-
-    enum ReportTerminatingCallError: Error, SafeForLoggingStringConvertible {
-
-        case callNotFound
-
-        var safeForLoggingDescription: String {
-            switch self {
-            case .callNotFound:
-                return "The call could not be found. Perhaps it has not yet been reported."
-            }
-        }
-
     }
 
 }
