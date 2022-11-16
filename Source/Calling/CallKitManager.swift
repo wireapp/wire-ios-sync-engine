@@ -40,48 +40,6 @@ private struct CallKitCall {
 
 }
 
-/// Represents the location of a call uniquely across accounts.
-
-public struct CallHandle: Hashable {
-
-    let accountID: UUID
-    let conversationID: UUID
-
-    var encodedString: String {
-        return "\(accountID.uuidString)\(Self.identifierSeparator)\(conversationID.uuidString)"
-    }
-
-    var callKitHandle: CXHandle {
-        return CXHandle(type: .generic, value: encodedString)
-    }
-
-    private static let identifierSeparator: Character = "+"
-
-    init?(customIdentifier value: String) {
-        let identifiers = value.split(separator: Self.identifierSeparator)
-            .map(String.init)
-            .compactMap(UUID.init)
-
-        guard identifiers.count == 2 else {
-            return nil
-        }
-
-        self.init(
-            accountID: identifiers[0],
-            conversationID: identifiers[1]
-        )
-    }
-
-    public init(
-        accountID: UUID,
-        conversationID: UUID
-    ) {
-        self.accountID = accountID
-        self.conversationID = conversationID
-    }
-
-}
-
 protocol CallKitManagerDelegate: AnyObject {
 
     /// Look a conversation where a call has or will take place
@@ -222,7 +180,7 @@ extension CallKitManager {
         guard contacts.count == 1,
               let contact = contacts.first,
               let customIdentifier = contact.personHandle?.value,
-              let callHandle = CallHandle(customIdentifier: customIdentifier)
+              let callHandle = CallHandle(encodedString: customIdentifier)
         else {
             return
         }
@@ -300,7 +258,7 @@ extension CallKitManager {
             conversation: conversation
         )
 
-        let action = CXStartCallAction(call: callUUID, handle: handle.callKitHandle)
+        let action = CXStartCallAction(call: callUUID, handle: handle.cxHandle)
         action.isVideo = video
         action.contactIdentifier = conversation.localizedCallerName(with: ZMUser.selfUser(in: managedObjectContext))
 
@@ -352,10 +310,10 @@ extension CallKitManager {
         }
     }
 
-    public func reportCall(handle: CallHandle) {
+    func reportCall(handle: CallHandle) {
         let update = CXCallUpdate()
         update.localizedCallerName = "Wire"
-        update.remoteHandle = handle.callKitHandle
+        update.remoteHandle = handle.cxHandle
 
         let callID = UUID()
         calls[callID] = CallKitCall(handle: handle)
@@ -394,7 +352,7 @@ extension CallKitManager {
 
         let update = CXCallUpdate()
         update.localizedCallerName = conversation.localizedCallerName(with: user)
-        update.remoteHandle = handle.callKitHandle
+        update.remoteHandle = handle.cxHandle
         update.supportsHolding = false
         update.supportsDTMF = false
         update.supportsGrouping = false
@@ -440,7 +398,7 @@ extension CallKitManager {
         update.supportsGrouping = false
         update.supportsUngrouping = false
         update.localizedCallerName = conversation.localizedCallerName(with: user)
-        update.remoteHandle = handle.callKitHandle
+        update.remoteHandle = handle.cxHandle
         update.hasVideo = video
 
         let callUUID = UUID()
@@ -657,7 +615,7 @@ extension CallKitManager: WireCallCenterCallStateObserver, WireCallCenterMissedC
 extension ZMConversation {
 
     var callKitHandle: CXHandle? {
-        return callHandle?.callKitHandle
+        return callHandle?.cxHandle
     }
 
     var callHandle: CallHandle? {
