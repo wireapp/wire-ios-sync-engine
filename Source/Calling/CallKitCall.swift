@@ -22,18 +22,13 @@ struct CallKitCall {
 
     let id: UUID
     let handle: CallHandle
-    let conversation: ZMConversation?
-    let observer: CallObserver?
 
     init(
         id: UUID,
-        handle: CallHandle,
-        conversation: ZMConversation? = nil
+        handle: CallHandle
     ) {
         self.id = id
         self.handle = handle
-        self.conversation = conversation
-        self.observer = conversation.map(CallObserver.init)
     }
 
 }

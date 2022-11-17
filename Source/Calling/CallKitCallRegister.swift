@@ -53,20 +53,28 @@ class CallKitCallRegister {
 
     // MARK: - Lookup
 
-    func callExists(id: UUID) -> Bool {
-        return lookupCall(id: id) != nil
+    var allCalls: [CallKitCall] {
+        return Array(storage.values)
     }
 
-    func lookupCall(id: UUID) -> CallKitCall? {
+    func callExists(for id: UUID) -> Bool {
+        return lookupCall(by: id) != nil
+    }
+
+    func lookupCall(by id: UUID) -> CallKitCall? {
         return storage[id]
     }
 
-    func callExists(handle: CallHandle) -> Bool {
-        return lookupCall(handle: handle) != nil
+    func callExists(for handle: CallHandle) -> Bool {
+        return lookupCall(by: handle) != nil
     }
 
-    func lookupCall(handle: CallHandle) -> CallKitCall? {
-        return storage.values.first { $0.handle == handle }
+    func lookupCall(by handle: CallHandle) -> CallKitCall? {
+        return lookupCalls(by: handle).first
+    }
+
+    func lookupCalls(by handle: CallHandle) -> [CallKitCall] {
+        storage.values.filter { $0.handle == handle }
     }
 
 }

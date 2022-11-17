@@ -48,10 +48,8 @@ public class CallKitManager: NSObject {
     private var callStateObserverToken: Any?
     private var missedCallObserverToken: Any?
 
-    private var connectedCallConversation: ZMConversation?
-
     private let callRegister = CallKitCallRegister()
-    fileprivate var calls: [UUID: CallKitCall]
+    private var connectedCallConversation: ZMConversation?
 
     // MARK: - Life cycle
 
@@ -84,7 +82,6 @@ public class CallKitManager: NSObject {
         self.callController = callController
         self.mediaManager = mediaManager
         self.delegate = delegate
-        self.calls = [:]
 
         super.init()
 
@@ -138,37 +135,13 @@ public class CallKitManager: NSObject {
         SessionManager.logAVS(message: messageWithLineNumber)
     }
 
-    // MARK: - Call lookup
-
-    func callUUID(for conversation: ZMConversation) -> UUID? {
-        return calls.first(where: { $0.value.conversation == conversation })?.key
-    }
-
-    private func callID(for handle: CallHandle) -> UUID? {
-        return calls.first { $0.value.handle == handle }?.key
-    }
-
-    private func callExists(for conversation: ZMConversation) -> Bool {
-        if callUUID(for: conversation) != nil {
-            return true
-        } else if let handle = conversation.callHandle {
-            return callExists(for: handle)
-        } else {
-            return false
-        }
-    }
-
-    private func callExists(for handle: CallHandle) -> Bool {
-        return callID(for: handle) != nil
-    }
-
     // MARK: - Actions
 
-    private func actionsToEndAllOngoingCalls(exceptIn conversation: ZMConversation) -> [CXAction] {
-        return calls
+    private func actionsToEndAllOngoingCalls(excepting handle: CallHandle) -> [CXAction] {
+        return callRegister.allCalls
             .lazy
-            .filter { $0.value.conversation != conversation }
-            .map { CXEndCallAction(call: $0.key) }
+            .filter { $0.handle != handle }
+            .map { CXEndCallAction(call: $0.id) }
     }
 
     // MARK: - Intents
@@ -215,76 +188,91 @@ public class CallKitManager: NSObject {
 
     // MARK: - Requesting actions
 
-    func requestMuteCall(in conversation: ZMConversation, muted: Bool) {
-        guard let existingCallUUID = callUUID(for: conversation) else { return }
+    func requestMuteCall(
+        in conversation: ZMConversation,
+        muted: Bool
+    ) {
+        guard let call = callRegister.lookupCall(by: conversation) else {
+            return
+        }
 
-        let action = CXSetMutedCallAction(call: existingCallUUID, muted: muted)
+        let action = CXSetMutedCallAction(
+            call: call.id,
+            muted: muted
+        )
 
-        callController.request(CXTransaction(action: action)) { [weak self] (error) in
+        callController.request(CXTransaction(action: action)) { [weak self] error in
             if let error = error {
                 self?.log("Cannot update call to muted = \(muted): \(error)")
             }
         }
     }
 
-    func requestJoinCall(in conversation: ZMConversation, video: Bool) {
-
-        let existingCallUUID = callUUID(for: conversation)
-        let existingCall = callController.callObserver.calls.first(where: { $0.uuid == existingCallUUID })
-
-        if let call = existingCall, !call.isOutgoing {
+    func requestJoinCall(
+        in conversation: ZMConversation,
+        video: Bool
+    ) {
+        if existsIncomingCall(in: conversation) {
             requestAnswerCall(in: conversation, video: video)
         } else {
             requestStartCall(in: conversation, video: video)
         }
     }
 
-    func requestStartCall(in conversation: ZMConversation, video: Bool) {
+    private func existsIncomingCall(in conversation: ZMConversation) -> Bool {
         guard
-            let managedObjectContext = conversation.managedObjectContext,
+            let call = callRegister.lookupCall(by: conversation),
+            let existingCall = callController.existingCall(for: call)
+        else {
+            return false
+        }
+
+        return !existingCall.isOutgoing
+
+    }
+
+    func requestStartCall(
+        in conversation: ZMConversation,
+        video: Bool
+    ) {
+        guard
+            let context = conversation.managedObjectContext,
             let handle = conversation.callHandle
         else {
             self.log("Ignore request to start call since remoteIdentifier or handle is nil")
             return
         }
 
-        let callUUID = UUID()
+        // TODO: do we need to check there doesn't already exist a call?
+        let call = callRegister.registerNewCall(with: handle)
 
-        calls[callUUID] = CallKitCall(
-            id: callUUID,
-            handle: handle,
-            conversation: conversation
-        )
-
-        let action = CXStartCallAction(call: callUUID, handle: handle.cxHandle)
+        let action = CXStartCallAction(call: call.id, handle: handle.cxHandle)
         action.isVideo = video
-        action.contactIdentifier = conversation.localizedCallerName(with: ZMUser.selfUser(in: managedObjectContext))
+        action.contactIdentifier = conversation.localizedCallerName(with: ZMUser.selfUser(in: context))
 
-        let endCallActions = actionsToEndAllOngoingCalls(exceptIn: conversation)
+        let endCallActions = actionsToEndAllOngoingCalls(excepting: handle)
         let transaction = CXTransaction(actions: endCallActions + [action])
 
         log("request CXStartCallAction")
 
-        callController.request(transaction) { [weak self] (error) in
+        callController.request(transaction) { [weak self] error in
             if let error = error as? CXErrorCodeRequestTransactionError, error.code == .callUUIDAlreadyExists {
                 self?.requestAnswerCall(in: conversation, video: video)
             } else if let error = error {
                 self?.log("Cannot start call: \(error)")
             }
         }
-
     }
 
     func requestAnswerCall(in conversation: ZMConversation, video: Bool) {
-        guard let callUUID = callUUID(for: conversation) else { return }
-
-        let action = CXAnswerCallAction(call: callUUID)
-        let endPreviousActions = actionsToEndAllOngoingCalls(exceptIn: conversation)
+        guard let call = callRegister.lookupCall(by: conversation) else { return }
+        let action = CXAnswerCallAction(call: call.id)
+        let endPreviousActions = actionsToEndAllOngoingCalls(excepting: call.handle)
         let transaction = CXTransaction(actions: endPreviousActions + [action])
 
         log("request CXAnswerCallAction")
 
-        callController.request(transaction) { [weak self] (error) in
+        callController.request(transaction) { [weak self] error in
             if let error = error {
                 self?.log("Cannot answer call: \(error)")
             }
@@ -292,14 +280,13 @@ public class CallKitManager: NSObject {
     }
 
     func requestEndCall(in conversation: ZMConversation, completion: (() -> Void)? = nil) {
-        guard let callUUID = callUUID(for: conversation) else { return }
-
-        let action = CXEndCallAction(call: callUUID)
+        guard let call = callRegister.lookupCall(by: conversation) else { return }
+        let action = CXEndCallAction(call: call.id)
         let transaction = CXTransaction(action: action)
 
         log("request CXEndCallAction")
 
-        callController.request(transaction) { [weak self] (error) in
+        callController.request(transaction) { [weak self] error in
             if let error = error {
                 self?.log("Cannot end call: \(error)")
                 conversation.voiceChannel?.leave()
@@ -315,7 +302,7 @@ public class CallKitManager: NSObject {
         callerName: String,
         hasVideo: Bool
     ) {
-        guard !callRegister.callExists(handle: handle) else {
+        guard !callRegister.callExists(for: handle) else {
             // TODO: critical log
             return
         }
@@ -346,7 +333,7 @@ public class CallKitManager: NSObject {
         handle: CallHandle,
         reason: CXCallEndedReason
     ) {
-        guard let call = callRegister.lookupCall(handle: handle) else {
+        guard let call = callRegister.lookupCall(by: handle) else {
             // TODO: critical log
             return
         }
@@ -372,18 +359,20 @@ public class CallKitManager: NSObject {
         in conversation: ZMConversation,
         hasVideo: Bool
     ) {
-        guard !callExists(for: conversation) else {
-            log("Cannot report incoming call: call already exists, probably b/c it was reported earlier for a push notification")
-            return
-        }
+        // IDEA: pass in the handle, so we don't need the conversation.
+        // But we would want to add the conversation to the call.
+        // But when do we first use the observer? Can we add it later?
+        // Only on start call action, and answer call action.
+        // If we can get the observer directly in the action, then
+        // we don't need them here.
 
         guard let handle = conversation.callHandle else {
             log("Cannot report incoming call: conversation is missing handle")
             return
         }
 
-        guard !conversation.needsToBeUpdatedFromBackend else {
-            log("Cannot report incoming call: conversation needs to be updated from backend")
+        guard !callRegister.callExists(for: handle)  else {
+            log("Cannot report incoming call: call already exists, probably b/c it was reported earlier for a push notification")
             return
         }
 
@@ -396,22 +385,17 @@ public class CallKitManager: NSObject {
         update.supportsGrouping = false
         update.supportsUngrouping = false
 
-        let callUUID = UUID()
-        calls[callUUID] = CallKitCall(
-            id: callUUID,
-            handle: handle,
-            conversation: conversation
-        )
+        let call = callRegister.registerNewCall(with: handle)
 
         log("provider.reportNewIncomingCall")
 
         provider.reportNewIncomingCall(
-            with: callUUID,
+            with: call.id,
             update: update
         ) { [weak self] error in
             if let error = error {
                 self?.log("Cannot report incoming call: \(error)")
-                self?.calls.removeValue(forKey: callUUID)
+                self?.callRegister.unregisterCall(call)
                 conversation.voiceChannel?.leave()
             } else {
                 self?.mediaManager?.setupAudioDevice()
@@ -431,14 +415,14 @@ public class CallKitManager: NSObject {
         atTime timestamp: Date?,
         reason: CXCallEndedReason
     ) {
-        let associatedCallUUIDs = calls
-            .filter { $0.value.conversation == conversation }
-            .keys
+        let associatedCalls = callRegister.allCalls.filter {
+            $0.handle == conversation.callHandle
+        }
 
-        associatedCallUUIDs.forEach { callUUID in
-            calls.removeValue(forKey: callUUID)
+        associatedCalls.forEach { call in
+            callRegister.unregisterCall(call)
             log("provider.reportCallEndedAt: \(String(describing: timestamp))")
-            provider.reportCall(with: callUUID, endedAt: timestamp?.clampForCallKit() ?? Date(), reason: reason)
+            provider.reportCall(with: call.id, endedAt: timestamp?.clampForCallKit() ?? Date(), reason: reason)
         }
     }
 
@@ -455,100 +439,202 @@ extension CallKitManager: CXProviderDelegate {
     public func providerDidReset(_ provider: CXProvider) {
         log("providerDidReset: \(provider)")
         mediaManager?.resetAudioDevice()
-        calls.removeAll()
+        callRegister.reset()
         delegate?.endAllCalls()
     }
 
     public func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
         log("perform CXStartCallAction: \(action)")
 
-        guard let call = calls[action.callUUID] else {
+        guard let call = callRegister.lookupCall(by: action.callUUID) else {
             log("fail CXStartCallAction because call did not exist")
             action.fail()
             return
         }
 
-        call.observer?.onAnswered = {
-            provider.reportOutgoingCall(with: action.callUUID, startedConnectingAt: Date())
-        }
-
-        call.observer?.onEstablished = {
-            provider.reportOutgoingCall(with: action.callUUID, connectedAt: Date())
-        }
-
-        mediaManager?.setupAudioDevice()
-
-        if call.conversation?.voiceChannel?.join(video: action.isVideo) == true {
-            action.fulfill()
-        } else {
+        guard let delegate = delegate else {
+            log("fail CXStartCallAction because can't fetch conversation")
             action.fail()
+            return
         }
 
-        let update = CXCallUpdate()
-        update.remoteHandle = call.conversation?.callKitHandle
-        update.localizedCallerName = call.conversation?.localizedCallerNameForOutgoingCall()
+        delegate.lookupConversation(by: call.handle) { [weak self] result in
+            guard let `self` = self else {
+                action.fail()
+                return
+            }
 
-        provider.reportCall(with: action.callUUID, updated: update)
+            switch result {
+            case .success(let conversation):
+                call.observer?.onAnswered = {
+                    provider.reportOutgoingCall(with: action.callUUID, startedConnectingAt: Date())
+                }
+
+                call.observer?.onEstablished = {
+                    provider.reportOutgoingCall(with: action.callUUID, connectedAt: Date())
+                }
+
+                self.mediaManager?.setupAudioDevice()
+
+                if conversation.voiceChannel?.join(video: action.isVideo) == true {
+                    action.fulfill()
+                } else {
+                    action.fail()
+                }
+
+                let update = CXCallUpdate()
+                update.remoteHandle = call.handle.cxHandle
+                update.localizedCallerName = conversation.localizedCallerNameForOutgoingCall()
+                provider.reportCall(with: action.callUUID, updated: update)
+
+            case .failure(let error):
+                self.log("fail CXStartCallAction because can't fetch conversation: \(error)")
+                action.fail()
+            }
+        }
     }
 
     public func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         log("perform CXAnswerCallAction: \(action)")
 
-        guard let call = calls[action.callUUID] else {
+        guard let call = callRegister.lookupCall(by: action.callUUID) else {
             log("fail CXAnswerCallAction because call did not exist")
             action.fail()
             return
         }
 
-        call.observer?.onEstablished = {
-            action.fulfill()
+        guard let delegate = delegate else {
+            log("fail CXAnswerCallAction because can't fetch conversation")
+            action.fail()
+            return
         }
 
-        call.observer?.onFailedToJoin = {
-            action.fail()
-        }
+        delegate.lookupConversation(by: call.handle) { [weak self] result in
+            guard let `self` = self else {
+                action.fail()
+                return
+            }
 
-        if call.conversation?.voiceChannel?.join(video: false) != true {
-            action.fail()
+            switch result {
+            case .success(let conversation):
+                call.observer?.onEstablished = {
+                    action.fulfill()
+                }
+
+                call.observer?.onFailedToJoin = {
+                    action.fail()
+                }
+
+                if conversation.voiceChannel?.join(video: false) != true {
+                    action.fail()
+                }
+
+            case .failure(let error):
+                self.log("fail CXAnswerCallAction because can't fetch conversation: \(error)")
+                action.fail()
+            }
         }
     }
 
     public func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
         log("perform CXEndCallAction: \(action)")
 
-        guard let call = calls[action.callUUID] else {
+        guard let call = callRegister.lookupCall(by: action.callUUID) else {
             log("fail CXEndCallAction because call did not exist")
             action.fail()
             return
         }
 
-        calls.removeValue(forKey: action.callUUID)
-        call.conversation?.voiceChannel?.leave()
-        action.fulfill()
+        callRegister.unregisterCall(call)
+
+        guard let delegate = delegate else {
+            log("fail CXEndCallAction because can't fetch conversation")
+            action.fail()
+            return
+        }
+
+        delegate.lookupConversation(by: call.handle) { [weak self] result in
+            guard let `self` = self else {
+                action.fail()
+                return
+            }
+
+            switch result {
+            case .success(let conversation):
+                conversation.voiceChannel?.leave()
+                action.fulfill()
+
+            case .failure(let error):
+                self.log("fail CXEndCallAction because can't fetch conversation: \(error)")
+                action.fail()
+            }
+        }
     }
 
     public func provider(_ provider: CXProvider, perform action: CXSetHeldCallAction) {
         log("perform CXSetHeldCallAction: \(action)")
-        guard let call = calls[action.callUUID] else {
+
+        guard let call = callRegister.lookupCall(by: action.callUUID) else {
             log("fail CXSetHeldCallAction because call did not exist")
             action.fail()
             return
         }
 
-        call.conversation?.voiceChannel?.muted = action.isOnHold
-        action.fulfill()
+        guard let delegate = delegate else {
+            log("fail CXSetHeldCallAction because can't fetch conversation")
+            action.fail()
+            return
+        }
+
+        delegate.lookupConversation(by: call.handle) { [weak self] result in
+            guard let `self` = self else {
+                action.fail()
+                return
+            }
+
+            switch result {
+            case .success(let conversation):
+                conversation.voiceChannel?.muted = action.isOnHold
+                action.fulfill()
+
+            case .failure(let error):
+                self.log("fail CXSetHeldCallAction because can't fetch conversation: \(error)")
+                action.fail()
+            }
+        }
     }
 
     public func provider(_ provider: CXProvider, perform action: CXSetMutedCallAction) {
         log("perform CXSetMutedCallAction: \(action)")
-        guard let call = calls[action.callUUID] else {
+
+        guard let call = callRegister.lookupCall(by: action.callUUID) else {
             log("fail CXSetMutedCallAction because call did not exist")
             action.fail()
             return
         }
 
-        call.conversation?.voiceChannel?.muted = action.isMuted
-        action.fulfill()
+        guard let delegate = delegate else {
+            log("fail CXSetMutedCallAction because can't fetch conversation")
+            action.fail()
+            return
+        }
+
+        delegate.lookupConversation(by: call.handle) { [weak self] result in
+            guard let `self` = self else {
+                action.fail()
+                return
+            }
+
+            switch result {
+            case .success(let conversation):
+                conversation.voiceChannel?.muted = action.isMuted
+                action.fulfill()
+
+            case .failure(let error):
+                self.log("fail CXSetMutedCallAction because can't fetch conversation: \(error)")
+                action.fail()
+            }
+        }
     }
 
     public func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
@@ -560,6 +646,7 @@ extension CallKitManager: CXProviderDelegate {
         log("didDeactivate audioSession")
         mediaManager?.resetAudioDevice()
     }
+
 }
 
 // MARK: - Callstate observer
@@ -578,7 +665,8 @@ extension CallKitManager: WireCallCenterCallStateObserver, WireCallCenterMissedC
             if shouldRing {
                 guard
                     let caller = caller as? ZMUser,
-                    conversation.mutedMessageTypesIncludingAvailability == .none
+                    conversation.mutedMessageTypesIncludingAvailability == .none,
+                    !conversation.needsToBeUpdatedFromBackend
                 else {
                     // TODO: log
                     return
@@ -746,6 +834,23 @@ extension CallClosedReason {
         default:
             return .failed
         }
+    }
+
+}
+
+private extension CallKitCallRegister {
+
+    func lookupCall(by conversation: ZMConversation) -> CallKitCall? {
+        guard let handle = conversation.callHandle else { return nil }
+        return lookupCall(by: handle)
+    }
+
+}
+
+private extension CXCallController {
+
+    func existingCall(for callKitCall: CallKitCall) -> CXCall? {
+        return callObserver.calls.first { $0.uuid == callKitCall.id }
     }
 
 }
