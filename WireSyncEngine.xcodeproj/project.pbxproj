@@ -1642,7 +1642,6 @@
 				165D3A181E1D43870052E654 /* VoiceChannel.swift */,
 				165D3A171E1D43870052E654 /* VoiceChannelV3.swift */,
 				165D3A3C1E1D60520052E654 /* ZMConversation+VoiceChannel.swift */,
-				16A764601F3E0B0B00564F21 /* CallKitManager.swift */,
 				1658C2361F503CF800889F22 /* FlowManager.swift */,
 				166D18A3230EBFFA001288CD /* MediaManager.swift */,
 				BF735CF91E70003D003BC61F /* SystemMessageCallObserver.swift */,
