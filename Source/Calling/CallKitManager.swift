@@ -466,11 +466,13 @@ extension CallKitManager: CXProviderDelegate {
 
             switch result {
             case .success(let conversation):
-                call.observer?.onAnswered = {
+                call.observer.startObservingChanges(in: conversation)
+
+                call.observer.onAnswered = {
                     provider.reportOutgoingCall(with: action.callUUID, startedConnectingAt: Date())
                 }
 
-                call.observer?.onEstablished = {
+                call.observer.onEstablished = {
                     provider.reportOutgoingCall(with: action.callUUID, connectedAt: Date())
                 }
 
@@ -517,11 +519,13 @@ extension CallKitManager: CXProviderDelegate {
 
             switch result {
             case .success(let conversation):
-                call.observer?.onEstablished = {
+                call.observer.startObservingChanges(in: conversation)
+
+                call.observer.onEstablished = {
                     action.fulfill()
                 }
 
-                call.observer?.onFailedToJoin = {
+                call.observer.onFailedToJoin = {
                     action.fail()
                 }
 
@@ -702,38 +706,6 @@ extension CallKitManager: WireCallCenterCallStateObserver, WireCallCenterMissedC
     public func callCenterMissedCall(conversation: ZMConversation, caller: UserType, timestamp: Date, video: Bool) {
         // Since we missed the call we will not have an assigned callUUID and can just create a random one
         provider.reportCall(with: UUID(), endedAt: timestamp, reason: .unanswered)
-    }
-
-}
-
-class CallObserver: WireCallCenterCallStateObserver {
-
-    private var token: Any?
-
-    public var onAnswered : (() -> Void)?
-    public var onEstablished : (() -> Void)?
-    public var onFailedToJoin : (() -> Void)?
-
-    public init(conversation: ZMConversation) {
-        token = WireCallCenterV3.addCallStateObserver(observer: self, for: conversation, context: conversation.managedObjectContext!)
-    }
-
-    public func callCenterDidChange(callState: CallState, conversation: ZMConversation, caller: UserType, timestamp: Date?, previousCallState: CallState?) {
-        switch callState {
-        case .answered(degraded: false):
-            onAnswered?()
-        case .establishedDataChannel, .established:
-            onEstablished?()
-        case .terminating(reason: let reason):
-            switch reason {
-            case .inputOutputError, .internalError, .unknown, .lostMedia, .anweredElsewhere:
-                onFailedToJoin?()
-            default:
-                break
-            }
-        default:
-            break
-        }
     }
 
 }

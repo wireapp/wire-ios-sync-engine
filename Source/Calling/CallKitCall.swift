@@ -22,6 +22,7 @@ struct CallKitCall {
 
     let id: UUID
     let handle: CallHandle
+    let observer = CallObserver()
 
     init(
         id: UUID,
