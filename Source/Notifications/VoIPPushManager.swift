@@ -65,10 +65,12 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
 
     private weak var delegate: VoIPPushManagerDelegate?
 
+    private static let logger = Logger(subsystem: "VoIP Push", category: "VoipPushManager")
+
     // MARK: - Life cycle
 
     public init(requiredPushTokenType: PushToken.TokenType) {
-        Logging.push.info("init PushManager")
+        Self.logger.trace("init")
         self.requiredPushTokenType = requiredPushTokenType
         callKitManager = CallKitManager(mediaManager: AVSMediaManager.sharedInstance())
         super.init()
@@ -78,6 +80,7 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
     // MARK: - Methods
 
     public func setDelegate(_ delegate: VoIPPushManagerDelegate) {
+        Self.logger.trace("set delegate")
         self.delegate = delegate
 
         while !buffer.pendingActions.isEmpty {
@@ -98,7 +101,7 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
     }
 
     public func registerForVoIPPushes() {
-        Logging.push.info("registering for voIP pushes")
+        Self.logger.trace("register for voIP pushes")
         registry.desiredPushTypes = [.voIP]
     }
 
@@ -109,7 +112,7 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
         didUpdate pushCredentials: PKPushCredentials,
         for type: PKPushType
     ) {
-        Logging.push.info("received updated push credentials...")
+        Self.logger.trace("did update push credentials")
 
         // We're only interested in voIP tokens.
         guard type == .voIP else { return }
@@ -118,10 +121,10 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
         guard requiredPushTokenType == .voip else { return }
 
         if let delegate = delegate {
-            Logging.push.info("fowarding to delegate")
+            Self.logger.info("fowarding to delegate")
             delegate.storeVoIPToken(pushCredentials.token)
         } else {
-            Logging.push.info("buffering")
+            Self.logger.info("buffering")
             buffer.pendingActions.append(.storeVoIPToken(pushCredentials.token))
         }
     }
@@ -130,7 +133,7 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
         _ registry: PKPushRegistry,
         didInvalidatePushTokenFor type: PKPushType
     ) {
-        Logging.push.info("push token was invalidated...")
+        Self.logger.trace("did invalidate push token")
 
         // We're only interested in voIP tokens.
         guard type == .voIP else { return }
@@ -139,10 +142,10 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
         guard requiredPushTokenType == .voip else { return }
 
         if let delegate = delegate {
-            Logging.push.info("fowarding to delegate")
+            Self.logger.info("fowarding to delegate")
             delegate.deleteExistingVoIPToken()
         } else {
-            Logging.push.info("buffering")
+            Self.logger.info("buffering")
             buffer.pendingActions.append(.deleteExistingVoIPToken)
         }
     }
@@ -153,10 +156,10 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
         for type: PKPushType,
         completion: @escaping () -> Void
     ) {
+        Self.logger.trace("did receive incoming push")
+
         // We're only interested in voIP tokens.
         guard type == .voIP else { return completion() }
-
-        Logging.push.info("did receive incoming push")
 
         switch requiredPushTokenType {
         case .standard:
@@ -177,14 +180,14 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
         payload: [AnyHashable: Any],
         completion: @escaping () -> Void
     ) {
-        Logging.push.info("processing NSE push")
+        Self.logger.trace("process NSE push, payload: \(payload)")
 
         guard
             let accountID = payload["accountID"] as? UUID,
             let conversationID = payload["conversationID"] as? UUID,
             let shouldRing = payload["shouldRing"] as? Bool
         else {
-            Logging.push.info("error: processing NSE push: invalid payload")
+            Self.logger.critical("error: processing NSE push: invalid payload")
             return
         }
 
@@ -196,9 +199,18 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
         // Report the call immediately to fulfill API obligations, otherwise the app will be killed.
         // See https://developer.apple.com/documentation/callkit/sending_end-to-end_encrypted_voip_calls
         if shouldRing {
-            // TODO: report new incoming call.
+            Self.logger.info("will report new incoming call")
+            callKitManager.reportIncomingCallPreemptively(
+                handle: handle,
+                callerName: "someone",
+                hasVideo: false
+            )
         } else {
-            // TODO: report call end
+            Self.logger.info("will report call ended")
+            callKitManager.reportCallEndedPreemptively(
+                handle: handle,
+                reason: .unanswered
+            )
         }
     }
 
@@ -206,16 +218,16 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
         payload: [AnyHashable: Any],
         completion: @escaping () -> Void
     ) {
-        Logging.push.info("processing VoIP push")
+        Self.logger.trace("process voIP push, payload: \(payload)")
 
         if let delegate = delegate {
-            Logging.push.info("fowarding to delegate")
+            Self.logger.info("fowarding to delegate")
             delegate.processIncomingRealVoIPPush(
                 payload: payload,
                 completion: completion
             )
         } else {
-            Logging.push.info("buffering")
+            Self.logger.info("buffering")
             buffer.pendingActions.append(.processIncomingRealVoIPPush(
                 payload: payload,
                 completion: completion
