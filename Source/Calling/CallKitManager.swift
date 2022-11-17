@@ -145,25 +145,26 @@ public class CallKitManager: NSObject {
 
     // MARK: - Intents
 
-    func findConversationAssociated(with contacts: [INPerson], completion: @escaping (ZMConversation) -> Void) {
-
-        guard contacts.count == 1,
-              let contact = contacts.first,
-              let customIdentifier = contact.personHandle?.value,
-              let callHandle = CallHandle(encodedString: customIdentifier)
+    func findConversationAssociated(
+        with contacts: [INPerson],
+        completion: @escaping (ZMConversation) -> Void) {
+        guard
+            contacts.count == 1,
+            let contact = contacts.first,
+            let customIdentifier = contact.personHandle?.value,
+            let callHandle = CallHandle(encodedString: customIdentifier)
         else {
             return
         }
 
-        delegate?.lookupConversation(by: callHandle, completionHandler: { (result) in
+        delegate?.lookupConversation(by: callHandle) { result in
             guard case .success(let conversation) = result else { return }
             completion(conversation)
-        })
+        }
     }
 
     public func continueUserActivity(_ userActivity: NSUserActivity) -> Bool {
-        guard let interaction = userActivity.interaction
-        else { return false }
+        guard let interaction = userActivity.interaction else { return false }
 
         let intent = interaction.intent
         var contacts: [INPerson]?
@@ -175,14 +176,15 @@ public class CallKitManager: NSObject {
         }
 
         if let contacts = contacts {
-            findConversationAssociated(with: contacts) { [weak self] (conversation) in
+            findConversationAssociated(with: contacts) { [weak self] conversation in
                 self?.requestStartCall(in: conversation, video: video)
             }
 
             return true
-        }
 
-        return false
+        } else {
+            return false
+        }
     }
 
     // MARK: - Requesting actions
@@ -227,7 +229,6 @@ public class CallKitManager: NSObject {
         }
 
         return !existingCall.isOutgoing
-
     }
 
     func requestStartCall(
@@ -290,6 +291,7 @@ public class CallKitManager: NSObject {
                 self?.log("Cannot end call: \(error)")
                 conversation.voiceChannel?.leave()
             }
+
             completion?()
         }
     }
@@ -358,13 +360,6 @@ public class CallKitManager: NSObject {
         in conversation: ZMConversation,
         hasVideo: Bool
     ) {
-        // IDEA: pass in the handle, so we don't need the conversation.
-        // But we would want to add the conversation to the call.
-        // But when do we first use the observer? Can we add it later?
-        // Only on start call action, and answer call action.
-        // If we can get the observer directly in the action, then
-        // we don't need them here.
-
         guard let handle = conversation.callHandle else {
             log("Cannot report incoming call: conversation is missing handle")
             return
@@ -701,10 +696,18 @@ extension CallKitManager: WireCallCenterCallStateObserver, WireCallCenterMissedC
         }
     }
 
-
-    public func callCenterMissedCall(conversation: ZMConversation, caller: UserType, timestamp: Date, video: Bool) {
+    public func callCenterMissedCall(
+        conversation: ZMConversation,
+        caller: UserType,
+        timestamp: Date,
+        video: Bool
+    ) {
         // Since we missed the call we will not have an assigned callUUID and can just create a random one
-        provider.reportCall(with: UUID(), endedAt: timestamp, reason: .unanswered)
+        provider.reportCall(
+            with: UUID(),
+            endedAt: timestamp,
+            reason: .unanswered
+        )
     }
 
 }
