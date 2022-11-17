@@ -732,10 +732,6 @@ private extension Date {
 
 extension ZMConversation {
 
-    var callKitHandle: CXHandle? {
-        return callHandle?.cxHandle
-    }
-
     var callHandle: CallHandle? {
         guard
             let context = managedObjectContext,
