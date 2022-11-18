@@ -21,6 +21,7 @@ private let zmLog = ZMSLog(tag: "SyncStatus")
 extension Notification.Name {
 
     public static let ForceSlowSync = Notification.Name("restartSlowSyncNotificationName")
+    static let triggerQuickSync = Notification.Name("triggerQuickSync")
 
 }
 
@@ -68,6 +69,14 @@ extension Notification.Name {
         self.forceSlowSyncToken = NotificationInContext.addObserver(name: .ForceSlowSync, context: managedObjectContext.notificationContext) { [weak self] (_) in
             self?.forceSlowSync()
         }
+
+        NotificationCenter.default.addObserver(
+            forName: .triggerQuickSync,
+            object: nil,
+            queue: nil
+        ) { [weak self] _ in
+            self?.triggerQuickSync()
+        }
     }
 
     fileprivate func notifySyncPhaseDidStart() {
@@ -87,6 +96,11 @@ extension Notification.Name {
         // Set the status.
         currentSyncPhase = SyncPhase.fetchingLastUpdateEventID.nextPhase
         syncStateDelegate.didStartSlowSync()
+    }
+
+    func triggerQuickSync() {
+        currentSyncPhase = .fetchingMissedEvents
+        RequestAvailableNotification.notifyNewRequestsAvailable(self)
     }
 
 }
