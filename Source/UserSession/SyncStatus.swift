@@ -57,7 +57,8 @@ extension Notification.Name {
     }
 
     public var isSyncing: Bool {
-        return currentSyncPhase.isSyncing || !pushChannelIsOpen
+        // TODO: find a fix for this!
+        return currentSyncPhase.isSyncing //|| !pushChannelIsOpen
     }
 
     public init(managedObjectContext: NSManagedObjectContext, syncStateDelegate: ZMSyncStateDelegate) {
