@@ -42,7 +42,7 @@ public class CallKitManager: NSObject {
     private let callController: CXCallController
     private weak var mediaManager: MediaManagerType?
 
-    private weak var delegate: CallKitManagerDelegate?
+    weak var delegate: CallKitManagerDelegate?
 
     private var callStateObserverToken: Any?
     private var missedCallObserverToken: Any?
@@ -568,6 +568,16 @@ extension CallKitManager: CXProviderDelegate {
             case .success(let conversation):
                 call.observer.startObservingChanges(in: conversation)
 
+                call.observer.onIncoming = {
+                    Self.logger.info("joining the call...")
+                    self.mediaManager?.setupAudioDevice()
+
+                    if conversation.voiceChannel?.join(video: false) != true {
+                        Self.logger.error("fail: perform answer call action: couldn't join call")
+                        action.fail()
+                    }
+                }
+
                 call.observer.onEstablished = {
                     Self.logger.error("success: perform answer call action")
                     action.fulfill()
@@ -577,10 +587,8 @@ extension CallKitManager: CXProviderDelegate {
                     action.fail()
                 }
 
-                if conversation.voiceChannel?.join(video: false) != true {
-                    Self.logger.error("fail: perform answer call action: couldn't join call")
-                    action.fail()
-                }
+                Self.logger.info("requesting quick sync")
+                NotificationCenter.default.post(name: .triggerQuickSync, object: nil)
 
             case .failure(let error):
                 Self.logger.error("fail: perform answer call action: couldn't fetch conversation: \(error)")

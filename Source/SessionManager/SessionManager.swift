@@ -445,6 +445,8 @@ public final class SessionManager: NSObject, SessionManagerType {
 
         super.init()
 
+        callKitManager.delegate = self
+
         deleteAccountToken = AccountDeletedNotification.addObserver(observer: self, queue: groupQueue)
         callCenterObserverToken = WireCallCenterV3.addGlobalCallStateObserver(observer: self)
 
