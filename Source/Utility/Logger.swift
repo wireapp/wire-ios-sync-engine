@@ -19,9 +19,11 @@
 import Foundation
 import OSLog
 
-struct Logger {
+public struct Logger {
 
     private typealias LogHandler = (String) -> Void
+
+    private var logger: Any?
 
     private var onDebug: LogHandler?
     private var onInfo: LogHandler?
@@ -30,7 +32,7 @@ struct Logger {
     private var onError: LogHandler?
     private var onCritical: LogHandler?
 
-    init(
+    public init(
         subsystem: String,
         category: String
     ) {
@@ -40,53 +42,55 @@ struct Logger {
                 category: category
             )
 
+            self.logger = logger
+
             onDebug = { message in
-                logger.debug("\(message, privacy: .auto)")
+                logger.debug("\(message, privacy: .public)")
             }
 
             onInfo = { message in
-                logger.info("\(message, privacy: .auto)")
+                logger.info("\(message, privacy: .public)")
             }
 
             onTrace = { message in
-                logger.trace("\(message, privacy: .auto)")
+                logger.trace("\(message, privacy: .public)")
             }
 
             onWarning = { message in
-                logger.warning("\(message, privacy: .auto)")
+                logger.warning("\(message, privacy: .public)")
             }
 
             onError = { message in
-                logger.error("\(message, privacy: .auto)")
+                logger.error("\(message, privacy: .public)")
             }
 
             onCritical = { message in
-                logger.critical("\(message, privacy: .auto)")
+                logger.critical("\(message, privacy: .public)")
             }
         }
     }
 
-    func debug(_ message: String) {
+    public func debug(_ message: String) {
         onDebug?(message)
     }
 
-    func info(_ message: String) {
+    public func info(_ message: String) {
         onInfo?(message)
     }
 
-    func trace(_ message: String) {
+    public func trace(_ message: String) {
         onTrace?(message)
     }
 
-    func warning(_ message: String) {
+    public func warning(_ message: String) {
         onWarning?(message)
     }
 
-    func error(_ message: String) {
+    public func error(_ message: String) {
         onError?(message)
     }
 
-    func critical(_ message: String) {
+    public func critical(_ message: String) {
         onCritical?(message)
     }
 
