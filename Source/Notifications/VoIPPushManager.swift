@@ -183,8 +183,10 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
         Self.logger.trace("process NSE push, payload: \(payload)")
 
         guard
-            let accountID = payload["accountID"] as? UUID,
-            let conversationID = payload["conversationID"] as? UUID,
+            let accountIDString = payload["accountID"] as? String,
+            let accountID = UUID(uuidString: accountIDString),
+            let conversationIDString = payload["conversationID"] as? String,
+            let conversationID = UUID(uuidString: conversationIDString),
             let shouldRing = payload["shouldRing"] as? Bool
         else {
             Self.logger.critical("error: processing NSE push: invalid payload")
