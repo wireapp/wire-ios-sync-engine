@@ -187,7 +187,9 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
             let accountID = UUID(uuidString: accountIDString),
             let conversationIDString = payload["conversationID"] as? String,
             let conversationID = UUID(uuidString: conversationIDString),
-            let shouldRing = payload["shouldRing"] as? Bool
+            let shouldRing = payload["shouldRing"] as? Bool,
+            let callerName = payload["callerName"] as? String,
+            let hasVideo = payload["hasVideo"] as? Bool
         else {
             Self.logger.critical("error: processing NSE push: invalid payload")
             return
@@ -204,8 +206,8 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
             Self.logger.info("will report new incoming call")
             callKitManager.reportIncomingCallPreemptively(
                 handle: handle,
-                callerName: "someone",
-                hasVideo: false
+                callerName: callerName,
+                hasVideo: hasVideo
             )
         } else {
             Self.logger.info("will report call ended")
