@@ -174,6 +174,8 @@ public class CallKitManager: NSObject {
         var contacts: [INPerson]?
         var video = false
 
+        // TODO: handle INStartVideoCallIntent for when CallKit video is toggled.
+
         if let startCallIntent = intent as? INStartCallIntent {
           contacts = startCallIntent.contacts
           video = startCallIntent.callCapability == .videoCall
