@@ -454,10 +454,11 @@ public class CallKitManager: NSObject {
         Self.logger.trace("report call ended")
 
         let associatedCalls = callRegister.allCalls.filter {
-            $0.handle == conversation.callHandle
+            $0.handle == conversation.callHandle && $0.isAVSReady
         }
 
-        associatedCalls.forEach { call in
+        for call in associatedCalls {
+            Self.logger.info("terminating call: \(String(describing: call))")
             callRegister.unregisterCall(call)
             log("provider.reportCallEndedAt: \(String(describing: timestamp))")
             provider.reportCall(with: call.id, endedAt: timestamp?.clampForCallKit() ?? Date(), reason: reason)
@@ -735,6 +736,10 @@ extension CallKitManager: WireCallCenterCallStateObserver, WireCallCenterMissedC
 
         switch callState {
         case .incoming(let hasVideo, let shouldRing, degraded: _):
+            if var call = callRegister.lookupCall(by: conversation) {
+                call.markAsReady()
+            }
+
             if shouldRing {
                 Self.logger.info("should report an incoming call")
 

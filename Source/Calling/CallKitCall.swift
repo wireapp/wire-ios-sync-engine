@@ -23,6 +23,7 @@ struct CallKitCall {
     let id: UUID
     let handle: CallHandle
     let observer = CallObserver()
+    var isAVSReady = false
 
     init(
         id: UUID,
@@ -30,6 +31,10 @@ struct CallKitCall {
     ) {
         self.id = id
         self.handle = handle
+    }
+
+    mutating func markAsReady() {
+        isAVSReady = true
     }
 
 }
