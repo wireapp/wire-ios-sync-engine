@@ -30,7 +30,7 @@ private let zmLog = ZMSLog(tag: "calling")
  */
 public class WireCallCenterV3: NSObject {
 
-    private static let logger = Logger(subsystem: "VoIP Push", category: "WireCallCenter")
+    static let logger = Logger(subsystem: "VoIP Push", category: "WireCallCenter")
 
     /// The maximum number of participants for a legacy video call.
 
