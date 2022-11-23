@@ -571,16 +571,6 @@ extension CallKitManager: CXProviderDelegate {
             case .success(let conversation):
                 call.observer.startObservingChanges(in: conversation)
 
-                call.observer.onIncoming = {
-                    Self.logger.info("joining the call...")
-                    self.mediaManager?.setupAudioDevice()
-
-                    if conversation.voiceChannel?.join(video: false) != true {
-                        Self.logger.error("fail: perform answer call action: couldn't join call")
-                        action.fail()
-                    }
-                }
-
                 call.observer.onEstablished = {
                     Self.logger.error("success: perform answer call action")
                     action.fulfill()
@@ -590,8 +580,30 @@ extension CallKitManager: CXProviderDelegate {
                     action.fail()
                 }
 
-                Self.logger.info("requesting quick sync")
-                NotificationCenter.default.post(name: .triggerQuickSync, object: nil)
+                if call.isAVSReady {
+                    Self.logger.info("perform answer call action: AVS already processed incoming call event, joining...")
+                    self.mediaManager?.setupAudioDevice()
+
+                    if conversation.voiceChannel?.join(video: false) != true {
+                        Self.logger.error("fail: perform answer call action: couldn't join call")
+                        action.fail()
+                    }
+                } else {
+                    Self.logger.info("perform answer call action: AVS did not process incoming call event yet, fetching event...")
+
+                    call.observer.onIncoming = {
+                        Self.logger.info("joining the call...")
+                        self.mediaManager?.setupAudioDevice()
+
+                        if conversation.voiceChannel?.join(video: false) != true {
+                            Self.logger.error("fail: perform answer call action: couldn't join call")
+                            action.fail()
+                        }
+                    }
+
+                    Self.logger.info("requesting quick sync")
+                    NotificationCenter.default.post(name: .triggerQuickSync, object: nil)
+                }
 
             case .failure(let error):
                 Self.logger.error("fail: perform answer call action: couldn't fetch conversation: \(error)")
