@@ -41,7 +41,7 @@ import WireDataModel
     public var minimumBackgroundFetchInverval: TimeInterval = UIApplication.backgroundFetchIntervalNever
 
     /// Callback invoked when `registerUserNotificationSettings` is invoked
-    public var registerForRemoteNotificationsCallback : () -> Void = { }
+    public var registerForRemoteNotificationsCallback: () -> Void = { }
 }
 
 // MARK: - Application protocol

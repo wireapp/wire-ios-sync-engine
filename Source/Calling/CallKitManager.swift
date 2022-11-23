@@ -601,9 +601,9 @@ class CallObserver: WireCallCenterCallStateObserver {
 
     private var token: Any?
 
-    public var onAnswered : (() -> Void)?
-    public var onEstablished : (() -> Void)?
-    public var onFailedToJoin : (() -> Void)?
+    public var onAnswered: (() -> Void)?
+    public var onEstablished: (() -> Void)?
+    public var onFailedToJoin: (() -> Void)?
 
     public init(conversation: ZMConversation) {
         token = WireCallCenterV3.addCallStateObserver(observer: self, for: conversation, context: conversation.managedObjectContext!)

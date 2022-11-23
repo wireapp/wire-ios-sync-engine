@@ -27,7 +27,7 @@ import WireDataModel
         return nil
     }
 
-    func performGroupedBlock(_ block : @escaping () -> Void) {
+    func performGroupedBlock(_ block: @escaping () -> Void) {
         block()
     }
 

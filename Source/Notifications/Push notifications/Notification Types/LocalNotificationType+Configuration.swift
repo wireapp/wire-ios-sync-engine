@@ -74,7 +74,7 @@ private extension PushNotificationCategory {
             self = .incomingCall
         case .terminating(reason: .timeout):
             self = .missedCall
-        default :
+        default:
             self = .conversation
         }
     }
