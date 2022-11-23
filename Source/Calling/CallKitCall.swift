@@ -18,7 +18,7 @@
 
 import Foundation
 
-struct CallKitCall {
+class CallKitCall {
 
     let id: UUID
     let handle: CallHandle
@@ -33,7 +33,7 @@ struct CallKitCall {
         self.handle = handle
     }
 
-    mutating func markAsReady() {
+    func markAsReady() {
         isAVSReady = true
     }
 
