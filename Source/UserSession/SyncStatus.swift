@@ -56,9 +56,21 @@ extension Notification.Name {
         return !currentSyncPhase.isOne(of: [.fetchingMissedEvents, .done])
     }
 
+    private var isForceQuickSync = false
+
     public var isSyncing: Bool {
-        // TODO: find a fix for this!
-        return currentSyncPhase.isSyncing //|| !pushChannelIsOpen
+        // TODO: Improve this solution.
+        // When triggering a quick sync in the bg when answering a call,
+        // we need to be able to process events. But I'm not certain if this
+        // is the best way. I think we're using this computed property to control
+        // whether the sync bar in the ui is shown or not. In this case, it makes
+        // sense that we only hide the bar if the syncing is complete and push
+        // channel is open.
+        if isForceQuickSync {
+            return currentSyncPhase.isSyncing
+        } else {
+            return currentSyncPhase.isSyncing || !pushChannelIsOpen
+        }
     }
 
     public init(managedObjectContext: NSManagedObjectContext, syncStateDelegate: ZMSyncStateDelegate) {
@@ -102,6 +114,7 @@ extension Notification.Name {
     }
 
     func triggerQuickSync() {
+        isForceQuickSync = true
         currentSyncPhase = .fetchingMissedEvents
         RequestAvailableNotification.notifyNewRequestsAvailable(self)
     }
@@ -135,6 +148,7 @@ extension SyncStatus {
 
             zmLog.debug("sync complete")
             syncStateDelegate.didFinishQuickSync()
+            isForceQuickSync = false
         }
         RequestAvailableNotification.notifyNewRequestsAvailable(self)
     }
