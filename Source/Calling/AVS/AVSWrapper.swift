@@ -63,6 +63,8 @@ public class AVSWrapper: AVSWrapperType {
         return {}
     }()
 
+    private static let logger = Logger(subsystem: "VoIP Push", category: "AVSWrapper")
+
     /**
      * Creates the wrapper around `wcall`.
      * - parameter userId: The identifier of the user that owns the calling center.
@@ -73,6 +75,7 @@ public class AVSWrapper: AVSWrapperType {
      */
 
     required public init(userId: AVSIdentifier, clientId: String, observer: UnsafeMutableRawPointer?) {
+        Self.logger.trace("init")
         AVSWrapper.initialize()
 
         handle = wcall_create(userId.serialized,
@@ -99,6 +102,7 @@ public class AVSWrapper: AVSWrapperType {
         wcall_set_participant_changed_handler(handle, callParticipantHandler, observer)
         wcall_set_req_clients_handler(handle, requestClientsHandler)
         wcall_set_active_speaker_handler(handle, activeSpeakersHandler)
+        Self.logger.info("init finished")
     }
 
     // MARK: - Convenience Methods
@@ -208,7 +212,8 @@ public class AVSWrapper: AVSWrapperType {
     }
 
     private let incomingCallHandler: Handler.IncomingCall = { conversationId, messageTime, userId, clientId, isVideoCall, shouldRing, conversationType, contextRef in
-
+        let logger = Logger(subsystem: "VoIP Push", category: "AVSWrapper")
+        logger.trace("incoming call handler")
         AVSWrapper.withCallCenter(contextRef, conversationId, messageTime, userId, clientId, isVideoCall, shouldRing, conversationType) {
             $0.handleIncomingCall(conversationId: AVSIdentifier.from(string: $1),
                                   messageTime: $2,
