@@ -41,42 +41,41 @@ class MockAddressBook: WireSyncEngine.AddressBook, WireSyncEngine.AddressBookAcc
     /// Enumerates the contacts, invoking the block for each contact.
     /// If the block returns false, it will stop enumerating them.
     func enumerateRawContacts(block: @escaping (WireSyncEngine.ContactRecord) -> (Bool)) {
-        for contact in self.contacts {
-            if !block(contact) {
-                return
-            }
-        }
-        let infiniteContact = MockAddressBookContact(firstName: "johnny infinite",
-                                                     emailAddresses: ["johnny.infinite@example.com"],
-                                                     phoneNumbers: [])
-        while createInfiniteContacts {
-            if !block(infiniteContact) {
-                return
-            }
+        for contact in self.contacts where !block(contact) {
+            return
         }
     }
-
-    func rawContacts(matchingQuery: String) -> [WireSyncEngine.ContactRecord] {
-        guard matchingQuery != "" else {
-            return contacts
-        }
-        return contacts.filter { $0.firstName.lowercased().contains(matchingQuery.lowercased()) || $0.lastName.lowercased().contains(matchingQuery.lowercased()) }
-    }
-
-    /// Replace the content with a given number of random hashes
-    func fillWithContacts(_ number: UInt) {
-        self.contacts = (0..<number).map {
-            self.createContact(card: $0)
+    let infiniteContact = MockAddressBookContact(firstName: "johnny infinite",
+                                                 emailAddresses: ["johnny.infinite@example.com"],
+                                                 phoneNumbers: [])
+    while createInfiniteContacts {
+        if !block(infiniteContact) {
+            return
         }
     }
+}
 
-    /// Create a fake contact
-    func createContact(card: UInt) -> MockAddressBookContact {
-        return MockAddressBookContact(firstName: "tester \(card)", emailAddresses: ["tester_\(card)@example.com"], phoneNumbers: ["+155512300\(card % 10)"], identifier: "\(card)")
+func rawContacts(matchingQuery: String) -> [WireSyncEngine.ContactRecord] {
+    guard matchingQuery != "" else {
+        return contacts
     }
+    return contacts.filter { $0.firstName.lowercased().contains(matchingQuery.lowercased()) || $0.lastName.lowercased().contains(matchingQuery.lowercased()) }
+}
 
-    /// Generate an infinite number of contacts
-    var createInfiniteContacts = false
+/// Replace the content with a given number of random hashes
+func fillWithContacts(_ number: UInt) {
+    self.contacts = (0..<number).map {
+        self.createContact(card: $0)
+    }
+}
+
+/// Create a fake contact
+func createContact(card: UInt) -> MockAddressBookContact {
+    return MockAddressBookContact(firstName: "tester \(card)", emailAddresses: ["tester_\(card)@example.com"], phoneNumbers: ["+155512300\(card % 10)"], identifier: "\(card)")
+}
+
+/// Generate an infinite number of contacts
+var createInfiniteContacts = false
 }
 
 struct MockAddressBookContact: WireSyncEngine.ContactRecord {
@@ -99,7 +98,7 @@ struct MockAddressBookContact: WireSyncEngine.ContactRecord {
         self.localIdentifier = identifier ?? {
             MockAddressBookContact.incrementalLocalIdentifier.increment()
             return "\(MockAddressBookContact.incrementalLocalIdentifier.rawValue)"
-            }()
+        }()
     }
 
     var expectedHashes: [String] {

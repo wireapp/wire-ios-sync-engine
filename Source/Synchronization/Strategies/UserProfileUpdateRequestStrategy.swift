@@ -275,10 +275,8 @@ public class UserProfileUpdateRequestStrategy: AbstractRequestStrategy, ZMSingle
         }
 
         let existingHandles = Set(usersPayload.compactMap { $0["handle"] as? String })
-        for handle in possibleHandles {
-            if !existingHandles.contains(handle) {
-                return handle
-            }
+        for handle in possibleHandles where !existingHandles.contains(handle) {
+            return handle
         }
         return nil
     }

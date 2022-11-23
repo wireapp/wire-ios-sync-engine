@@ -28,15 +28,15 @@ public final class JailbreakDetector: NSObject, JailbreakDetectorProtocol {
     private let fm = FileManager.default
 
     public func isJailbroken() -> Bool {
-        #if targetEnvironment(simulator)
+#if targetEnvironment(simulator)
         return false
-        #else
+#else
         return hasJailbrokenFiles ||
-            hasWriteablePaths ||
-            hasSymlinks ||
-            callsFork ||
-            canOpenJailbrokenStores
-        #endif
+        hasWriteablePaths ||
+        hasSymlinks ||
+        callsFork ||
+        canOpenJailbrokenStores
+#endif
     }
 
     private var hasJailbrokenFiles: Bool {
@@ -76,10 +76,8 @@ public final class JailbreakDetector: NSObject, JailbreakDetectorProtocol {
             "/Applications/blackra1n.app"
         ]
 
-        for path in paths {
-            if fm.fileExists(atPath: path) {
-                return true
-            }
+        for path in paths where fm.fileExists(atPath: path) {
+            return true
         }
 
         return false
@@ -110,8 +108,8 @@ public final class JailbreakDetector: NSObject, JailbreakDetectorProtocol {
 
         for link in symlinks {
             if fm.fileExists(atPath: link),
-                let attributes = try? fm.attributesOfItem(atPath: link),
-                attributes[.type] as? String == "NSFileTypeSymbolicLink" {
+               let attributes = try? fm.attributesOfItem(atPath: link),
+               attributes[.type] as? String == "NSFileTypeSymbolicLink" {
                 return true
             }
         }
@@ -133,10 +131,8 @@ public final class JailbreakDetector: NSObject, JailbreakDetectorProtocol {
                                               "sileo://package",
                                               "sileo://source"]
 
-        for url in jailbrokenStoresURLs {
-            if UIApplication.shared.canOpenURL(URL(string: url)!) {
-                return true
-            }
+        for url in jailbrokenStoresURLs where UIApplication.shared.canOpenURL(URL(string: url)!) {
+            return true
         }
         return false
     }
