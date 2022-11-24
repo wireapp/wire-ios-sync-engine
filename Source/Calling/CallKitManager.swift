@@ -788,6 +788,12 @@ extension CallKitManager: WireCallCenterCallStateObserver, WireCallCenterMissedC
                 reason: reason.CXCallEndedReason
             )
 
+        case .established, .establishedDataChannel:
+            // Users are join conferences in a muted state, so we want to make sure
+            // that the CallKit mute state is in sync with the voice channel mute state.
+            guard let voiceChannel = conversation.voiceChannel else { return }
+            requestMuteCall(in: conversation, muted: voiceChannel.muted)
+
         default:
             break
         }
