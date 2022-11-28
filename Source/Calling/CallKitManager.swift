@@ -25,7 +25,15 @@ protocol CallKitManagerDelegate: AnyObject {
 
     /// Look a conversation where a call has or will take place
 
-    func lookupConversation(by handle: CallHandle, completionHandler: @escaping (Result<ZMConversation>) -> Void)
+    func lookupConversation(
+        by handle: CallHandle,
+        completionHandler: @escaping (Result<ZMConversation>) -> Void
+    )
+
+    func lookupConversationAndSync(
+        by handle: CallHandle,
+        completionHandler: @escaping (Result<ZMConversation>) -> Void
+    )
 
     /// End all active calls in all user sessions
 
@@ -37,6 +45,9 @@ protocol CallKitManagerDelegate: AnyObject {
 public class CallKitManager: NSObject {
 
     // MARK: - Properties
+
+    private let application: ZMApplication
+    private let requirePushTokenType: PushToken.TokenType
 
     private let provider: CXProvider
     private let callController: CXCallController
@@ -54,18 +65,28 @@ public class CallKitManager: NSObject {
 
     // MARK: - Life cycle
 
-    public convenience init(mediaManager: MediaManagerType) {
+    public convenience init(
+        application: ZMApplication,
+        requiredPushTokenType: PushToken.TokenType,
+        mediaManager: MediaManagerType
+    ) {
         self.init(
+            application: application,
+            requiredPushTokenType: requiredPushTokenType,
             mediaManager: mediaManager,
             delegate: nil
         )
     }
 
     convenience init(
+        application: ZMApplication,
+        requiredPushTokenType: PushToken.TokenType,
         mediaManager: MediaManagerType,
         delegate: CallKitManagerDelegate?
     ) {
         self.init(
+            application: application,
+            requiredPushTokenType: requiredPushTokenType,
             provider: CXProvider(configuration: CallKitManager.providerConfiguration),
             callController: CXCallController(queue: DispatchQueue.main),
             mediaManager: mediaManager,
@@ -74,11 +95,15 @@ public class CallKitManager: NSObject {
     }
 
     init(
+        application: ZMApplication,
+        requiredPushTokenType: PushToken.TokenType,
         provider: CXProvider,
         callController: CXCallController,
         mediaManager: MediaManagerType?,
         delegate: CallKitManagerDelegate? = nil
     ) {
+        self.application = application
+        self.requirePushTokenType = requiredPushTokenType
         self.provider = provider
         self.callController = callController
         self.mediaManager = mediaManager
@@ -454,7 +479,7 @@ public class CallKitManager: NSObject {
         Self.logger.trace("report call ended")
 
         let associatedCalls = callRegister.allCalls.filter {
-            $0.handle == conversation.callHandle && $0.isAVSReady
+            $0.handle == conversation.callHandle
         }
 
         for call in associatedCalls {
@@ -561,7 +586,7 @@ extension CallKitManager: CXProviderDelegate {
             return
         }
 
-        delegate.lookupConversation(by: call.handle) { [weak self] result in
+        delegate.lookupConversationAndSync(by: call.handle) { [weak self] result in
             guard let `self` = self else {
                 action.fail()
                 return
@@ -572,37 +597,21 @@ extension CallKitManager: CXProviderDelegate {
                 call.observer.startObservingChanges(in: conversation)
 
                 call.observer.onEstablished = {
-                    Self.logger.error("success: perform answer call action")
+                    Self.logger.info("success: perform answer call action")
                     action.fulfill()
                 }
 
                 call.observer.onFailedToJoin = {
+                    Self.logger.error("fail: perform answer call action: failed to join")
                     action.fail()
                 }
 
-                if call.isAVSReady {
-                    Self.logger.info("perform answer call action: AVS already processed incoming call event, joining...")
-                    self.mediaManager?.setupAudioDevice()
+                Self.logger.info("joining the call...")
+                self.mediaManager?.setupAudioDevice()
 
-                    if conversation.voiceChannel?.join(video: false) != true {
-                        Self.logger.error("fail: perform answer call action: couldn't join call")
-                        action.fail()
-                    }
-                } else {
-                    Self.logger.info("perform answer call action: AVS did not process incoming call event yet, fetching event...")
-
-                    call.observer.onIncoming = {
-                        Self.logger.info("joining the call...")
-                        self.mediaManager?.setupAudioDevice()
-
-                        if conversation.voiceChannel?.join(video: false) != true {
-                            Self.logger.error("fail: perform answer call action: couldn't join call")
-                            action.fail()
-                        }
-                    }
-
-                    Self.logger.info("requesting quick sync")
-                    NotificationCenter.default.post(name: .triggerQuickSync, object: nil)
+                if conversation.voiceChannel?.join(video: false) != true {
+                    Self.logger.error("fail: perform answer call action: couldn't join call")
+                    action.fail()
                 }
 
             case .failure(let error):
@@ -737,6 +746,18 @@ extension CallKitManager: CXProviderDelegate {
 
 extension CallKitManager: WireCallCenterCallStateObserver, WireCallCenterMissedCallObserver {
 
+    private var shouldHandleCallStates: Bool {
+        switch (requirePushTokenType, application.applicationState) {
+        case (.standard, .background):
+            // Processing call states in the background wiLl interfere with
+            // CallKit calls triggered from the NSE.
+            return false
+
+        default:
+            return true
+        }
+    }
+
     public func callCenterDidChange(
         callState: CallState,
         conversation: ZMConversation,
@@ -746,12 +767,15 @@ extension CallKitManager: WireCallCenterCallStateObserver, WireCallCenterMissedC
     ) {
         Self.logger.trace("received new call state: \(callState)")
 
+        // FIX: We need to handle some call states like when the call is terminated, but perhaps we should
+        // do that in the call observer.
+        guard shouldHandleCallStates else {
+            Self.logger.info("not handling call state: app state is \(String(describing: application.applicationState))")
+            return
+        }
+
         switch callState {
         case .incoming(let hasVideo, let shouldRing, degraded: _):
-            if var call = callRegister.lookupCall(by: conversation) {
-                call.markAsReady()
-            }
-
             if shouldRing {
                 Self.logger.info("should report an incoming call")
 
@@ -789,6 +813,7 @@ extension CallKitManager: WireCallCenterCallStateObserver, WireCallCenterMissedC
             )
 
         case .established, .establishedDataChannel:
+            // TODO: we'll need to move this to the other observer.
             // Users are join conferences in a muted state, so we want to make sure
             // that the CallKit mute state is in sync with the voice channel mute state.
             guard let voiceChannel = conversation.voiceChannel else { return }

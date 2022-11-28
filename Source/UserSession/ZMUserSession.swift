@@ -425,6 +425,18 @@ public class ZMUserSession: NSObject {
         applicationStatusDirectory?.requestSlowSync()
     }
 
+    private var onProcessedEvents: ((Bool) -> Void)?
+
+    public func requestQuickSync(completion: ((Bool) -> Void)? = nil) {
+        guard let applicationStatusDirectory = applicationStatusDirectory else {
+            completion?(false)
+            return
+        }
+
+        applicationStatusDirectory.requestQuickSync()
+        onProcessedEvents = completion
+    }
+
     private func transportSessionAccessTokenDidFail(response: ZMTransportResponse) {
         managedObjectContext.performGroupedBlock { [weak self] in
             guard let strongRef = self else { return }
@@ -583,6 +595,10 @@ extension ZMUserSession: ZMSyncStateDelegate {
             self?.isPerformingSync = hasMoreEventsToProcess || isSyncing
             self?.updateNetworkState()
         }
+
+        let block = onProcessedEvents
+        onProcessedEvents = nil
+        block?(!hasMoreEventsToProcess)
     }
 
     private func fetchFeatureConfigs() {
