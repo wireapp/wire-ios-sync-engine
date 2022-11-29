@@ -20,14 +20,16 @@ import Foundation
 
 class CallObserver: WireCallCenterCallStateObserver {
 
-    typealias Handler = () -> Void
+    typealias VoidHandler = () -> Void
+    typealias Handler<T> = (T) -> Void
 
     private var token: Any?
 
-    public var onIncoming: Handler?
-    public var onAnswered: Handler?
-    public var onEstablished: Handler?
-    public var onFailedToJoin: Handler?
+    public var onIncoming: VoidHandler?
+    public var onAnswered: VoidHandler?
+    public var onEstablished: VoidHandler?
+    public var onFailedToJoin: VoidHandler?
+    public var onTerminated: Handler<CallClosedReason>?
 
     public func startObservingChanges(in conversation: ZMConversation) {
         token = WireCallCenterV3.addCallStateObserver(
@@ -60,7 +62,7 @@ class CallObserver: WireCallCenterCallStateObserver {
                 onFailedToJoin?()
 
             default:
-                break
+                onTerminated?(reason)
             }
 
         default:

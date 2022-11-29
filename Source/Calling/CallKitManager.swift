@@ -596,14 +596,29 @@ extension CallKitManager: CXProviderDelegate {
             case .success(let conversation):
                 call.observer.startObservingChanges(in: conversation)
 
-                call.observer.onEstablished = {
+                call.observer.onEstablished = { [weak self] in
                     Self.logger.info("success: perform answer call action")
+
+                    // Users join conferences in a muted state, so we want to make sure
+                    // that the CallKit mute state is in sync with the voice channel mute state.
+                    if let voiceChannel = conversation.voiceChannel {
+                        self?.requestMuteCall(in: conversation, muted: voiceChannel.muted)
+                    }
+
                     action.fulfill()
                 }
 
                 call.observer.onFailedToJoin = {
                     Self.logger.error("fail: perform answer call action: failed to join")
                     action.fail()
+                }
+
+                call.observer.onTerminated = { [weak self] reason in
+                    self?.reportCallEnded(
+                        in: conversation,
+                        atTime: nil,
+                        reason: reason.CXCallEndedReason
+                    )
                 }
 
                 Self.logger.info("joining the call...")
@@ -767,8 +782,6 @@ extension CallKitManager: WireCallCenterCallStateObserver, WireCallCenterMissedC
     ) {
         Self.logger.trace("received new call state: \(callState)")
 
-        // FIX: We need to handle some call states like when the call is terminated, but perhaps we should
-        // do that in the call observer.
         guard shouldHandleCallStates else {
             Self.logger.info("not handling call state: app state is \(String(describing: application.applicationState))")
             return
@@ -811,13 +824,6 @@ extension CallKitManager: WireCallCenterCallStateObserver, WireCallCenterMissedC
                 atTime: timestamp,
                 reason: reason.CXCallEndedReason
             )
-
-        case .established, .establishedDataChannel:
-            // TODO: we'll need to move this to the other observer.
-            // Users are join conferences in a muted state, so we want to make sure
-            // that the CallKit mute state is in sync with the voice channel mute state.
-            guard let voiceChannel = conversation.voiceChannel else { return }
-            requestMuteCall(in: conversation, muted: voiceChannel.muted)
 
         default:
             break
