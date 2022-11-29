@@ -24,6 +24,16 @@ class CallKitCallRegister {
 
     private var storage = [UUID: CallKitCall]()
 
+    // MARK: - Life cycle
+
+    init() {
+        persistStorage()
+    }
+
+    deinit {
+        persistStorage()
+    }
+
     // MARK: - Persistence
 
     private func persistStorage() {
