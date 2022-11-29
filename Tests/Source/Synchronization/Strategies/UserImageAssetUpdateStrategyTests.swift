@@ -302,8 +302,8 @@ extension UserImageAssetUpdateStrategyTests {
             expectedPath = "/assets/v3/\(assetId)"
         case .v1:
             expectedPath = "/v1/assets/v4/\(domain)/\(assetId)"
-        case .v2:
-            expectedPath = "/v2/assets/\(domain)/\(assetId)"
+        case .v2, .v3:
+            expectedPath = "/v\(apiVersion.rawValue)/assets/\(domain)/\(assetId)"
         }
 
         let request = self.sut.downstreamRequestSyncs[size]?.nextRequest(for: apiVersion)

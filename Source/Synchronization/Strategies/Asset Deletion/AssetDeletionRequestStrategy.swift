@@ -26,7 +26,7 @@ fileprivate extension AssetRequestFactory {
         switch apiVersion {
         case .v0, .v1:
             path = "/assets/v3/\(identifier)"
-        case .v2:
+        case .v2, .v3:
             guard let domain = BackendInfo.domain else {
                 return nil
             }
