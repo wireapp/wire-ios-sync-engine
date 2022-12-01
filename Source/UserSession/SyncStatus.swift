@@ -90,7 +90,7 @@ extension Notification.Name {
             object: nil,
             queue: nil
         ) { [weak self] _ in
-            self?.triggerQuickSync()
+            self?.forceQuickSync()
         }
     }
 
@@ -113,7 +113,7 @@ extension Notification.Name {
         syncStateDelegate.didStartSlowSync()
     }
 
-    func triggerQuickSync() {
+    public func forceQuickSync() {
         isForceQuickSync = true
         currentSyncPhase = .fetchingMissedEvents
         RequestAvailableNotification.notifyNewRequestsAvailable(self)

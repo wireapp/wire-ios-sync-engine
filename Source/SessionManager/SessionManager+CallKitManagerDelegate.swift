@@ -26,7 +26,11 @@ enum ConversationLookupError: Error {
 
 extension SessionManager: CallKitManagerDelegate {
 
-    func lookupConversation(by handle: CallHandle, completionHandler: @escaping (Result<ZMConversation>) -> Void) {
+    func lookupConversation(
+        by handle: CallHandle,
+        completionHandler: @escaping (Result<ZMConversation>) -> Void
+    ) {
+        Self.logger.info("lookup conversation for: \(handle)")
         guard let account  = accountManager.account(with: handle.accountID) else {
             return completionHandler(.failure(ConversationLookupError.accountDoesNotExist))
         }
@@ -37,6 +41,41 @@ extension SessionManager: CallKitManagerDelegate {
             }
 
             completionHandler(.success(conversation))
+        }
+    }
+
+    func lookupConversationAndSync(
+        by handle: CallHandle,
+        completionHandler: @escaping (Result<ZMConversation>) -> Void
+    ) {
+        Self.logger.info("lookup conversation and sync for: \(handle)")
+        guard let account  = accountManager.account(with: handle.accountID) else {
+            return completionHandler(.failure(ConversationLookupError.accountDoesNotExist))
+        }
+
+        withSession(for: account) { userSession in
+            Self.logger.info("requesting quick sync")
+
+            userSession.requestQuickSync { didProcessEvents in
+                userSession.managedObjectContext.perform {
+                    if didProcessEvents {
+                        Self.logger.info("did process events, fetching conversation now...")
+
+                        guard let conversation = ZMConversation.fetch(
+                            with: handle.conversationID,
+                            in: userSession.managedObjectContext
+                        ) else {
+                            return completionHandler(.failure(ConversationLookupError.conversationDoesNotExist))
+                        }
+
+                        completionHandler(.success(conversation))
+
+                    } else {
+                        Self.logger.info("did not process events")
+                        completionHandler(.failure(ConversationLookupError.conversationDoesNotExist))
+                    }
+                }
+            }
         }
     }
 

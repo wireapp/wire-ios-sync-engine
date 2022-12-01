@@ -69,11 +69,21 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
 
     // MARK: - Life cycle
 
-    public init(requiredPushTokenType: PushToken.TokenType) {
+    public init(
+        application: ZMApplication,
+        requiredPushTokenType: PushToken.TokenType
+    ) {
         Self.logger.trace("init")
         self.requiredPushTokenType = requiredPushTokenType
-        callKitManager = CallKitManager(mediaManager: AVSMediaManager.sharedInstance())
+
+        callKitManager = CallKitManager(
+            application: application,
+            requiredPushTokenType: requiredPushTokenType,
+            mediaManager: AVSMediaManager.sharedInstance()
+        )
+
         super.init()
+
         registry.delegate = self
     }
 

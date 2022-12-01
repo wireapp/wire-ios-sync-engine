@@ -71,7 +71,9 @@ class EventProcessor: UpdateEventProcessor {
         eventBuffer?.processAllEventsInBuffer()
 
         if syncContext.encryptMessagesAtRest {
+            Self.logger.info("trying to get EAR keys")
             guard let encryptionKeys = syncContext.encryptionKeys else {
+                Self.logger.warning("failed to get EAR keys")
                 return true
             }
 
