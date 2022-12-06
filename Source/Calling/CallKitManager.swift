@@ -20,6 +20,7 @@ import Foundation
 import CallKit
 import Intents
 import avs
+import WireRequestStrategy
 
 protocol CallKitManagerDelegate: AnyObject {
 
@@ -45,6 +46,12 @@ protocol CallKitManagerDelegate: AnyObject {
 public class CallKitManager: NSObject {
 
     // MARK: - Properties
+
+    var isEnabled = false {
+        didSet {
+            VoIPPushHelper.isCallKitAvailable = isEnabled
+        }
+    }
 
     private let application: ZMApplication
     private let requirePushTokenType: PushToken.TokenType
@@ -423,6 +430,11 @@ public class CallKitManager: NSObject {
     ) {
         Self.logger.trace("report incoming call")
 
+        guard isEnabled else {
+            Self.logger.warning("fail: report incoming call: CallKit not enabled")
+            return
+        }
+
         guard let handle = conversation.callHandle else {
             Self.logger.warning("fail: report incoming call: handle doesn't exist")
             log("Cannot report incoming call: conversation is missing handle")
@@ -477,6 +489,11 @@ public class CallKitManager: NSObject {
         reason: CXCallEndedReason
     ) {
         Self.logger.trace("report call ended")
+
+        guard isEnabled else {
+            Self.logger.warning("fail: report incoming call: CallKit not enabled")
+            return
+        }
 
         let associatedCalls = callRegister.allCalls.filter {
             $0.handle == conversation.callHandle
@@ -836,6 +853,8 @@ extension CallKitManager: WireCallCenterCallStateObserver, WireCallCenterMissedC
         timestamp: Date,
         video: Bool
     ) {
+        guard isEnabled else { return }
+
         // Since we missed the call we will not have an assigned callUUID and can just create a random one
         provider.reportCall(
             with: UUID(),

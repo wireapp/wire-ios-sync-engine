@@ -448,6 +448,7 @@ public final class SessionManager: NSObject, SessionManagerType {
         super.init()
 
         callKitManager.delegate = self
+        updateCallNotificationStyle()
 
         deleteAccountToken = AccountDeletedNotification.addObserver(observer: self, queue: groupQueue)
         callCenterObserverToken = WireCallCenterV3.addGlobalCallStateObserver(observer: self)
@@ -885,15 +886,13 @@ public final class SessionManager: NSObject, SessionManagerType {
         switch callNotificationStyle {
         case .pushNotifications:
             authenticatedSessionFactory.mediaManager.setUiStartsAudio(false)
-            // TODO: [John] disable call kit?
-            VoIPPushHelper.isCallKitAvailable = false
+            callKitManager.isEnabled = false
 
         case .callKit:
             // Should be set to true when CallKit is used. Then AVS will not start
             // the audio before the audio session is active
             authenticatedSessionFactory.mediaManager.setUiStartsAudio(true)
-            // TODO: [John] enabled call kit?
-            VoIPPushHelper.isCallKitAvailable = true
+            callKitManager.isEnabled = true
         }
     }
 
