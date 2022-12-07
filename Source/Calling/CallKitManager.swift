@@ -43,11 +43,25 @@ protocol CallKitManagerDelegate: AnyObject {
 }
 
 @objc
-public class CallKitManager: NSObject {
+public protocol CallKitManagerInterface {
+
+    var isEnabled: Bool { get set }
+
+    func setDelegate(_ delegate: Any)
+    func updateConfiguration()
+    func continueUserActivity(_ userActivity: NSUserActivity) -> Bool
+    func requestMuteCall(in conversation: ZMConversation, muted: Bool)
+    func requestJoinCall(in conversation: ZMConversation, video: Bool)
+    func requestEndCall(in conversation: ZMConversation, completion: (() -> Void)?)
+
+}
+
+@objc
+public class CallKitManager: NSObject, CallKitManagerInterface {
 
     // MARK: - Properties
 
-    var isEnabled = false {
+    public var isEnabled: Bool {
         didSet {
             VoIPPushHelper.isCallKitAvailable = isEnabled
         }
@@ -65,7 +79,7 @@ public class CallKitManager: NSObject {
     private var callStateObserverToken: Any?
     private var missedCallObserverToken: Any?
 
-    private let callRegister = CallKitCallRegister()
+    let callRegister = CallKitCallRegister()
     private var connectedCallConversation: ZMConversation?
 
     private static let logger = Logger(subsystem: "VoIP Push", category: "CallKitManager")
@@ -102,6 +116,7 @@ public class CallKitManager: NSObject {
     }
 
     init(
+        isEnabled: Bool = false,
         application: ZMApplication,
         requiredPushTokenType: PushToken.TokenType,
         provider: CXProvider,
@@ -109,6 +124,7 @@ public class CallKitManager: NSObject {
         mediaManager: MediaManagerType?,
         delegate: CallKitManagerDelegate? = nil
     ) {
+        self.isEnabled = isEnabled
         self.application = application
         self.requirePushTokenType = requiredPushTokenType
         self.provider = provider
@@ -126,6 +142,16 @@ public class CallKitManager: NSObject {
 
     deinit {
         provider.invalidate()
+    }
+
+    // MARK: - Delegate
+
+    public func setDelegate(_ delegate: Any) {
+        // The type is any as a way to make the CallKitManagerInterface exposed to
+        // objective c.
+        if let delegate = delegate as? CallKitManagerDelegate {
+            self.delegate = delegate
+        }
     }
 
     // MARK: - Configuration
@@ -227,7 +253,7 @@ public class CallKitManager: NSObject {
 
     // MARK: - Requesting actions
 
-    func requestMuteCall(
+    public func requestMuteCall(
         in conversation: ZMConversation,
         muted: Bool
     ) {
@@ -251,7 +277,7 @@ public class CallKitManager: NSObject {
         }
     }
 
-    func requestJoinCall(
+    public func requestJoinCall(
         in conversation: ZMConversation,
         video: Bool
     ) {
@@ -335,7 +361,10 @@ public class CallKitManager: NSObject {
         }
     }
 
-    func requestEndCall(in conversation: ZMConversation, completion: (() -> Void)? = nil) {
+    public func requestEndCall(
+        in conversation: ZMConversation,
+        completion: (() -> Void)? = nil
+    ) {
         Self.logger.trace("request end call")
 
         guard let call = callRegister.lookupCall(by: conversation) else {
@@ -937,7 +966,7 @@ extension CallClosedReason {
 
 }
 
-private extension CallKitCallRegister {
+extension CallKitCallRegister {
 
     func lookupCall(by conversation: ZMConversation) -> CallKitCall? {
         guard let handle = conversation.callHandle else { return nil }

@@ -232,7 +232,8 @@ extension IntegrationTest {
             environment: mockEnvironment,
             configuration: sessionManagerConfiguration,
             detector: jailbreakDetector,
-            requiredPushTokenType: shouldProcessLegacyPushes ? .voip : .standard
+            requiredPushTokenType: shouldProcessLegacyPushes ? .voip : .standard,
+            callKitManager: MockCallKitManager()
         )
 
         sessionManager?.loginDelegate = mockLoginDelegete

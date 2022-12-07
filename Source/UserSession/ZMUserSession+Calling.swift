@@ -41,7 +41,7 @@ public protocol CallNotificationStyleProvider: AnyObject {
         return !callCenter.activeCallConversations(in: self).isEmpty
     }
 
-    internal var callKitManager: CallKitManager? {
+    internal var callKitManager: CallKitManagerInterface? {
         return sessionManager?.callKitManager
     }
 

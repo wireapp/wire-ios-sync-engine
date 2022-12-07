@@ -25,7 +25,7 @@ class MockSessionManager: NSObject, WireSyncEngine.SessionManagerType {
     static let accountManagerURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("MockSessionManager.accounts")
 
     var foregroundNotificationResponder: ForegroundNotificationResponder?
-    var callKitManager: WireSyncEngine.CallKitManager?
+    var callKitManager: CallKitManagerInterface = MockCallKitManager()
     var callNotificationStyle: CallNotificationStyle = .pushNotifications
     var accountManager: AccountManager = AccountManager(sharedDirectory: accountManagerURL)
     var backgroundUserSessions: [UUID: ZMUserSession] = [:]
@@ -81,4 +81,34 @@ class MockSessionManager: NSObject, WireSyncEngine.SessionManagerType {
     func passwordVerificationDidFail(with failCount: Int) {
         // no-op
     }
+}
+
+class MockCallKitManager: CallKitManagerInterface {
+
+    var isEnabled = false
+
+    func setDelegate(_ delegate: Any) {
+        // no-op
+    }
+
+    func updateConfiguration() {
+        // no-op
+    }
+
+    func continueUserActivity(_ userActivity: NSUserActivity) -> Bool {
+        return false
+    }
+
+    func requestMuteCall(in conversation: ZMConversation, muted: Bool) {
+        // no-op
+    }
+
+    func requestJoinCall(in conversation: ZMConversation, video: Bool) {
+        // no-op
+    }
+
+    func requestEndCall(in conversation: ZMConversation, completion: (() -> Void)?) {
+        // no-op
+    }
+
 }

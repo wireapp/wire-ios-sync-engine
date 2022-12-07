@@ -72,7 +72,7 @@ public protocol SessionManagerType: AnyObject {
 
     weak var foregroundNotificationResponder: ForegroundNotificationResponder? { get }
 
-    var callKitManager: CallKitManager { get }
+    var callKitManager: CallKitManagerInterface { get }
     var callNotificationStyle: CallNotificationStyle { get }
 
     func updateAppIconBadge(accountID: UUID, unreadCount: Int)
@@ -270,7 +270,7 @@ public final class SessionManager: NSObject, SessionManagerType {
     fileprivate var memoryWarningObserver: NSObjectProtocol?
     fileprivate var isSelectingAccount: Bool = false
 
-    public let callKitManager: CallKitManager
+    public let callKitManager: CallKitManagerInterface
 
     public var isSelectedAccountAuthenticated: Bool {
         guard let selectedAccount = accountManager.selectedAccount else {
@@ -305,7 +305,7 @@ public final class SessionManager: NSObject, SessionManagerType {
         configuration: SessionManagerConfiguration = SessionManagerConfiguration(),
         detector: JailbreakDetectorProtocol = JailbreakDetector(),
         requiredPushTokenType: PushToken.TokenType,
-        callKitManager: CallKitManager
+        callKitManager: CallKitManagerInterface
     ) {
         let flowManager = FlowManager(mediaManager: mediaManager)
         let reachability = environment.reachability
@@ -393,7 +393,7 @@ public final class SessionManager: NSObject, SessionManagerType {
          configuration: SessionManagerConfiguration = SessionManagerConfiguration(),
          detector: JailbreakDetectorProtocol = JailbreakDetector(),
          requiredPushTokenType: PushToken.TokenType,
-         callKitManager: CallKitManager
+         callKitManager: CallKitManagerInterface
     ) {
         SessionManager.enableLogsByEnvironmentVariable()
         self.environment = environment
@@ -447,7 +447,7 @@ public final class SessionManager: NSObject, SessionManagerType {
 
         super.init()
 
-        callKitManager.delegate = self
+        callKitManager.setDelegate(self)
         updateCallNotificationStyle()
 
         deleteAccountToken = AccountDeletedNotification.addObserver(observer: self, queue: groupQueue)
