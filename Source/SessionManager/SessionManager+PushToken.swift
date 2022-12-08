@@ -21,21 +21,18 @@ import PushKit
 
 extension SessionManager {
 
-    /*
-
-     Which pushes do we use?
-
-     iOS 15 and later:
-        - Standard APNS pushes -> delivered to Notification Service Extension (NSE).
-        - Still register for voIP pushes (BUT DON'T REGISTER WITH BACKEND), so that
-          the NSE can wake up the main app to notify calls to CallKit (via PushKit).
-        - Why? VoIP pushes are restricted for calling only since iOS 13, out exemption
-          expires in iOS 15.
-
-     iOS 14 and earlier:
-        - VoIP pushes (via PushKit) -> delivered to main app and used to fetch all
-          events, regardless if calling or not.
-
+    /* Which pushes do we use?
+     *
+     * iOS 15 and later:
+     *    - Standard APNS pushes -> delivered to Notification Service Extension (NSE).
+     *    - Still register for voIP pushes (BUT DON'T REGISTER WITH BACKEND), so that
+     *      the NSE can wake up the main app to notify calls to CallKit (via PushKit).
+     *    - Why? VoIP pushes are restricted for calling only since iOS 13, out exemption
+     *      expires in iOS 15.
+     *
+     * iOS 14 and earlier:
+     *    - VoIP pushes (via PushKit) -> delivered to main app and used to fetch all
+     *      events, regardless if calling or not.
      */
 
     // MARK: - Registration
@@ -49,7 +46,7 @@ extension SessionManager {
 
     // MARK: - Token registration
 
-    func setUpPushToken(session: ZMUserSession) {
+    public func configurePushToken(session: ZMUserSession) {
         guard let localToken = PushTokenStorage.pushToken else {
             // No local token, generate a new one.
             generateLocalToken(session: session)
@@ -57,7 +54,7 @@ extension SessionManager {
         }
 
         if localToken.tokenType != requiredPushTokenType {
-            // Local token is invalid, generate a new one.
+            // Local token is not the right one, generate a new one.
             generateLocalToken(session: session)
         }
 
@@ -107,11 +104,9 @@ extension SessionManager {
             switch result {
             case .success:
                 Logging.push.safePublic("registerLocalToken: success")
-                break
 
             case .failure(let error):
                 Logging.push.safePublic("registerLocalToken: failed: \(error)")
-                break
             }
         }.send(in: session.managedObjectContext.notificationContext)
     }
@@ -136,7 +131,6 @@ extension SessionManager {
 
             case .failure(let error):
                 Logging.push.safePublic("unregisterOtherTokens: failed: \(error)")
-                break
             }
         }.send(in: session.managedObjectContext.notificationContext)
     }
@@ -146,38 +140,12 @@ extension SessionManager {
         RemovePushTokenAction(deviceToken: pushToken.deviceTokenString) { result in
             switch result {
             case .success:
-
                 Logging.push.safePublic("unregisterPushToken: success")
-                break
 
             case .failure(let error):
                 Logging.push.safePublic("unregisterPushToken: failed: \(error)")
-                break
             }
         }.send(in: session.managedObjectContext.notificationContext)
     }
-
-    // MARK: - Legacy
-
-    func updateOrMigratePushToken(session userSession: ZMUserSession) {
-        return
-        return
-        // If the legacy token exists, migrate it to the PushTokenStorage and delete it from selfClient
-        if let client = userSession.selfUserClient, let legacyToken = client.retrieveLegacyPushToken() {
-            PushTokenStorage.pushToken = legacyToken
-        }
-
-        guard let localToken = PushTokenStorage.pushToken else {
-            updatePushToken(for: userSession)
-            return
-        }
-
-        if localToken.tokenType != requiredPushTokenType {
-            userSession.deletePushToken { [weak self] in
-                self?.updatePushToken(for: userSession)
-            }
-        }
-    }
-
 
 }

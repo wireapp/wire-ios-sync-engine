@@ -76,9 +76,7 @@ public protocol SessionManagerType: AnyObject {
     var callNotificationStyle: CallNotificationStyle { get }
 
     func updateAppIconBadge(accountID: UUID, unreadCount: Int)
-
-    /// Will update the push token for the session if it has changed
-    func updatePushToken(for session: ZMUserSession)
+    func configurePushToken(session: ZMUserSession)
 
     /// Configure user notification settings. This will ask the user for permission to display notifications.
     func configureUserNotifications()
@@ -780,7 +778,7 @@ public final class SessionManager: NSObject, SessionManagerType {
         backgroundUserSessions[account.userIdentifier] = userSession
         userSession.useConstantBitRateAudio = useConstantBitRateAudio
         userSession.usePackagingFeatureConfig = usePackagingFeatureConfig
-        updateOrMigratePushToken(session: userSession)
+        configurePushToken(session: userSession)
         registerObservers(account: account, session: userSession)
     }
 

@@ -57,13 +57,6 @@ extension SessionManager: PKPushRegistryDelegate {
 
         Logging.push.safePublic("PushKit token was updated: \(pushCredentials)")
         PushTokenStorage.pushToken = .createVOIPToken(from: pushCredentials.token)
-        return
-
-        // Give new push token to all running sessions.
-        backgroundUserSessions.values.forEach { userSession in
-            let pushToken = PushToken.createVOIPToken(from: pushCredentials.token)
-            userSession.setPushToken(pushToken)
-        }
     }
 
     public func pushRegistry(_ registry: PKPushRegistry, didInvalidatePushTokenFor type: PKPushType) {
@@ -75,13 +68,6 @@ extension SessionManager: PKPushRegistryDelegate {
 
         Logging.push.safePublic("PushKit token was invalidated")
         PushTokenStorage.pushToken = nil
-
-        return
-
-        // Delete push token from all running sessions.
-        backgroundUserSessions.values.forEach { userSession in
-            userSession.deletePushToken()
-        }
     }
 
     public func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType) {
@@ -234,24 +220,6 @@ extension SessionManager: PKPushRegistryDelegate {
         notificationCenter.delegate = self
     }
 
-    // TODO: can we delete this?
-    public func updatePushToken(for session: ZMUserSession) {
-        session.managedObjectContext.performGroupedBlock { [weak session] in
-            switch self.requiredPushTokenType {
-            case .voip:
-                if let token = self.pushRegistry.pushToken(for: .voIP) {
-                    // TODO: store it locally, mark it needing upload
-                    pushLog.safePublic("creating voip push token")
-                    let pushToken = PushToken.createVOIPToken(from: token)
-                    session?.setPushToken(pushToken)
-                }
-            case .standard:
-                pushLog.safePublic("creating standard push token")
-                self.application.registerForRemoteNotifications()
-            }
-        }
-    }
-
     func handleNotification(with userInfo: NotificationUserInfo, block: @escaping (ZMUserSession) -> Void) {
         guard
             let selfID = userInfo.selfUserID,
@@ -315,16 +283,6 @@ extension SessionManager {
 
     var shouldProcessLegacyPushes: Bool {
         return requiredPushTokenType == .voip
-    }
-
-    // TODO: rename to storeAPNSDeviceToken
-
-    public func updateDeviceToken(_ deviceToken: Data) {
-        let pushToken = PushToken.createAPNSToken(from: deviceToken)
-        // give new device token to all running sessions
-        self.backgroundUserSessions.values.forEach({ userSession in
-            userSession.setPushToken(pushToken)
-        })
     }
 
 }

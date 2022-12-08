@@ -93,8 +93,6 @@ struct PushTokenMetadata {
 
 // MARK: - Register current push token
 
-// TODO: Check what this is for
-
 extension ZMUserSession {
 
     @objc public static let registerCurrentPushTokenNotificationName = Notification.Name(rawValue: "ZMUserSessionResetPushTokensNotification")
@@ -105,7 +103,7 @@ extension ZMUserSession {
 
     func registerCurrentPushToken() {
         managedObjectContext.performGroupedBlock {
-            self.sessionManager?.updatePushToken(for: self)
+            self.sessionManager?.configurePushToken(session: self)
         }
     }
 
@@ -115,114 +113,10 @@ extension ZMUserSession {
 
 extension ZMUserSession {
 
-    // TODO: Delete
-
-    public func setPushToken(_ pushToken: PushToken) {
-        return
-        print("[DEBUG] setting push token")
-        let syncMOC = managedObjectContext.zm_sync!
-
-        syncMOC.performGroupedBlock {
-            guard
-                let selfClient = ZMUser.selfUser(in: syncMOC).selfClient(),
-                let clientID = selfClient.remoteIdentifier
-            else {
-                print("[DEBUG] setting push token failed, no client id")
-                return
-            }
-
-            let action = RegisterPushTokenAction(token: pushToken, clientID: clientID) { result in
-                switch result {
-                case .success:
-                    print("[DEBUG] setting push token succeeded")
-                    PushTokenStorage.pushToken = pushToken
-                case .failure(let error):
-                    print("[DEBUG] setting push token failed: \(String(describing: error))")
-                    Logging.push.safePublic("Failed to register push token with backend: \(error)")
-                }
-            }
-
-            action.send(in: syncMOC.notificationContext)
-        }
-    }
-
-    // TODO: delete
-
-    func deletePushToken(completion: (() -> Void)? = nil) {
-        return
-        print("[DEBUG] deleting push token")
-        let syncMOC = managedObjectContext.zm_sync!
-
-        syncMOC.performGroupedBlock {
-            guard let pushToken = PushTokenStorage.pushToken else {
-                completion?()
-                print("[DEBUG] deleting push token failed, no token to delete")
-                return
-            }
-
-            let action = RemovePushTokenAction(deviceToken: pushToken.deviceTokenString) { result in
-                switch result {
-                case .success:
-                    print("[DEBUG] deleting push token succeeded")
-                    PushTokenStorage.pushToken = nil
-                case .failure(let error):
-                    switch error {
-                    case .tokenDoesNotExist:
-                        print("[DEBUG] deleting push token failed, no remote token")
-                        PushTokenStorage.pushToken = nil
-                        Logging.push.safePublic("Failed to delete push token because it does not exist: \(error)")
-                    default:
-                        print("[DEBUG] deleting push token failed: \(String(describing: error))")
-                        Logging.push.safePublic("Failed to delete push token: \(error)")
-                    }
-                }
-                completion?()
-            }
-            action.send(in: syncMOC.notificationContext)
-        }
-    }
-
-    /// Compares the push token registered on backend with the local one
-    /// and re-registers it if they don't match.
+    /// Generates the local push token if needed, then syncs it with the backend.
 
     public func validatePushToken() {
-        let syncContext = managedObjectContext.zm_sync!
-
-        syncContext.performGroupedBlock {
-            guard
-                let selfClient = ZMUser.selfUser(in: syncContext).selfClient(),
-                let clientID = selfClient.remoteIdentifier
-            else {
-                return
-            }
-
-            guard let localToken = PushTokenStorage.pushToken else {
-                self.sessionManager?.updatePushToken(for: self)
-                return
-            }
-
-            let action = GetPushTokensAction(clientID: clientID) { result in
-                switch result {
-                case let .success(tokens):
-                    let matchingRemoteToken = tokens.first {
-                        $0.deviceTokenString == localToken.deviceTokenString
-                    }
-
-                    guard matchingRemoteToken != nil else {
-                        PushTokenStorage.pushToken = nil
-                        self.sessionManager?.updatePushToken(for: self)
-                        return
-                    }
-
-                    PushTokenStorage.pushToken = matchingRemoteToken
-
-                case let .failure(error):
-                    Logging.push.safePublic("Failed to validate push token: \(error)")
-                }
-            }
-
-            action.send(in: syncContext.notificationContext)
-        }
+        sessionManager?.configurePushToken(session: self)
     }
 
 }
