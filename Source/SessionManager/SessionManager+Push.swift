@@ -56,6 +56,8 @@ extension SessionManager: PKPushRegistryDelegate {
         guard requiredPushTokenType == .voip else { return }
 
         Logging.push.safePublic("PushKit token was updated: \(pushCredentials)")
+        PushTokenStorage.pushToken = .createVOIPToken(from: pushCredentials.token)
+        return
 
         // Give new push token to all running sessions.
         backgroundUserSessions.values.forEach { userSession in
@@ -72,6 +74,9 @@ extension SessionManager: PKPushRegistryDelegate {
         guard requiredPushTokenType == .voip else { return }
 
         Logging.push.safePublic("PushKit token was invalidated")
+        PushTokenStorage.pushToken = nil
+
+        return
 
         // Delete push token from all running sessions.
         backgroundUserSessions.values.forEach { userSession in
@@ -229,11 +234,13 @@ extension SessionManager: PKPushRegistryDelegate {
         notificationCenter.delegate = self
     }
 
+    // TODO: can we delete this?
     public func updatePushToken(for session: ZMUserSession) {
         session.managedObjectContext.performGroupedBlock { [weak session] in
             switch self.requiredPushTokenType {
             case .voip:
                 if let token = self.pushRegistry.pushToken(for: .voIP) {
+                    // TODO: store it locally, mark it needing upload
                     pushLog.safePublic("creating voip push token")
                     let pushToken = PushToken.createVOIPToken(from: token)
                     session?.setPushToken(pushToken)
@@ -309,6 +316,8 @@ extension SessionManager {
     var shouldProcessLegacyPushes: Bool {
         return requiredPushTokenType == .voip
     }
+
+    // TODO: rename to storeAPNSDeviceToken
 
     public func updateDeviceToken(_ deviceToken: Data) {
         let pushToken = PushToken.createAPNSToken(from: deviceToken)

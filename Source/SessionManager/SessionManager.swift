@@ -451,18 +451,23 @@ public final class SessionManager: NSObject, SessionManagerType {
 
         super.init()
 
-        registerForVoipPushNotifications()
+        PushTokenStorage.onTokenChange = { [weak self] _ in
+            guard
+                let `self` = self,
+                let session = self.activeUserSession
+            else {
+                return
+            }
+
+            self.syncLocalTokenWithRemote(session: session)
+        }
+
+        registerForVoIPPushNotifications()
+
         deleteAccountToken = AccountDeletedNotification.addObserver(observer: self, queue: groupQueue)
         callCenterObserverToken = WireCallCenterV3.addGlobalCallStateObserver(observer: self)
 
         checkJailbreakIfNeeded()
-    }
-
-    private func registerForVoipPushNotifications() {
-        pushLog.safePublic("registering for voip push token")
-        self.pushRegistry.delegate = self
-        let pkPushTypeSet: Set<PKPushType> = [PKPushType.voIP]
-        self.pushRegistry.desiredPushTypes = pkPushTypeSet
     }
 
     public func start(launchOptions: LaunchOptions) {
@@ -777,24 +782,6 @@ public final class SessionManager: NSObject, SessionManagerType {
         userSession.usePackagingFeatureConfig = usePackagingFeatureConfig
         updateOrMigratePushToken(session: userSession)
         registerObservers(account: account, session: userSession)
-    }
-
-    func updateOrMigratePushToken(session userSession: ZMUserSession) {
-        // If the legacy token exists, migrate it to the PushTokenStorage and delete it from selfClient
-        if let client = userSession.selfUserClient, let legacyToken = client.retrieveLegacyPushToken() {
-            PushTokenStorage.pushToken = legacyToken
-        }
-
-        guard let localToken = PushTokenStorage.pushToken else {
-            updatePushToken(for: userSession)
-            return
-        }
-
-        if localToken.tokenType != requiredPushTokenType {
-            userSession.deletePushToken { [weak self] in
-                self?.updatePushToken(for: userSession)
-            }
-        }
     }
 
     private func deleteMessagesOlderThanRetentionLimit(contextProvider: ContextProvider) {
