@@ -38,7 +38,7 @@ public final class PushTokenService: PushTokenServiceInterface {
     // MARK: - Methods
 
     public func storeLocalToken(_ token: PushToken?) {
-        Logging.push.safePublic("setting local push token: \(token)")
+        Logging.push.safePublic("setting local push token: \(token?.tokenType)")
         PushTokenStorage.pushToken = token
         onTokenChange?(token)
     }
@@ -48,7 +48,7 @@ public final class PushTokenService: PushTokenServiceInterface {
         clientID: String,
         in context: NotificationContext
     ) async throws {
-        Logging.push.safePublic("registering push token: \(token)")
+        Logging.push.safePublic("registering push token: \(token.tokenType)")
 
         var action = RegisterPushTokenAction(
             token: token,
@@ -58,7 +58,7 @@ public final class PushTokenService: PushTokenServiceInterface {
         do {
             try await action.perform(in: context)
         } catch let error as RegisterPushTokenAction.Failure {
-            Logging.push.safePublic("registering push token: \(token), failed: \(error)")
+            Logging.push.safePublic("registering push token: \(token.tokenType), failed: \(error)")
             throw error
         }
 
@@ -84,10 +84,10 @@ public final class PushTokenService: PushTokenServiceInterface {
 
         do {
             for remoteToken in remoteTokens where remoteToken != excludedToken {
-                Logging.push.safePublic("unregister invalid token of type: \(remoteToken)...")
+                Logging.push.safePublic("unregister invalid token of type: \(remoteToken.tokenType)...")
                 var removeAction = RemovePushTokenAction(deviceToken: remoteToken.deviceTokenString)
                 try await removeAction.perform(in: context)
-                Logging.push.safePublic("unregister invalid token of type: \(remoteToken), success")
+                Logging.push.safePublic("unregister invalid token of type: \(remoteToken.tokenType), success")
             }
         } catch let error as RemovePushTokenAction.Failure {
             Logging.push.safePublic("unregister remote tokens, failed: \(error)")
@@ -150,10 +150,10 @@ public extension PushTokenServiceInterface {
 
 // MARK: - Helpers
 
-extension PushToken: SafeForLoggingStringConvertible {
+extension PushToken.TokenType: SafeForLoggingStringConvertible {
 
     public var safeForLoggingDescription: String {
-        switch tokenType {
+        switch self {
         case .standard:
             return "standard"
 
