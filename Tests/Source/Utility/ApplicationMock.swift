@@ -27,6 +27,7 @@ import WireDataModel
     public var applicationState: UIApplication.State = .active
     public var deviceToken: Data?
     public var userSession: ZMUserSession?
+    public var pushTokenService: PushTokenServiceInterface?
 
     /// Records calls to `registerForRemoteNotification`
     public var registerForRemoteNotificationCount: Int = 0
@@ -41,7 +42,7 @@ import WireDataModel
     public var minimumBackgroundFetchInverval: TimeInterval = UIApplication.backgroundFetchIntervalNever
 
     /// Callback invoked when `registerUserNotificationSettings` is invoked
-    public var registerForRemoteNotificationsCallback : () -> Void = { }
+    public var registerForRemoteNotificationsCallback: () -> Void = { }
 }
 
 // MARK: - Application protocol
@@ -139,8 +140,7 @@ extension ApplicationMock {
 
     public func updateDeviceToken() {
         if let token = deviceToken {
-            let pushToken = PushToken.createAPNSToken(from: token)
-            userSession?.setPushToken(pushToken)
+            pushTokenService?.storeLocalToken(.createAPNSToken(from: token))
         }
     }
 

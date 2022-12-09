@@ -22,62 +22,146 @@ import WireTesting
 
 class SessionManagerPushTokenTests: IntegrationTest {
 
+
     override func setUp() {
+        mockPushTokenService = MockPushTokenService()
         super.setUp()
+        createSelfUserAndConversation()
         PushTokenStorage.pushToken = nil
     }
 
     override func tearDown() {
-        super.tearDown()
+        mockPushTokenService = nil
         PushTokenStorage.pushToken = nil
-    }
-
-    // MARK: - Helpers
-
-    struct Failure: LocalizedError {
-
-        let message: String
-
-        var errorDescription: String? {
-            return message
-        }
-
-        init(_ message: String) {
-            self.message = message
-        }
-
-    }
-
-    func sut() throws -> SessionManager {
-        guard let sut = sessionManager else {
-            throw Failure("sut not available")
-        }
-
-        return sut
+        super.tearDown()
     }
 
     // MARK: - Tests
 
-    // Given no local token, it creates APNS token, registers it, removes others
     func testItRegistersAndSyncsStandardTokenIfNoneExists() throws {
-        // Given
-        let sut = try sut()
+        XCTAssert(login())
+        let sut = try XCTUnwrap(sessionManager)
+        let application = try XCTUnwrap(application)
+        let pushService = try XCTUnwrap(mockPushTokenService)
+        let session = try XCTUnwrap(sut.activeUserSession)
+        let clientID = try XCTUnwrap(session.selfUserClient?.remoteIdentifier)
+        let deviceToken = Data.secureRandomData(length: 8)
+
+        // Mock device token
+        application.deviceToken = deviceToken
+        application.registerForRemoteNotificationCount = 0
+
+        // Given we need a standard token
         sut.requiredPushTokenType = .standard
-        PushTokenStorage.pushToken = nil
 
-        // Some remote tokens
+        // Given no local token exists
+        pushService.localToken = nil
 
+        // Given some tokens are registered remotely
+        pushService.registeredTokensByClientID[clientID] = [
+            .createAPNSToken(from: .secureRandomData(length: 8)),
+            .createVOIPToken(from: .secureRandomData(length: 8))
+        ]
+
+        pushService.didFinishRegisteringExpectation = expectation(description: "didFinishRegistering")
+        pushService.didFinishUnregisteringExpectation = expectation(description: "didFinishUnregistering")
 
         // When
-        // Configure tokens for a session.
+        sut.configurePushToken(session: session)
+        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+        XCTAssert(waitForCustomExpectations(withTimeout: 0.5))
 
-        // Then
-        // Local token is APNS
-        // Remote token is APNS
+        // Then a new token was generated
+        XCTAssertEqual(application.registerForRemoteNotificationCount, 1)
+
+        // Then the local token is correct
+        let expectedToken = PushToken.createAPNSToken(from: deviceToken)
+        XCTAssertEqual(pushService.localToken, expectedToken)
+
+        // Then only the local token is registered
+        XCTAssertEqual(pushService.registeredTokensByClientID[clientID], [expectedToken])
     }
 
-    // Given VOIP local token, it creates APNS token, registers it, removes others
+    func testItRegistersAndSyncsVoIPTokenIfNoneExists() throws {
+        XCTAssert(login())
+        let sut = try XCTUnwrap(sessionManager)
+        let pushService = try XCTUnwrap(mockPushTokenService)
+        let session = try XCTUnwrap(sut.activeUserSession)
+        let clientID = try XCTUnwrap(session.selfUserClient?.remoteIdentifier)
+        let deviceToken = Data.secureRandomData(length: 8)
 
-    // Given no local token, it creates VOIP token, registers it, removes others
+        // Mock device token
+        pushRegistry.mockPushToken = deviceToken
+
+        // Given we need a standard token
+        sut.requiredPushTokenType = .voip
+
+        // Given no local token exists
+        pushService.localToken = nil
+
+        // Given some tokens are registered remotely
+        pushService.registeredTokensByClientID[clientID] = [
+            .createAPNSToken(from: .secureRandomData(length: 8)),
+            .createVOIPToken(from: .secureRandomData(length: 8))
+        ]
+
+        pushService.didFinishRegisteringExpectation = expectation(description: "didFinishRegistering")
+        pushService.didFinishUnregisteringExpectation = expectation(description: "didFinishUnregistering")
+
+        // When
+        sut.configurePushToken(session: session)
+        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+        XCTAssert(waitForCustomExpectations(withTimeout: 0.5))
+
+        // Then the local token is correct
+        let expectedToken = PushToken.createVOIPToken(from: deviceToken)
+        XCTAssertEqual(pushService.localToken, expectedToken)
+
+        // Then only the local token is registered
+        XCTAssertEqual(pushService.registeredTokensByClientID[clientID], [expectedToken])
+    }
+
+    func testItRegistersAndSyncsStandardTokenIfVoIPTokenExists() throws {
+        XCTAssert(login())
+        let sut = try XCTUnwrap(sessionManager)
+        let application = try XCTUnwrap(application)
+        let pushService = try XCTUnwrap(mockPushTokenService)
+        let session = try XCTUnwrap(sut.activeUserSession)
+        let clientID = try XCTUnwrap(session.selfUserClient?.remoteIdentifier)
+        let deviceToken = Data.secureRandomData(length: 8)
+
+        // Mock device token
+        application.deviceToken = deviceToken
+        application.registerForRemoteNotificationCount = 0
+
+        // Given we need a standard token
+        sut.requiredPushTokenType = .standard
+
+        // Given no local token exists
+        pushService.localToken = .createVOIPToken(from: .secureRandomData(length: 8))
+
+        // Given some tokens are registered remotely
+        pushService.registeredTokensByClientID[clientID] = [
+            pushService.localToken!
+        ]
+
+        pushService.didFinishRegisteringExpectation = expectation(description: "didFinishRegistering")
+        pushService.didFinishUnregisteringExpectation = expectation(description: "didFinishUnregistering")
+
+        // When
+        sut.configurePushToken(session: session)
+        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+        XCTAssert(waitForCustomExpectations(withTimeout: 0.5))
+
+        // Then a new token was generated
+        XCTAssertEqual(application.registerForRemoteNotificationCount, 1)
+
+        // Then the local token is correct
+        let expectedToken = PushToken.createAPNSToken(from: deviceToken)
+        XCTAssertEqual(pushService.localToken, expectedToken)
+
+        // Then only the local token is registered
+        XCTAssertEqual(pushService.registeredTokensByClientID[clientID], [expectedToken])
+    }
 
 }
