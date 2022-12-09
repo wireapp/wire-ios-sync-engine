@@ -70,7 +70,7 @@ public final class PushTokenService: PushTokenServiceInterface {
         excluding excludedToken: PushToken? = nil,
         in context: NotificationContext
     ) async throws {
-        Logging.push.safePublic("unregister remote tokens, excluding \(excludedToken)")
+        Logging.push.safePublic("unregister remote tokens...")
 
         var getTokensAction = GetPushTokensAction(clientID: clientID)
         var remoteTokens = [PushToken]()
@@ -84,8 +84,10 @@ public final class PushTokenService: PushTokenServiceInterface {
 
         do {
             for remoteToken in remoteTokens where remoteToken != excludedToken {
+                Logging.push.safePublic("unregister invalid token of type: \(remoteToken)...")
                 var removeAction = RemovePushTokenAction(deviceToken: remoteToken.deviceTokenString)
                 try await removeAction.perform(in: context)
+                Logging.push.safePublic("unregister invalid token of type: \(remoteToken), success")
             }
         } catch let error as RemovePushTokenAction.Failure {
             Logging.push.safePublic("unregister remote tokens, failed: \(error)")
