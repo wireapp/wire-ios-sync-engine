@@ -22,7 +22,6 @@ import WireTesting
 
 class SessionManagerPushTokenTests: IntegrationTest {
 
-
     override func setUp() {
         mockPushTokenService = MockPushTokenService()
         super.setUp()
@@ -63,8 +62,11 @@ class SessionManagerPushTokenTests: IntegrationTest {
             .createVOIPToken(from: .secureRandomData(length: 8))
         ]
 
-        pushService.didFinishRegisteringExpectation = expectation(description: "didFinishRegistering")
-        pushService.didFinishUnregisteringExpectation = expectation(description: "didFinishUnregistering")
+        let registrationDone = expectation(description: "registration done")
+        pushService.onRegistrationComplete = { registrationDone.fulfill() }
+
+        let unregistrationDone = expectation(description: "unregistration done")
+        pushService.onUnregistrationComplete = { unregistrationDone.fulfill() }
 
         // When
         sut.configurePushToken(session: session)
@@ -105,8 +107,11 @@ class SessionManagerPushTokenTests: IntegrationTest {
             .createVOIPToken(from: .secureRandomData(length: 8))
         ]
 
-        pushService.didFinishRegisteringExpectation = expectation(description: "didFinishRegistering")
-        pushService.didFinishUnregisteringExpectation = expectation(description: "didFinishUnregistering")
+        let registrationDone = expectation(description: "registration done")
+        pushService.onRegistrationComplete = { registrationDone.fulfill() }
+
+        let unregistrationDone = expectation(description: "unregistration done")
+        pushService.onUnregistrationComplete = { unregistrationDone.fulfill() }
 
         // When
         sut.configurePushToken(session: session)
@@ -145,8 +150,11 @@ class SessionManagerPushTokenTests: IntegrationTest {
             pushService.localToken!
         ]
 
-        pushService.didFinishRegisteringExpectation = expectation(description: "didFinishRegistering")
-        pushService.didFinishUnregisteringExpectation = expectation(description: "didFinishUnregistering")
+        let registrationDone = expectation(description: "registration done")
+        pushService.onRegistrationComplete = { registrationDone.fulfill() }
+
+        let unregistrationDone = expectation(description: "unregistration done")
+        pushService.onUnregistrationComplete = { unregistrationDone.fulfill() }
 
         // When
         sut.configurePushToken(session: session)
