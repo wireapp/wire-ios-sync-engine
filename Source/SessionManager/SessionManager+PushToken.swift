@@ -48,17 +48,17 @@ extension SessionManager {
 
     public func configurePushToken(session: ZMUserSession) {
         guard let localToken = pushTokenService.localToken else {
-            // No local token, generate a new one.
+            Logging.push.safePublic("no local token, will generate one")
             generateLocalToken(session: session)
             return
         }
 
-        if localToken.tokenType != requiredPushTokenType {
-            // Local token is not the right one, generate a new one.
+        guard localToken.tokenType == requiredPushTokenType else {
+            Logging.push.safePublic("local token is of type \(localToken.tokenType) but should be \(requiredPushTokenType), will generate a new token")
             generateLocalToken(session: session)
+            return
         }
 
-        // Local token is correct.
         syncLocalTokenWithRemote(session: session)
     }
 
