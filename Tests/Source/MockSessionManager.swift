@@ -58,7 +58,7 @@ class MockSessionManager: NSObject, WireSyncEngine.SessionManagerType {
     }
 
     @objc public var updatePushTokenCalled = false
-    func updatePushToken(for session: ZMUserSession) {
+    func configurePushToken(session: ZMUserSession) {
         updatePushTokenCalled = true
     }
 
