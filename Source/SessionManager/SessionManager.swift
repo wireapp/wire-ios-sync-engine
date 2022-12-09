@@ -292,6 +292,8 @@ public final class SessionManager: NSObject, SessionManagerType {
 
     let isDeveloperModeEnabled: Bool
 
+    let pushTokenService: PushTokenServiceInterface
+
     public override init() {
         fatal("init() not implemented")
     }
@@ -307,7 +309,8 @@ public final class SessionManager: NSObject, SessionManagerType {
         configuration: SessionManagerConfiguration = SessionManagerConfiguration(),
         detector: JailbreakDetectorProtocol = JailbreakDetector(),
         requiredPushTokenType: PushToken.TokenType,
-        isDeveloperModeEnabled: Bool = false
+        isDeveloperModeEnabled: Bool = false,
+        pushTokenService: PushTokenServiceInterface = PushTokenService()
     ) {
         let flowManager = FlowManager(mediaManager: mediaManager)
         let reachability = environment.reachability
@@ -342,7 +345,8 @@ public final class SessionManager: NSObject, SessionManagerType {
             configuration: configuration,
             detector: detector,
             requiredPushTokenType: requiredPushTokenType,
-            isDeveloperModeEnabled: isDeveloperModeEnabled
+            isDeveloperModeEnabled: isDeveloperModeEnabled,
+            pushTokenService: pushTokenService
         )
 
         if configuration.blacklistDownloadInterval > 0 {
@@ -395,7 +399,8 @@ public final class SessionManager: NSObject, SessionManagerType {
          configuration: SessionManagerConfiguration = SessionManagerConfiguration(),
          detector: JailbreakDetectorProtocol = JailbreakDetector(),
          requiredPushTokenType: PushToken.TokenType,
-         isDeveloperModeEnabled: Bool = false
+         isDeveloperModeEnabled: Bool = false,
+         pushTokenService: PushTokenServiceInterface = PushTokenService()
     ) {
         SessionManager.enableLogsByEnvironmentVariable()
         self.environment = environment
@@ -406,6 +411,7 @@ public final class SessionManager: NSObject, SessionManagerType {
         self.configuration = configuration.copy() as! SessionManagerConfiguration
         self.jailbreakDetector = detector
         self.requiredPushTokenType = requiredPushTokenType
+        self.pushTokenService = pushTokenService
 
         guard let sharedContainerURL = Bundle.main.appGroupIdentifier.map(FileManager.sharedContainerDirectory) else {
             preconditionFailure("Unable to get shared container URL")
@@ -449,7 +455,7 @@ public final class SessionManager: NSObject, SessionManagerType {
 
         super.init()
 
-        PushTokenStorage.onTokenChange = { [weak self] _ in
+        pushTokenService.onTokenChange = { [weak self] _ in
             guard
                 let `self` = self,
                 let session = self.activeUserSession

@@ -47,7 +47,7 @@ extension SessionManager {
     // MARK: - Token registration
 
     public func configurePushToken(session: ZMUserSession) {
-        guard let localToken = PushTokenStorage.pushToken else {
+        guard let localToken = pushTokenService.localToken else {
             // No local token, generate a new one.
             generateLocalToken(session: session)
             return
@@ -70,7 +70,7 @@ extension SessionManager {
                 Logging.push.safePublic("generateLocalToken: voip")
                 if let token = self.pushRegistry.pushToken(for: .voIP) {
                     Logging.push.safePublic("generateLocalToken: voip: token already generated, storing...")
-                    PushTokenStorage.pushToken = .createVOIPToken(from: token)
+                    self.pushTokenService.storeLocalToken(.createVOIPToken(from: token))
                 }
             case .standard:
                 Logging.push.safePublic("generateLocalToken: standard")
@@ -81,71 +81,27 @@ extension SessionManager {
 
     func syncLocalTokenWithRemote(session: ZMUserSession) {
         Logging.push.safePublic("syncLocalTokenWithRemote")
-        registerLocalToken(session: session)
-        unregisterOtherTokens(session: session)
-    }
-
-    private func registerLocalToken(session: ZMUserSession) {
-        Logging.push.safePublic("registerLocalToken")
-        guard let token = PushTokenStorage.pushToken else {
-            Logging.push.safePublic("registerLocalToken: failed: no token to register")
-            return
-        }
 
         guard let clientID = session.selfUserClient?.remoteIdentifier else {
-            Logging.push.safePublic("registerLocalToken: failed: no client id")
+            Logging.push.safePublic("syncLocalTokenWithRemote: failed: no self client id")
             return
         }
 
-        RegisterPushTokenAction(
-            token: token,
-            clientID: clientID
-        ) { result in
-            switch result {
-            case .success:
-                Logging.push.safePublic("registerLocalToken: success")
+        let context = session.managedObjectContext.notificationContext
 
-            case .failure(let error):
-                Logging.push.safePublic("registerLocalToken: failed: \(error)")
+        Task {
+            do {
+                try await pushTokenService.syncLocalTokenWithRemote(
+                    clientID: clientID,
+                    in: context
+                )
+
+                Logging.push.safePublic("syncLocalTokenWithRemote: success")
+
+            } catch {
+                Logging.push.safePublic("syncLocalTokenWithRemote: failed: pushTokenService failed")
             }
-        }.send(in: session.managedObjectContext.notificationContext)
-    }
-
-    private func unregisterOtherTokens(session: ZMUserSession) {
-        Logging.push.safePublic("unregisterOtherTokens")
-        guard let clientID = session.selfUserClient?.remoteIdentifier else {
-            Logging.push.safePublic("unregisterOtherTokens: failed: no client id")
-            return
         }
-
-        GetPushTokensAction(clientID: clientID) { [weak self] result in
-            switch result {
-            case .success(let tokens):
-                let count = SanitizedString(stringLiteral: "\(tokens.count)")
-                Logging.push.safePublic("unregisterOtherTokens: there are \(count) registered tokens")
-                let localToken = PushTokenStorage.pushToken
-
-                for remoteToken in tokens where remoteToken != localToken {
-                    self?.unregisterPushToken(remoteToken, in: session)
-                }
-
-            case .failure(let error):
-                Logging.push.safePublic("unregisterOtherTokens: failed: \(error)")
-            }
-        }.send(in: session.managedObjectContext.notificationContext)
-    }
-
-    private func unregisterPushToken(_ pushToken: PushToken, in session: ZMUserSession) {
-        Logging.push.safePublic("unregisterPushToken")
-        RemovePushTokenAction(deviceToken: pushToken.deviceTokenString) { result in
-            switch result {
-            case .success:
-                Logging.push.safePublic("unregisterPushToken: success")
-
-            case .failure(let error):
-                Logging.push.safePublic("unregisterPushToken: failed: \(error)")
-            }
-        }.send(in: session.managedObjectContext.notificationContext)
     }
 
 }

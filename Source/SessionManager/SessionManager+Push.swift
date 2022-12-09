@@ -56,7 +56,7 @@ extension SessionManager: PKPushRegistryDelegate {
         guard requiredPushTokenType == .voip else { return }
 
         Logging.push.safePublic("PushKit token was updated: \(pushCredentials)")
-        PushTokenStorage.pushToken = .createVOIPToken(from: pushCredentials.token)
+        pushTokenService.storeLocalToken(.createVOIPToken(from: pushCredentials.token))
     }
 
     public func pushRegistry(_ registry: PKPushRegistry, didInvalidatePushTokenFor type: PKPushType) {
@@ -67,7 +67,7 @@ extension SessionManager: PKPushRegistryDelegate {
         guard requiredPushTokenType == .voip else { return }
 
         Logging.push.safePublic("PushKit token was invalidated")
-        PushTokenStorage.pushToken = nil
+        pushTokenService.storeLocalToken(.none)
     }
 
     public func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType) {
