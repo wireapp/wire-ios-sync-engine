@@ -159,7 +159,6 @@
 		169BA20925ED0F4A00374343 /* IsTypingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE1108FC23D59720005DC663 /* IsTypingTests.swift */; };
 		169BA20A25ED0F5000374343 /* BackgroundTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 54A3ACC21A261603008AF8DF /* BackgroundTests.m */; };
 		169BA20B25ED0F5400374343 /* ConnectionTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 5492C6C319ACCCA8008F41E2 /* ConnectionTests.m */; };
-		169BA20C25ED0F5900374343 /* PushNotificationTokenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1F3FE8620F36DEC00B0BAF3 /* PushNotificationTokenTests.swift */; };
 		169BA20D25ED0F5E00374343 /* APNSTests+Swift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63F65F1224729B4C00534A69 /* APNSTests+Swift.swift */; };
 		169BA20E25ED0F6200374343 /* APNSTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 545F3DBA1AAF64FB00BF817B /* APNSTests.m */; };
 		169BA20F25ED0F6900374343 /* APNSTestsBase.m in Sources */ = {isa = PBXBuildFile; fileRef = 63F65F222474378200534A69 /* APNSTestsBase.m */; };
@@ -531,7 +530,6 @@
 		EE9CDE8E27D9FF5900C4DAC8 /* APIVersionResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE9CDE8D27D9FF5900C4DAC8 /* APIVersionResolver.swift */; };
 		EE9CDE9027DA04A300C4DAC8 /* SessionManager+APIVersionResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE9CDE8F27DA04A300C4DAC8 /* SessionManager+APIVersionResolver.swift */; };
 		EE9CDE9227DA05D100C4DAC8 /* APIVersionResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE9CDE9127DA05D100C4DAC8 /* APIVersionResolverTests.swift */; };
-		EEAB532C27BBA1C200577B7F /* PushNotificationTests_Legacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEAB532B27BBA1C200577B7F /* PushNotificationTests_Legacy.swift */; };
 		EECE27C429435FFE00419A8B /* PushTokenService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EECE27C329435FFE00419A8B /* PushTokenService.swift */; };
 		EECE27C6294362F100419A8B /* MockPushTokenService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EECE27C5294362F100419A8B /* MockPushTokenService.swift */; };
 		EECE27C729436CF900419A8B /* MockPushTokenService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EECE27C5294362F100419A8B /* MockPushTokenService.swift */; };
@@ -1212,7 +1210,6 @@
 		EE9CDE8F27DA04A300C4DAC8 /* SessionManager+APIVersionResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SessionManager+APIVersionResolver.swift"; sourceTree = "<group>"; };
 		EE9CDE9127DA05D100C4DAC8 /* APIVersionResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIVersionResolverTests.swift; sourceTree = "<group>"; };
 		EEA1ED4025BEBABF006D07D3 /* AppLockIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLockIntegrationTests.swift; sourceTree = "<group>"; };
-		EEAB532B27BBA1C200577B7F /* PushNotificationTests_Legacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationTests_Legacy.swift; sourceTree = "<group>"; };
 		EEC0A2D229433D360032C1C9 /* SessionManager+PushTokenTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SessionManager+PushTokenTests.swift"; sourceTree = "<group>"; };
 		EECE27C329435FFE00419A8B /* PushTokenService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushTokenService.swift; sourceTree = "<group>"; };
 		EECE27C5294362F100419A8B /* MockPushTokenService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockPushTokenService.swift; sourceTree = "<group>"; };
@@ -1293,7 +1290,6 @@
 		F1C51FE61FB49660009C2269 /* RegistrationStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationStatus.swift; sourceTree = "<group>"; };
 		F1C51FE81FB4A9C7009C2269 /* RegistrationStrategy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationStrategy.swift; sourceTree = "<group>"; };
 		F1E48002207E3789008D4299 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
-		F1F3FE8620F36DEC00B0BAF3 /* PushNotificationTokenTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationTokenTests.swift; sourceTree = "<group>"; };
 		F905C47E1E79A86A00AF34A5 /* WireCallCenterV3Tests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WireCallCenterV3Tests.swift; sourceTree = "<group>"; };
 		F90EC5A21E7BF1AC00A6779E /* AVSWrapper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AVSWrapper.swift; sourceTree = "<group>"; };
 		F91CA6AC1BECBD3F000EE5C2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Push.strings; sourceTree = "<group>"; };
@@ -2167,8 +2163,6 @@
 				63F65F222474378200534A69 /* APNSTestsBase.m */,
 				545F3DBA1AAF64FB00BF817B /* APNSTests.m */,
 				63F65F1224729B4C00534A69 /* APNSTests+Swift.swift */,
-				EEAB532B27BBA1C200577B7F /* PushNotificationTests_Legacy.swift */,
-				F1F3FE8620F36DEC00B0BAF3 /* PushNotificationTokenTests.swift */,
 				5492C6C319ACCCA8008F41E2 /* ConnectionTests.m */,
 				63E69AE927EA293900D6CE88 /* ConnectionTests+Swift.swift */,
 				54A3ACC21A261603008AF8DF /* BackgroundTests.m */,
@@ -2889,7 +2883,6 @@
 				169BA23625ED101C00374343 /* LoginFlowTests.m in Sources */,
 				169BA21225ED0F7600374343 /* UserTests+AccountDeletion.swift in Sources */,
 				169BA1DF25ECE4D000374343 /* IntegrationTest.m in Sources */,
-				169BA20C25ED0F5900374343 /* PushNotificationTokenTests.swift in Sources */,
 				169BA1F125ECEB2900374343 /* FlowManagerMock.swift in Sources */,
 				169BA21C25ED0FA700374343 /* ConversationTests+LegalHold.swift in Sources */,
 				169BA20725ED0F3E00374343 /* OTRTests.swift in Sources */,
@@ -2948,7 +2941,6 @@
 				169BA20225ED0F0600374343 /* UserRichProfileIntegrationTests.swift in Sources */,
 				169BA20925ED0F4A00374343 /* IsTypingTests.swift in Sources */,
 				169BA20A25ED0F5000374343 /* BackgroundTests.m in Sources */,
-				EEAB532C27BBA1C200577B7F /* PushNotificationTests_Legacy.swift in Sources */,
 				169BA22225ED0FC100374343 /* ConversationTests+Reactions.swift in Sources */,
 				169BA1ED25ECEA9A00374343 /* OperationLoopNewRequestObserver.swift in Sources */,
 				169BA1FB25ED0CB200374343 /* MockPushChannel.swift in Sources */,
