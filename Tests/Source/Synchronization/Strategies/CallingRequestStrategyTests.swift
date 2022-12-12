@@ -51,7 +51,7 @@ class CallingRequestStrategyTests: MessagingTest {
         sut = nil
         mockRegistrationDelegate = nil
         mockApplicationStatus = nil
-        APIVersion.isFederationEnabled = false
+        BackendInfo.isFederationEnabled = false
         super.tearDown()
     }
 
@@ -187,7 +187,7 @@ class CallingRequestStrategyTests: MessagingTest {
 
     func testThatItGeneratesClientListRequestAndCallsTheCompletionHandler_Federated() {
         // Given
-        APIVersion.isFederationEnabled = true
+        BackendInfo.isFederationEnabled = true
 
         createSelfClient()
 

@@ -88,7 +88,7 @@ extension ZMUserSession {
         guard
             let accountID = ZMUser.selfUser(inUserSession: self).remoteIdentifier,
             let selfClientIdentifier = ZMUser.selfUser(inUserSession: self).selfClient()?.remoteIdentifier,
-            let apiVersion = APIVersion.current
+            let apiVersion = BackendInfo.apiVersion
         else {
             return
         }

@@ -38,7 +38,7 @@ extension ZMConversation {
 
     /// Enable or disable read receipts in a group conversation
     public func setEnableReadReceipts(_ enabled: Bool, in userSession: ZMUserSession, _ completion: @escaping (VoidResult) -> Void) {
-        guard let apiVersion = APIVersion.current else {
+        guard let apiVersion = BackendInfo.apiVersion else {
             return completion(.failure(ReadReceiptModeError.unknown))
         }
         guard conversationType == .group else { return  completion(.failure(ReadReceiptModeError.invalidOperation))}

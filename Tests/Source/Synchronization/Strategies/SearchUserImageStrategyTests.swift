@@ -40,7 +40,7 @@ class SearchUserImageStrategyTests: MessagingTest {
         sut = nil
         uiMOC.zm_searchUserCache = nil
         mockApplicationStatus = nil
-        APIVersion.domain = nil
+        BackendInfo.domain = nil
         super.tearDown()
     }
 
@@ -249,7 +249,7 @@ extension SearchUserImageStrategyTests {
     func testThatNextRequestCreatesARequestForAnAssetID(apiVersion: APIVersion) {
         // given
         let domain = "example.domain.com"
-        APIVersion.domain = domain
+        BackendInfo.domain = domain
         let assetID = UUID().transportString()
         let searchUser = setupSearchDirectory(userCount: 1).first!
         searchUser.update(from: userData(previewAssetKey: assetID, for: searchUser.remoteIdentifier!))
@@ -269,8 +269,8 @@ extension SearchUserImageStrategyTests {
             expectedPath = "/assets/v3/\(assetID)"
         case .v1:
             expectedPath = "/v1/assets/v4/\(domain)/\(assetID)"
-        case .v2:
-            expectedPath = "/v2/assets/\(domain)/\(assetID)"
+        case .v2, .v3:
+            expectedPath = "/v\(apiVersion.rawValue)/assets/\(domain)/\(assetID)"
         }
 
         XCTAssertEqual(request.path, expectedPath)

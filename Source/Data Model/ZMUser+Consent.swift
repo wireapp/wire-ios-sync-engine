@@ -62,7 +62,7 @@ extension ZMUser {
                       on transportSession: TransportSessionType,
                       completion: @escaping CompletionFetch) {
 
-        guard let apiVersion = APIVersion.current else {
+        guard let apiVersion = BackendInfo.apiVersion else {
             return completion(.failure(ConsentRequestError.unknown))
         }
 
@@ -99,7 +99,7 @@ extension ZMUser {
                     on transportSession: TransportSessionType,
                     completion: @escaping CompletionSet) {
 
-        guard let apiVersion = APIVersion.current else {
+        guard let apiVersion = BackendInfo.apiVersion else {
             return completion(.failure(ConsentRequestError.unknown))
         }
 

@@ -22,15 +22,12 @@ import XCTest
 
 class APIVersionResolverTests: ZMTBaseTest {
 
-    private var sut: APIVersionResolver!
     private var transportSession: MockTransportSession!
     private var mockDelegate: MockAPIVersionResolverDelegate!
 
     override func setUp() {
         mockDelegate = .init()
         transportSession = MockTransportSession(dispatchGroup: dispatchGroup)
-        sut = APIVersionResolver(transportSession: transportSession)
-        sut.delegate = mockDelegate
         setCurrentAPIVersion(nil)
         super.setUp()
     }
@@ -38,9 +35,24 @@ class APIVersionResolverTests: ZMTBaseTest {
     override func tearDown() {
         mockDelegate = nil
         transportSession = nil
-        sut = nil
         setCurrentAPIVersion(nil)
         super.tearDown()
+    }
+
+    private func createSUT(
+        clientProdVersions: Set<APIVersion>,
+        clientDevVersions: Set<APIVersion>,
+        isDeveloperModeEnabled: Bool = false
+    ) -> APIVersionResolver {
+        let sut = APIVersionResolver(
+            clientProdVersions: clientProdVersions,
+            clientDevVersions: clientDevVersions,
+            transportSession: transportSession,
+            isDeveloperModeEnabled: isDeveloperModeEnabled
+        )
+
+        sut.delegate = mockDelegate
+        return sut
     }
 
     private func mockBackendInfo(
@@ -59,145 +71,272 @@ class APIVersionResolverTests: ZMTBaseTest {
         transportSession.federation = isFederationEnabled
     }
 
-    // MARK: - Tests
-
-    func testThatItResolvesTheAPIVersion() throws {
-        // Given
-        let supportedDevelopmentAPIVersion = try XCTUnwrap(APIVersion.allCases.max())
-        let maxSupportedAPIVersion = try XCTUnwrap(APIVersion.allCases.dropLast().max())
-
-        mockBackendInfo(
-            productionVersions: 0...(maxSupportedAPIVersion.rawValue),
-            developmentVersions: (supportedDevelopmentAPIVersion.rawValue)...(supportedDevelopmentAPIVersion.rawValue),
-            domain: "foo.com",
-            isFederationEnabled: true
-        )
-
-        XCTAssertNil(APIVersion.current)
-
-        // When
-        let done = expectation(description: "done")
-        sut.resolveAPIVersion(completion: done.fulfill)
-        XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
-
-        // Then
-        XCTAssertEqual(APIVersion.current, maxSupportedAPIVersion)
-        XCTAssertEqual(APIVersion.developmentVersions, [supportedDevelopmentAPIVersion])
-        XCTAssertEqual(APIVersion.domain, "foo.com")
-        XCTAssertEqual(APIVersion.isFederationEnabled, true)
-    }
-
-    func testThatItResolvesTheAPIVersionWhenDevelopmentVersionsAreAbsent() throws {
-        // Given
-        let maxSupportedAPIVersion = try XCTUnwrap(APIVersion.allCases.max())
-
-        mockBackendInfo(
-            productionVersions: 0...(maxSupportedAPIVersion.rawValue),
-            developmentVersions: nil,
-            domain: "foo.com",
-            isFederationEnabled: true
-        )
-
-        XCTAssertNil(APIVersion.current)
-
-        // When
-        let done = expectation(description: "done")
-        sut.resolveAPIVersion(completion: done.fulfill)
-        XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
-
-        // Then
-        XCTAssertEqual(APIVersion.current, maxSupportedAPIVersion)
-        XCTAssertTrue(APIVersion.developmentVersions.isEmpty)
-        XCTAssertEqual(APIVersion.domain, "foo.com")
-        XCTAssertEqual(APIVersion.isFederationEnabled, true)
-    }
+    // MARK: - Endpoint unavailable
 
     func testThatItDefaultsToVersionZeroIfEndpointIsUnavailable() throws {
-        // Given
+        // Given the client supports API versioning.
+        let sut = createSUT(
+            clientProdVersions: Set(APIVersion.allCases),
+            clientDevVersions: []
+        )
+
+        // Given the backend does not.
         transportSession.isAPIVersionEndpointAvailable = false
 
-        // When
+        // When version is resolved.
         let done = expectation(description: "done")
         sut.resolveAPIVersion(completion: done.fulfill)
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
 
-        // Then
-        let resolvedVersion = try XCTUnwrap(APIVersion.current)
+        // Then it resolves to v0.
+        let resolvedVersion = try XCTUnwrap(BackendInfo.apiVersion)
         XCTAssertEqual(resolvedVersion, .v0)
-        XCTAssertEqual(APIVersion.domain, "wire.com")
-        XCTAssertEqual(APIVersion.isFederationEnabled, false)
+        XCTAssertEqual(BackendInfo.domain, "wire.com")
+        XCTAssertEqual(BackendInfo.isFederationEnabled, false)
     }
 
-    func testThatItReportsBlacklistReasonWhenBackendIsObsolete() throws {
-        // Given
-        setCurrentAPIVersion(.v0)
+    // MARK: - Highest productino version
 
-        let minSupportedAPIVersion = try XCTUnwrap(APIVersion.allCases.min())
+    func testThatItResolvesTheHighestProductionAPIVersion() throws {
+        // Given client has prod and dev versions.
+        let sut = createSUT(
+            clientProdVersions: [.v0, .v1],
+            clientDevVersions: [.v2]
+        )
 
+        // Given backend also has prod and dev versions.
         mockBackendInfo(
-            productionVersions: (minSupportedAPIVersion.rawValue - 3)...(minSupportedAPIVersion.rawValue - 1),
+            productionVersions: 0...1,
+            developmentVersions: 2...2,
+            domain: "foo.com",
+            isFederationEnabled: true
+        )
+
+        XCTAssertNil(BackendInfo.apiVersion)
+
+        // When version is resolved.
+        let done = expectation(description: "done")
+        sut.resolveAPIVersion(completion: done.fulfill)
+        XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
+
+        // Then it's the highest common prod version.
+        XCTAssertEqual(BackendInfo.apiVersion, .v1)
+        XCTAssertEqual(BackendInfo.domain, "foo.com")
+        XCTAssertEqual(BackendInfo.isFederationEnabled, true)
+    }
+
+    func testThatItResolvesTheHighestProductionAPIVersionWhenDevelopmentVersionsAreAbsent() throws {
+        // Given client has prod and dev versions.
+        let sut = createSUT(
+            clientProdVersions: [.v0, .v1],
+            clientDevVersions: [.v2]
+        )
+
+        // Given backend only has prod versons.
+        mockBackendInfo(
+            productionVersions: 0...1,
             developmentVersions: nil,
             domain: "foo.com",
             isFederationEnabled: true
         )
 
-        // When
+        XCTAssertNil(BackendInfo.apiVersion)
+
+        // When version is resolved.
         let done = expectation(description: "done")
         sut.resolveAPIVersion(completion: done.fulfill)
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
 
-        // Then
-        XCTAssertNil(APIVersion.current)
-        XCTAssertEqual(APIVersion.domain, "foo.com")
-        XCTAssertEqual(APIVersion.isFederationEnabled, true)
-        XCTAssertEqual(mockDelegate.blacklistReason, .backendAPIVersionObsolete)
+        // Then it's the highest common prod version.
+        XCTAssertEqual(BackendInfo.apiVersion, .v1)
+        XCTAssertEqual(BackendInfo.domain, "foo.com")
+        XCTAssertEqual(BackendInfo.isFederationEnabled, true)
+    }
 
+    // MARK: - Peferred version
+
+    func testThatItResolvesThePreferredAPIVersion() throws {
+        // Given client has prod and dev versions in dev mode.
+        let sut = createSUT(
+            clientProdVersions: [.v0, .v1],
+            clientDevVersions: [.v2],
+            isDeveloperModeEnabled: true
+        )
+
+        // Given backend also has prod and dev versions.
+        mockBackendInfo(
+            productionVersions: 0...1,
+            developmentVersions: 2...2,
+            domain: "foo.com",
+            isFederationEnabled: true
+        )
+
+        // Given there is a preferred version.
+        BackendInfo.preferredAPIVersion = .v2
+        XCTAssertNil(BackendInfo.apiVersion)
+
+        // When version is resolved.
+        let done = expectation(description: "done")
+        sut.resolveAPIVersion(completion: done.fulfill)
+        XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
+
+        // Then it's the preferred version.
+        XCTAssertEqual(BackendInfo.apiVersion, .v2)
+        XCTAssertEqual(BackendInfo.domain, "foo.com")
+        XCTAssertEqual(BackendInfo.isFederationEnabled, true)
+    }
+
+    func testThatItDoesNotResolvePreferredAPIVersionIfNotInDevMode() throws {
+        // Given client has prod and dev versions not in dev mode.
+        let sut = createSUT(
+            clientProdVersions: [.v0, .v1],
+            clientDevVersions: [.v2],
+            isDeveloperModeEnabled: false
+        )
+
+        // Given backend also has prod and dev versions.
+        mockBackendInfo(
+            productionVersions: 0...1,
+            developmentVersions: 2...2,
+            domain: "foo.com",
+            isFederationEnabled: true
+        )
+
+        // Given there is a preferred version.
+        BackendInfo.preferredAPIVersion = .v2
+        XCTAssertNil(BackendInfo.apiVersion)
+
+        // When version is resolved.
+        let done = expectation(description: "done")
+        sut.resolveAPIVersion(completion: done.fulfill)
+        XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
+
+        // Then it's the highest common prod version.
+        XCTAssertEqual(BackendInfo.apiVersion, .v1)
+        XCTAssertEqual(BackendInfo.domain, "foo.com")
+        XCTAssertEqual(BackendInfo.isFederationEnabled, true)
+    }
+
+    func testThatItDoesNotResolvePreferredAPIVersionIfNotSupportedByBackend() throws {
+        // Given client has prod and dev versions in dev mode.
+        let sut = createSUT(
+            clientProdVersions: [.v0, .v1],
+            clientDevVersions: [.v2],
+            isDeveloperModeEnabled: true
+        )
+
+        // Given backend also has prod and dev versions.
+        mockBackendInfo(
+            productionVersions: 0...1,
+            developmentVersions: nil,
+            domain: "foo.com",
+            isFederationEnabled: true
+        )
+
+        // Given there is a preferred version.
+        BackendInfo.preferredAPIVersion = .v2
+        XCTAssertNil(BackendInfo.apiVersion)
+
+        // When version is resolved.
+        let done = expectation(description: "done")
+        sut.resolveAPIVersion(completion: done.fulfill)
+        XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
+
+        // Then it's the highest common prod version.
+        XCTAssertEqual(BackendInfo.apiVersion, .v1)
+        XCTAssertEqual(BackendInfo.domain, "foo.com")
+        XCTAssertEqual(BackendInfo.isFederationEnabled, true)
+    }
+
+    // MARK: - Blacklist
+
+    func testThatItReportsBlacklistReasonWhenBackendIsObsolete() throws {
+        // Given version one was selected.
+        setCurrentAPIVersion(.v1)
+
+        // Given now we only support version 2.
+        let sut = createSUT(
+            clientProdVersions: [.v2],
+            clientDevVersions: []
+        )
+
+        // Given backend doesn't support version 2
+        mockBackendInfo(
+            productionVersions: 0...1,
+            developmentVersions: nil,
+            domain: "foo.com",
+            isFederationEnabled: true
+        )
+
+        // When version is resolved
+        let done = expectation(description: "done")
+        sut.resolveAPIVersion(completion: done.fulfill)
+        XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
+
+        // Then no version could be resolved & blacklist reason is generated.
+        XCTAssertNil(BackendInfo.apiVersion)
+        XCTAssertEqual(BackendInfo.domain, "foo.com")
+        XCTAssertEqual(BackendInfo.isFederationEnabled, true)
+        XCTAssertEqual(mockDelegate.blacklistReason, .backendAPIVersionObsolete)
     }
 
     func testThatItReportsBlacklistReasonWhenClientIsObsolete() throws {
-        // Given
-        setCurrentAPIVersion(.v0)
+        // Given version one was selected.
+        setCurrentAPIVersion(.v1)
 
-        let maxSupportedAPIVersion = try XCTUnwrap(APIVersion.allCases.max())
+        // Given we still only support v1.
+        let sut = createSUT(
+            clientProdVersions: [.v1],
+            clientDevVersions: []
+        )
 
+        // Given backend no longer supports v1.
         mockBackendInfo(
-            productionVersions: (maxSupportedAPIVersion.rawValue + 1)...(maxSupportedAPIVersion.rawValue + 3),
+            productionVersions: 2...2,
             developmentVersions: nil,
             domain: "foo.com",
             isFederationEnabled: true
         )
 
-        // When
+        // When version is resolved
         let done = expectation(description: "done")
         sut.resolveAPIVersion(completion: done.fulfill)
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
 
-        // Then
-        XCTAssertNil(APIVersion.current)
-        XCTAssertEqual(APIVersion.domain, "foo.com")
-        XCTAssertEqual(APIVersion.isFederationEnabled, true)
+        // Then no version could be resolved & blacklist reason is generated.
+        XCTAssertNil(BackendInfo.apiVersion)
+        XCTAssertEqual(BackendInfo.domain, "foo.com")
+        XCTAssertEqual(BackendInfo.isFederationEnabled, true)
         XCTAssertEqual(mockDelegate.blacklistReason, .clientAPIVersionObsolete)
     }
 
-    func testThatItReportsToDelegate_WhenFederationHasBeenEnabled() throws {
-        // Given
-        APIVersion.isFederationEnabled = false
-        let maxSupportedAPIVersion = try XCTUnwrap(APIVersion.allCases.max())
+    // MARK: - Federation
 
+    func testThatItReportsToDelegate_WhenFederationHasBeenEnabled() throws {
+        // Given client has prod versions.
+        let sut = createSUT(
+            clientProdVersions: Set(APIVersion.allCases),
+            clientDevVersions: []
+        )
+
+        // Given federation is not enabled.
+        BackendInfo.isFederationEnabled = false
+
+        // Backend now has federation enabled.
         mockBackendInfo(
-            productionVersions: 0...(maxSupportedAPIVersion.rawValue),
+            productionVersions: 0...2,
             developmentVersions: nil,
             domain: "foo.com",
             isFederationEnabled: true
         )
 
-        // When
+        // When version is resolved.
         let done = expectation(description: "done")
         sut.resolveAPIVersion(completion: done.fulfill)
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
 
-        // Then
-        XCTAssertTrue(APIVersion.isFederationEnabled)
+        // Then federation is enabled and forwarded to delegate.
+        XCTAssertTrue(BackendInfo.isFederationEnabled)
         XCTAssertTrue(mockDelegate.didReportFederationHasBeenEnabled)
     }
 

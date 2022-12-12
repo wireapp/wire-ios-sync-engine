@@ -51,7 +51,7 @@ extension ZMConversation {
         in userSession: ZMUserSession, _
         completion: @escaping (VoidResult) -> Void) {
 
-        guard let apiVersion = APIVersion.current else {
+        guard let apiVersion = BackendInfo.apiVersion else {
             return completion(.failure(WirelessLinkError.unknown))
         }
 

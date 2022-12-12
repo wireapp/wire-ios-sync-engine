@@ -81,7 +81,7 @@ class UserImageAssetUpdateStrategyTests: MessagingTest {
         self.updateStatus = nil
         self.sut = nil
         self.syncMOC.zm_userImageCache = nil
-        APIVersion.domain = nil
+        BackendInfo.domain = nil
         super.tearDown()
     }
 }
@@ -269,7 +269,7 @@ extension UserImageAssetUpdateStrategyTests {
     func testThatItCreatesRequestForCorrectAssetIdentifier(for size: ProfileImageSize, apiVersion: APIVersion) {
         // GIVEN
         let domain = "example.domain.com"
-        APIVersion.domain = domain
+        BackendInfo.domain = domain
         let user = ZMUser.fetchOrCreate(with: UUID.create(), domain: nil, in: self.syncMOC)
         let assetId = "foo-bar"
 
@@ -302,8 +302,8 @@ extension UserImageAssetUpdateStrategyTests {
             expectedPath = "/assets/v3/\(assetId)"
         case .v1:
             expectedPath = "/v1/assets/v4/\(domain)/\(assetId)"
-        case .v2:
-            expectedPath = "/v2/assets/\(domain)/\(assetId)"
+        case .v2, .v3:
+            expectedPath = "/v\(apiVersion.rawValue)/assets/\(domain)/\(assetId)"
         }
 
         let request = self.sut.downstreamRequestSyncs[size]?.nextRequest(for: apiVersion)

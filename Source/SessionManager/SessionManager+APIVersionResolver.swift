@@ -37,7 +37,11 @@ extension SessionManager: APIVersionResolverDelegate {
             applicationVersion: appVersion
         )
 
-        let apiVersionResolver = APIVersionResolver(transportSession: transportSession)
+        let apiVersionResolver = APIVersionResolver(
+            transportSession: transportSession,
+            isDeveloperModeEnabled: isDeveloperModeEnabled
+        )
+
         apiVersionResolver.delegate = self
         return apiVersionResolver
     }

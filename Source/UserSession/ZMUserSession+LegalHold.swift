@@ -50,7 +50,7 @@ extension ZMUserSession {
             }
         }
 
-        guard let apiVersion = APIVersion.current else {
+        guard let apiVersion = BackendInfo.apiVersion else {
             return complete(error: .missingAPIVersion)
         }
 

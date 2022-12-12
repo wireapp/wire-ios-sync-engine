@@ -62,7 +62,7 @@ extension UnauthenticatedSession {
     /// - parameter completion: The result closure will with the result of the lookup.
 
     public func lookup(domain: String, completion: @escaping (Result<DomainInfo>) -> Void) {
-        guard let apiVersion = APIVersion.current else {
+        guard let apiVersion = BackendInfo.apiVersion else {
             return completion(.failure(DomainLookupError.unknown))
         }
 

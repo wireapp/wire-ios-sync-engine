@@ -26,13 +26,13 @@ class AVSIdentifierTests: XCTestCase {
     let domain = "wire.com"
 
     override func tearDown() {
-        APIVersion.isFederationEnabled = false
+        BackendInfo.isFederationEnabled = false
         super.tearDown()
     }
 
     func testProperties_WhenCreatedFromSerializedString_WithUUIDAndDomain() {
         // Given
-        APIVersion.isFederationEnabled = true
+        BackendInfo.isFederationEnabled = true
         let serializedString = "\(uuid.transportString())@\(domain)"
 
         // When
@@ -76,7 +76,7 @@ class AVSIdentifierTests: XCTestCase {
 
     func testThatItIgnoresDomain_WhenFederationIsDisabled() {
         // Given
-        APIVersion.isFederationEnabled = false
+        BackendInfo.isFederationEnabled = false
         let uuid = UUID()
 
         // When
@@ -89,7 +89,7 @@ class AVSIdentifierTests: XCTestCase {
 
     func testThatItDoesntIgnoreDomain_WhenFederationIsEnabled() {
         // Given
-        APIVersion.isFederationEnabled = true
+        BackendInfo.isFederationEnabled = true
         let uuid = UUID()
         let domain = "example.domain.com"
 

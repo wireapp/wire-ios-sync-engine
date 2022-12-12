@@ -78,7 +78,7 @@ struct ConversationDeletionRequestFactory {
 
     static func requestForDeletingTeamConversation(_ conversation: ZMConversation) -> ZMTransportRequest? {
         guard
-            let apiVersion = APIVersion.current,
+            let apiVersion = BackendInfo.apiVersion,
             let conversationId = conversation.remoteIdentifier,
             let teamRemoteIdentifier = conversation.teamRemoteIdentifier
         else { return nil }

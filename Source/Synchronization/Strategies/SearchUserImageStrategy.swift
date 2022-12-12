@@ -138,14 +138,14 @@ public class SearchUserImageStrategy: AbstractRequestStrategy {
             case .v0:
                 path = "/assets/v3/\(key)"
             case .v1:
-                guard let domain = requestedUserDomain[user].nonEmptyValue ?? APIVersion.domain else {
+                guard let domain = requestedUserDomain[user].nonEmptyValue ?? BackendInfo.domain else {
                     return nil
                 }
 
                 path = "/assets/v4/\(domain)/\(key)"
 
-            case .v2:
-                guard let domain = requestedUserDomain[user].nonEmptyValue ?? APIVersion.domain else {
+            case .v2, .v3:
+                guard let domain = requestedUserDomain[user].nonEmptyValue ?? BackendInfo.domain else {
                     return nil
                 }
 
