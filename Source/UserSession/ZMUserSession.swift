@@ -573,6 +573,7 @@ extension ZMUserSession: ZMSyncStateDelegate {
 
         if !hasMoreEventsToProcess {
             hotFix.applyPatches()
+            // When we move to the monorepo, run the 'PatchApplicator' here.
         }
 
         managedObjectContext.performGroupedBlock { [weak self] in
