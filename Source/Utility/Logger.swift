@@ -36,7 +36,8 @@ public struct Logger {
         subsystem: String,
         category: String
     ) {
-        if #available(iOS 14, *) {
+        // Disabled for now, re-enable when you want to debug.
+        if false, #available(iOS 14, *) {
             let logger = os.Logger(
                 subsystem: subsystem,
                 category: category
