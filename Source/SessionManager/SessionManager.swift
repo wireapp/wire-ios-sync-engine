@@ -76,9 +76,7 @@ public protocol SessionManagerType: AnyObject {
     var callNotificationStyle: CallNotificationStyle { get }
 
     func updateAppIconBadge(accountID: UUID, unreadCount: Int)
-
-    /// Will update the push token for the session if it has changed
-    func updatePushToken(for session: ZMUserSession)
+    func configurePushToken(session: ZMUserSession)
 
     /// Configure user notification settings. This will ask the user for permission to display notifications.
     func configureUserNotifications()
@@ -292,6 +290,8 @@ public final class SessionManager: NSObject, SessionManagerType {
 
     let isDeveloperModeEnabled: Bool
 
+    let pushTokenService: PushTokenServiceInterface
+
     public override init() {
         fatal("init() not implemented")
     }
@@ -307,6 +307,7 @@ public final class SessionManager: NSObject, SessionManagerType {
         configuration: SessionManagerConfiguration = SessionManagerConfiguration(),
         detector: JailbreakDetectorProtocol = JailbreakDetector(),
         requiredPushTokenType: PushToken.TokenType,
+        pushTokenService: PushTokenServiceInterface = PushTokenService(),
         callKitManager: CallKitManagerInterface,
         isDeveloperModeEnabled: Bool = false
     ) {
@@ -343,6 +344,7 @@ public final class SessionManager: NSObject, SessionManagerType {
             configuration: configuration,
             detector: detector,
             requiredPushTokenType: requiredPushTokenType,
+            pushTokenService: pushTokenService,
             callKitManager: callKitManager,
             isDeveloperModeEnabled: isDeveloperModeEnabled
         )
@@ -397,6 +399,7 @@ public final class SessionManager: NSObject, SessionManagerType {
          configuration: SessionManagerConfiguration = SessionManagerConfiguration(),
          detector: JailbreakDetectorProtocol = JailbreakDetector(),
          requiredPushTokenType: PushToken.TokenType,
+         pushTokenService: PushTokenServiceInterface = PushTokenService(),
          callKitManager: CallKitManagerInterface,
          isDeveloperModeEnabled: Bool = false
     ) {
@@ -409,6 +412,7 @@ public final class SessionManager: NSObject, SessionManagerType {
         self.configuration = configuration.copy() as! SessionManagerConfiguration
         self.jailbreakDetector = detector
         self.requiredPushTokenType = requiredPushTokenType
+        self.pushTokenService = pushTokenService
         self.callKitManager = callKitManager
 
         guard let sharedContainerURL = Bundle.main.appGroupIdentifier.map(FileManager.sharedContainerDirectory) else {
@@ -455,6 +459,17 @@ public final class SessionManager: NSObject, SessionManagerType {
 
         callKitManager.setDelegate(self)
         updateCallNotificationStyle()
+
+        pushTokenService.onTokenChange = { [weak self] _ in
+            guard
+                let `self` = self,
+                let session = self.activeUserSession
+            else {
+                return
+            }
+
+            self.syncLocalTokenWithRemote(session: session)
+        }
 
         deleteAccountToken = AccountDeletedNotification.addObserver(observer: self, queue: groupQueue)
         callCenterObserverToken = WireCallCenterV3.addGlobalCallStateObserver(observer: self)
@@ -775,26 +790,8 @@ public final class SessionManager: NSObject, SessionManagerType {
         backgroundUserSessions[account.userIdentifier] = userSession
         userSession.useConstantBitRateAudio = useConstantBitRateAudio
         userSession.usePackagingFeatureConfig = usePackagingFeatureConfig
-        updateOrMigratePushToken(session: userSession)
+        configurePushToken(session: userSession)
         registerObservers(account: account, session: userSession)
-    }
-
-    func updateOrMigratePushToken(session userSession: ZMUserSession) {
-        // If the legacy token exists, migrate it to the PushTokenStorage and delete it from selfClient
-        if let client = userSession.selfUserClient, let legacyToken = client.retrieveLegacyPushToken() {
-            PushTokenStorage.pushToken = legacyToken
-        }
-
-        guard let localToken = PushTokenStorage.pushToken else {
-            updatePushToken(for: userSession)
-            return
-        }
-
-        if localToken.tokenType != requiredPushTokenType {
-            userSession.deletePushToken { [weak self] in
-                self?.updatePushToken(for: userSession)
-            }
-        }
     }
 
     private func deleteMessagesOlderThanRetentionLimit(contextProvider: ContextProvider) {

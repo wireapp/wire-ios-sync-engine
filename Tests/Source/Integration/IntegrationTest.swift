@@ -208,7 +208,13 @@ extension IntegrationTest {
 
     @objc
     func createSessionManager() {
-        guard let application = application, let transportSession = mockTransportSession else { return XCTFail() }
+        guard
+            let application = application,
+            let transportSession = mockTransportSession
+        else {
+            return XCTFail()
+        }
+
         let reachability = MockReachability()
         let unauthenticatedSessionFactory = MockUnauthenticatedSessionFactory(transportSession: transportSession, environment: mockEnvironment, reachability: reachability)
         let authenticatedSessionFactory = MockAuthenticatedSessionFactory(
@@ -219,6 +225,9 @@ extension IntegrationTest {
             environment: mockEnvironment,
             reachability: reachability
         )
+
+        let pushTokenService: PushTokenServiceInterface = mockPushTokenService ?? PushTokenService()
+        application.pushTokenService = pushTokenService
 
         sessionManager = SessionManager(
             appVersion: "0.0.0",
@@ -233,6 +242,7 @@ extension IntegrationTest {
             configuration: sessionManagerConfiguration,
             detector: jailbreakDetector,
             requiredPushTokenType: shouldProcessLegacyPushes ? .voip : .standard,
+            pushTokenService: pushTokenService,
             callKitManager: MockCallKitManager()
         )
 

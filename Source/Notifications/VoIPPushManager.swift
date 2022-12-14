@@ -23,9 +23,6 @@ import avs
 
 public protocol VoIPPushManagerDelegate: AnyObject {
 
-    func storeVoIPToken(_ data: Data)
-    func deleteExistingVoIPToken()
-    func processIncomingFakeVoIPPush(payload: VoIPPushPayload, completion: @escaping () -> Void)
     func processIncomingRealVoIPPush(payload: [AnyHashable: Any], completion: @escaping () -> Void)
 
 }
@@ -38,32 +35,15 @@ extension Logging {
 
 public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
 
-    // MARK: - Types
-
-    class Buffer {
-
-        var pendingActions = [PushAction]()
-
-    }
-
-    enum PushAction {
-
-        case storeVoIPToken(Data)
-        case deleteExistingVoIPToken
-        case processIncomingRealVoIPPush(payload: [AnyHashable: Any], completion: () -> Void)
-        case processIncomingFakeVoIPPush(payload: VoIPPushPayload, completion: () -> Void)
-
-    }
-
     // MARK: - Properties
 
     let registry = PKPushRegistry(queue: nil)
     public let callKitManager: CallKitManager
-    var buffer = Buffer()
 
     private let requiredPushTokenType: PushToken.TokenType
+    private let pushTokenService: PushTokenServiceInterface
 
-    private weak var delegate: VoIPPushManagerDelegate?
+    public weak var delegate: VoIPPushManagerDelegate?
 
     private static let logger = Logger(subsystem: "VoIP Push", category: "VoipPushManager")
 
@@ -71,10 +51,12 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
 
     public init(
         application: ZMApplication,
-        requiredPushTokenType: PushToken.TokenType
+        requiredPushTokenType: PushToken.TokenType,
+        pushTokenService: PushTokenServiceInterface
     ) {
         Self.logger.trace("init")
         self.requiredPushTokenType = requiredPushTokenType
+        self.pushTokenService = pushTokenService
 
         callKitManager = CallKitManager(
             application: application,
@@ -89,33 +71,10 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
 
     // MARK: - Methods
 
-    public func setDelegate(_ delegate: VoIPPushManagerDelegate) {
-        Self.logger.trace("set delegate")
-        self.delegate = delegate
-
-        while !buffer.pendingActions.isEmpty {
-            switch buffer.pendingActions.removeFirst() {
-            case .storeVoIPToken(let data):
-                delegate.storeVoIPToken(data)
-
-            case .deleteExistingVoIPToken:
-                delegate.deleteExistingVoIPToken()
-
-            case .processIncomingRealVoIPPush(let payload, let completion):
-                delegate.processIncomingRealVoIPPush(payload: payload, completion: completion)
-
-            case .processIncomingFakeVoIPPush(let payload, let completion):
-                delegate.processIncomingFakeVoIPPush(payload: payload, completion: completion)
-            }
-        }
-    }
-
     public func registerForVoIPPushes() {
         Self.logger.trace("register for voIP pushes")
         registry.desiredPushTypes = [.voIP]
     }
-
-    // Maybe we convert methods to actions, and pass those actions to a processor or buffer them.
 
     public func pushRegistry(
         _ registry: PKPushRegistry,
@@ -130,13 +89,7 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
         // We only want to store the voip token if required.
         guard requiredPushTokenType == .voip else { return }
 
-        if let delegate = delegate {
-            Self.logger.info("fowarding to delegate")
-            delegate.storeVoIPToken(pushCredentials.token)
-        } else {
-            Self.logger.info("buffering")
-            buffer.pendingActions.append(.storeVoIPToken(pushCredentials.token))
-        }
+        pushTokenService.storeLocalToken(.createVOIPToken(from: pushCredentials.token))
     }
 
     public func pushRegistry(
@@ -151,13 +104,7 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
         // We don't want to delete a standard push token by accident.
         guard requiredPushTokenType == .voip else { return }
 
-        if let delegate = delegate {
-            Self.logger.info("fowarding to delegate")
-            delegate.deleteExistingVoIPToken()
-        } else {
-            Self.logger.info("buffering")
-            buffer.pendingActions.append(.deleteExistingVoIPToken)
-        }
+        pushTokenService.storeLocalToken(.none)
     }
 
     public func pushRegistry(
@@ -234,18 +181,15 @@ public final class VoIPPushManager: NSObject, PKPushRegistryDelegate {
     ) {
         Self.logger.trace("process voIP push, payload: \(payload)")
 
-        if let delegate = delegate {
-            Self.logger.info("fowarding to delegate")
-            delegate.processIncomingRealVoIPPush(
-                payload: payload,
-                completion: completion
-            )
-        } else {
-            Self.logger.info("buffering")
-            buffer.pendingActions.append(.processIncomingRealVoIPPush(
-                payload: payload,
-                completion: completion
-            ))
+        guard let delegate = delegate else {
+            Self.logger.info("no delegate, ignoring...")
+            return
         }
+
+        Self.logger.info("fowarding to delegate")
+        delegate.processIncomingRealVoIPPush(
+            payload: payload,
+            completion: completion
+        )
     }
 }

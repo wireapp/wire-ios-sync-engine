@@ -34,7 +34,6 @@ protocol PushRegistry {
 
 extension PKPushRegistry: PushRegistry {}
 
-
 // MARK: - UNUserNotificationCenterDelegate
 
 @objc extension SessionManager: UNUserNotificationCenterDelegate {
@@ -69,22 +68,6 @@ extension PKPushRegistry: PushRegistry {}
         notificationCenter.setNotificationCategories(PushNotificationCategory.allCategories)
         notificationCenter.requestAuthorization(options: [.alert, .badge, .sound], completionHandler: { _, _ in })
         notificationCenter.delegate = self
-    }
-
-    public func updatePushToken(for session: ZMUserSession) {
-        session.managedObjectContext.performGroupedBlock { [weak session] in
-            switch self.requiredPushTokenType {
-            case .voip:
-                if let token = self.pushRegistry.pushToken(for: .voIP) {
-                    pushLog.safePublic("creating voip push token")
-                    let pushToken = PushToken.createVOIPToken(from: token)
-                    session?.setPushToken(pushToken)
-                }
-            case .standard:
-                pushLog.safePublic("creating standard push token")
-                self.application.registerForRemoteNotifications()
-            }
-        }
     }
 
     func handleNotification(with userInfo: NotificationUserInfo, block: @escaping (ZMUserSession) -> Void) {
@@ -150,14 +133,6 @@ extension SessionManager {
 
     var shouldProcessLegacyPushes: Bool {
         return requiredPushTokenType == .voip
-    }
-
-    public func updateDeviceToken(_ deviceToken: Data) {
-        let pushToken = PushToken.createAPNSToken(from: deviceToken)
-        // give new device token to all running sessions
-        self.backgroundUserSessions.values.forEach({ userSession in
-            userSession.setPushToken(pushToken)
-        })
     }
 
 }
