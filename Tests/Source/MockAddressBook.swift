@@ -41,10 +41,8 @@ class MockAddressBook: WireSyncEngine.AddressBook, WireSyncEngine.AddressBookAcc
     /// Enumerates the contacts, invoking the block for each contact.
     /// If the block returns false, it will stop enumerating them.
     func enumerateRawContacts(block: @escaping (WireSyncEngine.ContactRecord) -> (Bool)) {
-        for contact in self.contacts {
-            if !block(contact) {
+        for contact in self.contacts where !block(contact) {
                 return
-            }
         }
         let infiniteContact = MockAddressBookContact(firstName: "johnny infinite",
                                                      emailAddresses: ["johnny.infinite@example.com"],

@@ -103,7 +103,7 @@ extension ZMUserSession {
 
     func registerCurrentPushToken() {
         managedObjectContext.performGroupedBlock {
-            self.sessionManager?.updatePushToken(for: self)
+            self.sessionManager?.configurePushToken(session: self)
         }
     }
 
@@ -113,102 +113,10 @@ extension ZMUserSession {
 
 extension ZMUserSession {
 
-    public func setPushToken(_ pushToken: PushToken) {
-        let syncMOC = managedObjectContext.zm_sync!
-
-        syncMOC.performGroupedBlock {
-            guard
-                let selfClient = ZMUser.selfUser(in: syncMOC).selfClient(),
-                let clientID = selfClient.remoteIdentifier else {
-                    return
-                }
-
-            /// If there is no local token, or the local token's type is different from the new token,
-            /// we must register a new token
-            if pushToken.deviceToken != PushTokenStorage.pushToken?.deviceToken {
-                let action = RegisterPushTokenAction(token: pushToken, clientID: clientID) { result in
-                    switch result {
-                    case .success:
-                        PushTokenStorage.pushToken = pushToken
-                    case .failure(let error):
-                        Logging.push.safePublic("Failed to register push token with backend: \(error)")
-                    }
-                }
-
-                action.send(in: syncMOC.notificationContext)
-            }
-        }
-    }
-
-    func deletePushToken(completion: (() -> Void)? = nil) {
-        let syncMOC = managedObjectContext.zm_sync!
-
-        syncMOC.performGroupedBlock {
-            guard let pushToken = PushTokenStorage.pushToken else {
-                completion?()
-                return
-            }
-
-            let action = RemovePushTokenAction(deviceToken: pushToken.deviceTokenString) { result in
-                switch result {
-                case .success:
-                    PushTokenStorage.pushToken = nil
-                case .failure(let error):
-                    switch error {
-                    case .tokenDoesNotExist:
-                        PushTokenStorage.pushToken = nil
-                        Logging.push.safePublic("Failed to delete push token because it does not exist: \(error)")
-                    default:
-                        Logging.push.safePublic("Failed to delete push token: \(error)")
-                    }
-                }
-                completion?()
-            }
-            action.send(in: syncMOC.notificationContext)
-        }
-    }
-
-    /// Compares the push token registered on backend with the local one
-    /// and re-registers it if they don't match.
+    /// Generates the local push token if needed, then syncs it with the backend.
 
     public func validatePushToken() {
-        let syncContext = managedObjectContext.zm_sync!
-
-        syncContext.performGroupedBlock {
-            guard
-                let selfClient = ZMUser.selfUser(in: syncContext).selfClient(),
-                let clientID = selfClient.remoteIdentifier
-            else {
-                return
-            }
-
-            guard let localToken = PushTokenStorage.pushToken else {
-                self.sessionManager?.updatePushToken(for: self)
-                return
-            }
-
-            let action = GetPushTokensAction(clientID: clientID) { result in
-                switch result {
-                case let .success(tokens):
-                    let matchingRemoteToken = tokens.first {
-                        $0.deviceTokenString == localToken.deviceTokenString
-                    }
-
-                    guard matchingRemoteToken != nil else {
-                        PushTokenStorage.pushToken = nil
-                        self.sessionManager?.updatePushToken(for: self)
-                        return
-                    }
-
-                    PushTokenStorage.pushToken = matchingRemoteToken
-
-                case let .failure(error):
-                    Logging.push.safePublic("Failed to validate push token: \(error)")
-                }
-            }
-
-            action.send(in: syncContext.notificationContext)
-        }
+        sessionManager?.configurePushToken(session: self)
     }
 
 }

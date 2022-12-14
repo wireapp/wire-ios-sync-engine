@@ -76,9 +76,7 @@ public protocol SessionManagerType: AnyObject {
     var callNotificationStyle: CallNotificationStyle { get }
 
     func updateAppIconBadge(accountID: UUID, unreadCount: Int)
-
-    /// Will update the push token for the session if it has changed
-    func updatePushToken(for session: ZMUserSession)
+    func configurePushToken(session: ZMUserSession)
 
     /// Configure user notification settings. This will ask the user for permission to display notifications.
     func configureUserNotifications()
@@ -294,6 +292,8 @@ public final class SessionManager: NSObject, SessionManagerType {
 
     let isDeveloperModeEnabled: Bool
 
+    let pushTokenService: PushTokenServiceInterface
+
     public override init() {
         fatal("init() not implemented")
     }
@@ -309,7 +309,8 @@ public final class SessionManager: NSObject, SessionManagerType {
         configuration: SessionManagerConfiguration = SessionManagerConfiguration(),
         detector: JailbreakDetectorProtocol = JailbreakDetector(),
         requiredPushTokenType: PushToken.TokenType,
-        isDeveloperModeEnabled: Bool = false
+        isDeveloperModeEnabled: Bool = false,
+        pushTokenService: PushTokenServiceInterface = PushTokenService()
     ) {
         let flowManager = FlowManager(mediaManager: mediaManager)
         let reachability = environment.reachability
@@ -344,7 +345,8 @@ public final class SessionManager: NSObject, SessionManagerType {
             configuration: configuration,
             detector: detector,
             requiredPushTokenType: requiredPushTokenType,
-            isDeveloperModeEnabled: isDeveloperModeEnabled
+            isDeveloperModeEnabled: isDeveloperModeEnabled,
+            pushTokenService: pushTokenService
         )
 
         if configuration.blacklistDownloadInterval > 0 {
@@ -397,7 +399,8 @@ public final class SessionManager: NSObject, SessionManagerType {
          configuration: SessionManagerConfiguration = SessionManagerConfiguration(),
          detector: JailbreakDetectorProtocol = JailbreakDetector(),
          requiredPushTokenType: PushToken.TokenType,
-         isDeveloperModeEnabled: Bool = false
+         isDeveloperModeEnabled: Bool = false,
+         pushTokenService: PushTokenServiceInterface = PushTokenService()
     ) {
         SessionManager.enableLogsByEnvironmentVariable()
         self.environment = environment
@@ -408,6 +411,7 @@ public final class SessionManager: NSObject, SessionManagerType {
         self.configuration = configuration.copy() as! SessionManagerConfiguration
         self.jailbreakDetector = detector
         self.requiredPushTokenType = requiredPushTokenType
+        self.pushTokenService = pushTokenService
 
         guard let sharedContainerURL = Bundle.main.appGroupIdentifier.map(FileManager.sharedContainerDirectory) else {
             preconditionFailure("Unable to get shared container URL")
@@ -451,18 +455,23 @@ public final class SessionManager: NSObject, SessionManagerType {
 
         super.init()
 
-        registerForVoipPushNotifications()
+        pushTokenService.onTokenChange = { [weak self] _ in
+            guard
+                let `self` = self,
+                let session = self.activeUserSession
+            else {
+                return
+            }
+
+            self.syncLocalTokenWithRemote(session: session)
+        }
+
+        registerForVoIPPushNotifications()
+
         deleteAccountToken = AccountDeletedNotification.addObserver(observer: self, queue: groupQueue)
         callCenterObserverToken = WireCallCenterV3.addGlobalCallStateObserver(observer: self)
 
         checkJailbreakIfNeeded()
-    }
-
-    private func registerForVoipPushNotifications() {
-        pushLog.safePublic("registering for voip push token")
-        self.pushRegistry.delegate = self
-        let pkPushTypeSet: Set<PKPushType> = [PKPushType.voIP]
-        self.pushRegistry.desiredPushTypes = pkPushTypeSet
     }
 
     public func start(launchOptions: LaunchOptions) {
@@ -775,26 +784,8 @@ public final class SessionManager: NSObject, SessionManagerType {
         backgroundUserSessions[account.userIdentifier] = userSession
         userSession.useConstantBitRateAudio = useConstantBitRateAudio
         userSession.usePackagingFeatureConfig = usePackagingFeatureConfig
-        updateOrMigratePushToken(session: userSession)
+        configurePushToken(session: userSession)
         registerObservers(account: account, session: userSession)
-    }
-
-    func updateOrMigratePushToken(session userSession: ZMUserSession) {
-        // If the legacy token exists, migrate it to the PushTokenStorage and delete it from selfClient
-        if let client = userSession.selfUserClient, let legacyToken = client.retrieveLegacyPushToken() {
-            PushTokenStorage.pushToken = legacyToken
-        }
-
-        guard let localToken = PushTokenStorage.pushToken else {
-            updatePushToken(for: userSession)
-            return
-        }
-
-        if localToken.tokenType != requiredPushTokenType {
-            userSession.deletePushToken { [weak self] in
-                self?.updatePushToken(for: userSession)
-            }
-        }
     }
 
     private func deleteMessagesOlderThanRetentionLimit(contextProvider: ContextProvider) {

@@ -144,7 +144,7 @@ public class SearchUserImageStrategy: AbstractRequestStrategy {
 
                 path = "/assets/v4/\(domain)/\(key)"
 
-            case .v2:
+            case .v2, .v3:
                 guard let domain = requestedUserDomain[user].nonEmptyValue ?? BackendInfo.domain else {
                     return nil
                 }
