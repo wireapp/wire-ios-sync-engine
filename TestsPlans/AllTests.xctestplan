@@ -63,10 +63,7 @@
     {
       "skippedTests" : [
         "AvailabilityTests",
-        "ConnectionTests_Swift\/testThatConnectionRequestsToTwoUsersAreAddedToPending()",
-        "LoginFlowTests_PushToken\/testThatItRegistersThePushTokenWithTheBackend()",
-        "SessionManagerTests_MultiUserSession\/testThatItLoadsAccountForPush()",
-        "SessionManagerTests_MultiUserSession\/testThatItLoadsOnlyOneAccountForPush()"
+        "ConnectionTests_Swift\/testThatConnectionRequestsToTwoUsersAreAddedToPending()"
       ],
       "target" : {
         "containerPath" : "container:WireSyncEngine.xcodeproj",
