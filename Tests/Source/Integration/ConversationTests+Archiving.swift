@@ -46,9 +46,11 @@ class ConversationTests_Archiving: ConversationTestsBase {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
-        shouldUnarchive
-            ? XCTAssertFalse(conversation!.isArchived)
-            : XCTAssertTrue(conversation!.isArchived)
+        if shouldUnarchive {
+            XCTAssertFalse(conversation!.isArchived)
+        } else {
+            XCTAssertTrue(conversation!.isArchived)
+        }
     }
 
     func testThatAddingAMessageToAnArchivedConversation_Unarchives_ThisConversation() {

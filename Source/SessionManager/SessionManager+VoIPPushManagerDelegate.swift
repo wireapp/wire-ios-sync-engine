@@ -98,4 +98,3 @@ private extension Dictionary where Key == AnyHashable, Value == Any {
     }
 
 }
-

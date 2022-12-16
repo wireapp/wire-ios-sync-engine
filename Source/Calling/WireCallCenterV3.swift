@@ -87,7 +87,7 @@ public class WireCallCenterV3: NSObject {
     var callSnapshots: [AVSIdentifier: CallSnapshot] = [:]
 
     /// Used to collect incoming events (e.g. from fetching the notification stream) until AVS is ready to process them.
-    var bufferedEvents : [(event: CallEvent, completionHandler: () -> Void)]  = []
+    var bufferedEvents: [(event: CallEvent, completionHandler: () -> Void)]  = []
 
     /// Set to true once AVS calls the ReadyHandler. Setting it to `true` forwards all previously buffered events to AVS.
     var isReady: Bool = false {
