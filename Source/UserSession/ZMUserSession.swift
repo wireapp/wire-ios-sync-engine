@@ -18,6 +18,23 @@
 
 import Foundation
 
+// When we add the first hot fix, uncomment this type and add an enum
+// case. The hot fix code should go in the execute method.
+
+//enum HotfixPatch: Int, DataPatchInterface {
+//
+//    var version: Int {
+//       return rawValue
+//    }
+//
+//    func execute(in context: NSManagedObjectContext) {
+//        switch self {
+//            // Add hotfix code here.
+//        }
+//    }
+//
+//}
+
 @objc(ZMThirdPartyServicesDelegate)
 public protocol ThirdPartyServicesDelegate: NSObjectProtocol {
 
@@ -87,7 +104,9 @@ public class ZMUserSession: NSObject {
     var urlActionProcessors: [URLActionProcessor]?
     let debugCommands: [String: DebugCommand]
     let eventProcessingTracker: EventProcessingTracker = EventProcessingTracker()
-    let hotFix: ZMHotFix
+    let legacyHotFix: ZMHotFix
+    // When we move to the monorepo, uncomment hotFixApplicator
+    //let hotFixApplicator = PatchApplicator<HotfixPatch>(lastRunVersionKey: "lastRunHotFixVersion")
 
     public lazy var featureService = FeatureService(context: syncContext)
 
@@ -252,7 +271,7 @@ public class ZMUserSession: NSObject {
         self.userExpirationObserver = UserExpirationObserver(managedObjectContext: coreDataStack.viewContext)
         self.topConversationsDirectory = TopConversationsDirectory(managedObjectContext: coreDataStack.viewContext)
         self.debugCommands = ZMUserSession.initDebugCommands()
-        self.hotFix = ZMHotFix(syncMOC: coreDataStack.syncContext)
+        self.legacyHotFix = ZMHotFix(syncMOC: coreDataStack.syncContext)
         self.appLockController = AppLockController(userId: userId, selfUser: .selfUser(in: coreDataStack.viewContext), legacyConfig: configuration.appLockConfig)
         super.init()
 
@@ -572,8 +591,9 @@ extension ZMUserSession: ZMSyncStateDelegate {
         let isSyncing = applicationStatusDirectory?.syncStatus.isSyncing == true
 
         if !hasMoreEventsToProcess {
-            hotFix.applyPatches()
-            // When we move to the monorepo, run the 'PatchApplicator' here.
+            legacyHotFix.applyPatches()
+            // When we move to the monorepo, uncomment hotFixApplicator applyPatches
+            //hotFixApplicator.applyPatches(HotfixPatch.self, in: syncContext)
         }
 
         managedObjectContext.performGroupedBlock { [weak self] in
