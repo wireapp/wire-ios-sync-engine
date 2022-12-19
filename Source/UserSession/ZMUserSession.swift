@@ -18,23 +18,6 @@
 
 import Foundation
 
-// When we add the first hot fix, uncomment this type and add an enum
-// case. The hot fix code should go in the execute method.
-
-//enum HotfixPatch: Int, DataPatchInterface {
-//
-//    var version: Int {
-//       return rawValue
-//    }
-//
-//    func execute(in context: NSManagedObjectContext) {
-//        switch self {
-//            // Add hotfix code here.
-//        }
-//    }
-//
-//}
-
 @objc(ZMThirdPartyServicesDelegate)
 public protocol ThirdPartyServicesDelegate: NSObjectProtocol {
 
