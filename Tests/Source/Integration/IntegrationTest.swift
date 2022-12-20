@@ -242,7 +242,8 @@ extension IntegrationTest {
             configuration: sessionManagerConfiguration,
             detector: jailbreakDetector,
             requiredPushTokenType: shouldProcessLegacyPushes ? .voip : .standard,
-            pushTokenService: pushTokenService
+            pushTokenService: pushTokenService,
+            callKitManager: MockCallKitManager()
         )
 
         sessionManager?.loginDelegate = mockLoginDelegete

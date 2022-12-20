@@ -26,6 +26,8 @@ extension NSNotification.Name {
 
 class EventProcessor: UpdateEventProcessor {
 
+    private static let logger = Logger(subsystem: "VoIP Push", category: "EventProcessor")
+
     let syncContext: NSManagedObjectContext
     let eventContext: NSManagedObjectContext
     let syncStatus: SyncStatus
@@ -60,14 +62,18 @@ class EventProcessor: UpdateEventProcessor {
     /// /// - Returns: **True** if there are still more events to process
     @objc
     public func processEventsIfReady() -> Bool { // TODO jacob shouldn't be public
+        Self.logger.trace("process events if ready")
         guard isReadyToProcessEvents else {
+            Self.logger.info("not ready to process events")
             return  true
         }
 
         eventBuffer?.processAllEventsInBuffer()
 
         if syncContext.encryptMessagesAtRest {
+            Self.logger.info("trying to get EAR keys")
             guard let encryptionKeys = syncContext.encryptionKeys else {
+                Self.logger.warning("failed to get EAR keys")
                 return true
             }
 
@@ -103,7 +109,11 @@ class EventProcessor: UpdateEventProcessor {
     }
 
     private func processStoredUpdateEvents(with encryptionKeys: EncryptionKeys? = nil) {
+        Self.logger.trace("process stored update events")
+
         eventDecoder.processStoredEvents(with: encryptionKeys) { [weak self] (decryptedUpdateEvents) in
+            Self.logger.info("decrypted update events: \(decryptedUpdateEvents.count)")
+
             guard let `self` = self else { return }
 
             let date = Date()

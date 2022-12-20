@@ -35,15 +35,6 @@ extension SessionManager {
      *      events, regardless if calling or not.
      */
 
-    // MARK: - Registration
-
-    func registerForVoIPPushNotifications() {
-        Logging.push.safePublic("registering for voip push token")
-        self.pushRegistry.delegate = self
-        let pkPushTypeSet: Set<PKPushType> = [PKPushType.voIP]
-        self.pushRegistry.desiredPushTypes = pkPushTypeSet
-    }
-
     // MARK: - Token registration
 
     public func configurePushToken(session: ZMUserSession) {

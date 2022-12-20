@@ -25,6 +25,8 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
 
     // MARK: - Private Properties
 
+    private static let logger = Logger(subsystem: "VoIP Push", category: "CallingRequestStrategy")
+
     private let zmLog = ZMSLog(tag: "calling")
 
     private let messageSync: ProteusMessageSync<GenericMessageEntity>
@@ -214,10 +216,12 @@ public final class CallingRequestStrategy: AbstractRequestStrategy, ZMSingleRequ
     // MARK: - Event Consumer
 
     public func processEvents(_ events: [ZMUpdateEvent], liveEvents: Bool, prefetchResult: ZMFetchRequestBatchResult?) {
+        Self.logger.trace("process events: \(events)")
         events.forEach(processEvent)
     }
 
     public func processEventsWhileInBackground(_ events: [ZMUpdateEvent]) {
+        Self.logger.trace("process events while in background: \(events)")
         events.forEach(processEvent)
     }
 

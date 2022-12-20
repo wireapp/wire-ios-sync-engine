@@ -167,7 +167,7 @@ import Foundation
             let conversation = userInfo.conversation(in: managedObjectContext),
             let conversationId = conversation.avsIdentifier,
             let callState = conversation.voiceChannel?.state,
-            case .incoming(video: _, shouldRing: _, degraded: _) = callState,
+            case .incoming = callState,
             let callCenter = self.callCenter,
             callCenter.activeCallConversations(in: self).count == 0
         else { return }

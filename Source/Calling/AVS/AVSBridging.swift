@@ -168,6 +168,7 @@ extension AVSWrapper {
 
     @discardableResult
     static func withCallCenter<A1: AVSValue, A2: AVSValue, A3: AVSValue, A4: AVSValue, A5: AVSValue, A6: AVSValue, A7: AVSValue>(_ contextRef: UnsafeMutableRawPointer?, _ v1: A1.AVSType?, _ v2: A2.AVSType?, _ v3: A3.AVSType?, _ v4: A4.AVSType?, _ v5: A5.AVSType?, _ v6: A6.AVSType?, _ v7: A7.AVSType?, _ block: (WireCallCenterV3, A1, A2, A3, A4, A5, A6, A7) -> Void) -> Int32 {
+        Logger(subsystem: "VoIP Push", category: "AVSWrapper").trace("with call center")
         guard let contextRef = contextRef, let value1 = v1.flatMap(A1.init), let value2 = v2.flatMap(A2.init), let value3 = v3.flatMap(A3.init), let value4 = v4.flatMap(A4.init), let value5 = v5.flatMap(A5.init), let value6 = v6.flatMap(A6.init), let value7 = v7.flatMap(A7.init) else { return EINVAL }
         let callCenter = Unmanaged<WireCallCenterV3>.fromOpaque(contextRef).takeUnretainedValue()
         block(callCenter, value1, value2, value3, value4, value5, value6, value7)
