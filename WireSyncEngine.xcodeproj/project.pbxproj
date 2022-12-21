@@ -387,6 +387,7 @@
 		63497702268A20EC00824A05 /* AVSParticipantsChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63497701268A20EC00824A05 /* AVSParticipantsChange.swift */; };
 		6349770A268A250E00824A05 /* Encodable+JSONString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63497709268A250E00824A05 /* Encodable+JSONString.swift */; };
 		6349771E268B7C4300824A05 /* AVSVideoStreamsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6349771D268B7C4300824A05 /* AVSVideoStreamsTest.swift */; };
+		636826F82953465F00D904C2 /* ZMUserSessionTests+AccessToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636826F72953465F00D904C2 /* ZMUserSessionTests+AccessToken.swift */; };
 		639290A4252CA53200046171 /* CallSnapshotTestFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639290A3252CA53100046171 /* CallSnapshotTestFixture.swift */; };
 		639290A7252DEDB500046171 /* WireCallCenterV3+Degradation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639290A6252DEDB400046171 /* WireCallCenterV3+Degradation.swift */; };
 		63A2E19F2770D7E900D8F271 /* AVSIdentifier+Stub.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63CF3FFD2768DF8C0079FF2B /* AVSIdentifier+Stub.swift */; };
@@ -1016,6 +1017,7 @@
 		63497701268A20EC00824A05 /* AVSParticipantsChange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVSParticipantsChange.swift; sourceTree = "<group>"; };
 		63497709268A250E00824A05 /* Encodable+JSONString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Encodable+JSONString.swift"; sourceTree = "<group>"; };
 		6349771D268B7C4300824A05 /* AVSVideoStreamsTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVSVideoStreamsTest.swift; sourceTree = "<group>"; };
+		636826F72953465F00D904C2 /* ZMUserSessionTests+AccessToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ZMUserSessionTests+AccessToken.swift"; sourceTree = "<group>"; };
 		639290A3252CA53100046171 /* CallSnapshotTestFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallSnapshotTestFixture.swift; sourceTree = "<group>"; };
 		639290A6252DEDB400046171 /* WireCallCenterV3+Degradation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WireCallCenterV3+Degradation.swift"; sourceTree = "<group>"; };
 		63A8F575276B7B3100513750 /* AVSClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVSClientTests.swift; sourceTree = "<group>"; };
@@ -1871,6 +1873,7 @@
 				16E0FBB4233119FE000E3235 /* ZMUserSessionTests+Authentication.swift */,
 				1673C35224CB36D800AE2714 /* ZMUserSessionTests+EncryptionAtRest.swift */,
 				707CEBB627B515B200E080A4 /* ZMUserSessionTests+SecurityClassification.swift */,
+				636826F72953465F00D904C2 /* ZMUserSessionTests+AccessToken.swift */,
 				0920C4D81B305FF500C55728 /* UserSessionGiphyRequestStateTests.swift */,
 				541228431AEE422C00D9ED1C /* ZMAuthenticationStatusTests.m */,
 				7CE017142317D07E00144905 /* ZMAuthenticationStatusTests.swift */,
@@ -3027,6 +3030,7 @@
 				63CF4000276B4D110079FF2B /* AVSIdentifierTests.swift in Sources */,
 				54AB428E1DF5C5B400381F2C /* TopConversationsDirectoryTests.swift in Sources */,
 				EE9CDE9227DA05D100C4DAC8 /* APIVersionResolverTests.swift in Sources */,
+				636826F82953465F00D904C2 /* ZMUserSessionTests+AccessToken.swift in Sources */,
 				0601900B2678750D0043F8F8 /* DeepLinkURLActionProcessorTests.swift in Sources */,
 				1645ED1B244DE345007A82D6 /* TeamMembersDownloadRequestStrategy.swift in Sources */,
 				549552541D645683004F21F6 /* AddressBookTests.swift in Sources */,
