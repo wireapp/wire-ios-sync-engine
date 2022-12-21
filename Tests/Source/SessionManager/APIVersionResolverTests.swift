@@ -356,4 +356,8 @@ private class MockAPIVersionResolverDelegate: APIVersionResolverDelegate {
     func apiVersionResolverDetectedFederationHasBeenEnabled() {
         didReportFederationHasBeenEnabled = true
     }
+
+    func apiVersionResolverDidResolve(apiVersion: APIVersion) {
+        
+    }
 }

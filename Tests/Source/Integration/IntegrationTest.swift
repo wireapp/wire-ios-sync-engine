@@ -687,6 +687,9 @@ extension IntegrationTest: SessionManagerDelegate {
         // no op
     }
 
+    public func sessionManagerDidPerformAPIMigrations() {
+        // no op
+    }
 }
 
 @objcMembers

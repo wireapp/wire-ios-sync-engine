@@ -102,6 +102,10 @@ final class APIVersionResolver {
         if !wasFederationEnabled && BackendInfo.isFederationEnabled {
             delegate?.apiVersionResolverDetectedFederationHasBeenEnabled()
         }
+
+        if let apiVersion = BackendInfo.apiVersion {
+            delegate?.apiVersionResolverDidResolve(apiVersion: apiVersion)
+        }
     }
 
     private func reportBlacklist(payload: APIVersionResponsePayload) {
@@ -143,6 +147,7 @@ protocol APIVersionResolverDelegate: AnyObject {
 
     func apiVersionResolverDetectedFederationHasBeenEnabled()
     func apiVersionResolverFailedToResolveVersion(reason: BlacklistReason)
+    func apiVersionResolverDidResolve(apiVersion: APIVersion)
 
 }
 

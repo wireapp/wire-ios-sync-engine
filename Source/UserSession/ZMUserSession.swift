@@ -59,6 +59,7 @@ public class ZMUserSession: NSObject {
     private let appVersion: String
     private var tokens: [Any] = []
     private var tornDown: Bool = false
+    private var accessTokenRenewalObserver: AccessTokenRenewalObserver?
 
     var isNetworkOnline: Bool = true
     var isPerformingSync: Bool = true {
@@ -296,6 +297,9 @@ public class ZMUserSession: NSObject {
         transportSession.setAccessTokenRenewalFailureHandler { [weak self] (response) in
             self?.transportSessionAccessTokenDidFail(response: response)
         }
+        transportSession.setAccessTokenRenewalSuccessHandler { [weak self]  _,_ in
+            self?.transportSessionAccessTokenDidSucceed()
+        }
     }
 
     private func configureCaches() {
@@ -454,6 +458,11 @@ public class ZMUserSession: NSObject {
 
         renewAccessToken(with: clientID)
     }
+
+    func setAccessTokenRenewalObserver(_ observer: AccessTokenRenewalObserver) {
+        accessTokenRenewalObserver = observer
+    }
+
     private func transportSessionAccessTokenDidFail(response: ZMTransportResponse) {
         managedObjectContext.performGroupedBlock { [weak self] in
             guard let strongRef = self else { return }
@@ -461,6 +470,12 @@ public class ZMUserSession: NSObject {
             let error = NSError.userSessionErrorWith(.accessTokenExpired, userInfo: selfUser.loginCredentials.dictionaryRepresentation)
             strongRef.notifyAuthenticationInvalidated(error)
         }
+
+        accessTokenRenewalObserver?.accessTokenRenewalDidFail()
+    }
+
+    private func transportSessionAccessTokenDidSucceed() {
+        accessTokenRenewalObserver?.accessTokenRenewalDidSucceed()
     }
 
     // MARK: - Perform changes

@@ -73,6 +73,8 @@ class RecordingMockTransportSession: NSObject, TransportSessionType {
 
     func setAccessTokenRenewalSuccessHandler(_ handler: @escaping ZMAccessTokenHandlerBlock) { }
 
+    func setAccessTokenRenewalSuccessHandler(handler: @escaping ZMAccessTokenHandlerBlock) { }
+
     var didCallSetNetworkStateDelegate: Bool = false
     func setNetworkStateDelegate(_ delegate: ZMNetworkStateDelegate?) {
         didCallSetNetworkStateDelegate = true
