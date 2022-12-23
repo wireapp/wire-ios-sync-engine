@@ -30,7 +30,7 @@
                              environment:(id<BackendEnvironmentProvider>)environment
                            proxyUsername:(NSString *)proxyUsername
                            proxyPassword:(NSString *)proxyPassword
-                                ready:(BOOL)ready
+                                readyForRequests:(BOOL)readyForRequests
                             workingGroup:(ZMSDispatchGroup *)workingGroup
                              application:(id<ZMApplication>)application
                        completionHandler:(void (^)(NSString *minVersion, NSArray *excludedVersions))completionHandler;

@@ -85,7 +85,7 @@ static NSString * const ExcludeVersionsKey = @"exclude";
 @property (nonatomic) BOOL tornDown;
 
 /// wait for the network config (proxy) being setup
-@property (nonatomic) BOOL ready;
+@property (nonatomic) BOOL readyForRequests;
 
 @end
 
@@ -95,8 +95,8 @@ static NSString * const ExcludeVersionsKey = @"exclude";
  Black list format:
  
  {
-    "min_version": "123",
-    "exclude": ["345", "346"]
+ "min_version": "123",
+ "exclude": ["345", "346"]
  }
  
  Version string is just a build version number.
@@ -107,14 +107,14 @@ static NSString * const ExcludeVersionsKey = @"exclude";
  download was a success or a failure. The timer is stopped when moving to the background
  and restarted when coming to the foreground.
 
-*/
+ */
 @implementation ZMBlacklistDownloader
 
 - (instancetype)initWithDownloadInterval:(NSTimeInterval)downloadInterval
                              environment:(id<BackendEnvironmentProvider>)environment
                            proxyUsername:(NSString *)proxyUsername
                            proxyPassword:(NSString *)proxyPassword
-                                   ready: (BOOL) ready
+                        readyForRequests: (BOOL)readyForRequests
                             workingGroup:(ZMSDispatchGroup *)workingGroup
                              application:(id<ZMApplication>)application
                        completionHandler:(void (^)(NSString *, NSArray *))completionHandler {
@@ -122,7 +122,7 @@ static NSString * const ExcludeVersionsKey = @"exclude";
                         environment:environment
                       proxyUsername:proxyUsername
                       proxyPassword:proxyPassword
-                              ready:ready
+                   readyForRequests:readyForRequests
                successCheckInterval:downloadInterval
                failureCheckInterval:UnsuccessfulDownloadRetryInterval
                        userDefaults:[NSUserDefaults standardUserDefaults]
@@ -137,7 +137,7 @@ static NSString * const ExcludeVersionsKey = @"exclude";
                        environment:(id<BackendEnvironmentProvider>)environment
                      proxyUsername:(NSString *)proxyUsername
                      proxyPassword:(NSString *)proxyPassword
-                             ready:(BOOL)ready
+                  readyForRequests:(BOOL)readyForRequests
               successCheckInterval:(NSTimeInterval)successCheckInterval
               failureCheckInterval:(NSTimeInterval)failureCheckInterval
                       userDefaults:(NSUserDefaults *)userDefaults
@@ -148,7 +148,7 @@ static NSString * const ExcludeVersionsKey = @"exclude";
     self = [super init];
     if (self != nil) {
         self.application = application;
-        self.ready = ready;
+        self.readyForRequests = readyForRequests;
         NSDictionary* proxyDictionary = nil;
         if (environment.proxy != nil) {
             proxyDictionary = [environment.proxy socks5SettingsWithProxyUsername:proxyUsername proxyPassword:proxyPassword];
@@ -185,7 +185,7 @@ static NSString * const ExcludeVersionsKey = @"exclude";
         [application registerObserverForDidBecomeActive:self selector:@selector(didBecomeActive:)];
         [application registerObserverForWillResignActive:self selector:@selector(willResignActive:)];
         
-        [self startTimerIfNeeded];        
+        [self startTimerIfNeeded];
     }
     return self;
 }
@@ -199,7 +199,7 @@ static NSString * const ExcludeVersionsKey = @"exclude";
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [self.application unregisterObserverForStateChange:self];
     self.inBackground = YES;
-    self.ready = NO;
+    self.readyForRequests = NO;
 
     [self.workingGroup enter];
     dispatch_sync(self.queue, ^{
@@ -304,7 +304,7 @@ static NSString * const ExcludeVersionsKey = @"exclude";
             });
         }
         [self.workingGroup leave];
-    
+
     });
 }
 
@@ -339,10 +339,10 @@ static NSString * const ExcludeVersionsKey = @"exclude";
     NSTimeInterval timeLeft = 0;
     
     BOOL isFailureMoreRecent =
-        self.dateOfLastUnsuccessfulDownload != nil && // there was a failure
-            (self.dateOfLastSuccessfulDownload == nil // never downloaded successfully
-                || [self.dateOfLastUnsuccessfulDownload compare:self.dateOfLastSuccessfulDownload] == NSOrderedAscending // or failure is more recent that success
-             );
+    self.dateOfLastUnsuccessfulDownload != nil && // there was a failure
+    (self.dateOfLastSuccessfulDownload == nil // never downloaded successfully
+     || [self.dateOfLastUnsuccessfulDownload compare:self.dateOfLastSuccessfulDownload] == NSOrderedAscending // or failure is more recent that success
+     );
     if(isFailureMoreRecent) {
         timeLeft = MAX(0, self.failureCheckInterval + [self.dateOfLastUnsuccessfulDownload timeIntervalSinceNow]);
     }
@@ -431,7 +431,7 @@ static NSString * const ExcludeVersionsKey = @"exclude";
 
 - (void)fetchBlackList
 {
-    if (!self.ready) {
+    if (!self.readyForRequests) {
         return;
     }
     NSURL *backendURL = [self.environment.blackListURL URLByAppendingPathComponent:@"ios"];

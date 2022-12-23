@@ -28,7 +28,7 @@ open class AuthenticatedSessionFactory {
     let application: ZMApplication
 
     var environment: BackendEnvironmentProvider
-    var reachability: ReachabilityProvider & TearDownCapable
+    var reachability: Reachability
 
     public init(
         appVersion: String,
@@ -38,7 +38,7 @@ open class AuthenticatedSessionFactory {
         environment: BackendEnvironmentProvider,
         proxyUsername: String?,
         proxyPassword: String?,
-        reachability: ReachabilityProvider & TearDownCapable,
+        reachability: Reachability,
         analytics: AnalyticsType? = nil) {
 
             self.appVersion = appVersion
@@ -106,8 +106,8 @@ open class UnauthenticatedSessionFactory {
         }
     }
 
-    var reachability: ReachabilityProvider & TearDownCapable
-    var ready: Bool = false
+    var reachability: Reachability
+    var readyForRequests: Bool = false
     let appVersion: String
 
     init(
@@ -115,7 +115,7 @@ open class UnauthenticatedSessionFactory {
       environment: BackendEnvironmentProvider,
       proxyUsername: String?,
       proxyPassword: String?,
-      reachability: ReachabilityProvider & TearDownCapable
+      reachability: Reachability
     ) {
         self.environment = environment
         self.proxyUsername = proxyUsername
@@ -134,7 +134,7 @@ open class UnauthenticatedSessionFactory {
           proxyPassword: proxyPassword,
           reachability: reachability,
           applicationVersion: appVersion,
-          ready: ready
+          readyForRequests: readyForRequests
         )
 
       return UnauthenticatedSession(

@@ -27,7 +27,7 @@
                        environment:(id<BackendEnvironmentProvider>)environment
                      proxyUsername:(NSString *)proxyUsername
                      proxyPassword:(NSString *)proxyPassword
-                             ready:(BOOL)ready
+                  readyForRequests:(BOOL)readyForRequests
               successCheckInterval:(NSTimeInterval)successCheckInterval
               failureCheckInterval:(NSTimeInterval)failureCheckInterval
                       userDefaults:(NSUserDefaults *)userDefaults

@@ -32,7 +32,7 @@ NS_ASSUME_NONNULL_BEGIN
                           environment:(id<BackendEnvironmentProvider>)environment
                         proxyUsername:(nullable NSString *)proxyUsername
                         proxyPassword:(nullable NSString *)proxyPassword
-                                ready:(BOOL)ready
+                     readyForRequests:(BOOL)readyForRequests
                          workingGroup:(ZMSDispatchGroup * _Nullable)workingGroup
                           application:(id<ZMApplication>)application
                     blacklistCallback:(void (^)(BOOL))blacklistCallback;

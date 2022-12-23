@@ -254,7 +254,7 @@ public final class SessionManager: NSObject, SessionManagerType {
             reachability.tearDown()
             reachability = environment.reachabilityWrapper()
             authenticatedSessionFactory.environment = environment
-            authenticatedSessionFactory.environment = environment
+            unauthenticatedSessionFactory.environment = environment
             unauthenticatedSessionFactory.reachability = reachability
             authenticatedSessionFactory.reachability = reachability
         }
@@ -266,6 +266,8 @@ public final class SessionManager: NSObject, SessionManagerType {
     fileprivate var accountTokens: [UUID: [Any]] = [:]
     fileprivate var memoryWarningObserver: NSObjectProtocol?
     fileprivate var isSelectingAccount: Bool = false
+
+    var proxyCredentials: ProxyCredentials?
 
     public let callKitManager: CallKitManagerInterface
 
@@ -285,7 +287,7 @@ public final class SessionManager: NSObject, SessionManagerType {
 
     var apiVersionResolver: APIVersionResolver?
 
-    private(set) var unauthenticatedTransportSessionReady: Bool = false
+    private(set) var isUnauthenticatedTransportSessionReady: Bool = false
 
     public var requiredPushTokenType: PushToken.TokenType
 
@@ -361,7 +363,7 @@ public final class SessionManager: NSObject, SessionManagerType {
             proxyCredentials: proxyCredentials
         )
 
-       configureBlacklistDownload()
+        configureBlacklistDownload()
 
         self.memoryWarningObserver = NotificationCenter.default.addObserver(
             forName: UIApplication.didReceiveMemoryWarningNotification,
@@ -504,7 +506,7 @@ public final class SessionManager: NSObject, SessionManagerType {
                 environment: environment,
                 proxyUsername: proxyCredentials?.username,
                 proxyPassword: proxyCredentials?.password,
-                ready: self.unauthenticatedTransportSessionReady,
+                readyForRequests: self.isUnauthenticatedTransportSessionReady,
                 working: nil,
                 application: application,
                 blacklistCallback: { [weak self] (blacklisted) in
@@ -522,8 +524,6 @@ public final class SessionManager: NSObject, SessionManagerType {
         }
     }
 
-    var proxyCredentials: ProxyCredentials? 
-
     public func saveProxyCredentials(username: String, password: String) {
         guard let proxy = environment.proxy else { return }
         proxyCredentials = ProxyCredentials(username: username, password: password, proxy: proxy)
@@ -536,9 +536,9 @@ public final class SessionManager: NSObject, SessionManagerType {
     }
 
     public func markNetworkSessionsAsReady(_ ready: Bool) {
-        unauthenticatedTransportSessionReady = ready
+        isUnauthenticatedTransportSessionReady = ready
         reachability.enabled = ready
-        unauthenticatedSessionFactory.ready = ready
+        unauthenticatedSessionFactory.readyForRequests = ready
         createUnauthenticatedSession()
         configureBlacklistDownload()
     }

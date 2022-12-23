@@ -34,7 +34,7 @@
                           environment:(id<BackendEnvironmentProvider>)environment
                         proxyUsername:(NSString *)proxyUsername
                         proxyPassword:(NSString *)proxyPassword
-                                ready:(BOOL)ready
+                     readyForRequests:(BOOL)readyForRequests
                          workingGroup:(ZMSDispatchGroup * _Nullable)workingGroup
                           application:(id<ZMApplication>)application
                     blacklistCallback:(void (^)(BOOL))blacklistCallback
@@ -44,7 +44,7 @@
                            environment:environment
                          proxyUsername:proxyUsername
                          proxyPassword:proxyPassword
-                                 ready:ready
+                      readyForRequests:readyForRequests
                           workingGroup:workingGroup
                            application:application
                      blacklistCallback:blacklistCallback
@@ -56,7 +56,7 @@
                           environment:(id<BackendEnvironmentProvider>)environment
                         proxyUsername:(NSString *)proxyUsername
                         proxyPassword:(NSString *)proxyPassword
-                                ready:(BOOL)ready
+                     readyForRequests:(BOOL)readyForRequests
                          workingGroup:(ZMSDispatchGroup *)workingGroup
                           application:(id<ZMApplication>)application
                     blacklistCallback:(void (^)(BOOL))blacklistCallback
@@ -68,7 +68,7 @@
                                                                environment:environment
                                                              proxyUsername:proxyUsername
                                                              proxyPassword:proxyPassword
-                                                                     ready:ready
+                                                          readyForRequests:readyForRequests
                                                               workingGroup:workingGroup
                                                                application:application
                                                          completionHandler:^(NSString *minVersion, NSArray *excludedVersions) {

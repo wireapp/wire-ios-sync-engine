@@ -18,7 +18,7 @@
 
 import Foundation
 
-typealias WrappedReachability = ReachabilityProvider & TearDownCapable
+public typealias Reachability = ReachabilityProvider & TearDownCapable
 
 extension BackendEnvironmentProvider {
 
@@ -89,10 +89,10 @@ final class ReachabilityWrapper: NSObject, ReachabilityProvider, TearDownCapable
             }
         }
     }
-    var reachabilityClosure: () -> WrappedReachability
-    private var safeReachability: WrappedReachability?
+    var reachabilityClosure: () -> Reachability
+    private var safeReachability: Reachability?
 
-    init(enabled: Bool, reachabilityClosure: @escaping () -> WrappedReachability) {
+    init(enabled: Bool, reachabilityClosure: @escaping () -> Reachability) {
         self.enabled = enabled
         self.reachabilityClosure = reachabilityClosure
         super.init()
