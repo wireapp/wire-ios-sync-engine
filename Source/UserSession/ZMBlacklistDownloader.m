@@ -59,7 +59,7 @@ static NSString * const ExcludeVersionsKey = @"exclude";
 @property (nonatomic) dispatch_queue_t queue;
 
 /// Backend environment to use
-@property (nonatomic) id<BackendEnvironmentProvider> env;
+@property (nonatomic) id<BackendEnvironmentProvider> environment;
 
 /// Callback to be called when the blacklisted versions change
 @property (nonatomic, copy) void(^completionHandler)(NSString *, NSArray *);
@@ -84,6 +84,9 @@ static NSString * const ExcludeVersionsKey = @"exclude";
 
 @property (nonatomic) BOOL tornDown;
 
+/// wait for the network config (proxy) being setup
+@property (nonatomic) BOOL ready;
+
 @end
 
 
@@ -100,7 +103,7 @@ static NSString * const ExcludeVersionsKey = @"exclude";
  All version that are lower than `min_version` or that are listed in `exclude` are not legal.
 
  Use of timers:
- A timer is used to donwload at periodic intervals. The interval depends on whether the last
+ A timer is used to download at periodic intervals. The interval depends on whether the last
  download was a success or a failure. The timer is stopped when moving to the background
  and restarted when coming to the foreground.
 
@@ -109,11 +112,17 @@ static NSString * const ExcludeVersionsKey = @"exclude";
 
 - (instancetype)initWithDownloadInterval:(NSTimeInterval)downloadInterval
                              environment:(id<BackendEnvironmentProvider>)environment
+                           proxyUsername:(NSString *)proxyUsername
+                           proxyPassword:(NSString *)proxyPassword
+                                   ready: (BOOL) ready
                             workingGroup:(ZMSDispatchGroup *)workingGroup
                              application:(id<ZMApplication>)application
                        completionHandler:(void (^)(NSString *, NSArray *))completionHandler {
     return [self initWithURLSession:nil
-                                env:environment
+                        environment:environment
+                      proxyUsername:proxyUsername
+                      proxyPassword:proxyPassword
+                              ready:ready
                successCheckInterval:downloadInterval
                failureCheckInterval:UnsuccessfulDownloadRetryInterval
                        userDefaults:[NSUserDefaults standardUserDefaults]
@@ -125,7 +134,10 @@ static NSString * const ExcludeVersionsKey = @"exclude";
 
 
 - (instancetype)initWithURLSession:(NSURLSession *)session
-                               env:(id<BackendEnvironmentProvider>)env
+                       environment:(id<BackendEnvironmentProvider>)environment
+                     proxyUsername:(NSString *)proxyUsername
+                     proxyPassword:(NSString *)proxyPassword
+                             ready:(BOOL)ready
               successCheckInterval:(NSTimeInterval)successCheckInterval
               failureCheckInterval:(NSTimeInterval)failureCheckInterval
                       userDefaults:(NSUserDefaults *)userDefaults
@@ -136,11 +148,25 @@ static NSString * const ExcludeVersionsKey = @"exclude";
     self = [super init];
     if (self != nil) {
         self.application = application;
-        self.urlSession = session ?: [self defaultSession];
+        self.ready = ready;
+        NSDictionary* proxyDictionary = nil;
+        if (environment.proxy != nil) {
+            proxyDictionary = [environment.proxy socks5SettingsWithProxyUsername:proxyUsername proxyPassword:proxyPassword];
+        }
+        if (session != nil) {
+            self.urlSession = session;
+            if (proxyDictionary != nil) {
+                self.urlSession.configuration.connectionProxyDictionary = proxyDictionary;
+                self.urlSession.configuration.HTTPShouldUsePipelining = true;
+            }
+        } else {
+            self.urlSession = [self defaultSessionWithProxyDictionary:proxyDictionary];
+        }
+
         self.successCheckInterval = successCheckInterval;
         self.failureCheckInterval = MIN(failureCheckInterval,successCheckInterval);  // Make sure we don't download slower when unsuccessful
         self.userDefaults = userDefaults;
-        self.env = env;
+        self.environment = environment;
         self.inBackground = NO;
         self.queue = dispatch_queue_create("ZMBlacklistDownloader", DISPATCH_QUEUE_SERIAL);
         id excludedVersions = [userDefaults objectForKey:ExcludeVersionsKey];
@@ -173,6 +199,7 @@ static NSString * const ExcludeVersionsKey = @"exclude";
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [self.application unregisterObserverForStateChange:self];
     self.inBackground = YES;
+    self.ready = NO;
 
     [self.workingGroup enter];
     dispatch_sync(self.queue, ^{
@@ -191,10 +218,14 @@ static NSString * const ExcludeVersionsKey = @"exclude";
     RequireString(self.tornDown, "ZMBlacklistDownloader needs to be torn down before deallocating.");
 }
 
-- (NSURLSession *)defaultSession
+- (NSURLSession *)defaultSessionWithProxyDictionary: (NSDictionary * _Nullable) proxyDictionary
 {
     NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
     configuration.requestCachePolicy = NSURLRequestReloadIgnoringCacheData;
+    if (proxyDictionary != nil) {
+        configuration.connectionProxyDictionary = proxyDictionary;
+        configuration.HTTPShouldUsePipelining = true;
+    }
     return [NSURLSession sessionWithConfiguration:configuration];
 }	
 
@@ -400,7 +431,10 @@ static NSString * const ExcludeVersionsKey = @"exclude";
 
 - (void)fetchBlackList
 {
-    NSURL *backendURL = [self.env.blackListURL URLByAppendingPathComponent:@"ios"];
+    if (!self.ready) {
+        return;
+    }
+    NSURL *backendURL = [self.environment.blackListURL URLByAppendingPathComponent:@"ios"];
     NSURLRequest *urlRequest = [[NSURLRequest alloc] initWithURL:backendURL];
     ZMLogInfo(@"Blacklist URL: %@", backendURL.absoluteString);
     

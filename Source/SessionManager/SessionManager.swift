@@ -236,7 +236,7 @@ public final class SessionManager: NSObject, SessionManagerType {
     var deleteAccountToken: Any?
     var callCenterObserverToken: Any?
     var blacklistVerificator: ZMBlacklistVerificator?
-    var reachability: ReachabilityProvider & TearDownCapable
+    var reachability: ReachabilityWrapper
     var pushRegistry: PushRegistry
     let notificationsTracker: NotificationsTracker?
     let configuration: SessionManagerConfiguration
@@ -251,13 +251,12 @@ public final class SessionManager: NSObject, SessionManagerType {
 
     var environment: BackendEnvironmentProvider {
         didSet {
+            reachability.tearDown()
+            reachability = environment.reachabilityWrapper()
             authenticatedSessionFactory.environment = environment
-            unauthenticatedSessionFactory.environment = environment
-            reachability = environment.reachability
-
-            // We need a new resolver for the new backend environment.
-            apiVersionResolver = createAPIVersionResolver()
-            resolveAPIVersion()
+            authenticatedSessionFactory.environment = environment
+            unauthenticatedSessionFactory.reachability = reachability
+            authenticatedSessionFactory.reachability = reachability
         }
     }
 
@@ -286,6 +285,8 @@ public final class SessionManager: NSObject, SessionManagerType {
 
     var apiVersionResolver: APIVersionResolver?
 
+    private(set) var unauthenticatedTransportSessionReady: Bool = false
+
     public var requiredPushTokenType: PushToken.TokenType
 
     let isDeveloperModeEnabled: Bool
@@ -312,11 +313,19 @@ public final class SessionManager: NSObject, SessionManagerType {
         isDeveloperModeEnabled: Bool = false
     ) {
         let flowManager = FlowManager(mediaManager: mediaManager)
-        let reachability = environment.reachability
+        let reachability = environment.reachabilityWrapper()
+
+        var proxyCredentials: ProxyCredentials?
+
+        if let proxy = environment.proxy {
+            proxyCredentials = ProxyCredentials.retrieve(for: proxy)
+        }
 
         let unauthenticatedSessionFactory = UnauthenticatedSessionFactory(
             appVersion: appVersion,
             environment: environment,
+            proxyUsername: proxyCredentials?.username,
+            proxyPassword: proxyCredentials?.password,
             reachability: reachability
         )
 
@@ -326,6 +335,8 @@ public final class SessionManager: NSObject, SessionManagerType {
             mediaManager: mediaManager,
             flowManager: flowManager,
             environment: environment,
+            proxyUsername: proxyCredentials?.username,
+            proxyPassword: proxyCredentials?.password,
             reachability: reachability,
             analytics: analytics
         )
@@ -346,43 +357,48 @@ public final class SessionManager: NSObject, SessionManagerType {
             requiredPushTokenType: requiredPushTokenType,
             pushTokenService: pushTokenService,
             callKitManager: callKitManager,
-            isDeveloperModeEnabled: isDeveloperModeEnabled
+            isDeveloperModeEnabled: isDeveloperModeEnabled,
+            proxyCredentials: proxyCredentials
         )
 
-        if configuration.blacklistDownloadInterval > 0 {
-            self.blacklistVerificator = ZMBlacklistVerificator(checkInterval: configuration.blacklistDownloadInterval,
-                                                               version: appVersion,
-                                                               environment: environment,
-                                                               working: nil,
-                                                               application: application,
-                                                               blacklistCallback: { [weak self] (blacklisted) in
-                guard let `self` = self, !self.isAppVersionBlacklisted else { return }
+       configureBlacklistDownload()
 
-                if blacklisted {
-                    self.isAppVersionBlacklisted = true
-                    self.delegate?.sessionManagerDidBlacklistCurrentVersion(reason: .appVersionBlacklisted)
-                    // When the application version is blacklisted we don't want have a
-                    // transition to any other state in the UI, so we won't inform it
-                    // anymore by setting the delegate to nil.
-                    self.delegate = nil
+        self.memoryWarningObserver = NotificationCenter.default.addObserver(
+            forName: UIApplication.didReceiveMemoryWarningNotification,
+            object: nil,
+            queue: nil,
+            using: {[weak self] _ in
+                guard let `self` = self else {
+                    return
                 }
+                log.debug("Received memory warning, tearing down background user sessions.")
+                self.tearDownAllBackgroundSessions()
             })
-        }
 
-        self.memoryWarningObserver = NotificationCenter.default.addObserver(forName: UIApplication.didReceiveMemoryWarningNotification,
-                                                                            object: nil,
-                                                                            queue: nil,
-                                                                            using: {[weak self] _ in
-            guard let `self` = self else {
-                return
-            }
-            log.debug("Received memory warning, tearing down background user sessions.")
-            self.tearDownAllBackgroundSessions()
-        })
-
-        NotificationCenter.default.addObserver(self, selector: #selector(applicationWillEnterForeground(_:)), name: UIApplication.willEnterForegroundNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(applicationWillResignActive(_:)), name: UIApplication.willResignActiveNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(applicationDidBecomeActive(_:)), name: UIApplication.didBecomeActiveNotification, object: nil)
+        NotificationCenter
+            .default
+            .addObserver(
+                self,
+                selector: #selector(applicationWillEnterForeground(_:)),
+                name: UIApplication.willEnterForegroundNotification,
+                object: nil
+            )
+        NotificationCenter
+            .default
+            .addObserver(
+                self,
+                selector: #selector(applicationWillResignActive(_:)),
+                name: UIApplication.willResignActiveNotification,
+                object: nil
+            )
+        NotificationCenter
+            .default
+            .addObserver(
+                self,
+                selector: #selector(applicationDidBecomeActive(_:)),
+                name: UIApplication.didBecomeActiveNotification,
+                object: nil
+            )
     }
 
     init(maxNumberAccounts: Int = defaultMaxNumberAccounts,
@@ -390,7 +406,7 @@ public final class SessionManager: NSObject, SessionManagerType {
          authenticatedSessionFactory: AuthenticatedSessionFactory,
          unauthenticatedSessionFactory: UnauthenticatedSessionFactory,
          analytics: AnalyticsType? = nil,
-         reachability: ReachabilityProvider & TearDownCapable,
+         reachability: ReachabilityWrapper,
          delegate: SessionManagerDelegate?,
          application: ZMApplication,
          pushRegistry: PushRegistry,
@@ -401,7 +417,8 @@ public final class SessionManager: NSObject, SessionManagerType {
          requiredPushTokenType: PushToken.TokenType,
          pushTokenService: PushTokenServiceInterface = PushTokenService(),
          callKitManager: CallKitManagerInterface,
-         isDeveloperModeEnabled: Bool = false
+         isDeveloperModeEnabled: Bool = false,
+         proxyCredentials: ProxyCredentials?
     ) {
         SessionManager.enableLogsByEnvironmentVariable()
         self.environment = environment
@@ -414,6 +431,7 @@ public final class SessionManager: NSObject, SessionManagerType {
         self.requiredPushTokenType = requiredPushTokenType
         self.pushTokenService = pushTokenService
         self.callKitManager = callKitManager
+        self.proxyCredentials = proxyCredentials
 
         guard let sharedContainerURL = Bundle.main.appGroupIdentifier.map(FileManager.sharedContainerDirectory) else {
             preconditionFailure("Unable to get shared container URL")
@@ -475,6 +493,54 @@ public final class SessionManager: NSObject, SessionManagerType {
         callCenterObserverToken = WireCallCenterV3.addGlobalCallStateObserver(observer: self)
 
         checkJailbreakIfNeeded()
+    }
+
+    private func configureBlacklistDownload() {
+        if configuration.blacklistDownloadInterval > 0 {
+            self.blacklistVerificator?.tearDown()
+            self.blacklistVerificator = ZMBlacklistVerificator(
+                checkInterval: configuration.blacklistDownloadInterval,
+                version: appVersion,
+                environment: environment,
+                proxyUsername: proxyCredentials?.username,
+                proxyPassword: proxyCredentials?.password,
+                ready: self.unauthenticatedTransportSessionReady,
+                working: nil,
+                application: application,
+                blacklistCallback: { [weak self] (blacklisted) in
+                    guard let `self` = self, !self.isAppVersionBlacklisted else { return }
+
+                    if blacklisted {
+                        self.isAppVersionBlacklisted = true
+                        self.delegate?.sessionManagerDidBlacklistCurrentVersion(reason: .appVersionBlacklisted)
+                        // When the application version is blacklisted we don't want have a
+                        // transition to any other state in the UI, so we won't inform it
+                        // anymore by setting the delegate to nil.
+                        self.delegate = nil
+                    }
+                })
+        }
+    }
+
+    var proxyCredentials: ProxyCredentials? 
+
+    public func saveProxyCredentials(username: String, password: String) {
+        guard let proxy = environment.proxy else { return }
+        proxyCredentials = ProxyCredentials(username: username, password: password, proxy: proxy)
+        do {
+            try proxyCredentials?.persist()
+            authenticatedSessionFactory.updateProxy(username: username, password: password)
+        } catch {
+            Logging.network.error("proxy credentials could not be saved - \(error.localizedDescription)")
+        }
+    }
+
+    public func markNetworkSessionsAsReady(_ ready: Bool) {
+        unauthenticatedTransportSessionReady = ready
+        reachability.enabled = ready
+        unauthenticatedSessionFactory.ready = ready
+        createUnauthenticatedSession()
+        configureBlacklistDownload()
     }
 
     public func start(launchOptions: LaunchOptions) {
@@ -664,7 +730,8 @@ public final class SessionManager: NSObject, SessionManagerType {
 
             return
         }
-
+        // we can go and activate Reachability
+        markNetworkSessionsAsReady(true)
         activateSession(for: account, completion: completion)
     }
 

@@ -50,16 +50,19 @@
 }
 
 - (void)createSUTWithCompletionHandler:(void (^)(NSString *minVersion, NSArray *excludedVersions))completionHandler
+
 {
     self.sut = [[ZMBlacklistDownloader alloc] initWithURLSession:self.URLSession
-                                                             env:[[MockEnvironment alloc] init]
-                                            successCheckInterval:self.successCheckTimeInterval
-                                            failureCheckInterval:self.failureCheckTimeInterval
+                                                     environment:[[MockEnvironment alloc] init]
+                                                   proxyUsername:nil
+                                                   proxyPassword:nil
+                                                           ready:true
+                                            successCheckInterval:self.successCheckTimeInterval failureCheckInterval:self.failureCheckTimeInterval
                                                     userDefaults:[NSUserDefaults standardUserDefaults]
                                                      application:self.application
                                                     workingGroup:self.syncMOC.dispatchGroup
                                                completionHandler:completionHandler
-                ];
+    ];
 }
 
 - (void)stopTimers

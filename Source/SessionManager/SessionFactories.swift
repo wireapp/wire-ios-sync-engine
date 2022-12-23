@@ -27,12 +27,7 @@ open class AuthenticatedSessionFactory {
     var analytics: AnalyticsType?
     let application: ZMApplication
 
-    var environment: BackendEnvironmentProvider {
-        didSet {
-            reachability = environment.reachability
-        }
-    }
-
+    var environment: BackendEnvironmentProvider
     var reachability: ReachabilityProvider & TearDownCapable
 
     public init(
@@ -41,16 +36,21 @@ open class AuthenticatedSessionFactory {
         mediaManager: MediaManagerType,
         flowManager: FlowManagerType,
         environment: BackendEnvironmentProvider,
+        proxyUsername: String?,
+        proxyPassword: String?,
         reachability: ReachabilityProvider & TearDownCapable,
         analytics: AnalyticsType? = nil) {
-        self.appVersion = appVersion
-        self.mediaManager = mediaManager
-        self.flowManager = flowManager
-        self.analytics = analytics
-        self.application = application
-        self.environment = environment
-        self.reachability = reachability
-    }
+
+            self.appVersion = appVersion
+            self.mediaManager = mediaManager
+            self.flowManager = flowManager
+            self.analytics = analytics
+            self.application = application
+            self.environment = environment
+            self.proxyUsername = proxyUsername
+            self.proxyPassword = proxyPassword
+            self.reachability = reachability
+        }
 
     func session(
         for account: Account,
@@ -59,6 +59,8 @@ open class AuthenticatedSessionFactory {
 
         let transportSession = ZMTransportSession(
             environment: environment,
+            proxyUsername: proxyUsername,
+            proxyPassword: proxyPassword,
             cookieStorage: environment.cookieStorage(for: account),
             reachability: reachability,
             initialAccessToken: nil,
@@ -83,7 +85,18 @@ open class AuthenticatedSessionFactory {
         return userSession
     }
 
+    public func updateProxy(username: String?, password: String?) {
+        self.proxyUsername = username
+        self.proxyPassword = password
+    }
+
+    // MARK: - Private
+
+    private(set) var proxyUsername: String?
+    private(set) var proxyPassword: String?
 }
+
+// MARK: -
 
 open class UnauthenticatedSessionFactory {
 
@@ -94,14 +107,19 @@ open class UnauthenticatedSessionFactory {
     }
 
     var reachability: ReachabilityProvider & TearDownCapable
+    var ready: Bool = false
     let appVersion: String
 
     init(
       appVersion: String,
       environment: BackendEnvironmentProvider,
+      proxyUsername: String?,
+      proxyPassword: String?,
       reachability: ReachabilityProvider & TearDownCapable
     ) {
         self.environment = environment
+        self.proxyUsername = proxyUsername
+        self.proxyPassword = proxyPassword
         self.reachability = reachability
         self.appVersion = appVersion
     }
@@ -112,8 +130,11 @@ open class UnauthenticatedSessionFactory {
     ) -> UnauthenticatedSession {
         let transportSession = UnauthenticatedTransportSession(
           environment: environment,
+          proxyUsername: proxyUsername,
+          proxyPassword: proxyPassword,
           reachability: reachability,
-          applicationVersion: appVersion
+          applicationVersion: appVersion,
+          ready: ready
         )
 
       return UnauthenticatedSession(
@@ -123,4 +144,9 @@ open class UnauthenticatedSessionFactory {
         authenticationStatusDelegate: authenticationStatusDelegate
       )
     }
+
+    // MARK: - Private
+
+    private let proxyUsername: String?
+    private let proxyPassword: String?
 }

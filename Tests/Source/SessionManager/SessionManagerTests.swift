@@ -50,13 +50,15 @@ final class SessionManagerTests: IntegrationTest {
             environment: environment,
             reachability: reachability
         )
-
+        let reachabilityWrapper = ReachabilityWrapper(enabled: true, reachabilityClosure: {
+            reachability
+        })
         let sessionManager = SessionManager(
             maxNumberAccounts: maxNumberAccounts,
             appVersion: "0.0.0",
             authenticatedSessionFactory: authenticatedSessionFactory,
             unauthenticatedSessionFactory: unauthenticatedSessionFactory,
-            reachability: reachability,
+            reachability: reachabilityWrapper,
             delegate: delegate,
             application: application,
             pushRegistry: pushRegistry,
@@ -65,7 +67,8 @@ final class SessionManagerTests: IntegrationTest {
             configuration: sessionManagerConfiguration,
             detector: jailbreakDetector,
             requiredPushTokenType: requiredTokenType,
-            callKitManager: MockCallKitManager()
+            callKitManager: MockCallKitManager(),
+            proxyCredentials: nil
         )
 
         sessionManager.start(launchOptions: launchOptions)
