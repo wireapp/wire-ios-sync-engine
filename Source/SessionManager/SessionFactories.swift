@@ -100,13 +100,9 @@ open class AuthenticatedSessionFactory {
 
 open class UnauthenticatedSessionFactory {
 
-    var environment: BackendEnvironmentProvider {
-        didSet {
-            reachability = environment.reachability
-        }
-    }
-
+    var environment: BackendEnvironmentProvider
     var reachability: Reachability
+    
     var readyForRequests: Bool = false
     let appVersion: String
 
