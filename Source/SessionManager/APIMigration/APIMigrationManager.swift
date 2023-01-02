@@ -89,6 +89,19 @@ class APIMigrationManager {
         }
     }
 
+    func lastUsedAPIVersion(for clientID: String) -> APIVersion? {
+        return userDefaults(for: clientID).lastUsedAPIVersion
+    }
+
+    func persistLastUsedAPIVersion(for clientID: String, apiVersion: APIVersion) {
+        logger.info("persisting last used API version (v\(apiVersion.rawValue)) for client (\(clientID))")
+        userDefaults(for: clientID).lastUsedAPIVersion = apiVersion
+    }
+
+    private func userDefaults(for clientID: String) -> UserDefaults {
+        return UserDefaults(suiteName: "com.wire.apiversion.\(clientID)")!
+    }
+
     private func clientId(for session: ZMUserSession) -> String? {
         var clientID: String?
 
@@ -99,17 +112,10 @@ class APIMigrationManager {
         return clientID
     }
 
-    private func lastUsedAPIVersion(for clientID: String) -> APIVersion? {
-        return userDefaults(for: clientID).lastUsedAPIVersion
-    }
+    // MARK: - Tests
 
-    private func persistLastUsedAPIVersion(for clientID: String, apiVersion: APIVersion) {
-        logger.info("persisting last used API version (v\(apiVersion.rawValue)) for client (\(clientID))")
-        userDefaults(for: clientID).lastUsedAPIVersion = apiVersion
-    }
-
-    private func userDefaults(for clientID: String) -> UserDefaults {
-        return UserDefaults(suiteName: "com.wire.apiversion.\(clientID)")!
+    func resetLastUsedAPIVersion(for clientID: String) {
+        userDefaults(for: clientID).lastUsedAPIVersion = nil
     }
 
 }
