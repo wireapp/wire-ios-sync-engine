@@ -141,8 +141,13 @@ open class UnauthenticatedSessionFactory {
       )
     }
 
+    public func updateProxy(username: String?, password: String?) {
+        self.proxyUsername = username
+        self.proxyPassword = password
+    }
+
     // MARK: - Private
 
-    private let proxyUsername: String?
-    private let proxyPassword: String?
+    private var proxyUsername: String?
+    private var proxyPassword: String?
 }

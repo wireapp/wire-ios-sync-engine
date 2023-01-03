@@ -530,17 +530,22 @@ public final class SessionManager: NSObject, SessionManagerType {
         do {
             try proxyCredentials?.persist()
             authenticatedSessionFactory.updateProxy(username: username, password: password)
+            unauthenticatedSessionFactory.updateProxy(username: username, password: password)
         } catch {
             Logging.network.error("proxy credentials could not be saved - \(error.localizedDescription)")
         }
     }
 
     public func markNetworkSessionsAsReady(_ ready: Bool) {
-        isUnauthenticatedTransportSessionReady = ready
         reachability.enabled = ready
+
+        // force creation of blacklistDownloader
+        isUnauthenticatedTransportSessionReady = ready
+        configureBlacklistDownload()
+
+        // force creation of unauthenticatedSession
         unauthenticatedSessionFactory.readyForRequests = ready
         createUnauthenticatedSession()
-        configureBlacklistDownload()
     }
 
     public func start(launchOptions: LaunchOptions) {
