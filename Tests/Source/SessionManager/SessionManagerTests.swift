@@ -64,7 +64,8 @@ final class SessionManagerTests: IntegrationTest {
             environment: environment,
             configuration: sessionManagerConfiguration,
             detector: jailbreakDetector,
-            requiredPushTokenType: requiredTokenType
+            requiredPushTokenType: requiredTokenType,
+            callKitManager: MockCallKitManager()
         )
 
         sessionManager.start(launchOptions: launchOptions)
@@ -157,7 +158,8 @@ final class SessionManagerTests: IntegrationTest {
             application: application,
             environment: sessionManager!.environment,
             configuration: SessionManagerConfiguration(blacklistDownloadInterval: -1),
-            requiredPushTokenType: .standard
+            requiredPushTokenType: .standard,
+            callKitManager: MockCallKitManager()
         )
 
         let environment = MockEnvironment()
@@ -245,7 +247,8 @@ final class SessionManagerTests: IntegrationTest {
             environment: sessionManager!.environment,
             configuration: SessionManagerConfiguration(blacklistDownloadInterval: -1),
             detector: jailbreakDetector,
-            requiredPushTokenType: .standard
+            requiredPushTokenType: .standard,
+            callKitManager: MockCallKitManager()
         )
 
         let environment = MockEnvironment()
@@ -304,7 +307,8 @@ final class SessionManagerTests: IntegrationTest {
             environment: sessionManager!.environment,
             configuration: configuration,
             detector: jailbreakDetector,
-            requiredPushTokenType: .standard
+            requiredPushTokenType: .standard,
+            callKitManager: MockCallKitManager()
         )
 
         XCTAssertTrue(self.delegate.jailbroken)
@@ -1027,7 +1031,8 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
             application: application,
             environment: sessionManager!.environment,
             configuration: SessionManagerConfiguration(blacklistDownloadInterval: -1),
-            requiredPushTokenType: .standard
+            requiredPushTokenType: .standard,
+            callKitManager: MockCallKitManager()
         )
 
         let environment = MockEnvironment()
@@ -1082,7 +1087,8 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
             application: application,
             environment: sessionManager!.environment,
             configuration: SessionManagerConfiguration(blacklistDownloadInterval: -1),
-            requiredPushTokenType: .standard
+            requiredPushTokenType: .standard,
+            callKitManager: MockCallKitManager()
         )
 
         let environment = MockEnvironment()
@@ -1158,7 +1164,7 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
 
         // WHEN
         let pushCompleted = self.expectation(description: "Push completed")
-        pushRegistry.mockIncomingPushPayload(payload, completion: {
+        sessionManager?.processIncomingRealVoIPPush(payload: payload, completion: {
             DispatchQueue.main.async {
                 // THEN
                 XCTAssertNotNil(self.sessionManager!.backgroundUserSessions[account.userIdentifier])
@@ -1190,11 +1196,11 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
         var userSession1: ZMUserSession!
         let pushCompleted2 = self.expectation(description: "Push completed 2")
         var userSession2: ZMUserSession!
-        pushRegistry.mockIncomingPushPayload(payload, completion: {
+        sessionManager?.processIncomingRealVoIPPush(payload: payload, completion: {
             pushCompleted1.fulfill()
             userSession1 = self.sessionManager!.backgroundUserSessions[account.userIdentifier]
         })
-        pushRegistry.mockIncomingPushPayload(payload, completion: {
+        sessionManager?.processIncomingRealVoIPPush(payload: payload, completion: {
             pushCompleted2.fulfill()
             userSession2 = self.sessionManager!.backgroundUserSessions[account.userIdentifier]
         })

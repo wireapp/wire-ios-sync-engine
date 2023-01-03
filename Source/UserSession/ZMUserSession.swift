@@ -54,6 +54,8 @@ typealias UserSessionDelegate = UserSessionEncryptionAtRestDelegate
 @objcMembers
 public class ZMUserSession: NSObject {
 
+    private static let logger = Logger(subsystem: "VoIP Push", category: "ZMUserSession")
+
     private let appVersion: String
     private var tokens: [Any] = []
     private var tornDown: Bool = false
@@ -425,6 +427,18 @@ public class ZMUserSession: NSObject {
         applicationStatusDirectory?.requestSlowSync()
     }
 
+    private var onProcessedEvents: ((Bool) -> Void)?
+
+    public func requestQuickSync(completion: ((Bool) -> Void)? = nil) {
+        guard let applicationStatusDirectory = applicationStatusDirectory else {
+            completion?(false)
+            return
+        }
+
+        applicationStatusDirectory.requestQuickSync()
+        onProcessedEvents = completion
+    }
+
     private func transportSessionAccessTokenDidFail(response: ZMTransportResponse) {
         managedObjectContext.performGroupedBlock { [weak self] in
             guard let strongRef = self else { return }
@@ -548,6 +562,7 @@ extension ZMUserSession: ZMSyncStateDelegate {
     }
 
     public func didStartQuickSync() {
+        Self.logger.trace("did start quick sync")
         managedObjectContext.performGroupedBlock { [weak self] in
             self?.isPerformingSync = true
             self?.updateNetworkState()
@@ -555,6 +570,7 @@ extension ZMUserSession: ZMSyncStateDelegate {
     }
 
     public func didFinishQuickSync() {
+        Self.logger.trace("did finish quick sync")
         processEvents()
 
         managedObjectContext.performGroupedBlock { [weak self] in
@@ -583,6 +599,10 @@ extension ZMUserSession: ZMSyncStateDelegate {
             self?.isPerformingSync = hasMoreEventsToProcess || isSyncing
             self?.updateNetworkState()
         }
+
+        let block = onProcessedEvents
+        onProcessedEvents = nil
+        block?(!hasMoreEventsToProcess)
     }
 
     private func fetchFeatureConfigs() {

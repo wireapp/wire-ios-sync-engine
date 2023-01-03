@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2018 Wire Swiss GmbH
+// Copyright (C) 2022 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,11 +18,18 @@
 
 import Foundation
 
-extension SessionManager {
+class CallKitCall {
 
-    /// Forwards the Handoff/CallKit activity that user would like to continue in the app
-    public func continueUserActivity(_ userActivity: NSUserActivity) -> Bool {
-        return callKitManager.continueUserActivity(userActivity)
+    let id: UUID
+    let handle: CallHandle
+    let observer = CallObserver()
+
+    init(
+        id: UUID,
+        handle: CallHandle
+    ) {
+        self.id = id
+        self.handle = handle
     }
 
 }

@@ -31,15 +31,19 @@ class LoginFlowTests_PushToken: IntegrationTest {
         super.tearDown()
     }
 
-    func testThatItRegistersThePushTokenWithTheBackend() {
+    func testThatItRegistersThePushTokenWithTheBackend() throws {
         // given
         let deviceToken = "asdfasdf".data(using: .utf8)!
         let deviceTokenAsHex = "6173646661736466"
         XCTAssertTrue(self.login())
 
+        let pushService = try XCTUnwrap(sessionManager?.pushTokenService)
+        let registrationComplete = expectation(description: "registrtation complete")
+        pushService.onRegistrationComplete = { registrationComplete.fulfill() }
+
         // when
-        let pushToken = PushToken.createAPNSToken(from: deviceToken)
-        self.userSession?.setPushToken(pushToken)
+        pushService.storeLocalToken(.createAPNSToken(from: deviceToken))
+        XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then

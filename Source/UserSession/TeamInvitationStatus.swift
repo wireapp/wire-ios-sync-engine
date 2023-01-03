@@ -60,7 +60,7 @@ public class TeamInvitationStatus: NSObject {
     fileprivate var pendingInvitations: [String: InviteCompletionHandler] = [:]
     fileprivate var processedInvitations: [String: InviteCompletionHandler] = [:]
 
-    func invite(_ email: String, completionHandler : @escaping InviteCompletionHandler) {
+    func invite(_ email: String, completionHandler: @escaping InviteCompletionHandler) {
         pendingInvitations[email] = completionHandler
         RequestAvailableNotification.notifyNewRequestsAvailable(nil)
     }

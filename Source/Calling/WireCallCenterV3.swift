@@ -30,6 +30,8 @@ private let zmLog = ZMSLog(tag: "calling")
  */
 public class WireCallCenterV3: NSObject {
 
+    static let logger = Logger(subsystem: "VoIP Push", category: "WireCallCenter")
+
     /// The maximum number of participants for a legacy video call.
 
     let legacyVideoParticipantsLimit = 4
@@ -85,7 +87,7 @@ public class WireCallCenterV3: NSObject {
     var callSnapshots: [AVSIdentifier: CallSnapshot] = [:]
 
     /// Used to collect incoming events (e.g. from fetching the notification stream) until AVS is ready to process them.
-    var bufferedEvents : [(event: CallEvent, completionHandler: () -> Void)]  = []
+    var bufferedEvents: [(event: CallEvent, completionHandler: () -> Void)]  = []
 
     /// Set to true once AVS calls the ReadyHandler. Setting it to `true` forwards all previously buffered events to AVS.
     var isReady: Bool = false {
@@ -662,7 +664,7 @@ extension WireCallCenterV3 {
     /// - parameter callEvent: calling event to process.
     /// - parameter completionHandler: called after the call event has been processed (this will for example wait for AVS to signal that it's ready).
     func processCallEvent(_ callEvent: CallEvent, completionHandler: @escaping () -> Void) {
-
+        Self.logger.trace("process call event")
         if isReady {
             handleCallEvent(callEvent, completionHandler: completionHandler)
         } else {
@@ -671,6 +673,7 @@ extension WireCallCenterV3 {
     }
 
     fileprivate func handleCallEvent(_ callEvent: CallEvent, completionHandler: @escaping () -> Void) {
+        Self.logger.trace("handle call event")
         let result = avsWrapper.received(callEvent: callEvent)
 
         if let context = uiMOC, let error = result {

@@ -167,7 +167,7 @@ class SpyUserClientKeyStore: UserClientKeysStore {
     var failToGeneratePreKeys: Bool = false
     var failToGenerateLastPreKey: Bool = false
 
-    var lastGeneratedKeys : [(id: UInt16, prekey: String)] = []
+    var lastGeneratedKeys: [(id: UInt16, prekey: String)] = []
     var lastGeneratedLastPrekey: String?
 
     override public func generateMoreKeys(_ count: UInt16, start: UInt16) throws -> [(id: UInt16, prekey: String)] {

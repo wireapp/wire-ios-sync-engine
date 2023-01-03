@@ -81,7 +81,7 @@ public class SearchTask {
     }
 
     /// Add a result handler
-    public func onResult(_ resultHandler : @escaping ResultHandler) {
+    public func onResult(_ resultHandler: @escaping ResultHandler) {
         resultHandlers.append(resultHandler)
     }
 

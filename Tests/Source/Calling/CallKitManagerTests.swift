@@ -161,6 +161,13 @@ class MockCallKitManagerDelegate: WireSyncEngine.CallKitManagerDelegate {
         }
     }
 
+    func lookupConversationAndSync(
+        by handle: CallHandle,
+        completionHandler: @escaping (Result<ZMConversation>) -> Void
+    ) {
+        lookupConversation(by: handle, completionHandler: completionHandler)
+    }
+
     var hasEndedAllCalls: Bool = false
     func endAllCalls() {
         hasEndedAllCalls = true
@@ -169,6 +176,7 @@ class MockCallKitManagerDelegate: WireSyncEngine.CallKitManagerDelegate {
 }
 
 class CallKitManagerTest: DatabaseTest {
+
     var sut: WireSyncEngine.CallKitManager!
     var callKitProvider: MockCallKitProvider!
     var callKitController: MockCallKitCallController!
@@ -224,10 +232,16 @@ class CallKitManagerTest: DatabaseTest {
         self.mockCallKitManagerDelegate = MockCallKitManagerDelegate()
         self.mockTransportSession = MockTransportSession(dispatchGroup: dispatchGroup)
 
-        self.sut = WireSyncEngine.CallKitManager(provider: callKitProvider,
-                                                 callController: callKitController,
-                                                 delegate: mockCallKitManagerDelegate,
-                                                 mediaManager: nil)
+        self.sut = CallKitManager(
+            isEnabled: true,
+            application: ApplicationMock(),
+            requiredPushTokenType: .standard,
+            provider: callKitProvider,
+            callController: callKitController,
+            mediaManager: nil,
+            delegate: mockCallKitManagerDelegate
+        )
+
         self.uiMOC.zm_callCenter = mockWireCallCenterV3
     }
 
@@ -278,10 +292,15 @@ class CallKitManagerTest: DatabaseTest {
 
     func testThatItInvalidatesTheProviderOnDeinit() {
         // given
-        sut = WireSyncEngine.CallKitManager(provider: callKitProvider,
-                                            callController: callKitController,
-                                            delegate: mockCallKitManagerDelegate,
-                                            mediaManager: nil)
+        sut = CallKitManager(
+            isEnabled: true,
+            application: ApplicationMock(),
+            requiredPushTokenType: .standard,
+            provider: callKitProvider,
+            callController: callKitController,
+            mediaManager: nil,
+            delegate: nil
+        )
 
         // when
         sut = nil
@@ -308,7 +327,7 @@ class CallKitManagerTest: DatabaseTest {
         XCTAssertTrue(self.callKitController.requestedTransactions.first!.actions.first! is CXStartCallAction)
         let action = self.callKitController.requestedTransactions.first!.actions.first! as! CXStartCallAction
 
-        XCTAssertEqual(action.callUUID, sut.callUUID(for: conversation))
+        XCTAssertEqual(action.callUUID, sut.callRegister.lookupCall(by: conversation)?.id)
         XCTAssertEqual(action.handle.type, .generic)
         XCTAssertEqual(action.handle.value, "\(selfUser.remoteIdentifier!.transportString())+\(conversation.remoteIdentifier!.transportString())")
     }
@@ -327,7 +346,7 @@ class CallKitManagerTest: DatabaseTest {
         XCTAssertTrue(self.callKitController.requestedTransactions.first!.actions.first! is CXStartCallAction)
 
         let action = self.callKitController.requestedTransactions.first!.actions.first! as! CXStartCallAction
-        XCTAssertEqual(action.callUUID, sut.callUUID(for: conversation))
+        XCTAssertEqual(action.callUUID, sut.callRegister.lookupCall(by: conversation)?.id)
         XCTAssertEqual(action.handle.type, .generic)
         XCTAssertEqual(action.handle.value, "\(selfUser.remoteIdentifier!.transportString())+\(conversation.remoteIdentifier!.transportString())")
         XCTAssertFalse(action.isVideo)
@@ -349,7 +368,7 @@ class CallKitManagerTest: DatabaseTest {
         XCTAssertTrue(self.callKitController.requestedTransactions.first!.actions.first! is CXStartCallAction)
         let action = self.callKitController.requestedTransactions.first!.actions.first! as! CXStartCallAction
 
-        XCTAssertEqual(action.callUUID, sut.callUUID(for: conversation))
+        XCTAssertEqual(action.callUUID, sut.callRegister.lookupCall(by: conversation)?.id)
         XCTAssertEqual(action.handle.type, .generic)
         XCTAssertEqual(action.handle.value, "\(selfUser.remoteIdentifier!.transportString())+\(conversation.remoteIdentifier!.transportString())")
         XCTAssertTrue(action.isVideo)
@@ -375,7 +394,7 @@ class CallKitManagerTest: DatabaseTest {
         XCTAssertTrue(self.callKitController.requestedTransactions.last!.actions.first! is CXAnswerCallAction)
 
         let action = self.callKitController.requestedTransactions.last!.actions.last! as! CXAnswerCallAction
-        XCTAssertEqual(action.callUUID, sut.callUUID(for: conversation))
+        XCTAssertEqual(action.callUUID, sut.callRegister.lookupCall(by: conversation)?.id)
     }
 
     func testThatItReportsTheAnswerCallRequest_IfThereExistingIncomingCall() {
@@ -389,7 +408,7 @@ class CallKitManagerTest: DatabaseTest {
         mockWireCallCenterV3.setMockCallState(state, conversationId: conversation.avsIdentifier!, callerId: otherUser.avsIdentifier, isVideo: false)
         self.sut.callCenterDidChange(callState: state, conversation: conversation, caller: otherUser, timestamp: Date(), previousCallState: nil)
 
-        let call = CallKitDelegateTestsMocking.mockCall(with: sut.callUUID(for: conversation)!, outgoing: false)
+        let call = CallKitDelegateTestsMocking.mockCall(with: sut.callRegister.lookupCall(by: conversation)!.id, outgoing: false)
         self.callKitController.mockCallObserver.mockCalls = [call]
 
         // when
@@ -399,7 +418,7 @@ class CallKitManagerTest: DatabaseTest {
         XCTAssertEqual(self.callKitController.timesRequestTransactionCalled, 1)
 
         let action = self.callKitController.requestedTransactions.last!.actions.last! as! CXAnswerCallAction
-        XCTAssertEqual(action.callUUID, sut.callUUID(for: conversation))
+        XCTAssertEqual(action.callUUID, sut.callRegister.lookupCall(by: conversation)?.id)
 
         // teardown
         CallKitDelegateTestsMocking.stopMock(call)
@@ -413,8 +432,19 @@ class CallKitManagerTest: DatabaseTest {
         createOneOnOneConversation(user: otherUser)
         let conversation = otherUser.oneToOneConversation!
         let provider = MockProvider(foo: true)
-        try sut.reportIncomingCall(from: otherUser, in: conversation, video: false)
-        let action = MockCallAnswerAction(call: sut.callUUID(for: conversation)!)
+
+        sut.reportIncomingCall(from: otherUser, in: conversation, hasVideo: false)
+
+        guard let callKitCall = sut.callRegister.lookupCall(by: conversation) else {
+            XCTFail("no call handle")
+            return
+        }
+
+        mockCallKitManagerDelegate.mockConversations = [
+            callKitCall.handle: conversation
+        ]
+
+        let action = MockCallAnswerAction(call: callKitCall.id)
         self.sut.provider(provider, perform: action)
 
         // when
@@ -430,8 +460,19 @@ class CallKitManagerTest: DatabaseTest {
         createOneOnOneConversation(user: otherUser)
         let conversation = otherUser.oneToOneConversation!
         let provider = MockProvider(foo: true)
-        try sut.reportIncomingCall(from: otherUser, in: conversation, video: false)
-        let action = MockCallAnswerAction(call: sut.callUUID(for: conversation)!)
+
+        sut.reportIncomingCall(from: otherUser, in: conversation, hasVideo: false)
+
+        guard let callKitCall = sut.callRegister.lookupCall(by: conversation) else {
+            XCTFail("no call handle")
+            return
+        }
+
+        mockCallKitManagerDelegate.mockConversations = [
+            callKitCall.handle: conversation
+        ]
+
+        let action = MockCallAnswerAction(call: callKitCall.id)
         self.sut.provider(provider, perform: action)
 
         // when
@@ -447,7 +488,7 @@ class CallKitManagerTest: DatabaseTest {
         let otherUser = self.otherUser(moc: self.uiMOC)
         let provider = MockProvider(foo: true)
         let conversation = self.conversation(type: .oneOnOne)
-        
+
         sut.reportIncomingCall(from: otherUser, in: conversation, video: false)
         let action = MockCallAnswerAction(call: sut.callUUID(for: conversation)!)
         self.sut.provider(provider, perform: action)
@@ -464,8 +505,22 @@ class CallKitManagerTest: DatabaseTest {
         // given
         let provider = MockProvider(foo: true)
         let conversation = self.conversation(type: .oneOnOne)
+
         sut.requestStartCall(in: conversation, video: false)
-        let action = MockStartCallAction(call: sut.callUUID(for: conversation)!, handle: CXHandle(type: CXHandle.HandleType.generic, value: conversation.remoteIdentifier!.transportString()))
+
+        guard let callKitCall = sut.callRegister.lookupCall(by: conversation) else {
+            XCTFail("no call handle")
+            return
+        }
+
+        mockCallKitManagerDelegate.mockConversations = [
+            callKitCall.handle: conversation
+        ]
+
+        let action = MockStartCallAction(
+            call: callKitCall.id,
+            handle: CXHandle(type: CXHandle.HandleType.generic, value: conversation.remoteIdentifier!.transportString())
+        )
 
         // when
         self.sut.provider(provider, perform: action)
@@ -480,7 +535,7 @@ class CallKitManagerTest: DatabaseTest {
         let conversation = self.conversation(type: .oneOnOne)
 
         sut.requestStartCall(in: conversation, video: false)
-        let action = MockStartCallAction(call: sut.callUUID(for: conversation)!, handle: CXHandle(type: CXHandle.HandleType.generic, value: conversation.remoteIdentifier!.transportString()))
+        let action = MockStartCallAction(call: sut.callRegister.lookupCall(by: conversation)!.id, handle: CXHandle(type: CXHandle.HandleType.generic, value: conversation.remoteIdentifier!.transportString()))
         mockWireCallCenterV3.startCallShouldFail = true
 
         // when
@@ -496,15 +551,27 @@ class CallKitManagerTest: DatabaseTest {
         let conversation = self.conversation(type: .oneOnOne)
 
         sut.requestStartCall(in: conversation, video: false)
-        let callUUID = sut.callUUID(for: conversation)!
-        let action = MockStartCallAction(call: callUUID, handle: CXHandle(type: CXHandle.HandleType.generic, value: conversation.remoteIdentifier!.transportString()))
+
+        guard let callKitCall = sut.callRegister.lookupCall(by: conversation) else {
+            XCTFail("no call handle")
+            return
+        }
+
+        mockCallKitManagerDelegate.mockConversations = [
+            callKitCall.handle: conversation
+        ]
+
+        let action = MockStartCallAction(
+            call: callKitCall.id,
+            handle: CXHandle(type: CXHandle.HandleType.generic, value: conversation.remoteIdentifier!.transportString())
+        )
 
         // when
         self.sut.provider(provider, perform: action)
         mockWireCallCenterV3.update(callState: .answered(degraded: false), conversationId: conversation.avsIdentifier!, callerId: ZMUser.selfUser(in: uiMOC).avsIdentifier, isVideo: false)
 
         // then
-        XCTAssertTrue(provider.connectingCalls.contains(callUUID))
+        XCTAssertTrue(provider.connectingCalls.contains(callKitCall.id))
     }
 
     func testThatStartCallActionUpdatesWhenTheCallHasConnected() {
@@ -513,15 +580,27 @@ class CallKitManagerTest: DatabaseTest {
         let conversation = self.conversation(type: .oneOnOne)
 
         sut.requestStartCall(in: conversation, video: false)
-        let callUUID = sut.callUUID(for: conversation)!
-        let action = MockStartCallAction(call: callUUID, handle: CXHandle(type: CXHandle.HandleType.generic, value: conversation.remoteIdentifier!.transportString()))
+
+        guard let callKitCall = sut.callRegister.lookupCall(by: conversation) else {
+            XCTFail("no call handle")
+            return
+        }
+
+        mockCallKitManagerDelegate.mockConversations = [
+            callKitCall.handle: conversation
+        ]
+
+        let action = MockStartCallAction(
+            call: callKitCall.id,
+            handle: CXHandle(type: CXHandle.HandleType.generic, value: conversation.remoteIdentifier!.transportString())
+        )
 
         // when
         self.sut.provider(provider, perform: action)
         mockWireCallCenterV3.update(callState: .establishedDataChannel, conversationId: conversation.avsIdentifier!, callerId: ZMUser.selfUser(in: uiMOC).avsIdentifier, isVideo: false)
 
         // then
-        XCTAssertTrue(provider.connectedCalls.contains(callUUID))
+        XCTAssertTrue(provider.connectedCalls.contains(callKitCall.id))
     }
 
     // MARK: Report end on outgoing call
@@ -534,7 +613,7 @@ class CallKitManagerTest: DatabaseTest {
         let state: CallState = .incoming(video: true, shouldRing: true, degraded: false)
         mockWireCallCenterV3.setMockCallState(state, conversationId: conversation.avsIdentifier!, callerId: otherUser.avsIdentifier, isVideo: true)
         self.sut.callCenterDidChange(callState: state, conversation: conversation, caller: otherUser, timestamp: Date(), previousCallState: nil)
-        guard let callUUID = sut.callUUID(for: conversation) else {
+        guard let callUUID = sut.callRegister.lookupCall(by: conversation)?.id else {
             return XCTFail()
         }
 
@@ -557,7 +636,7 @@ class CallKitManagerTest: DatabaseTest {
         let state: CallState = .incoming(video: true, shouldRing: true, degraded: false)
         mockWireCallCenterV3.setMockCallState(state, conversationId: conversation.avsIdentifier!, callerId: otherUser.avsIdentifier, isVideo: true)
         self.sut.callCenterDidChange(callState: state, conversation: conversation, caller: otherUser, timestamp: Date(), previousCallState: nil)
-        let callUUID = sut.callUUID(for: conversation)
+        let callUUID = sut.callRegister.lookupCall(by: conversation)?.id
 
         // when
         self.sut.requestEndCall(in: conversation)
@@ -578,7 +657,7 @@ class CallKitManagerTest: DatabaseTest {
         let state: CallState = .incoming(video: true, shouldRing: true, degraded: false)
         mockWireCallCenterV3.setMockCallState(state, conversationId: conversation.avsIdentifier!, callerId: otherUser.avsIdentifier, isVideo: true)
         self.sut.callCenterDidChange(callState: state, conversation: conversation, caller: otherUser, timestamp: Date(), previousCallState: nil)
-        let callUUID = sut.callUUID(for: conversation)
+        let callUUID = sut.callRegister.lookupCall(by: conversation)?.id
 
         // when
         sut.requestMuteCall(in: conversation, muted: true)
@@ -617,7 +696,7 @@ class CallKitManagerTest: DatabaseTest {
         let identifier = "\(selfUser.remoteIdentifier!.transportString())+\(conversation.remoteIdentifier!.transportString())"
         let handle = INPersonHandle(value: identifier, type: .unknown)
         let person = INPerson(personHandle: handle, nameComponents: .none, displayName: .none, image: .none, contactIdentifier: .none, customIdentifier: identifier)
-        let callHandle = WireSyncEngine.CallHandle(customIdentifier: identifier)!
+        let callHandle = WireSyncEngine.CallHandle(encodedString: identifier)!
         let activity = self.userActivityFor(contacts: [person])
 
         mockCallKitManagerDelegate.mockConversations[callHandle] = conversation
@@ -631,7 +710,7 @@ class CallKitManagerTest: DatabaseTest {
         XCTAssertTrue(self.callKitController.requestedTransactions.first!.actions.first! is CXStartCallAction)
 
         let action = self.callKitController.requestedTransactions.first!.actions.first! as! CXStartCallAction
-        XCTAssertEqual(action.callUUID, sut.callUUID(for: conversation))
+        XCTAssertEqual(action.callUUID, sut.callRegister.lookupCall(by: conversation)?.id)
         XCTAssertFalse(action.isVideo)
     }
 

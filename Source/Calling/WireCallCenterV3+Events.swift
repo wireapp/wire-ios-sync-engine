@@ -80,6 +80,7 @@ extension WireCallCenterV3: ZMConversationObserver {
 extension WireCallCenterV3 {
 
     private func handleEvent(_ description: String, _ handlerBlock: @escaping () -> Void) {
+        Self.logger.trace("handle avs event: \(description)")
         zmLog.debug("Handle AVS event: \(description)")
 
         guard let context = self.uiMOC else {

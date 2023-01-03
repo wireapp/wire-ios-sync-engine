@@ -37,6 +37,7 @@
 @class MockEnvironment;
 @class MockMediaManager;
 @class MockLoginDelegate;
+@class MockPushTokenService;
 
 @interface IntegrationTest : ZMTBaseTest
 
@@ -56,6 +57,7 @@
 @property (nonatomic, nullable) UserNotificationCenterMock *notificationCenter;
 @property (nonatomic, nullable) MockJailbreakDetector *jailbreakDetector;
 @property (nonatomic, nullable) MockLoginDelegate *mockLoginDelegete;
+@property (nonatomic, nullable) MockPushTokenService *mockPushTokenService;
 
 @property (nonatomic, null_unspecified) MockUser *selfUser;
 @property (nonatomic, null_unspecified) MockConversation *selfConversation;
