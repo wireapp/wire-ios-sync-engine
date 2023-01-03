@@ -23,6 +23,11 @@ protocol AccessTokenRenewalObserver {
     func accessTokenRenewalDidFail()
 }
 
+protocol AccessTokenRenewing {
+    func setAccessTokenRenewalObserver(_ observer: AccessTokenRenewalObserver)
+    func renewAccessToken(with clientID: String)
+}
+
 class AccessTokenMigration: APIMigration, AccessTokenRenewalObserver {
 
     let version: APIVersion
@@ -39,13 +44,17 @@ class AccessTokenMigration: APIMigration, AccessTokenRenewalObserver {
     }
 
     func perform(with session: ZMUserSession, clientID: String) async throws {
+        try await perform(with: session, clientID: clientID)
+    }
+
+    func perform(with tokenRenewer: AccessTokenRenewing, clientID: String) async throws {
         logger.info("performing access token migration for clientID \(clientID)")
 
-        session.setAccessTokenRenewalObserver(self)
+        tokenRenewer.setAccessTokenRenewalObserver(self)
 
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Swift.Error>) in
             self.continuation = continuation
-            session.renewAccessToken(with: clientID)
+            tokenRenewer.renewAccessToken(with: clientID)
         }
     }
 
