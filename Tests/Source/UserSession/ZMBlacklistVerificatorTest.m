@@ -1,4 +1,4 @@
-// 
+//
 // Wire
 // Copyright (C) 2016 Wire Swiss GmbH
 // 
@@ -43,6 +43,9 @@ static MockBlacklistDownloader *generatedDownloader;
 
 - (instancetype)initWithDownloadInterval:(NSTimeInterval)downloadInterval
                              environment:(id<BackendEnvironmentProvider>)environment
+                           proxyUsername:(NSString *)proxyUsername
+                           proxyPassword:(NSString *)proxyPassword
+                        readyForRequests:(BOOL)readyForRequests
                             workingGroup:(ZMSDispatchGroup * __unused)group
                              application:(id<ZMApplication>)application
                        completionHandler:(void (^)(NSString *minVersion, NSArray *excludedVersions))completionHandler {
@@ -50,6 +53,9 @@ static MockBlacklistDownloader *generatedDownloader;
     if(self) {
         NOT_USED(application);
         NOT_USED(environment);
+        NOT_USED(proxyUsername);
+        NOT_USED(proxyPassword);
+        NOT_USED(readyForRequests);
         generatedDownloader = self;
         self.downloadInterval = downloadInterval;
         self.completionHandler = completionHandler;
@@ -81,6 +87,9 @@ static MockBlacklistDownloader *generatedDownloader;
     ZMBlacklistVerificator * sut = [[ZMBlacklistVerificator alloc] initWithCheckInterval:1000
                                                                                  version:version
                                                                              environment:[[MockEnvironment alloc] init]
+                                                                           proxyUsername:nil
+                                                                           proxyPassword:nil
+                                                                        readyForRequests:YES
                                                                             workingGroup:self.syncMOC.dispatchGroup
                                                                              application:self.application
                                                                        blacklistCallback:^(BOOL result) {

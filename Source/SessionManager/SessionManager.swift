@@ -524,6 +524,11 @@ public final class SessionManager: NSObject, SessionManagerType {
         }
     }
 
+    public func removeProxyCredentials() {
+        guard let proxy = environment.proxy else { return }
+        _ = ProxyCredentials.destroy(for: proxy)
+    }
+
     public func saveProxyCredentials(username: String, password: String) {
         guard let proxy = environment.proxy else { return }
         proxyCredentials = ProxyCredentials(username: username, password: password, proxy: proxy)
