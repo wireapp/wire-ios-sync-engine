@@ -68,7 +68,8 @@ final class SessionManagerTests: IntegrationTest {
             detector: jailbreakDetector,
             requiredPushTokenType: requiredTokenType,
             callKitManager: MockCallKitManager(),
-            proxyCredentials: nil
+            proxyCredentials: nil,
+            isUnauthenticatedTransportSessionReady: true
         )
 
         sessionManager.start(launchOptions: launchOptions)
@@ -162,7 +163,8 @@ final class SessionManagerTests: IntegrationTest {
             environment: sessionManager!.environment,
             configuration: SessionManagerConfiguration(blacklistDownloadInterval: -1),
             requiredPushTokenType: .standard,
-            callKitManager: MockCallKitManager()
+            callKitManager: MockCallKitManager(),
+            isUnauthenticatedTransportSessionReady: true
         )
 
         let environment = MockEnvironment()
@@ -251,7 +253,8 @@ final class SessionManagerTests: IntegrationTest {
             configuration: SessionManagerConfiguration(blacklistDownloadInterval: -1),
             detector: jailbreakDetector,
             requiredPushTokenType: .standard,
-            callKitManager: MockCallKitManager()
+            callKitManager: MockCallKitManager(),
+            isUnauthenticatedTransportSessionReady: true
         )
 
         let environment = MockEnvironment()
@@ -311,7 +314,8 @@ final class SessionManagerTests: IntegrationTest {
             configuration: configuration,
             detector: jailbreakDetector,
             requiredPushTokenType: .standard,
-            callKitManager: MockCallKitManager()
+            callKitManager: MockCallKitManager(),
+            isUnauthenticatedTransportSessionReady: true
         )
 
         XCTAssertTrue(self.delegate.jailbroken)
@@ -1035,7 +1039,8 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
             environment: sessionManager!.environment,
             configuration: SessionManagerConfiguration(blacklistDownloadInterval: -1),
             requiredPushTokenType: .standard,
-            callKitManager: MockCallKitManager()
+            callKitManager: MockCallKitManager(),
+            isUnauthenticatedTransportSessionReady: true
         )
 
         let environment = MockEnvironment()

@@ -246,7 +246,8 @@ extension IntegrationTest {
             requiredPushTokenType: shouldProcessLegacyPushes ? .voip : .standard,
             pushTokenService: pushTokenService,
             callKitManager: MockCallKitManager(),
-            proxyCredentials: nil
+            proxyCredentials: nil,
+            isUnauthenticatedTransportSessionReady: true
         )
 
         sessionManager?.loginDelegate = mockLoginDelegete

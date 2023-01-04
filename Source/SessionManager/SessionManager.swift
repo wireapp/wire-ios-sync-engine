@@ -287,7 +287,7 @@ public final class SessionManager: NSObject, SessionManagerType {
 
     var apiVersionResolver: APIVersionResolver?
 
-    private(set) var isUnauthenticatedTransportSessionReady: Bool = false
+    private(set) var isUnauthenticatedTransportSessionReady: Bool
 
     public var requiredPushTokenType: PushToken.TokenType
 
@@ -312,7 +312,8 @@ public final class SessionManager: NSObject, SessionManagerType {
         requiredPushTokenType: PushToken.TokenType,
         pushTokenService: PushTokenServiceInterface = PushTokenService(),
         callKitManager: CallKitManagerInterface,
-        isDeveloperModeEnabled: Bool = false
+        isDeveloperModeEnabled: Bool = false,
+        isUnauthenticatedTransportSessionReady: Bool = false
     ) {
         let flowManager = FlowManager(mediaManager: mediaManager)
         let reachability = environment.reachabilityWrapper()
@@ -360,7 +361,8 @@ public final class SessionManager: NSObject, SessionManagerType {
             pushTokenService: pushTokenService,
             callKitManager: callKitManager,
             isDeveloperModeEnabled: isDeveloperModeEnabled,
-            proxyCredentials: proxyCredentials
+            proxyCredentials: proxyCredentials,
+            isUnauthenticatedTransportSessionReady: isUnauthenticatedTransportSessionReady
         )
 
         configureBlacklistDownload()
@@ -420,7 +422,8 @@ public final class SessionManager: NSObject, SessionManagerType {
          pushTokenService: PushTokenServiceInterface = PushTokenService(),
          callKitManager: CallKitManagerInterface,
          isDeveloperModeEnabled: Bool = false,
-         proxyCredentials: ProxyCredentials?
+         proxyCredentials: ProxyCredentials?,
+         isUnauthenticatedTransportSessionReady: Bool = false
     ) {
         SessionManager.enableLogsByEnvironmentVariable()
         self.environment = environment
@@ -434,6 +437,7 @@ public final class SessionManager: NSObject, SessionManagerType {
         self.pushTokenService = pushTokenService
         self.callKitManager = callKitManager
         self.proxyCredentials = proxyCredentials
+        self.isUnauthenticatedTransportSessionReady = isUnauthenticatedTransportSessionReady
 
         guard let sharedContainerURL = Bundle.main.appGroupIdentifier.map(FileManager.sharedContainerDirectory) else {
             preconditionFailure("Unable to get shared container URL")
