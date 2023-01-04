@@ -69,9 +69,9 @@ class RecordingMockTransportSession: NSObject, TransportSessionType {
         return ZMTransportEnqueueResult(didHaveLessRequestsThanMax: true, didGenerateNonNullRequest: true)
     }
 
-    func setAccessTokenRenewalFailureHandler(handler: @escaping ZMCompletionHandlerBlock) { }
+    func setAccessTokenRenewalFailureHandler(_ handler: @escaping ZMCompletionHandlerBlock) { }
 
-    func setAccessTokenRenewalSuccessHandler(handler: @escaping ZMAccessTokenHandlerBlock) { }
+    func setAccessTokenRenewalSuccessHandler(_ handler: @escaping ZMAccessTokenHandlerBlock) { }
 
     var didCallSetNetworkStateDelegate: Bool = false
     func setNetworkStateDelegate(_ delegate: ZMNetworkStateDelegate?) {
