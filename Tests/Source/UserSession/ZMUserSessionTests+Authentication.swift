@@ -25,9 +25,16 @@ class ZMUserSessionTests_Authentication: ZMUserSessionTestsBase {
     override func setUp() {
         super.setUp()
 
+        BackendInfo.apiVersion = .v0
+
         syncMOC.performGroupedBlockAndWait {
             self.createSelfClient()
         }
+    }
+
+    override func tearDown() {
+        BackendInfo.apiVersion = nil
+        super.tearDown()
     }
 
     func testThatIsLoggedInIsFalseAtStartup() {
