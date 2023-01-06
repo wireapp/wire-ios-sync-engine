@@ -27,7 +27,7 @@ class UserTests_AccountDeletion: IntegrationTest {
         createExtraUsersAndConversations()
     }
 
-    func testThatUserIsMarkedAsDeleted() {
+    func testThatUserIsMarkedAsDeleted() throws {
         // given
         XCTAssertTrue(login())
 
@@ -38,7 +38,7 @@ class UserTests_AccountDeletion: IntegrationTest {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
-        let user1 = self.user(for: self.user1)!
+        let user1 = try XCTUnwrap(self.user(for: self.user1))
         XCTAssertTrue(user1.isAccountDeleted)
     }
 

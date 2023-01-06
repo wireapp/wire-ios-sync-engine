@@ -91,7 +91,7 @@ public class ZMUserSession: NSObject {
     let eventProcessingTracker: EventProcessingTracker = EventProcessingTracker()
     let legacyHotFix: ZMHotFix
     // When we move to the monorepo, uncomment hotFixApplicator
-    //let hotFixApplicator = PatchApplicator<HotfixPatch>(lastRunVersionKey: "lastRunHotFixVersion")
+    // let hotFixApplicator = PatchApplicator<HotfixPatch>(lastRunVersionKey: "lastRunHotFixVersion")
 
     public lazy var featureService = FeatureService(context: syncContext)
 
@@ -439,6 +439,21 @@ public class ZMUserSession: NSObject {
         onProcessedEvents = completion
     }
 
+    // MARK: - Access Token
+
+    func renewAccessToken(with clientID: String) {
+        transportSession.renewAccessToken(with: clientID)
+    }
+
+    private func renewAccessTokenIfNeeded(for userClient: UserClient) {
+        guard
+            let apiVersion = BackendInfo.apiVersion,
+            apiVersion > .v2,
+            let clientID = userClient.remoteIdentifier
+        else { return }
+
+        renewAccessToken(with: clientID)
+    }
     private func transportSessionAccessTokenDidFail(response: ZMTransportResponse) {
         managedObjectContext.performGroupedBlock { [weak self] in
             guard let strongRef = self else { return }
@@ -592,7 +607,7 @@ extension ZMUserSession: ZMSyncStateDelegate {
         if !hasMoreEventsToProcess {
             legacyHotFix.applyPatches()
             // When we move to the monorepo, uncomment hotFixApplicator applyPatches
-            //hotFixApplicator.applyPatches(HotfixPatch.self, in: syncContext)
+            // hotFixApplicator.applyPatches(HotfixPatch.self, in: syncContext)
         }
 
         managedObjectContext.performGroupedBlock { [weak self] in
@@ -620,6 +635,8 @@ extension ZMUserSession: ZMSyncStateDelegate {
         // The push token can only be registered after client registration
         transportSession.pushChannel.clientID = userClient.remoteIdentifier
         registerCurrentPushToken()
+        renewAccessTokenIfNeeded(for: userClient)
+
         UserClient.triggerSelfClientCapabilityUpdate(syncContext)
 
         managedObjectContext.performGroupedBlock { [weak self] in
