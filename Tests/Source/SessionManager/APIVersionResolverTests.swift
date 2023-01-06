@@ -248,6 +248,31 @@ class APIVersionResolverTests: ZMTBaseTest {
         XCTAssertEqual(BackendInfo.isFederationEnabled, true)
     }
 
+    // MARK: - Delegate
+
+    func test_itReportsToDelegateWhenVersionIsResolved() {
+        // Given
+        let sut = createSUT(
+            clientProdVersions: [.v3],
+            clientDevVersions: []
+        )
+
+        mockBackendInfo(
+            productionVersions: 0...3,
+            developmentVersions: nil,
+            domain: "foo.com",
+            isFederationEnabled: false
+        )
+
+        // When
+        let done = expectation(description: "done")
+        sut.resolveAPIVersion(completion: done.fulfill)
+        XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
+
+        // Then
+        XCTAssertTrue(mockDelegate.didReportAPIVersionHasBeenResolved)
+    }
+
     // MARK: - Blacklist
 
     func testThatItReportsBlacklistReasonWhenBackendIsObsolete() throws {
@@ -357,7 +382,8 @@ private class MockAPIVersionResolverDelegate: APIVersionResolverDelegate {
         didReportFederationHasBeenEnabled = true
     }
 
+    var didReportAPIVersionHasBeenResolved: Bool = false
     func apiVersionResolverDidResolve(apiVersion: APIVersion) {
-        
+        didReportAPIVersionHasBeenResolved = true
     }
 }
