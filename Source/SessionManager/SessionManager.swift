@@ -550,15 +550,16 @@ public final class SessionManager: NSObject, SessionManagerType {
         createUnauthenticatedSession()
     }
 
-    func markSessionsAsReady(_ ready: Bool) {
+    private func markSessionsAsReady(_ ready: Bool) {
         reachability.enabled = ready
 
         // force creation of transport sessions using isUnauthenticatedTransportSessionReady
         isUnauthenticatedTransportSessionReady = ready
         apiVersionResolver = createAPIVersionResolver()
-        // TODO: see if still failing
-        configureBlacklistDownload()
 
+        if blacklistVerificator != nil {
+            configureBlacklistDownload()
+        }
         // force creation of unauthenticatedSession
         unauthenticatedSessionFactory.readyForRequests = ready
     }
