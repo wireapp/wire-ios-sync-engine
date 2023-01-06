@@ -47,16 +47,17 @@ extension SessionManager: APIVersionResolverDelegate {
     }
 
     func apiVersionResolverDidResolve(apiVersion: APIVersion) {
+
         // TODO: David
         // calling `sessionManagerWillMigrateAccount` will transition the app in the
         // migrating state and show a loading screen. it will happen each time the version
         // is resolved i.e each time the app goes in the foreground. This may be too much
         // and could be avoided if we delayed this until after we've checked if migrations
         // are needed. However, there'd be a risk that requests are fired in the meantime.
+
         delegate?.sessionManagerWillMigrateAccount { [weak self] in
             guard let `self` = self else { return }
             Task {
-                // Do we want to migrate all the sessions?
                 await self.apiMigrationManager.migrateIfNeeded(
                     sessions: self.backgroundUserSessions.map(\.value),
                     to: apiVersion
