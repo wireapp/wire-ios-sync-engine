@@ -1177,7 +1177,7 @@ extension SessionManager: UserSessionSelfUserClientDelegate {
 
         if self.configuration.encryptionAtRestEnabledByDefault {
             do {
-                try activeUserSession?.setEncryptionAtRest(enabled: true)
+                try activeUserSession?.setEncryptionAtRest(enabled: true, skipMigration: true)
             } catch {
                 if let account = accountManager.account(with: accountId) {
                     delete(account: account, reason: .biometricPasscodeNotAvailable)
