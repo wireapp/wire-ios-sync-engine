@@ -751,9 +751,7 @@ public final class SessionManager: NSObject, SessionManagerType {
 
             return
         }
-        // TODO: is it the right place to activate when user is logged in
-        // we can go and activate Reachability
-        markSessionsAsReady(true)
+
         activateSession(for: account, completion: completion)
     }
 
@@ -873,6 +871,8 @@ public final class SessionManager: NSObject, SessionManagerType {
     }
 
     fileprivate func configure(session userSession: ZMUserSession, for account: Account) {
+        // we can go and activate Reachability
+        markSessionsAsReady(true)
         userSession.sessionManager = self
         userSession.delegate = self
         require(backgroundUserSessions[account.userIdentifier] == nil, "User session is already loaded")
