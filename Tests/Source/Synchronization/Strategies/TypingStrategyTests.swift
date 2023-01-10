@@ -184,6 +184,15 @@ extension TypingStrategyTests {
         BackendInfo.domain = previousValue
     }
 
+    func testTypingEndpointV3PathUsesDomainFromConversation() {
+        let conversation = insertUIConversation()
+        conversation.domain = "example.com"
+        uiMOC.saveOrRollback()
+        internalTestTypingEndpointUsesTheRightPath(with: .v3,
+                                                   conversation: conversation,
+                                                   expectedPath: "/v3/conversations/\(conversation.domain!)/\(conversation.remoteIdentifier!.uuidString)/typing")
+    }
+
     func internalTestTypingEndpointUsesTheRightPath(with version: APIVersion,
                                                     conversation: ZMConversation,
                                                     expectedPath: String) {
