@@ -191,7 +191,16 @@ public class TypingStrategy: AbstractRequestStrategy, TearDownCapable, ZMEventCo
               let remoteIdentifier = conversation.remoteIdentifier
         else { return nil }
 
-        let path = "/conversations/\(remoteIdentifier.transportString())/typing"
+        let path: String
+        switch apiVersion {
+        case .v0, .v1, .v2:
+            path = "/conversations/\(remoteIdentifier.transportString())/typing"
+
+        case .v3:
+            guard let domain = conversation.domain.nonEmptyValue ?? BackendInfo.domain else { return nil }
+            path = "/conversations/\(domain)/\(remoteIdentifier.transportString())/typing"
+        }
+
         let payload = [StatusKey: typingEvent.isTyping ? StartedKey : StoppedKey]
         let request = ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData, apiVersion: apiVersion.rawValue)
         request.setDebugInformationTranscoder(self)

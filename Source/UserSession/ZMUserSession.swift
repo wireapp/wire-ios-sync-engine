@@ -91,7 +91,7 @@ public class ZMUserSession: NSObject {
     let eventProcessingTracker: EventProcessingTracker = EventProcessingTracker()
     let legacyHotFix: ZMHotFix
     // When we move to the monorepo, uncomment hotFixApplicator
-    //let hotFixApplicator = PatchApplicator<HotfixPatch>(lastRunVersionKey: "lastRunHotFixVersion")
+    // let hotFixApplicator = PatchApplicator<HotfixPatch>(lastRunVersionKey: "lastRunHotFixVersion")
 
     public lazy var featureService = FeatureService(context: syncContext)
 
@@ -592,7 +592,7 @@ extension ZMUserSession: ZMSyncStateDelegate {
         if !hasMoreEventsToProcess {
             legacyHotFix.applyPatches()
             // When we move to the monorepo, uncomment hotFixApplicator applyPatches
-            //hotFixApplicator.applyPatches(HotfixPatch.self, in: syncContext)
+            // hotFixApplicator.applyPatches(HotfixPatch.self, in: syncContext)
         }
 
         managedObjectContext.performGroupedBlock { [weak self] in
