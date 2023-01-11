@@ -38,7 +38,10 @@ class UserTests_AccountDeletion: IntegrationTest {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
-        let user1 = self.user(for: self.user1)!
+        guard let user1 = self.user(for: self.user1) else {
+            XCTFail("missing user 1")
+            return
+        }
         XCTAssertTrue(user1.isAccountDeleted)
     }
 
@@ -53,7 +56,10 @@ class UserTests_AccountDeletion: IntegrationTest {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
-        let user1 = self.user(for: self.user1)!
+        guard let user1 = self.user(for: self.user1) else {
+            XCTFail("expected user 1")
+            return
+        }
         let groupConversation = self.conversation(for: self.groupConversation)!
         XCTAssertFalse(groupConversation.localParticipants.contains(user1))
     }

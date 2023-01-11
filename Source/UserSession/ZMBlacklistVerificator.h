@@ -30,6 +30,9 @@ NS_ASSUME_NONNULL_BEGIN
 - (instancetype)initWithCheckInterval:(NSTimeInterval)checkInterval
                               version:(NSString *)version
                           environment:(id<BackendEnvironmentProvider>)environment
+                        proxyUsername:(nullable NSString *)proxyUsername
+                        proxyPassword:(nullable NSString *)proxyPassword
+                     readyForRequests:(BOOL)readyForRequests
                          workingGroup:(ZMSDispatchGroup * _Nullable)workingGroup
                           application:(id<ZMApplication>)application
                     blacklistCallback:(void (^)(BOOL))blacklistCallback;

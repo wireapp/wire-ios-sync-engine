@@ -1,6 +1,6 @@
 // 
 // Wire
-// Copyright (C) 2016 Wire Swiss GmbH
+// Copyright (C) 2022 Wire Swiss GmbH
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -28,6 +28,9 @@
 /// Creates a downloader that will download the blacklist file at regular intervals and invokes the completion handler on the main queue when a blacklist is available
 - (instancetype)initWithDownloadInterval:(NSTimeInterval)downloadInterval
                              environment:(id<BackendEnvironmentProvider>)environment
+                           proxyUsername:(NSString *)proxyUsername
+                           proxyPassword:(NSString *)proxyPassword
+                                readyForRequests:(BOOL)readyForRequests
                             workingGroup:(ZMSDispatchGroup *)workingGroup
                              application:(id<ZMApplication>)application
                        completionHandler:(void (^)(NSString *minVersion, NSArray *excludedVersions))completionHandler;

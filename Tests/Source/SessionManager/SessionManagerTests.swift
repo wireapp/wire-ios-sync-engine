@@ -50,13 +50,15 @@ final class SessionManagerTests: IntegrationTest {
             environment: environment,
             reachability: reachability
         )
-
+        let reachabilityWrapper = ReachabilityWrapper(enabled: true, reachabilityClosure: {
+            reachability
+        })
         let sessionManager = SessionManager(
             maxNumberAccounts: maxNumberAccounts,
             appVersion: "0.0.0",
             authenticatedSessionFactory: authenticatedSessionFactory,
             unauthenticatedSessionFactory: unauthenticatedSessionFactory,
-            reachability: reachability,
+            reachability: reachabilityWrapper,
             delegate: delegate,
             application: application,
             pushRegistry: pushRegistry,
@@ -65,7 +67,9 @@ final class SessionManagerTests: IntegrationTest {
             configuration: sessionManagerConfiguration,
             detector: jailbreakDetector,
             requiredPushTokenType: requiredTokenType,
-            callKitManager: MockCallKitManager()
+            callKitManager: MockCallKitManager(),
+            proxyCredentials: nil,
+            isUnauthenticatedTransportSessionReady: true
         )
 
         sessionManager.start(launchOptions: launchOptions)
@@ -159,7 +163,8 @@ final class SessionManagerTests: IntegrationTest {
             environment: sessionManager!.environment,
             configuration: SessionManagerConfiguration(blacklistDownloadInterval: -1),
             requiredPushTokenType: .standard,
-            callKitManager: MockCallKitManager()
+            callKitManager: MockCallKitManager(),
+            isUnauthenticatedTransportSessionReady: true
         )
 
         let environment = MockEnvironment()
@@ -248,7 +253,8 @@ final class SessionManagerTests: IntegrationTest {
             configuration: SessionManagerConfiguration(blacklistDownloadInterval: -1),
             detector: jailbreakDetector,
             requiredPushTokenType: .standard,
-            callKitManager: MockCallKitManager()
+            callKitManager: MockCallKitManager(),
+            isUnauthenticatedTransportSessionReady: true
         )
 
         let environment = MockEnvironment()
@@ -308,7 +314,8 @@ final class SessionManagerTests: IntegrationTest {
             configuration: configuration,
             detector: jailbreakDetector,
             requiredPushTokenType: .standard,
-            callKitManager: MockCallKitManager()
+            callKitManager: MockCallKitManager(),
+            isUnauthenticatedTransportSessionReady: true
         )
 
         XCTAssertTrue(self.delegate.jailbroken)
@@ -1032,7 +1039,8 @@ final class SessionManagerTests_MultiUserSession: IntegrationTest {
             environment: sessionManager!.environment,
             configuration: SessionManagerConfiguration(blacklistDownloadInterval: -1),
             requiredPushTokenType: .standard,
-            callKitManager: MockCallKitManager()
+            callKitManager: MockCallKitManager(),
+            isUnauthenticatedTransportSessionReady: true
         )
 
         let environment = MockEnvironment()
