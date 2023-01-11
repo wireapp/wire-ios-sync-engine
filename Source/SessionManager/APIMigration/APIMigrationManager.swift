@@ -33,21 +33,41 @@ class APIMigrationManager {
         self.migrations = migrations
     }
 
+    func isMigration(to apiVersion: APIVersion, neededForSessions sessions: [ZMUserSession]) -> Bool {
+
+        for session in sessions {
+            if isMigration(to: apiVersion, neededForSession: session) {
+                return true
+            }
+        }
+
+        return false
+    }
+
+    func isMigration(to apiVersion: APIVersion, neededForSession session: ZMUserSession) -> Bool {
+        guard let clientID = clientId(for: session) else {
+            return false
+        }
+
+        return migrations(
+            between: lastUsedAPIVersion(for: clientID),
+            and: apiVersion
+        ).count > 0
+    }
+
     func migrate(
         session: ZMUserSession,
         clientID: String,
         from lastVersion: APIVersion,
         to currentVersion: APIVersion
     ) async {
-        guard lastVersion.rawValue < currentVersion.rawValue else {
+        guard lastVersion < currentVersion else {
             return
         }
 
         logger.info("starting API migrations from api v\(lastVersion.rawValue) to v\(currentVersion.rawValue) for session with clientID \(String(describing: clientID))")
 
-        for migration in migrations.filter({
-            (lastVersion.rawValue+1..<currentVersion.rawValue+1).contains($0.version.rawValue)
-        }) {
+        for migration in migrations(between: lastVersion, and: currentVersion) {
             do {
                 logger.info("starting migration (\(String(describing: migration))) for api v\(migration.version.rawValue)")
                 try await migration.perform(with: session, clientID: clientID)
@@ -62,31 +82,37 @@ class APIMigrationManager {
         for session in sessions {
 
             guard let clientID = clientId(for: session) else {
-                return
-            }
-
-            defer {
-                persistLastUsedAPIVersion(for: clientID, apiVersion: apiVersion)
-            }
-
-            guard let lastUsedVersion = lastUsedAPIVersion(for: clientID) ?? previousAPIVersion else {
-                return
+                continue
             }
 
             await migrate(
                 session: session,
                 clientID: clientID,
-                from: lastUsedVersion,
+                from: lastUsedAPIVersion(for: clientID),
                 to: apiVersion
             )
+
+            persistLastUsedAPIVersion(for: session, apiVersion: apiVersion)
         }
     }
 
-    func lastUsedAPIVersion(for clientID: String) -> APIVersion? {
-        return userDefaults(for: clientID).lastUsedAPIVersion
+    func persistLastUsedAPIVersion(for sessions: [ZMUserSession], apiVersion: APIVersion) {
+        sessions.forEach {
+            persistLastUsedAPIVersion(for: $0, apiVersion: apiVersion)
+        }
     }
 
-    func persistLastUsedAPIVersion(for clientID: String, apiVersion: APIVersion) {
+    // MARK: - Helpers
+
+    func lastUsedAPIVersion(for clientID: String) -> APIVersion {
+        return userDefaults(for: clientID).lastUsedAPIVersion ?? previousAPIVersion ?? .v2
+    }
+
+    func persistLastUsedAPIVersion(for session: ZMUserSession, apiVersion: APIVersion) {
+        guard let clientID = clientId(for: session) else {
+            return
+        }
+
         logger.info("persisting last used API version (v\(apiVersion.rawValue)) for client (\(clientID))")
         userDefaults(for: clientID).lastUsedAPIVersion = apiVersion
     }
@@ -103,6 +129,14 @@ class APIMigrationManager {
         }
 
         return clientID
+    }
+
+    private func migrations(between lVersion: APIVersion, and rVersion: APIVersion) -> [APIMigration] {
+        guard lVersion < rVersion else { return [] }
+
+        return migrations.filter {
+            (lVersion.rawValue+1..<rVersion.rawValue+1).contains($0.version.rawValue)
+        }
     }
 
     // MARK: - Tests
