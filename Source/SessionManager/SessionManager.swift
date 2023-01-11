@@ -446,7 +446,7 @@ public final class SessionManager: NSObject, SessionManagerType {
         self.maxNumberAccounts = maxNumberAccounts
         self.isDeveloperModeEnabled = isDeveloperModeEnabled
         self.apiMigrationManager = APIMigrationManager(
-            migrations: [AccessTokenMigration(version: .v3)]
+            migrations: [AccessTokenMigration()]
         )
 
         // we must set these before initializing the PushDispatcher b/c if the app

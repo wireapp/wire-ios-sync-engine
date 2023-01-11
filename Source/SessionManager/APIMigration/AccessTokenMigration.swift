@@ -30,17 +30,13 @@ protocol AccessTokenRenewing {
 
 class AccessTokenMigration: APIMigration, AccessTokenRenewalObserver {
 
-    let version: APIVersion
+    let version: APIVersion = .v3
 
     private var continuation: CheckedContinuation<Void, Swift.Error>?
     private let logger = Logging.apiMigration
 
     enum Error: Swift.Error {
         case failedToRenewAccessToken
-    }
-
-    init(version: APIVersion) {
-        self.version = version
     }
 
     func perform(with session: ZMUserSession, clientID: String) async throws {
@@ -52,16 +48,11 @@ class AccessTokenMigration: APIMigration, AccessTokenRenewalObserver {
 
         tokenRenewer.setAccessTokenRenewalObserver(self)
 
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Swift.Error>) in
-            self.continuation = continuation
+        try await withCheckedThrowingContinuation { [weak self] (continuation: CheckedContinuation<Void, Swift.Error>) in
+            self?.continuation = continuation
             tokenRenewer.renewAccessToken(with: clientID)
         }
     }
-
-    // TODO: David
-    // We may want to tear down the access token renewal observer when it succeeds / fails
-    // to avoid getting callbacks when the token is renewed from elsewhere.
-    // Note that since we tear down the continuation, the only consequence to that is that we will log.
 
     func accessTokenRenewalDidSucceed() {
         logger.info("successfully renewed access token")

@@ -50,7 +50,7 @@ class AccessTokenMigrationTests: XCTestCase {
 
     func test_itSetsObserver_AndRenewsAccessToken() async throws {
         // Given
-        let sut = AccessTokenMigration(version: .v3)
+        let sut = AccessTokenMigration()
         let tokenRenewer = AccessTokenRenewerMock()
         let clientID = "1234abcd"
 
@@ -67,7 +67,7 @@ class AccessTokenMigrationTests: XCTestCase {
 
     func test_itThrows_FailedToRenewAccessToken() async {
         // Given
-        let sut = AccessTokenMigration(version: .v3)
+        let sut = AccessTokenMigration()
         let tokenRenewer = AccessTokenRenewerMock()
         let clientID = "1234abcd"
 

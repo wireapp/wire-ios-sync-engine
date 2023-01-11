@@ -114,8 +114,8 @@ class APIMigrationManager {
 
     // MARK: - Tests
 
-    func resetLastUsedAPIVersion(for clientID: String) {
-        userDefaults(for: clientID).lastUsedAPIVersion = nil
+    func removeDefaults(for clientID: String) {
+        UserDefaults.standard.removePersistentDomain(forName: "com.wire.apiversion.\(clientID)")
     }
 
 }

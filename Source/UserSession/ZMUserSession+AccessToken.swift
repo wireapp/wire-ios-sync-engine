@@ -37,9 +37,11 @@ extension ZMUserSession: AccessTokenRenewing {
         }
 
         accessTokenRenewalObserver?.accessTokenRenewalDidFail()
+        accessTokenRenewalObserver = nil
     }
 
     func transportSessionAccessTokenDidSucceed() {
         accessTokenRenewalObserver?.accessTokenRenewalDidSucceed()
+        accessTokenRenewalObserver = nil
     }
 }

@@ -46,7 +46,6 @@ class APIMigrationManagerTests: MessagingTest {
 
         let sut = APIMigrationManager(migrations: [])
 
-        sut.resetLastUsedAPIVersion(for: clientID)
         XCTAssertNil(sut.lastUsedAPIVersion(for: clientID))
 
         // When
@@ -56,6 +55,7 @@ class APIMigrationManagerTests: MessagingTest {
         XCTAssertEqual(sut.lastUsedAPIVersion(for: clientID), APIVersion.v3)
 
         userSession.tearDown()
+        sut.removeDefaults(for: clientID)
     }
 
     func test_itPersistsLastUsedAPIVersion_AfterMigrations() async {
@@ -75,6 +75,7 @@ class APIMigrationManagerTests: MessagingTest {
         XCTAssertEqual(sut.lastUsedAPIVersion(for: clientID), .v3)
 
         userSession.tearDown()
+        sut.removeDefaults(for: clientID)
     }
 
     func test_itPerformsMigrationsForVersionsHigherThanLastUsed() async {
@@ -105,6 +106,7 @@ class APIMigrationManagerTests: MessagingTest {
         XCTAssertEqual(migrationV3.performCalls.count, 1)
 
         userSession.tearDown()
+        sut.removeDefaults(for: clientID)
     }
 
     func test_itPerformsMigrationsForMultipleSessions() async {
@@ -138,6 +140,8 @@ class APIMigrationManagerTests: MessagingTest {
 
         userSession1.tearDown()
         userSession2.tearDown()
+        sut.removeDefaults(for: clientID1)
+        sut.removeDefaults(for: clientID2)
     }
 
     func setupClient(_ clientID: String, in userSession: ZMUserSession) {
