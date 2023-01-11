@@ -25,6 +25,7 @@ protocol APIMigration {
 
 class APIMigrationManager {
     let migrations: [APIMigration]
+    var previousAPIVersion: APIVersion?
 
     private let logger = Logging.apiMigration
 
@@ -64,18 +65,11 @@ class APIMigrationManager {
                 return
             }
 
-            // TODO: David
-            // What if there is no last used API version, but we still need the migrations to be done?
-            // e.g: client with active session installs latest version of the app,
-            // has no last used version saved.
-            // previous version was v2, and current version is v3.
-            // we need the client to migrate the access token,
-            // but, since no last used version is recorded, we won't perform the migration.
-            //
-            // solution: maybe we can persist the last used version before resolving the api version?
-            // -> note that we may need to do that for all sessions
-            guard let lastUsedVersion = lastUsedAPIVersion(for: clientID) else {
+            defer {
                 persistLastUsedAPIVersion(for: clientID, apiVersion: apiVersion)
+            }
+
+            guard let lastUsedVersion = lastUsedAPIVersion(for: clientID) ?? previousAPIVersion else {
                 return
             }
 
@@ -85,7 +79,6 @@ class APIMigrationManager {
                 from: lastUsedVersion,
                 to: apiVersion
             )
-            persistLastUsedAPIVersion(for: clientID, apiVersion: apiVersion)
         }
     }
 

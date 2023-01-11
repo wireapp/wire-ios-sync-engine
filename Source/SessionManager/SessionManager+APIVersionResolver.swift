@@ -27,6 +27,7 @@ extension SessionManager: APIVersionResolverDelegate {
             apiVersionResolver = createAPIVersionResolver()
         }
 
+        apiMigrationManager.previousAPIVersion = BackendInfo.apiVersion
         apiVersionResolver!.resolveAPIVersion()
     }
 
