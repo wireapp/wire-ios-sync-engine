@@ -34,14 +34,9 @@ class APIMigrationManager {
     }
 
     func isMigration(to apiVersion: APIVersion, neededForSessions sessions: [ZMUserSession]) -> Bool {
-
-        for session in sessions {
-            if isMigration(to: apiVersion, neededForSession: session) {
-                return true
-            }
-        }
-
-        return false
+        return sessions.filter {
+            isMigration(to: apiVersion, neededForSession: $0)
+        }.count > 0
     }
 
     func isMigration(to apiVersion: APIVersion, neededForSession session: ZMUserSession) -> Bool {
