@@ -290,7 +290,7 @@ internal struct WirelessRequestFactory {
         return .init(path: "/conversations/\(identifier)/code", method: .methodDELETE, payload: nil, apiVersion: apiVersion.rawValue)
     }
 
-        static func setAccessRoles(allowGuests: Bool, allowServices: Bool, for conversation: ZMConversation, apiVersion: APIVersion) -> ZMTransportRequest {
+    static func setAccessRoles(allowGuests: Bool, allowServices: Bool, for conversation: ZMConversation, apiVersion: APIVersion) -> ZMTransportRequest {
         guard let identifier = conversation.remoteIdentifier?.transportString() else {
             fatal("conversation is not yet inserted on the backend")
         }
@@ -311,13 +311,23 @@ internal struct WirelessRequestFactory {
             accessRoles.remove(.nonTeamMember)
         }
 
-        let payload = [
-            "access": ConversationAccessMode.value(forAllowGuests: allowGuests).stringValue as Any,
-            "access_role": ConversationAccessRole.fromAccessRoleV2(accessRoles).rawValue,
-            "access_role_v2": accessRoles.map(\.rawValue)
-        ]
+        var payload: [String : Any] = ["access": ConversationAccessMode.value(forAllowGuests: allowGuests).stringValue as Any]
+        let path: String
 
-        return .init(path: "/conversations/\(identifier)/access", method: .methodPUT, payload: payload as ZMTransportData, apiVersion: apiVersion.rawValue)
+        switch apiVersion {
+        case .v3:
+            guard let domain = conversation.domain.nonEmptyValue ?? BackendInfo.domain else {
+                fatal("no domain associated with conversation, can't make the request")
+            }
+            path = "/conversations/\(domain)/\(identifier)/access"
+            payload["access_role"] = accessRoles.map(\.rawValue)
+        case .v2, .v1, .v0:
+            path = "/conversations/\(identifier)/access"
+            payload["access_role"] = ConversationAccessRole.fromAccessRoleV2(accessRoles).rawValue
+            payload["access_role_v2"] = accessRoles.map(\.rawValue)
+        }
+
+        return .init(path: path, method: .methodPUT, payload: payload as ZMTransportData, apiVersion: apiVersion.rawValue)
     }
 
 }
