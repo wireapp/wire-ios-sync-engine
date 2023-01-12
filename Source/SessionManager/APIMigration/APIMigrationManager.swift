@@ -34,42 +34,20 @@ class APIMigrationManager {
     }
 
     func isMigration(to apiVersion: APIVersion, neededForSessions sessions: [ZMUserSession]) -> Bool {
-        return sessions.filter {
+        return sessions.contains {
             isMigration(to: apiVersion, neededForSession: $0)
-        }.count > 0
+        }
     }
 
-    func isMigration(to apiVersion: APIVersion, neededForSession session: ZMUserSession) -> Bool {
+    private func isMigration(to apiVersion: APIVersion, neededForSession session: ZMUserSession) -> Bool {
         guard let clientID = clientId(for: session) else {
             return false
         }
 
-        return migrations(
+        return !migrations(
             between: lastUsedAPIVersion(for: clientID),
             and: apiVersion
-        ).count > 0
-    }
-
-    func migrate(
-        session: ZMUserSession,
-        clientID: String,
-        from lastVersion: APIVersion,
-        to currentVersion: APIVersion
-    ) async {
-        guard lastVersion < currentVersion else {
-            return
-        }
-
-        logger.info("starting API migrations from api v\(lastVersion.rawValue) to v\(currentVersion.rawValue) for session with clientID \(String(describing: clientID))")
-
-        for migration in migrations(between: lastVersion, and: currentVersion) {
-            do {
-                logger.info("starting migration (\(String(describing: migration))) for api v\(migration.version.rawValue)")
-                try await migration.perform(with: session, clientID: clientID)
-            } catch {
-                logger.warn("migration (\(String(describing: migration))) failed for session with clientID (\(String(describing: clientID)). error: \(String(describing: error))")
-            }
-        }
+        ).isEmpty
     }
 
     func migrateIfNeeded(sessions: [ZMUserSession], to apiVersion: APIVersion) async {
@@ -88,6 +66,28 @@ class APIMigrationManager {
             )
 
             persistLastUsedAPIVersion(for: session, apiVersion: apiVersion)
+        }
+    }
+
+    private func migrate(
+        session: ZMUserSession,
+        clientID: String,
+        from lastVersion: APIVersion,
+        to currentVersion: APIVersion
+    ) async {
+        guard lastVersion < currentVersion else {
+            return
+        }
+
+        logger.info("starting API migrations from api v\(lastVersion.rawValue) to v\(currentVersion.rawValue) for session with clientID \(String(describing: clientID))")
+
+        for migration in migrations(between: lastVersion, and: currentVersion) {
+            do {
+                logger.info("starting migration (\(String(describing: migration))) for api v\(migration.version.rawValue)")
+                try await migration.perform(with: session, clientID: clientID)
+            } catch {
+                logger.warn("migration (\(String(describing: migration))) failed for session with clientID (\(String(describing: clientID)). error: \(String(describing: error))")
+            }
         }
     }
 
@@ -136,7 +136,7 @@ class APIMigrationManager {
 
     // MARK: - Tests
 
-    func removeDefaults(for clientID: String) {
+    static func removeDefaults(for clientID: String) {
         UserDefaults.standard.removePersistentDomain(forName: "com.wire.apiversion.\(clientID)")
     }
 
