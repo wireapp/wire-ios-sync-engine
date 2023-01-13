@@ -36,6 +36,8 @@ final class MockAuthenticatedSessionFactory: AuthenticatedSessionFactory {
             mediaManager: mediaManager,
             flowManager: flowManager,
             environment: environment,
+            proxyUsername: nil,
+            proxyPassword: nil,
             reachability: reachability,
             analytics: nil
         )
@@ -65,7 +67,7 @@ final class MockUnauthenticatedSessionFactory: UnauthenticatedSessionFactory {
          environment: BackendEnvironmentProvider,
          reachability: ReachabilityProvider & TearDownCapable) {
         self.transportSession = transportSession
-        super.init(appVersion: "1.0", environment: environment, reachability: reachability)
+        super.init(appVersion: "1.0", environment: environment, proxyUsername: nil, proxyPassword: nil, reachability: reachability)
     }
 
     override func session(delegate: UnauthenticatedSessionDelegate,
@@ -233,7 +235,7 @@ extension IntegrationTest {
             appVersion: "0.0.0",
             authenticatedSessionFactory: authenticatedSessionFactory,
             unauthenticatedSessionFactory: unauthenticatedSessionFactory,
-            reachability: reachability,
+            reachability: ReachabilityWrapper(enabled: true, reachabilityClosure: { reachability }),
             delegate: self,
             application: application,
             pushRegistry: pushRegistry,
@@ -243,7 +245,9 @@ extension IntegrationTest {
             detector: jailbreakDetector,
             requiredPushTokenType: shouldProcessLegacyPushes ? .voip : .standard,
             pushTokenService: pushTokenService,
-            callKitManager: MockCallKitManager()
+            callKitManager: MockCallKitManager(),
+            proxyCredentials: nil,
+            isUnauthenticatedTransportSessionReady: true
         )
 
         sessionManager?.loginDelegate = mockLoginDelegete

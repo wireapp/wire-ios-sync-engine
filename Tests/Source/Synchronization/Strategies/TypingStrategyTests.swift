@@ -153,6 +153,60 @@ class TypingStrategyTests: MessagingTest {
 
 extension TypingStrategyTests {
 
+    func testTypingEndpointV0UsesTheRightPath() {
+        let conversation = insertUIConversation()
+        internalTestTypingEndpointUsesTheRightPath(with: .v0,
+                                                   conversation: conversation,
+                                                   expectedPath: "/conversations/\(conversation.remoteIdentifier!.uuidString)/typing")
+    }
+
+    func testTypingEndpointV1UsesTheRightPath() {
+        let conversation = insertUIConversation()
+        internalTestTypingEndpointUsesTheRightPath(with: .v1,
+                                                   conversation: conversation,
+                                                   expectedPath: "/v1/conversations/\(conversation.remoteIdentifier!.uuidString)/typing")
+    }
+
+    func testTypingEndpointV2UsesTheRightPath() {
+        let conversation = insertUIConversation()
+        internalTestTypingEndpointUsesTheRightPath(with: .v2,
+                                                   conversation: conversation,
+                                                   expectedPath: "/v2/conversations/\(conversation.remoteIdentifier!.uuidString)/typing")
+    }
+
+    func testTypingEndpointV3UsesTheRightPath() {
+        let conversation = insertUIConversation()
+        let previousValue = BackendInfo.domain
+        BackendInfo.domain = "example.com"
+        internalTestTypingEndpointUsesTheRightPath(with: .v3,
+                                                   conversation: conversation,
+                                                   expectedPath: "/v3/conversations/\(BackendInfo.domain!)/\(conversation.remoteIdentifier!.uuidString)/typing")
+        BackendInfo.domain = previousValue
+    }
+
+    func testTypingEndpointV3PathUsesDomainFromConversation() {
+        let conversation = insertUIConversation()
+        conversation.domain = "example.com"
+        uiMOC.saveOrRollback()
+        internalTestTypingEndpointUsesTheRightPath(with: .v3,
+                                                   conversation: conversation,
+                                                   expectedPath: "/v3/conversations/\(conversation.domain!)/\(conversation.remoteIdentifier!.uuidString)/typing")
+    }
+
+    func internalTestTypingEndpointUsesTheRightPath(with version: APIVersion,
+                                                    conversation: ZMConversation,
+                                                    expectedPath: String) {
+        // given / when
+        TypingStrategy.notifyTranscoderThatUser(isTyping: true, in: conversation)
+        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+
+        let request = sut.nextRequest(for: version)
+
+        // then
+        XCTAssertNotNil(request)
+        XCTAssertEqual(request!.path.lowercased(), expectedPath.lowercased())
+    }
+
     func testThatItForwardsAStartedTypingEvent() {
         // given
         let event = typingEvent(isTyping: true)

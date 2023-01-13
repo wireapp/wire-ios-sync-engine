@@ -21,9 +21,13 @@
 
 @interface ZMBlacklistVerificator (Testing)
 
+
 - (instancetype)initWithCheckInterval:(NSTimeInterval)checkInterval
                               version:(NSString *)version
                           environment:(id<BackendEnvironmentProvider>)environment
+                        proxyUsername:(NSString *)proxyUsername
+                        proxyPassword:(NSString *)proxyPassword
+                     readyForRequests:(BOOL)readyForRequests
                          workingGroup:(ZMSDispatchGroup *)workingGroup
                           application:(id<ZMApplication>)application
                     blacklistCallback:(void (^)(BOOL))blacklistCallback

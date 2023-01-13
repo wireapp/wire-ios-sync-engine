@@ -129,7 +129,7 @@ extern NSTimeInterval DebugLoginFailureTimerOverride;
 
     // when
     [self recreateSessionManager];
-    
+
     // then
     WaitForAllGroupsToBeEmpty(0.5);
     XCTAssertNotNil([self.mockTransportSession.cookieStorage authenticationCookieData]);

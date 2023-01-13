@@ -50,16 +50,19 @@
 }
 
 - (void)createSUTWithCompletionHandler:(void (^)(NSString *minVersion, NSArray *excludedVersions))completionHandler
+
 {
     self.sut = [[ZMBlacklistDownloader alloc] initWithURLSession:self.URLSession
-                                                             env:[[MockEnvironment alloc] init]
-                                            successCheckInterval:self.successCheckTimeInterval
-                                            failureCheckInterval:self.failureCheckTimeInterval
+                                                     environment:[[MockEnvironment alloc] init]
+                                                   proxyUsername:nil
+                                                   proxyPassword:nil
+                                                readyForRequests:true
+                                            successCheckInterval:self.successCheckTimeInterval failureCheckInterval:self.failureCheckTimeInterval
                                                     userDefaults:[NSUserDefaults standardUserDefaults]
                                                      application:self.application
                                                     workingGroup:self.syncMOC.dispatchGroup
                                                completionHandler:completionHandler
-                ];
+    ];
 }
 
 - (void)stopTimers
@@ -120,7 +123,7 @@
         completionHandler = [obj copy];
         return YES;
     }]];
-        
+
     void(^resume)(NSInvocation *) = ^(NSInvocation * ZM_UNUSED i){
         completionHandler(responseData, response, responseError);
     };
@@ -277,7 +280,7 @@ typedef NS_ENUM(int, TestPhase) {
                 }
             }
         };
-    
+
         // when
         [self createSUTWithCompletionHandler:^(__unused NSString *minVersion, __unused NSArray *excludeVersions) {
             didDownload();

@@ -22,20 +22,23 @@ private let log = ZMSLog(tag: "APIVersion")
 
 extension SessionManager: APIVersionResolverDelegate {
 
-    public func resolveAPIVersion() {
+    public func resolveAPIVersion(completion: @escaping (Error?) -> Void = {_ in }) {
         if apiVersionResolver == nil {
             apiVersionResolver = createAPIVersionResolver()
         }
 
         apiMigrationManager.previousAPIVersion = BackendInfo.apiVersion
-        apiVersionResolver!.resolveAPIVersion()
+        apiVersionResolver?.resolveAPIVersion(completion: completion)
     }
 
     func createAPIVersionResolver() -> APIVersionResolver {
         let transportSession = UnauthenticatedTransportSession(
             environment: environment,
+            proxyUsername: proxyCredentials?.username,
+            proxyPassword: proxyCredentials?.password,
             reachability: reachability,
-            applicationVersion: appVersion
+            applicationVersion: appVersion,
+            readyForRequests: self.isUnauthenticatedTransportSessionReady
         )
 
         let apiVersionResolver = APIVersionResolver(

@@ -24,12 +24,15 @@
 @interface ZMBlacklistDownloader (Testing)
 
 - (instancetype)initWithURLSession:(NSURLSession *)session
-                               env:(id<BackendEnvironmentProvider>)env
+                       environment:(id<BackendEnvironmentProvider>)environment
+                     proxyUsername:(NSString *)proxyUsername
+                     proxyPassword:(NSString *)proxyPassword
+                  readyForRequests:(BOOL)readyForRequests
               successCheckInterval:(NSTimeInterval)successCheckInterval
               failureCheckInterval:(NSTimeInterval)failureCheckInterval
                       userDefaults:(NSUserDefaults *)userDefaults
-                       application:application
+                       application:(id<ZMApplication>)application
                       workingGroup:(ZMSDispatchGroup *)workingGroup
-                 completionHandler:(void (^)(NSString *minVersion, NSArray *excludedVersions))completionHandler;
+                 completionHandler:(void (^)(NSString *, NSArray *))completionHandler;
 
 @end

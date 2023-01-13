@@ -1,6 +1,6 @@
 github "wireapp/HTMLString" "6.0.1_xcframework"
 github "wireapp/PINCache" "2.3-xcode13.1"
-github "wireapp/Starscream" "4.0.4_Xcode12.4_module_stability"
+github "wireapp/Starscream" "4.0.4_proxy_mode"
 github "wireapp/ZipArchive" "v2.2.3_xcframework"
 github "wireapp/avs-ios-binaries" "7.2.259_xcframework"
 github "wireapp/cryptobox-ios" "v1.1.0_xcframework_arm64simulator"
