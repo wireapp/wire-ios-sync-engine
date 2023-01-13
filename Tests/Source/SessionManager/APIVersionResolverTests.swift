@@ -266,7 +266,7 @@ class APIVersionResolverTests: ZMTBaseTest {
 
         // When
         let done = expectation(description: "done")
-        sut.resolveAPIVersion(completion: done.fulfill)
+        sut.resolveAPIVersion(completion: { _ in done.fulfill() })
         XCTAssertTrue(waitForCustomExpectations(withTimeout: 0.5))
 
         // Then
