@@ -102,7 +102,7 @@ open class UnauthenticatedSessionFactory {
 
     var environment: BackendEnvironmentProvider
     var reachability: Reachability
-    
+
     var readyForRequests: Bool = false
     let appVersion: String
 

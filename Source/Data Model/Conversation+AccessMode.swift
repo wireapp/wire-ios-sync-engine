@@ -311,7 +311,7 @@ internal struct WirelessRequestFactory {
             accessRoles.remove(.nonTeamMember)
         }
 
-        var payload: [String : Any] = ["access": ConversationAccessMode.value(forAllowGuests: allowGuests).stringValue as Any]
+        var payload: [String: Any] = ["access": ConversationAccessMode.value(forAllowGuests: allowGuests).stringValue as Any]
         let path: String
 
         switch apiVersion {
