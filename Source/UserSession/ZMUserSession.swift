@@ -92,6 +92,7 @@ public class ZMUserSession: NSObject {
     let legacyHotFix: ZMHotFix
     // When we move to the monorepo, uncomment hotFixApplicator
     // let hotFixApplicator = PatchApplicator<HotfixPatch>(lastRunVersionKey: "lastRunHotFixVersion")
+    var accessTokenRenewalObserver: AccessTokenRenewalObserver?
 
     public lazy var featureService = FeatureService(context: syncContext)
 
@@ -296,6 +297,9 @@ public class ZMUserSession: NSObject {
         transportSession.setAccessTokenRenewalFailureHandler { [weak self] (response) in
             self?.transportSessionAccessTokenDidFail(response: response)
         }
+        transportSession.setAccessTokenRenewalSuccessHandler { [weak self]  _, _ in
+            self?.transportSessionAccessTokenDidSucceed()
+        }
     }
 
     private func configureCaches() {
@@ -441,10 +445,6 @@ public class ZMUserSession: NSObject {
 
     // MARK: - Access Token
 
-    func renewAccessToken(with clientID: String) {
-        transportSession.renewAccessToken(with: clientID)
-    }
-
     private func renewAccessTokenIfNeeded(for userClient: UserClient) {
         guard
             let apiVersion = BackendInfo.apiVersion,
@@ -453,14 +453,6 @@ public class ZMUserSession: NSObject {
         else { return }
 
         renewAccessToken(with: clientID)
-    }
-    private func transportSessionAccessTokenDidFail(response: ZMTransportResponse) {
-        managedObjectContext.performGroupedBlock { [weak self] in
-            guard let strongRef = self else { return }
-            let selfUser = ZMUser.selfUser(in: strongRef.managedObjectContext)
-            let error = NSError.userSessionErrorWith(.accessTokenExpired, userInfo: selfUser.loginCredentials.dictionaryRepresentation)
-            strongRef.notifyAuthenticationInvalidated(error)
-        }
     }
 
     // MARK: - Perform changes
@@ -669,7 +661,7 @@ extension ZMUserSession: ZMSyncStateDelegate {
         }
     }
 
-    private func notifyAuthenticationInvalidated(_ error: Error) {
+    func notifyAuthenticationInvalidated(_ error: Error) {
         managedObjectContext.performGroupedBlock {  [weak self] in
             guard let accountId = self?.managedObjectContext.selfUserId else {
                 return
