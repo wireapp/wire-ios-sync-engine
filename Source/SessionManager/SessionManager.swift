@@ -58,6 +58,7 @@ public protocol SessionManagerDelegate: SessionActivationObserver {
     func sessionManagerDidBlacklistCurrentVersion(reason: BlacklistReason)
     func sessionManagerDidBlacklistJailbrokenDevice()
     func sessionManagerDidPerformFederationMigration(authenticated: Bool)
+    func sessionManagerDidPerformAPIMigrations()
 
     var isInAuthenticatedAppState: Bool { get }
     var isInUnathenticatedAppState: Bool { get }
@@ -241,6 +242,7 @@ public final class SessionManager: NSObject, SessionManagerType {
     let notificationsTracker: NotificationsTracker?
     let configuration: SessionManagerConfiguration
     var pendingURLAction: URLAction?
+    let apiMigrationManager: APIMigrationManager
 
     var notificationCenter: UserNotificationCenter = UNUserNotificationCenter.current()
 
@@ -467,6 +469,9 @@ public final class SessionManager: NSObject, SessionManagerType {
         self.pushRegistry = pushRegistry
         self.maxNumberAccounts = maxNumberAccounts
         self.isDeveloperModeEnabled = isDeveloperModeEnabled
+        self.apiMigrationManager = APIMigrationManager(
+            migrations: [AccessTokenMigration()]
+        )
 
         // we must set these before initializing the PushDispatcher b/c if the app
         // received a push from terminated state, it requires these properties to be
@@ -1172,7 +1177,7 @@ extension SessionManager: UserSessionSelfUserClientDelegate {
 
         if self.configuration.encryptionAtRestEnabledByDefault {
             do {
-                try activeUserSession?.setEncryptionAtRest(enabled: true)
+                try activeUserSession?.setEncryptionAtRest(enabled: true, skipMigration: true)
             } catch {
                 if let account = accountManager.account(with: accountId) {
                     delete(account: account, reason: .biometricPasscodeNotAvailable)

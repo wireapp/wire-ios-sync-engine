@@ -130,6 +130,10 @@ private class MockSessionManagerDelegate: SessionManagerDelegate {
         // no op
     }
 
+    func sessionManagerDidPerformAPIMigrations() {
+        // no op
+    }
+
     var isInAuthenticatedAppState: Bool {
         return true
     }

@@ -1658,6 +1658,9 @@ class SessionManagerTestDelegate: SessionManagerDelegate {
         // no op
     }
 
+    func sessionManagerDidPerformAPIMigrations() {
+        // no op
+    }
 }
 
 class SessionManagerObserverMock: SessionManagerCreatedSessionObserver, SessionManagerDestroyedSessionObserver {

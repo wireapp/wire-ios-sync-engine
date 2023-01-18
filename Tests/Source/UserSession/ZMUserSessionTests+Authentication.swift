@@ -18,15 +18,23 @@
 
 import Foundation
 @testable import WireSyncEngine
+import XCTest
 
 class ZMUserSessionTests_Authentication: ZMUserSessionTestsBase {
 
     override func setUp() {
         super.setUp()
 
+        BackendInfo.apiVersion = .v0
+
         syncMOC.performGroupedBlockAndWait {
             self.createSelfClient()
         }
+    }
+
+    override func tearDown() {
+        BackendInfo.apiVersion = nil
+        super.tearDown()
     }
 
     func testThatIsLoggedInIsFalseAtStartup() {
@@ -42,7 +50,7 @@ class ZMUserSessionTests_Authentication: ZMUserSessionTestsBase {
         XCTAssertTrue(sut.isLoggedIn)
     }
 
-    func testThatItEnqueuesRequestToDeleteTheSelfClient() {
+    func testThatItEnqueuesRequestToDeleteTheSelfClient() throws {
         // given
         let selfClient = ZMUser.selfUser(in: uiMOC).selfClient()!
         let credentials = ZMEmailCredentials(email: "john.doe@domain.com", password: "123456")
@@ -52,14 +60,14 @@ class ZMUserSessionTests_Authentication: ZMUserSessionTestsBase {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
-        let request = transportSession.lastEnqueuedRequest!
+        let request = try XCTUnwrap(transportSession.lastEnqueuedRequest)
         let payload = request.payload as? [String: Any]
         XCTAssertEqual(request.method, ZMTransportRequestMethod.methodDELETE)
         XCTAssertEqual(request.path, "/clients/\(selfClient.remoteIdentifier!)")
         XCTAssertEqual(payload?["password"] as? String, credentials.password)
     }
 
-    func testThatItEnqueuesRequestToDeleteTheSelfClientWithoutPassword() {
+    func testThatItEnqueuesRequestToDeleteTheSelfClientWithoutPassword() throws {
         // given
         let selfClient = ZMUser.selfUser(in: uiMOC).selfClient()!
         let credentials = ZMEmailCredentials(email: "john.doe@domain.com", password: "")
@@ -69,7 +77,7 @@ class ZMUserSessionTests_Authentication: ZMUserSessionTestsBase {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
-        let request = transportSession.lastEnqueuedRequest!
+        let request = try XCTUnwrap(transportSession.lastEnqueuedRequest)
         let payload = request.payload as? [String: Any]
         XCTAssertEqual(request.method, ZMTransportRequestMethod.methodDELETE)
         XCTAssertEqual(request.path, "/clients/\(selfClient.remoteIdentifier!)")

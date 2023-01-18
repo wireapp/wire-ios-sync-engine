@@ -27,6 +27,7 @@ extension SessionManager: APIVersionResolverDelegate {
             apiVersionResolver = createAPIVersionResolver()
         }
 
+        apiMigrationManager.previousAPIVersion = BackendInfo.apiVersion
         apiVersionResolver?.resolveAPIVersion(completion: completion)
     }
 
@@ -47,6 +48,29 @@ extension SessionManager: APIVersionResolverDelegate {
 
         apiVersionResolver.delegate = self
         return apiVersionResolver
+    }
+
+    func apiVersionResolverDidResolve(apiVersion: APIVersion) {
+        let sessions = backgroundUserSessions.map(\.value)
+
+        if apiMigrationManager.isMigration(to: apiVersion, neededForSessions: sessions) {
+            migrateSessions(sessions, to: apiVersion)
+        } else {
+            apiMigrationManager.persistLastUsedAPIVersion(for: sessions, apiVersion: apiVersion)
+        }
+    }
+
+    private func migrateSessions(_ sessions: [ZMUserSession], to apiVersion: APIVersion) {
+        delegate?.sessionManagerWillMigrateAccount { [weak self] in
+            guard let `self` = self else { return }
+            Task {
+                await self.apiMigrationManager.migrateIfNeeded(
+                    sessions: sessions,
+                    to: apiVersion
+                )
+                self.delegate?.sessionManagerDidPerformAPIMigrations()
+            }
+        }
     }
 
     func apiVersionResolverFailedToResolveVersion(reason: BlacklistReason) {

@@ -17,6 +17,7 @@
 //
 
 import Foundation
+import WireTransport
 
 @objcMembers
 class RecordingMockTransportSession: NSObject, TransportSessionType {
@@ -68,7 +69,11 @@ class RecordingMockTransportSession: NSObject, TransportSessionType {
         return ZMTransportEnqueueResult(didHaveLessRequestsThanMax: true, didGenerateNonNullRequest: true)
     }
 
-    func setAccessTokenRenewalFailureHandler(handler: @escaping ZMCompletionHandlerBlock) { }
+    func setAccessTokenRenewalFailureHandler(_ handler: @escaping ZMCompletionHandlerBlock) { }
+
+    func setAccessTokenRenewalSuccessHandler(_ handler: @escaping ZMAccessTokenHandlerBlock) { }
+
+    func setAccessTokenRenewalSuccessHandler(handler: @escaping ZMAccessTokenHandlerBlock) { }
 
     var didCallSetNetworkStateDelegate: Bool = false
     func setNetworkStateDelegate(_ delegate: ZMNetworkStateDelegate?) {
@@ -82,4 +87,8 @@ class RecordingMockTransportSession: NSObject, TransportSessionType {
         didCallConfigurePushChannel = true
     }
 
+    var renewAccessTokenCalls = [String]()
+    func renewAccessToken(with clientID: String) {
+        renewAccessTokenCalls.append(clientID)
+    }
 }
