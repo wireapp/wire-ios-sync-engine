@@ -27,7 +27,7 @@ extension Notification.Name {
 
 @objcMembers public class SyncStatus: NSObject, SyncProgress {
 
-    private static let logger = Logger(subsystem: "VoIP Push", category: "SyncStatus")
+    private let logger = WireLogger(tag: "SyncStatus")
 
     public internal (set) var currentSyncPhase: SyncPhase = .done {
         didSet {
@@ -211,7 +211,7 @@ extension SyncStatus {
     }
 
     public func pushChannelDidClose() {
-        Self.logger.trace("push channel did close")
+        self.logger.info("push channel did close")
         pushChannelEstablishedDate = nil
 
         if !currentSyncPhase.isSyncing {
@@ -221,7 +221,7 @@ extension SyncStatus {
     }
 
     public func pushChannelDidOpen() {
-        Self.logger.trace("push channel did open")
+        self.logger.info("push channel did open")
         pushChannelEstablishedDate = Date()
 
         if currentSyncPhase == .fetchingMissedEvents {
