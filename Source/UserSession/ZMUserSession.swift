@@ -205,6 +205,7 @@ public class ZMUserSession: NSObject {
         transportSession.tearDown()
         applicationStatusDirectory = nil
         notificationDispatcher.tearDown()
+        callCenter?.tearDown()
 
         // Wait for all sync operations to finish
         syncManagedObjectContext.performGroupedBlockAndWait { }

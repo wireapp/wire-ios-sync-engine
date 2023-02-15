@@ -171,6 +171,7 @@ extension WireCallCenterV3 {
      */
 
     func handleCallEnd(reason: CallClosedReason, conversationId: AVSIdentifier, messageTime: Date?, userId: AVSIdentifier) {
+        guard isEnabled else { return }
         handleEvent("closed-call") {
             self.handle(callState: .terminating(reason: reason), conversationId: conversationId, messageTime: messageTime, userId: userId)
         }
@@ -202,6 +203,7 @@ extension WireCallCenterV3 {
                                            senderClientId: String,
                                            targets: AVSClientList?,
                                            data: Data) {
+        guard isEnabled else { return }
 
         handleEventInContext("send-call-message") { managedObjectContext in
             let selfUser = ZMUser.selfUser(in: managedObjectContext)

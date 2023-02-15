@@ -108,6 +108,8 @@ public class WireCallCenterV3: NSObject {
     /// once, but we may need to provide AVS with an updated list during the call.
     var clientsRequestCompletionsByConversationId = [AVSIdentifier: (String) -> Void]()
 
+    private(set) var isEnabled = true
+
     let encoder = JSONEncoder()
     let decoder = JSONDecoder()
 
@@ -147,6 +149,10 @@ public class WireCallCenterV3: NSObject {
 
         let observer = Unmanaged.passUnretained(self).toOpaque()
         self.avsWrapper = avsWrapper ?? AVSWrapper(userId: userId, clientId: clientId, observer: observer)
+    }
+
+    func tearDown() {
+        isEnabled = false
     }
 
 }
@@ -286,6 +292,7 @@ extension WireCallCenterV3 {
      */
 
     public func isDegraded(conversationId: AVSIdentifier) -> Bool {
+        guard isEnabled else { return  false }
         let conversation = ZMConversation.fetch(with: conversationId.identifier, domain: conversationId.domain, in: uiMOC!)
         let isConversationDegraded = conversation?.securityLevel == .secureWithIgnored
         let isCallDegraded = callSnapshots[conversationId]?.isDegradedCall ?? false
@@ -294,6 +301,7 @@ extension WireCallCenterV3 {
 
     /// Returns conversations with active calls.
     public func activeCallConversations(in userSession: ZMUserSession) -> [ZMConversation] {
+        guard isEnabled else { return  [] }
         let conversations = nonIdleCalls.compactMap { (key: AVSIdentifier, value: CallState) -> ZMConversation? in
             switch value {
             case .establishedDataChannel, .established, .answered, .outgoing:
@@ -354,6 +362,7 @@ extension WireCallCenterV3 {
     func callParticipants(conversationId: AVSIdentifier,
                           kind: CallParticipantsListKind,
                           activeSpeakersLimit limit: Int? = nil) -> [CallParticipant] {
+        guard isEnabled else { return  [] }
         guard
             let callMembers = callSnapshots[conversationId]?.callParticipants.members.array,
             let context = uiMOC
@@ -379,6 +388,7 @@ extension WireCallCenterV3 {
     }
 
     private func activeSpeakers(conversationId: AVSIdentifier, limitedBy limit: Int? = nil) -> [AVSActiveSpeakersChange.ActiveSpeaker] {
+        guard isEnabled else { return [] }
         guard let activeSpeakers = callSnapshots[conversationId]?.activeSpeakers else {
             return []
         }
@@ -392,16 +402,19 @@ extension WireCallCenterV3 {
 
     /// Returns the remote identifier of the user that initiated the call.
     func initiatorForCall(conversationId: AVSIdentifier) -> AVSIdentifier? {
+        guard isEnabled else { return nil }
         return callSnapshots[conversationId]?.callStarter
     }
 
     /// Call this method when the callParticipants changed and avs calls the handler `wcall_participant_changed_h`
     func callParticipantsChanged(conversationId: AVSIdentifier, participants: [AVSCallMember]) {
+        guard isEnabled else { return }
         callSnapshots[conversationId]?.callParticipants.callParticipantsChanged(participants: participants)
     }
 
     /// Call this method when the network quality of a participant changes and avs calls the `wcall_network_quality_h`.
     func callParticipantNetworkQualityChanged(conversationId: AVSIdentifier, client: AVSClient, quality: NetworkQuality) {
+        guard isEnabled else { return }
 
         let snapshot = callSnapshots[conversationId]?.callParticipants
         snapshot?.callParticipantNetworkQualityChanged(client: client, networkQuality: quality)
