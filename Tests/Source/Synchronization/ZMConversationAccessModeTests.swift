@@ -46,17 +46,62 @@ public class ZMConversationAccessModeTests: MessagingTest {
         super.tearDown()
     }
 
-    func testThatItGeneratesCorrectSetAccessModeRequest() {
+    func testThatItGeneratesCorrectSetAccessModeRequestForApiVersionV0() {
+        internaltestThatItGeneratesCorrectSetAccessModeRequestForPreviousApiVersions(apiVersion: .v0)
+    }
+
+    func testThatItGeneratesCorrectSetAccessModeRequestForApiVersionV1() {
+        internaltestThatItGeneratesCorrectSetAccessModeRequestForPreviousApiVersions(apiVersion: .v1)
+    }
+
+    func testThatItGeneratesCorrectSetAccessModeRequestForApiVersionV2() {
+        internaltestThatItGeneratesCorrectSetAccessModeRequestForPreviousApiVersions(apiVersion: .v2)
+    }
+
+    func testThatItGeneratesCorrectSetAccessModeRequestForApiVersionV3() {
+        // given
+        selfUser(options: SelfUserOptions(team: .teamA))
+        let conversation = self.conversation(options: ConversationOptions(hasRemoteId: true, team: .teamA, isGroup: true))
+        conversation.domain = "example.com"
+        // when
+        let request = WireSyncEngine.WirelessRequestFactory.setAccessRoles(allowGuests: true, allowServices: false, for: conversation, apiVersion: .v3)
+
+        // then
+        XCTAssertEqual(request.method, .methodPUT)
+        XCTAssertEqual(request.path, "/v3/conversations/example.com/\(conversation.remoteIdentifier!.transportString())/access")
+        guard let payload = request.payload as? [String: AnyHashable] else {
+            XCTFail("missing payload")
+            return
+        }
+        XCTAssertNotNil(payload["access"])
+        XCTAssertEqual(Set(payload["access"] as! [String]), Set(["invite", "code"]))
+        XCTAssertNotNil(payload["access_role"])
+        guard let accessRoles = payload["access_role"] as? [String] else {
+            XCTFail("unexpected format")
+            return
+        }
+        XCTAssertEqual(Set(accessRoles), Set(["team_member", "non_team_member", "guest"]))
+
+        XCTAssertNil(payload["access_role_v2"])
+    }
+
+    func internaltestThatItGeneratesCorrectSetAccessModeRequestForPreviousApiVersions(apiVersion: APIVersion) {
         // given
         selfUser(options: SelfUserOptions(team: .teamA))
         let conversation = self.conversation(options: ConversationOptions(hasRemoteId: true, team: .teamA, isGroup: true))
 
         // when
-        let request = WireSyncEngine.WirelessRequestFactory.setAccessRoles(allowGuests: true, allowServices: false, for: conversation, apiVersion: .v0)
+        let request = WireSyncEngine.WirelessRequestFactory.setAccessRoles(allowGuests: true, allowServices: false, for: conversation, apiVersion: apiVersion)
 
         // then
         XCTAssertEqual(request.method, .methodPUT)
-        XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/access")
+        switch apiVersion {
+        case .v0:
+            XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/access")
+        case .v1, .v2, .v3:
+            XCTAssertEqual(request.path, "/v\(apiVersion.rawValue)/conversations/\(conversation.remoteIdentifier!.transportString())/access")
+        }
+
         let payload = request.payload as! [String: AnyHashable]
         XCTAssertNotNil(payload)
         XCTAssertNotNil(payload["access"])
