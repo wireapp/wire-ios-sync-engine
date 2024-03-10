@@ -37,7 +37,7 @@ extension BackendEnvironmentProvider {
     }
 
     func reachabilityWrapper() -> ReachabilityWrapper {
-        ReachabilityWrapper(enabled: false, reachabilityClosure: {
+        ReachabilityWrapper(enabled: true, reachabilityClosure: {
             self.reachability
         })
     }
